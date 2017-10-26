@@ -25,6 +25,6 @@ hs_err_pid*
 
 # xml files
 
-*.xml
+.idea/modules.xml
 
 .idea
