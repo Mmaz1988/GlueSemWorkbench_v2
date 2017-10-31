@@ -5,7 +5,7 @@ public class LinearLogicParser {
 
     }
 
-    public int parse(String str) {
+    public void parse(String str) {
 
         // Initialize new sequent
         Sequent input_seq = new Sequent();
