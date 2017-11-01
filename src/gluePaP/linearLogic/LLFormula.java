@@ -9,11 +9,32 @@ public class LLFormula extends LLTerm {
     private LLOperator operator;
 
 
-    public LLFormula(String id, String name, LLTerm lhs, LLTerm rhs, LLOperator operator) {
-        this.id = id;
-        this.name = name;
-        this.lhs = lhs;
-        this.rhs = rhs;
-        this.operator = operator;
+    public LLFormula(String id) {
+        this.setId(id);
     }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public LLTerm getLhs() {
+        return lhs;
+    }
+
+    public void setLhs(LLTerm lhs) {
+        this.lhs = lhs;
+    }
+
+    public LLTerm getRhs() {
+        return rhs;
+    }
+
+    public void setRhs(LLTerm rhs) {
+        this.rhs = rhs;
+    }
+
 }
