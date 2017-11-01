@@ -2,13 +2,12 @@ package gluePaP.parser;
 
 import gluePaP.linearLogic.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class LinearLogicParser {
 
     public List<String> UnparsedPremises;
-    public List<LinearLogicTerm> Premises;
+    public List<LLTerm> Premises;
 
     public LinearLogicParser() {
 
@@ -18,7 +17,7 @@ public class LinearLogicParser {
 
     }
 
-    public LinearLogicTerm parse(String llExpressionString) {
+    public LLTerm parse(String llExpressionString) {
 
         for (int i = 0; i < llExpressionString.length(); i++) {
             int c = (int) llExpressionString.charAt(i);
@@ -44,7 +43,7 @@ public class LinearLogicParser {
 
         }
 
-        LinearLogicTerm bleh = new LLFormula();
+        LLTerm bleh = new LLFormula();
 
         return bleh;
     }
@@ -53,7 +52,7 @@ public class LinearLogicParser {
             /*
     public void parse(String str) {
         // Initialize list of left hand side terms for the sequent
-        List<LinearLogicTerm> lhs_terms;
+        List<LLTerm> lhs_terms;
         // Initialize new sequent
         //Sequent input_seq = new Sequent();
         // Read input string characterwise

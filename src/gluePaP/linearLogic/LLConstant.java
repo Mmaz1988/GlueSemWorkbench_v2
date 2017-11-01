@@ -1,6 +1,6 @@
 package gluePaP.linearLogic;
 
-public class LLConstant extends LinearLogicTerm implements Atom {
+public class LLConstant extends LLTerm implements Atom {
     private String name;
     //private int id;
 
