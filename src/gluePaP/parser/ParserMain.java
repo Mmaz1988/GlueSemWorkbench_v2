@@ -5,17 +5,13 @@ package gluePaP.parser;
  */
 
 import gluePaP.linearLogic.Atom;
-import gluePaP.linearLogic.LLConstant;
-import gluePaP.linearLogic.LLVariable;
-import gluePaP.linearLogic.LinearLogicTerm;
+import gluePaP.linearLogic.LLTerm;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class ParserMain {
     public String Input;
-    public List<LinearLogicTerm> Premises;
+    public List<LLTerm> Premises;
     public Atom Goal;
 
     public ParserMain(String input)
@@ -49,7 +45,7 @@ public class ParserMain {
     /*
     public void parse(String str) {
         // Initialize list of left hand side terms for the sequent
-        List<LinearLogicTerm> lhs_terms;
+        List<LLTerm> lhs_terms;
         // Initialize new sequent
         //Sequent input_seq = new Sequent();
         // Read input string characterwise

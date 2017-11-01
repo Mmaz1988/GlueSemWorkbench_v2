@@ -1,6 +1,6 @@
 package gluePaP.linearLogic;
 
-public class LLVariable extends LinearLogicTerm implements Atom{
+public class LLVariable extends LLTerm implements Atom{
     private String name;
 
 

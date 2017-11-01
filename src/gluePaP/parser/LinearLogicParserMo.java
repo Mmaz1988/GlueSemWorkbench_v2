@@ -2,8 +2,8 @@ package gluePaP.parser;
 
 import gluePaP.linearLogic.Atom;
 import gluePaP.linearLogic.LLConstant;
+import gluePaP.linearLogic.LLTerm;
 import gluePaP.linearLogic.LLVariable;
-import gluePaP.linearLogic.LinearLogicTerm;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,9 +24,9 @@ public class LinearLogicParserMo {
 
     }
 
-    public LinearLogicTerm parse() {
+    public LLTerm parse() {
         // Initialize list of left hand side terms for the sequent
-        List<LinearLogicTerm> lhs_terms = new ArrayList<>();
+        List<LLTerm> lhs_terms = new ArrayList<>();
 
         // Initialize new sequent
         //Sequent input_seq = new Sequent();
@@ -42,7 +42,7 @@ public class LinearLogicParserMo {
         }
     }
 
-    private LinearLogicTerm parseTerm(int i){
+    private LLTerm parseTerm(int i){
         int c = (int) input.charAt(i);
         //String next = input.substring(i).trim();
             // character is a lower case letter
@@ -67,7 +67,7 @@ public class LinearLogicParserMo {
         else if (c == 45) {
             // currently reading in a linear implication
             if(this.nextChar(i) == 111) {
-                return new ComplexTerm(parseAtom(this.lastChar(i),LinearImplication,this.nextChar(i)));
+                return new ComplexTerm(parseAtom(this.lastChar(i),LinearImplication,parseTerm(i));
             }
             else //Exception??? {
             // TODO add appropriate
@@ -75,9 +75,14 @@ public class LinearLogicParserMo {
         }
         // character is a left parenthesis, set scope
         else if (c == 40) {
-
+            return parseTerm(i+1);
+        }
+        else {
+            return SomeException;
         }
     }
+
+
 
     //Simpler method to do this???
     private char nextChar(int i) {
