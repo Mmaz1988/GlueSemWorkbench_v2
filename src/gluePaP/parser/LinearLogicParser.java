@@ -13,12 +13,12 @@ public class LinearLogicParser {
     public LinearLogicParser() {
 
         for (String unparsedPremise : UnparsedPremises) {
-            Premises.add(parse(unparsedPremise));
+            Premises.add(parse(unparsedPremise,0));
         }
 
     }
 
-    public LinearLogicTerm parse(String llExpressionString) {
+    public LinearLogicTerm parse(String llExpressionString, Integer newIndex) {
 
         for (int i = 0; i < llExpressionString.length(); i++) {
             int c = (int) llExpressionString.charAt(i);
@@ -36,6 +36,7 @@ public class LinearLogicParser {
             }
             // character is a left parenthesis, set scope
             else if (c == 40) {
+                LinearLogicTerm term = new LLFormula();
 
             } else {
                 // return exception?
@@ -44,9 +45,7 @@ public class LinearLogicParser {
 
         }
 
-        LinearLogicTerm bleh = new LLFormula();
 
-        return bleh;
     }
 }
 
