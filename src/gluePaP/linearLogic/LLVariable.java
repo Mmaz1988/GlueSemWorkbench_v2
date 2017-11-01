@@ -1,8 +1,8 @@
 package gluePaP.linearLogic;
 
-public class LLVariable implements Atom{
+public class LLVariable extends LinearLogicTerm implements Atom{
     private String name;
-    //private int id;
+
 
     public String getName() {
         return name;

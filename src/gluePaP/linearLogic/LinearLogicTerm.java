@@ -1,5 +1,7 @@
 package gluePaP.linearLogic;
 
-public interface LinearLogicTerm {
+public abstract class LinearLogicTerm {
+
+    private String id;
 
 }

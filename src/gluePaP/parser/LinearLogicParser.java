@@ -1,9 +1,6 @@
 package gluePaP.parser;
 
-import gluePaP.linearLogic.LLConstant;
-import gluePaP.linearLogic.LLVariable;
-import gluePaP.linearLogic.LinearLogicTerm;
-import gluePaP.linearLogic.Sequent;
+import gluePaP.linearLogic.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,19 +12,43 @@ public class LinearLogicParser {
 
     public LinearLogicParser() {
 
+        for (String unparsedPremise : UnparsedPremises) {
+            Premises.add(parse(unparsedPremise));
+        }
+
     }
-        public List<LinearLogicTerm> parse(String llExpressionString)
-        {
-            List<LinearLogicTerm> premises = new ArrayList<LinearLogicTerm>();
-            return premises;
+
+    public LinearLogicTerm parse(String llExpressionString) {
+
+        for (int i = 0; i < llExpressionString.length(); i++) {
+            int c = (int) llExpressionString.charAt(i);
+
+            // character is a whitespace
+            if (c == 32)
+                continue;
+                // character is a lower case letter
+            else if (c >= 97 || c <= 122) {
+
+            }
+            // character is an upper case letter
+            else if (c >= 65 || c <= 90) {
+
+            }
+            // character is a left parenthesis, set scope
+            else if (c == 40) {
+
+            } else {
+                // return exception?
+            }
+
+
         }
 
+        LinearLogicTerm bleh = new LLFormula();
 
-
-
-        }
-
-
+        return bleh;
+    }
+}
 
             /*
     public void parse(String str) {

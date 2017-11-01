@@ -1,6 +1,4 @@
 package gluePaP.linearLogic;
 
-public interface Atom {
-
-
+public class LLImplication {
 }
