@@ -1,4 +1,11 @@
-package gluePaP.linearLogic;
+package gluePaP.parser;
+
+import gluePaP.linearLogic.LLConstant;
+import gluePaP.linearLogic.LLVariable;
+import gluePaP.linearLogic.LinearLogicTerm;
+import gluePaP.linearLogic.Sequent;
+
+import java.util.List;
 
 public class LinearLogicParser {
     public LinearLogicParser() {
@@ -6,9 +13,11 @@ public class LinearLogicParser {
     }
 
     public void parse(String str) {
+        // Initialize list of left hand side terms for the sequent
+        List<LinearLogicTerm> lhs_terms;
 
         // Initialize new sequent
-        Sequent input_seq = new Sequent();
+        //Sequent input_seq = new Sequent();
 
 
         // Read input string characterwise
@@ -20,11 +29,11 @@ public class LinearLogicParser {
                 continue;
             // character is a lower case letter
             else if(c >= 97 || c <= 122){
-
+                lhs_terms.add(new LLConstant(Character.toString((char) c)));
             }
             // character is an upper case letter
             else if (c >= 65 || c <= 90){
-
+                lhs_terms.add(new LLVariable(Character.toString((char) c)));
             }
             // character is a left parenthesis, set scope
             else if (c == 40) {
