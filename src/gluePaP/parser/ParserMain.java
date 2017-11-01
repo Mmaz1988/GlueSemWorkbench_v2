@@ -30,7 +30,7 @@ public class ParserMain {
             for (String stringPremise :  stringPremises) {
                 String[] glueRepresentation = stringPremise.split(":");
 
-                llParser.UnparsedPremises.add(glueRepresentation[1]);
+                llParser.unparsedPremises.add(glueRepresentation[1]);
             }
         }
         else
