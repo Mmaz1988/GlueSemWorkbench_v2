@@ -1,6 +1,6 @@
 package gluePaP.linearLogic;
 
-public abstract class LLTerm {
+public class LLTerm {
 
 
 

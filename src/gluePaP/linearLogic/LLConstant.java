@@ -14,8 +14,8 @@ public class LLConstant extends LLTerm implements Atom {
 
 
 
-    public LLConstant(String name) {
+    public LLConstant(String name, String id) {
         this.name = name;
-        //this.id = id;
+        this.setId(id);
     }
 }

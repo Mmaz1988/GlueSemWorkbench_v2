@@ -2,6 +2,8 @@ package gluePaP.parser;
 
 import gluePaP.linearLogic.*;
 
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 public class LinearLogicParser {
@@ -12,58 +14,15 @@ public class LinearLogicParser {
     public LinearLogicParser() {
 
         for (String unparsedPremise : unparsedPremises) {
-            premises.add(parse(unparsedPremise,0, 0,0));
+            premises.add(parse(unparsedPremise, 0));
         }
 
     }
 
-    public LLTerm parse(String llExpressionString, Integer i, Integer newIndex, Integer parensCounter) {
 
 
 
-        while ( i < llExpressionString.length()) {
-            int c = (int) llExpressionString.charAt(i);
-
-            // character is a whitespace
-            if (c == 32) {
-                i++;
-            }
-                // character is a lower case letter
-            else if (c >= 97 || c <= 122) {
-                LLTerm term = new LLConstant(newIndex.toString());
-                newIndex++;
-            }
-            // character is an upper case letter
-            else if (c >= 65 || c <= 90) {
-                LLTerm term = new LLVariable(newIndex.toString());
-                newIndex++;
-
-            }
-            // character is a left parenthesis, set scope
-            else if (c == 40) {
-                LLTerm term = new LLFormula(newIndex.toString());
-                i++;
-                newIndex++;
-                parensCounter++;
-
-
-            } else if (c == 41)
-            {
-                parensCounter--;
-                i++;
-            }
-            else
-            {
-                // return exception?
-            }
-
-
-        }
-
-
-    }
 }
-
             /*
     public void parse(String str) {
         // Initialize list of left hand side terms for the sequent
