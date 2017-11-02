@@ -21,8 +21,6 @@ public class LLVariable extends LLTerm implements Atom{
 
     @Override
     public String toString() {
-        return "LLVariable{" +
-                "name='" + name + '\'' +
-                "} " + super.toString();
+        return name + "_" + this.getId();
     }
 }

@@ -21,8 +21,6 @@ public class LLConstant extends LLTerm implements Atom {
 
     @Override
     public String toString() {
-        return "LLConstant{" +
-                "name='" + name + '\'' +
-                "} " + super.toString();
+        return name + "_" + this.getId();
     }
 }

@@ -52,10 +52,6 @@ public class LLFormula extends LLTerm {
 
     @Override
     public String toString() {
-        return "LLFormula{" +
-                "lhs=" + lhs +
-                ", rhs=" + rhs +
-                ", operator=" + operator +
-                '}';
+        return "(" + lhs  + operator + rhs + ")";
     }
 }
