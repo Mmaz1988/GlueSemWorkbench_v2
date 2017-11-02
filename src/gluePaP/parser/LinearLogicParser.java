@@ -10,10 +10,10 @@ public class LinearLogicParser {
     public List<String> unparsedPremises;
     public List<LLTerm> premises;
 
-
     // Handles the position in the recursive function parse(string)
-    
     private int pos;
+    // Used for assigning ID numbers to terms of a single premise
+    private int curr_id;
 
 
     public LinearLogicParser(){}
@@ -21,28 +21,39 @@ public class LinearLogicParser {
 
         this.premises = new ArrayList<LLTerm>();
         for (String unparsedPremise : unparsedPremises) {
-            premises.add(parse(unparsedPremise));
+
+            try {
+                premises.add(parse(unparsedPremise));
+            } catch (ParserInputException pe) {
+                System.out.println(pe.getMessage());
+            }
         }
 
 
     }
 
 
-
-    private void resetPosition() {
+    /*
+    Set string index and ID counter to zero. Used before a new premise
+    is parsed.
+    */
+    private void resetParser() {
         this.pos = 0;
+        this.curr_id = 0;
     }
 
-    private void nextPos() {
-        this.pos = pos + 1;
+    private String assignId() {
+        this.curr_id++;
+        return Integer.toString(curr_id);
     }
 
-    public LLTerm parse(String unparsedInput) {
-        this.resetPosition();
+
+    public LLTerm parse(String unparsedInput) throws ParserInputException {
+        this.resetParser();
         return parseTerm(unparsedInput);
     }
 
-    private LLTerm parseTerm(String unparsedInput){
+    private LLTerm parseTerm(String unparsedInput) throws ParserInputException {
 
         //skip whitespaces
         while(unparsedInput.charAt(pos) == ' '){
@@ -52,12 +63,12 @@ public class LinearLogicParser {
         pos++;
         // character is a lower case letter
         if(c >= 97 && c <= 122){
-            return new LLConstant(""+(char) c);
+            return new LLConstant(assignId(),""+(char) c);
         }
 
         // character is an upper case letter
         else if (c >= 65 && c <= 90){
-            return new LLVariable(""+(char) c);
+            return new LLVariable(assignId(),""+(char) c);
         }
 
         // character is a minus, might be first part of linear implication
@@ -67,9 +78,9 @@ public class LinearLogicParser {
                 pos++;
                 return new LLImplication();
             }
-            else //Exception??? {
-                // TODO add appropriate
-                return null;
+            else {
+                throw new ParserInputException(pos+1);
+            }
         }
 
         // character is a left parenthesis, set scope
@@ -78,12 +89,11 @@ public class LinearLogicParser {
             LLOperator op = (LLOperator) parseTerm(unparsedInput);
             LLTerm right = parseTerm(unparsedInput);
             pos++;
-            return new LLFormula(left,op,right);
+            return new LLFormula(assignId(),left,op,right);
         }
 
-        // TODO something else, add exception here
         else {
-            return null;
+            throw new ParserInputException("ParserError: Unknown character in formula");
         }
     }
 

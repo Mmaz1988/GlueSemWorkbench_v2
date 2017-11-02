@@ -9,14 +9,9 @@ public class LLFormula extends LLTerm {
     private LLOperator operator;
 
 
-    public LLFormula(String id) {
-        this.setId(id);
-    }
-
     public String getName() {
         return name;
     }
-
 
     public LLTerm getLhs() {
         return lhs;
@@ -34,24 +29,17 @@ public class LLFormula extends LLTerm {
         this.rhs = rhs;
     }
 
-    public LLFormula(String id, String name, LLTerm lhs, LLTerm rhs, LLOperator operator) {
-        this.id = id;
-        this.name = name;
-        this.lhs = lhs;
-        this.rhs = rhs;
-        this.operator = operator;
-    }
 
-    public LLFormula(LLTerm lhs, LLOperator operator,LLTerm rhs) {
-        this.id = "0";
+    public LLFormula(String id, LLTerm lhs, LLOperator operator,LLTerm rhs) {
         this.lhs = lhs;
         this.rhs = rhs;
         this.operator = operator;
-        //this.name = this.toString();
+        this.setId(id);
+        this.name = this.toString();
     }
 
     @Override
     public String toString() {
-        return "(" + lhs  + operator + rhs + ")";
+        return "(" + lhs + " " + operator + " "  + rhs + ")_"+ this.getId();
     }
 }

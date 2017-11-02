@@ -6,6 +6,7 @@ package gluePaP.parser;
 
 import gluePaP.linearLogic.Atom;
 import gluePaP.linearLogic.LLTerm;
+import gluePaP.linearLogic.Sequent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,11 +43,22 @@ public class ParserMain {
     }
 
     public static void main(String[] args) {
-        System.out.println("Parsing input: ((a -o b) -o (c -o d))");
-        List<String> premises = new ArrayList<String>();
-        premises.add("((a -o b) -o (c -o d))");
-        LinearLogicParser parser = new LinearLogicParser(premises);
+        String test1 = "((a -o b) -o (f -o d))";
+        String test2 = "(a -o b)";
+        String test3 = "f";
 
+
+        System.out.println("Parsing input: "+testin);
+
+        List<String> premises = new ArrayList<String>();
+        premises.add(test1);
+        premises.add(test2);
+        premises.add(test3);
+
+        LinearLogicParser parser = new LinearLogicParser(premises);
+        Sequent testseq = new Sequent(parser.premises);
+
+        System.out.println(parser.premises.get(0).toString());
         System.out.println("Done!");
 
     }
