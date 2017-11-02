@@ -15,11 +15,11 @@ public class LLConstant extends LLTerm implements Atom {
 
     public LLConstant(String id, String name) {
         this.name = name;
-        this.setId(id);
+        this.setTermId(id);
     }
 
     @Override
     public String toString() {
-        return name + "_" + this.getId();
+        return name + "_" + this.getTermId();
     }
 }

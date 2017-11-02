@@ -48,17 +48,17 @@ public class ParserMain {
         String test3 = "f";
 
 
-        System.out.println("Parsing input: "+testin);
+        System.out.println("Parsing input...");
 
-        List<String> premises = new ArrayList<String>();
-        premises.add(test1);
-        premises.add(test2);
-        premises.add(test3);
+        List<String> testpremises = new ArrayList<String>();
+        testpremises.add(test1);
+        testpremises.add(test2);
+        testpremises.add(test3);
 
-        LinearLogicParser parser = new LinearLogicParser(premises);
+        LinearLogicParser parser = new LinearLogicParser(testpremises);
         Sequent testseq = new Sequent(parser.premises);
 
-        System.out.println(parser.premises.get(0).toString());
+        System.out.println(testseq.toString());
         System.out.println("Done!");
 
     }

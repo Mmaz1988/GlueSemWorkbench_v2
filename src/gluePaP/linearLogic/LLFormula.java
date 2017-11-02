@@ -34,12 +34,12 @@ public class LLFormula extends LLTerm {
         this.lhs = lhs;
         this.rhs = rhs;
         this.operator = operator;
-        this.setId(id);
+        this.setTermId(id);
         this.name = this.toString();
     }
 
     @Override
     public String toString() {
-        return "(" + lhs + " " + operator + " "  + rhs + ")_"+ this.getId();
+        return "(" + lhs + " " + operator + " "  + rhs + ")_"+ this.getTermId();
     }
 }

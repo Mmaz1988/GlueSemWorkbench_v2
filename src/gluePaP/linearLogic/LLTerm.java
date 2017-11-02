@@ -1,16 +1,16 @@
 package gluePaP.linearLogic;
 
 public abstract class LLTerm {
-    private String id;
+    private String termId;
 
     //Default constructor
     public LLTerm(){}
 
-    public String getId() {
-        return id;
+    public String getTermId() {
+        return termId;
     }
 
-    void setId(String id) { this.id = id;}
+    void setTermId(String termId) { this.termId = termId;}
 
 
 

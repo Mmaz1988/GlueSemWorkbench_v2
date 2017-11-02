@@ -16,11 +16,11 @@ public class LLVariable extends LLTerm implements Atom{
 
     public LLVariable(String id, String name) {
         this.name = name;
-        this.setId(id);
+        this.setTermId(id);
     }
 
     @Override
     public String toString() {
-        return name + "_" + this.getId();
+        return name + "_" + this.getTermId();
     }
 }
