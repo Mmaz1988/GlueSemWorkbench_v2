@@ -8,5 +8,10 @@ public class LLImplication extends LLTerm implements LLOperator {
         return symbol;
     }
 
-
+    @Override
+    public boolean checkEquivalence(LLTerm term) {
+        if (term instanceof LLImplication)
+            return true;
+        return false;
+    }
 }

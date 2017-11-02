@@ -23,4 +23,9 @@ public class LLVariable extends LLTerm implements Atom{
     public String toString() {
         return name + "_" + this.getTermId();
     }
+
+    // TODO implement equivalence check for LL variables
+    public boolean checkEquivalence(LLTerm term) {
+        return false;
+    }
 }

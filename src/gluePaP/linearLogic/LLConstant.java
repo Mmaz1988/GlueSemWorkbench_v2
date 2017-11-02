@@ -22,4 +22,15 @@ public class LLConstant extends LLTerm implements Atom {
     public String toString() {
         return name + "_" + this.getTermId();
     }
+
+    @Override
+    public boolean checkEquivalence(LLTerm term) {
+        if (term instanceof LLConstant) {
+            if (this.name.equals(((LLConstant) term).name)){
+                return true;
+            }
+        }
+        return false;
+
+    }
 }

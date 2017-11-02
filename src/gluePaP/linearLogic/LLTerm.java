@@ -12,6 +12,8 @@ public abstract class LLTerm {
 
     void setTermId(String termId) { this.termId = termId;}
 
+    public abstract boolean checkEquivalence(LLTerm term);
+
 
 
 
