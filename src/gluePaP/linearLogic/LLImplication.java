@@ -1,6 +1,6 @@
 package gluePaP.linearLogic;
 
-public class LLImplication implements LLOperator {
+public class LLImplication extends LLTerm implements LLOperator {
     private String Id;
     private final String symbol = "\u22B8";
 

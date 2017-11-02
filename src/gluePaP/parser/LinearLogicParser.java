@@ -47,19 +47,10 @@ public class LinearLogicParser {
                 parensCounter++;
 
 
-            } else if (c == 41)
-            {
-                parensCounter--;
-                i++;
             }
-            else
-            {
-                // return exception?
-            }
-
 
         }
-
+        return null;
 
     }
 }

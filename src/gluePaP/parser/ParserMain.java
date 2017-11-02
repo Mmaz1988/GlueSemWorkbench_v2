@@ -40,6 +40,14 @@ public class ParserMain {
 
     }
 
+    public static void main(String[] args) {
+        System.out.println("Parsing input: ((a -o b) -o (c -o d))");
+        LinearLogicParserMo parser = new LinearLogicParserMo("((a -o b) -o (c -o d))");
+        LLTerm term = parser.parse();
+        System.out.println("Done!");
+
+    }
+
 
 
     /*
