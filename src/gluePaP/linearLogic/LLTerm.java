@@ -1,9 +1,6 @@
 package gluePaP.linearLogic;
 
-public class LLTerm {
-
-
-
+public abstract class LLTerm {
     private String Id;
 
     //Default constructor
@@ -16,6 +13,7 @@ public class LLTerm {
     public void setId(String id) {
         Id = id;
     }
+
 
 
 
