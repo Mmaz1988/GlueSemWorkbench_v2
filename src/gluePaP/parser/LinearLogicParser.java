@@ -2,6 +2,7 @@ package gluePaP.parser;
 
 import gluePaP.linearLogic.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class LinearLogicParser {
@@ -9,93 +10,81 @@ public class LinearLogicParser {
     public List<String> unparsedPremises;
     public List<LLTerm> premises;
 
-    public LinearLogicParser() {
 
+    // Handles the position in the recursive function parse(string)
+    
+    private int pos;
+
+
+    public LinearLogicParser(){}
+    public LinearLogicParser(List<String> unparsedPremises) {
+
+        this.premises = new ArrayList<LLTerm>();
         for (String unparsedPremise : unparsedPremises) {
-            premises.add(parse(unparsedPremise,0, 0,0));
+            premises.add(parse(unparsedPremise));
         }
+
 
     }
 
-    public LLTerm parse(String llExpressionString, Integer i, Integer newIndex, Integer parensCounter) {
 
 
-
-        while ( i < llExpressionString.length()) {
-            int c = (int) llExpressionString.charAt(i);
-
-            // character is a whitespace
-            if (c == 32) {
-                i++;
-            }
-                // character is a lower case letter
-            else if (c >= 97 || c <= 122) {
-                LLTerm term = new LLConstant(newIndex.toString());
-                newIndex++;
-            }
-            // character is an upper case letter
-            else if (c >= 65 || c <= 90) {
-                LLTerm term = new LLVariable(newIndex.toString());
-                newIndex++;
-
-            }
-            // character is a left parenthesis, set scope
-            else if (c == 40) {
-                LLTerm term = new LLFormula(newIndex.toString());
-                i++;
-                newIndex++;
-                parensCounter++;
-
-
-            }
-
-        }
-        return null;
-
+    private void resetPosition() {
+        this.pos = 0;
     }
+
+    private void nextPos() {
+        this.pos = pos + 1;
+    }
+
+    public LLTerm parse(String unparsedInput) {
+        this.resetPosition();
+        return parseTerm(unparsedInput);
+    }
+
+    private LLTerm parseTerm(String unparsedInput){
+
+        //skip whitespaces
+        while(unparsedInput.charAt(pos) == ' '){
+            pos++;
+        }
+        int c = (int) unparsedInput.charAt(pos);
+        pos++;
+        // character is a lower case letter
+        if(c >= 97 && c <= 122){
+            return new LLConstant(""+(char) c);
+        }
+
+        // character is an upper case letter
+        else if (c >= 65 && c <= 90){
+            return new LLVariable(""+(char) c);
+        }
+
+        // character is a minus, might be first part of linear implication
+        else if (c == 45) {
+            // currently reading in a linear implication
+            if(unparsedInput.charAt(pos) == 111) {
+                pos++;
+                return new LLImplication();
+            }
+            else //Exception??? {
+                // TODO add appropriate
+                return null;
+        }
+
+        // character is a left parenthesis, set scope
+        else if (c == 40) {
+            LLTerm left = parseTerm(unparsedInput);
+            LLOperator op = (LLOperator) parseTerm(unparsedInput);
+            LLTerm right = parseTerm(unparsedInput);
+            pos++;
+            return new LLFormula(left,op,right);
+        }
+
+        // TODO something else, add exception here
+        else {
+            return null;
+        }
+    }
+
 }
-
-            /*
-    public void parse(String str) {
-        // Initialize list of left hand side terms for the sequent
-        List<LinearLogicTerm> lhs_terms;
-        // Initialize new sequent
-        //Sequent input_seq = new Sequent();
-        // Read input string characterwise
-        for (int i = 0; i < str.length(); i++) {
-            int c = (int) str.charAt(i);
-
-            // character is a whitespace
-            if (c == 32)
-                continue;
-                // character is a lower case letter
-            else if (c >= 97 || c <= 122) {
-                lhs_terms.add(new LLConstant(Character.toString((char) c)));
-            }
-            // character is an upper case letter
-            else if (c >= 65 || c <= 90) {
-                lhs_terms.add(new LLVariable(Character.toString((char) c)));
-            }
-            // character is a left parenthesis, set scope
-            else if (c == 40) {
-
-            }
-            // character is a comma, delimits premises
-            else if (c == 44) {
-
-            }
-            // character is an equal sign, might be first part of consequent separator (=>)
-            else if (c == 61) {
-
-            }
-            // character is a minus, might be first part of linear implication
-            else if (c == 45) {
-
-            } else {
-                // return exception?
-            }
-
-
-        }
-    }
-    */

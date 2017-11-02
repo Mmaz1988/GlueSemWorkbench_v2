@@ -7,6 +7,7 @@ package gluePaP.parser;
 import gluePaP.linearLogic.Atom;
 import gluePaP.linearLogic.LLTerm;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ParserMain {
@@ -42,8 +43,10 @@ public class ParserMain {
 
     public static void main(String[] args) {
         System.out.println("Parsing input: ((a -o b) -o (c -o d))");
-        LinearLogicParserMo parser = new LinearLogicParserMo("((a -o b) -o (c -o d))");
-        LLTerm term = parser.parse();
+        List<String> premises = new ArrayList<String>();
+        premises.add("((a -o b) -o (c -o d))");
+        LinearLogicParser parser = new LinearLogicParser(premises);
+
         System.out.println("Done!");
 
     }
