@@ -4,6 +4,14 @@ public class Premise {
     private String premiseId;
     private LLTerm llterm;
 
+    public String getPremiseId() {
+        return premiseId;
+    }
+
+    public LLTerm getLlterm() {
+        return llterm;
+    }
+
     public Premise(String premiseId, LLTerm llterm) {
         this.premiseId = premiseId;
         this.llterm = llterm;

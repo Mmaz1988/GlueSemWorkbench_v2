@@ -5,6 +5,7 @@ package gluePaP.parser;
  */
 
 import gluePaP.linearLogic.Atom;
+import gluePaP.linearLogic.LLFormula;
 import gluePaP.linearLogic.LLTerm;
 import gluePaP.linearLogic.Sequent;
 
@@ -60,6 +61,12 @@ public class ParserMain {
 
         System.out.println(testseq.toString());
         System.out.println("Done!");
+
+        System.out.println("Checking equivalence function");
+        LLFormula a = (LLFormula) testseq.getLhs().get(0).getLlterm();
+        LLFormula b = (LLFormula) testseq.getLhs().get(1).getLlterm();
+        if(a.getLhs().checkEquivalence(b))
+            System.out.println("It worked!");
 
     }
 
