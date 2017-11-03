@@ -45,7 +45,7 @@ public class ParserMain {
         String test3 = "((a -o b) -o (f -o d))";
         String test2 = "(a -o b)";
         String test1 = "f";
-
+        String test4 = "(((a -o b) -o (f -o d)) -o (e -o g)))";
 
         System.out.println("Parsing input...");
 
@@ -53,6 +53,7 @@ public class ParserMain {
         testpremises.add(test1);
         testpremises.add(test2);
         testpremises.add(test3);
+        testpremises.add(test4);
 
         Atom goal = new LLConstant("1","d");
 

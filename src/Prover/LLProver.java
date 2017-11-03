@@ -8,24 +8,36 @@ public class LLProver {
 
 
     public Premise deduce(Sequent seq) {
-        // Initialize database of premises and initialize superset
-        // containing all indexes of the sequents premises
+        /*
+        Initialize an agenda stack initially containing all premises from the sequent.
+        Premises are popped from the stack into the database and additionally created
+        premises get pushed onto the stack.
+        Then initialize a database of all premises which is used to look for possible
+        implication elimination steps.
+        */
         Stack<Premise> agenda = new Stack<>();
         List<Premise> database = new ArrayList<>();
         for (Premise p: seq.getLhs()) {
             agenda.push(p);
         }
+
+        /*
+        Initialize the set containing the IDs of all premises of the sequent.
+        This set is used to determine possible goal terms.
+        */
         HashSet<Integer> goalIDs = seq.getMaxIDSet();
 
+        /*
+        The algorithm loops over the agenda until it is empty or until a premise is created
+        that contains all indexes of the sequent's premises and is therefore the goal.
+        */
         while (!agenda.empty()) {
             Premise curr_premise = agenda.pop();
             // add premise to database
             database.add(curr_premise);
             for (int i = 0; i < database.size(); i++) {
                 Premise db_premise = database.get(i);
-                // Prevents comparing a premise with itself
-                //if(db_premise.getPremiseIDs().equals(curr_premise.getPremiseIDs()))
-                //    continue;
+
                 /*
                 Check if the database term is a (complex) formula, if so try to do an
                 implication elimination step with the current term on the agenda (curr_premise).
