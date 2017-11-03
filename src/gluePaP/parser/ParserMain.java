@@ -4,10 +4,8 @@ package gluePaP.parser;
     Todo: Already add possibility to parse complex formulas including parenthesis e.g. (f -o g) -o h
  */
 
-import gluePaP.linearLogic.Atom;
-import gluePaP.linearLogic.LLFormula;
-import gluePaP.linearLogic.LLTerm;
-import gluePaP.linearLogic.Sequent;
+import Prover.LLProver;
+import gluePaP.linearLogic.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,9 +42,9 @@ public class ParserMain {
     }
 
     public static void main(String[] args) {
-        String test1 = "((a -o b) -o (f -o d))";
+        String test3 = "((a -o b) -o (f -o d))";
         String test2 = "(a -o b)";
-        String test3 = "f";
+        String test1 = "f";
 
 
         System.out.println("Parsing input...");
@@ -56,17 +54,18 @@ public class ParserMain {
         testpremises.add(test2);
         testpremises.add(test3);
 
+        Atom goal = new LLConstant("1","d");
+
         LinearLogicParser parser = new LinearLogicParser(testpremises);
         Sequent testseq = new Sequent(parser.premises);
 
         System.out.println(testseq.toString());
-        System.out.println("Done!");
 
-        System.out.println("Checking equivalence function");
-        LLFormula a = (LLFormula) testseq.getLhs().get(0).getLlterm();
-        LLFormula b = (LLFormula) testseq.getLhs().get(1).getLlterm();
-        if(a.getLhs().checkEquivalence(b))
-            System.out.println("It worked!");
+        System.out.println("Checking simple prover...");
+        LLProver prover = new LLProver();
+        Premise result = prover.deduce(testseq);
+        System.out.println(result.toString());
+        System.out.println("Done!");
 
     }
 

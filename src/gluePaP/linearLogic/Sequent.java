@@ -2,6 +2,7 @@ package gluePaP.linearLogic;
 
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 public class Sequent {
@@ -15,8 +16,20 @@ public class Sequent {
     public Sequent(List<LLTerm> parsedTerms) {
         lhs = new ArrayList<>();
         for (int i = 0; i < parsedTerms.size(); i++) {
-            lhs.add(new Premise(Integer.toString(i+1),parsedTerms.get(i)));
+            HashSet<Integer> idSet = new HashSet<>();
+            idSet.add(i);
+            lhs.add(new Premise(idSet,parsedTerms.get(i)));
         }
+    }
+
+
+    // Returns the set containing all index sets (usually singletons) of the sequent's premises
+    public HashSet<Integer> getMaxIDSet() {
+        HashSet<Integer> maxIDSet = new HashSet<>();
+        for (Premise premise : lhs) {
+            maxIDSet.addAll(premise.getPremiseIDs());
+        }
+        return maxIDSet;
     }
 
     @Override
@@ -32,32 +45,5 @@ public class Sequent {
         return toString + "=>" + rhs.toString();
     }*/
 
-    public Atom deduce() {
-        // Initialize database of premises
-        List<Premise> database = new ArrayList<>();
 
-        for (int i = 0; i < lhs.size(); i++) {
-            Premise new_premise = lhs.get(i);
-            // add premise to database
-            database.add(new_premise);
-            for (int j = 0; j < database.size(); j++) {
-                Premise db_premise = database.get(j);
-                if (db_premise.getLlterm() instanceof LLFormula) {
-                    if(((LLFormula) db_premise.getLlterm()).getLhs().checkEquivalence(new_premise.getLlterm())) {
-                        // insert the new term into the LHS of the database term and add the simplified term
-
-                    }
-                }
-                else if (new_premise.getLlterm() instanceof LLFormula) {
-                    if(((LLFormula) new_premise.getLlterm()).getLhs().checkEquivalence(db_premise.getLlterm())) {
-                        // insert the database term into the LHS of the new term and add the simplified term
-                    }
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private boolean checkIndices(Premise a, Premise b){ return true;}
 }

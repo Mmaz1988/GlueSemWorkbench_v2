@@ -1,24 +1,31 @@
 package gluePaP.linearLogic;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class Premise {
-    private String premiseId;
-    private LLTerm llterm;
+    private Set<Integer> premiseIDs;
+    private LLTerm term;
 
-    public String getPremiseId() {
-        return premiseId;
+    public Set<Integer> getPremiseIDs() {
+        return premiseIDs;
     }
 
-    public LLTerm getLlterm() {
-        return llterm;
+    public LLTerm getTerm() {
+        return term;
     }
 
-    public Premise(String premiseId, LLTerm llterm) {
-        this.premiseId = premiseId;
-        this.llterm = llterm;
+    public Premise(HashSet<Integer> premiseIDs, LLTerm llterm) {
+        this.premiseIDs = premiseIDs;
+        this.term = llterm;
     }
 
     @Override
     public String toString() {
-        return llterm + "[" + premiseId + "]";
+        return term + "[" + premiseIDs + "]";
+    }
+
+    public boolean equals(Premise p) {
+        return false;
     }
 }
