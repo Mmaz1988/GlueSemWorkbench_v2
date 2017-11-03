@@ -21,11 +21,11 @@ public class LLProver {
             Premise curr_premise = agenda.pop();
             // add premise to database
             database.add(curr_premise);
-            for (int j = 0; j < database.size(); j++) {
-                Premise db_premise = database.get(j);
+            for (int i = 0; i < database.size(); i++) {
+                Premise db_premise = database.get(i);
                 // Prevents comparing a premise with itself
-                if(db_premise.getPremiseIDs().equals(curr_premise.getPremiseIDs()))
-                    continue;
+                //if(db_premise.getPremiseIDs().equals(curr_premise.getPremiseIDs()))
+                //    continue;
                 /*
                 Check if the database term is a (complex) formula, if so try to do an
                 implication elimination step with the current term on the agenda (curr_premise).
@@ -37,8 +37,8 @@ public class LLProver {
                         if (new_premise.getPremiseIDs().equals(goalIDs)) {
                             return new_premise;
                         }
-                        else if (!database.contains(new_premise)) {
-                            database.add(new_premise); j=0;
+                        else {
+                            agenda.push(new_premise);
                         }
                         continue;
                     }
@@ -53,8 +53,8 @@ public class LLProver {
                         if (new_premise.getPremiseIDs().equals(goalIDs)) {
                             return new_premise;
                         }
-                        else if (!database.) {
-                            database.add(new_premise); j=0;
+                        else {
+                            agenda.push(new_premise);
                         }
                     }
 

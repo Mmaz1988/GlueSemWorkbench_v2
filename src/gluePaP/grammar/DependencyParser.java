@@ -1,4 +1,3 @@
-/*
 package gluePaP.grammar;
 
 import java.io.StringReader;
@@ -94,4 +93,3 @@ public class DependencyParser {
     }
 
 
-*/
