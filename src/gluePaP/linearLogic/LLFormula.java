@@ -16,22 +16,15 @@ public class LLFormula extends LLTerm {
         return lhs;
     }
 
-    public void setLhs(LLTerm lhs) {
-        this.lhs = lhs;
-    }
-
     public LLTerm getRhs() {
         return rhs;
     }
 
-    public void setRhs(LLTerm rhs) {
-        this.rhs = rhs;
-    }
 
-
-    public LLFormula(String id, LLTerm lhs, LLOperator operator,LLTerm rhs) {
+    public LLFormula(String id, LLTerm lhs, LLOperator operator,LLTerm rhs, boolean pol) {
         this.lhs = lhs;
         this.rhs = rhs;
+        this.setPolarity(pol);
         this.operator = operator;
         this.setTermId(id);
         this.name = this.toString();
@@ -54,4 +47,5 @@ public class LLFormula extends LLTerm {
         return false;
 
     }
+
 }

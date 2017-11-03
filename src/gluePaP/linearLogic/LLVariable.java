@@ -14,9 +14,10 @@ public class LLVariable extends LLTerm implements Atom{
 
 
 
-    public LLVariable(String id, String name) {
+    public LLVariable(String id, String name, boolean pol) {
         this.name = name;
         this.setTermId(id);
+        this.setPolarity(pol);
     }
 
     @Override

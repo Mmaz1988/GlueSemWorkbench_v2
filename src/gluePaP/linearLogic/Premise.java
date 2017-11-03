@@ -18,6 +18,7 @@ public class Premise {
     public Premise(HashSet<Integer> premiseIDs, LLTerm llterm) {
         this.premiseIDs = premiseIDs;
         this.term = llterm;
+        this.term.setPolarity(true);
     }
 
     @Override

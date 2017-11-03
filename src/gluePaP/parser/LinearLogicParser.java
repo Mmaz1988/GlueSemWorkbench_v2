@@ -5,6 +5,7 @@ import gluePaP.linearLogic.*;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class LinearLogicParser {
 
     public List<String> unparsedPremises;
@@ -50,10 +51,10 @@ public class LinearLogicParser {
 
     public LLTerm parse(String unparsedInput) throws ParserInputException {
         this.resetParser();
-        return parseTerm(unparsedInput);
+        return parseTerm(unparsedInput, true);
     }
 
-    private LLTerm parseTerm(String unparsedInput) throws ParserInputException {
+    private LLTerm parseTerm(String unparsedInput, boolean polarity) throws ParserInputException {
 
         //skip whitespaces
         while(unparsedInput.charAt(pos) == ' '){
@@ -65,12 +66,12 @@ public class LinearLogicParser {
 
         // character is a lower case letter
         if(c >= 97 && c <= 122){
-            return new LLConstant(assignId(),""+(char) c);
+            return new LLConstant(assignId(),""+(char) c, polarity);
         }
 
         // character is an upper case letter
         else if (c >= 65 && c <= 90){
-            return new LLVariable(assignId(),""+(char) c);
+            return new LLVariable(assignId(),""+(char) c, polarity);
         }
 
         // character is a minus, might be first part of linear implication
@@ -87,11 +88,11 @@ public class LinearLogicParser {
 
         // character is a left parenthesis, set scope
         else if (c == 40) {
-            LLTerm left = parseTerm(unparsedInput);
-            LLOperator op = (LLOperator) parseTerm(unparsedInput);
-            LLTerm right = parseTerm(unparsedInput);
+            LLTerm left = parseTerm(unparsedInput, !polarity);
+            LLOperator op = (LLOperator) parseTerm(unparsedInput, polarity);
+            LLTerm right = parseTerm(unparsedInput, polarity);
             pos++;
-            return new LLFormula(assignId(),left,op,right);
+            return new LLFormula(assignId(),left,op,right, polarity);
         }
 
         else if (c == 41) {

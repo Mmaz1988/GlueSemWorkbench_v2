@@ -13,9 +13,10 @@ public class LLConstant extends LLTerm implements Atom {
 
 
 
-    public LLConstant(String id, String name) {
+    public LLConstant(String id, String name, boolean pol) {
         this.name = name;
         this.setTermId(id);
+        this.setPolarity(pol);
     }
 
     @Override
