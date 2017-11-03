@@ -5,6 +5,7 @@ package gluePaP.parser;
  */
 
 import Prover.LLProver;
+import Prover.ProverException;
 import gluePaP.linearLogic.*;
 
 import java.util.ArrayList;
@@ -42,18 +43,21 @@ public class ParserMain {
     }
 
     public static void main(String[] args) {
-        String test3 = "((a -o b) -o (f -o d))";
         String test2 = "(a -o b)";
         String test1 = "f";
-        String test4 = "(((a -o b) -o (f -o d)) -o (e -o g)))";
+        String test4 = "((a -o b) -o (f -o (d -o (e -o g))))";
+        String test5 = "d";
+        String test6 = "e";
 
         System.out.println("Parsing input...");
 
         List<String> testpremises = new ArrayList<String>();
         testpremises.add(test1);
         testpremises.add(test2);
-        testpremises.add(test3);
+        //testpremises.add(test3);
         testpremises.add(test4);
+        testpremises.add(test5);
+        testpremises.add(test6);
 
         Atom goal = new LLConstant("1","d");
 
@@ -64,7 +68,12 @@ public class ParserMain {
 
         System.out.println("Checking simple prover...");
         LLProver prover = new LLProver();
-        Premise result = prover.deduce(testseq);
+        Premise result = null;
+        try {
+            result = prover.deduce(testseq);
+        } catch (ProverException e) {
+            e.printStackTrace();
+        }
         System.out.println(result.toString());
         System.out.println("Done!");
 

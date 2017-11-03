@@ -94,6 +94,10 @@ public class LinearLogicParser {
             return new LLFormula(assignId(),left,op,right);
         }
 
+        else if (c == 41) {
+            throw new ParserInputException("Unmatched closing paranthesis");
+        }
+
         else {
             throw new ParserInputException("ParserError: Unknown character in formula");
         }

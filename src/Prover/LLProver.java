@@ -6,8 +6,12 @@ import java.util.*;
 
 public class LLProver {
 
-
-    public Premise deduce(Sequent seq) {
+    /*
+    Does a deduction of a given sequent by evaluating the list of premises on its LHS
+    and trying to find a valid proof for its RHS.
+    TODO So far only applies implication elimination
+     */
+    public Premise deduce(Sequent seq) throws ProverException {
         /*
         Initialize an agenda stack initially containing all premises from the sequent.
         Premises are popped from the stack into the database and additionally created
@@ -73,32 +77,20 @@ public class LLProver {
                 }
             }
         }
-        /*
-        All premises were added to the database check for a successful analysis
-        by looking for a database premise that contains the maximal set of all premise
-        indexes and return it as goal.
-        TODO probably not necessary, as the maximum IDSet can be checked after each elimination step
-        */
 
-/*        for (int i = database.size()-1; i >= 0; i--) {
-            if (database.get(i).getPremiseIDs().equals(goalIDs))
-                return database.get(i);
-        }*/
-        // No proper deduction was found
-        // TODO return exception or some kind of message
-        return null;
+        throw new ProverException("No valid proof found for premises");
     }
 
 
-
+    /*
+    implementation of the linear implication elimination rule for indexed premises
+    check if arg is equivalent to LHS of func and then return RHS of func
+    then check if the sets of indexes are disjoint
+    if both checks succeed a new Premise is created containing the unified set of indexes
+    and the RHS LL term of func (see below)
+    */
     public Premise combinePremises(Premise func, Premise arg) {
-        /*
-        implementation of the linear implication elimination rule for indexed premises
-        check if arg is equivalent to LHS of func and then return RHS of func
-        then check if the sets of indexes are disjoint
-        if both checks succeed a new Premise is created containing the unified set of indexes
-        and the RHS LL term of func (see below)
-        */
+
         if (((LLFormula) func.getTerm()).getLhs().checkEquivalence(arg.getTerm())) {
             HashSet<Integer> combined_IDs = new HashSet<>();
             if (Collections.disjoint(func.getPremiseIDs(),arg.getPremiseIDs()))
@@ -111,13 +103,15 @@ public class LLProver {
         }
     }
 
+
+    /*
+    Similar to combinePremises(), but for simple LL terms
+    implementation of the linear implication elimination rule for LL terms
+    check if arg is equivalent to LHS of func and then return RHS of func
+    e.g. func = a -o b; arg = a --> returns b
+    */
     public LLTerm combineTerms(LLFormula func, LLTerm arg) {
-        /*
-        Similar to combinePremises(), but for simple LL terms
-        implementation of the linear implication elimination rule for LL terms
-        check if arg is equivalent to LHS of func and then return RHS of func
-        e.g. func = a -o b; arg = a --> returns b
-        */
+
         if (func.getLhs().checkEquivalence(arg)) {
             return func.getRhs();
         }
