@@ -2,6 +2,7 @@
 package gluePaP.grammar;
 
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.List;
 
 import edu.stanford.nlp.ling.CoreLabel;
@@ -10,14 +11,72 @@ import edu.stanford.nlp.parser.lexparser.LexicalizedParser;
 import edu.stanford.nlp.process.CoreLabelTokenFactory;
 import edu.stanford.nlp.process.PTBTokenizer;
 import edu.stanford.nlp.process.Tokenizer;
-import edu.stanford.nlp.trees.Tree;
+import edu.stanford.nlp.trees.*;
 
 public class DependencyParser {
     private final static String PCG_MODEL = "edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz";
 
     private final TokenizerFactory<CoreLabel> tokenizerFactory = PTBTokenizer.factory(new CoreLabelTokenFactory(), "invertible=true");
 
+    private final TreebankLanguagePack tlp = new PennTreebankLanguagePack();
+
+    //for dependencies
+    private final GrammaticalStructureFactory gsf = tlp.grammaticalStructureFactory();
+
     private final LexicalizedParser parser = LexicalizedParser.loadModel(PCG_MODEL);
+
+    public List<GrammaticalStructure> parseSet;
+
+
+    public DependencyParser(){}
+
+
+    //Main method for testing parser functionalities
+
+    public static void main(String[] args) {
+
+        DependencyParser dp = new DependencyParser();
+
+        List<String> testSentences = new ArrayList<String>();
+
+        testSentences.add("John snores.");
+        testSentences.add("John loves Maria.");
+        testSentences.add("John was able to open the door.");
+        testSentences.add("John said that Mary was sick");
+        testSentences.add("John was building a house.");
+
+
+        DependencyParser parser = new DependencyParser();
+
+        for (String sentence : testSentences)
+        {
+            Tree tree = parser.parse(sentence);
+            GrammaticalStructure gs = dp.gsf.newGrammaticalStructure(tree);
+
+            dp.parseSet.add(gs);
+
+            tree.pennPrint();
+            System.out.print(gs.typedDependenciesEnhanced());
+            System.out.println();
+            System.out.print(gs.typedDependencies());
+        }
+    }
+
+
+    public List<GrammaticalStructure> generateParses(List<String> sentences) {
+
+        List<GrammaticalStructure> parsedSentences = new ArrayList<>();
+
+        for (String sentence : sentences)
+        {
+            Tree tree = parser.parse(sentence);
+            GrammaticalStructure gs = gsf.newGrammaticalStructure(tree);
+
+            parsedSentences.add(gs);
+        }
+        return parsedSentences;
+    }
+
 
     public Tree parse(String str) {
         List<CoreLabel> tokens = tokenize(str);
@@ -32,19 +91,7 @@ public class DependencyParser {
         return tokenizer.tokenize();
     }
 
-    public static void main(String[] args) {
-        String str = "John snores.";
-        DependencyParser parser = new DependencyParser();
-        Tree tree = parser.parse(str);
-
-        List<Tree> leaves = tree.getLeaves();
-        // Print words and Pos Tags
-        for (Tree leaf : leaves) {
-            Tree parent = leaf.parent(tree);
-            System.out.print(leaf.label().value() + "-" + parent.label().value() + " ");
-        }
-        System.out.println();
     }
-}
+
 
 */
