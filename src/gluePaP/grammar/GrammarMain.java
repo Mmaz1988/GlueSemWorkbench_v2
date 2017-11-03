@@ -18,7 +18,7 @@ public class GrammarMain {
 
         for (GrammaticalStructure parse : parses)
         {
-            GlueRepresentation glue = new GlueRepresentation();
+           // GlueRepresentation glue = new GlueRepresentation();
         }
 
 

@@ -59,8 +59,10 @@ public class LinearLogicParser {
         while(unparsedInput.charAt(pos) == ' '){
             pos++;
         }
+        // get current character and increment the position counter
         int c = (int) unparsedInput.charAt(pos);
         pos++;
+
         // character is a lower case letter
         if(c >= 97 && c <= 122){
             return new LLConstant(assignId(),""+(char) c);
