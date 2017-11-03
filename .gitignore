@@ -25,3 +25,4 @@ hs_err_pid*
 *.iml
 *.xml
 .idea
+stanford-corenlp-full-2017-06-09/
