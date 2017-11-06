@@ -9,4 +9,5 @@ public class GlueRepresentation {
     public LLTerm glueSide;
     public SemRepresentation meaningSide;
 
+
 }

@@ -39,12 +39,12 @@ public class DependencyParser {
         List<String> testSentences = new ArrayList<String>();
 
         testSentences.add("John snores.");
+
+        // TODO: For some reason ungrammatical
+        // testSentences.add("Cats chase dogs.");
         testSentences.add("John loves Maria.");
-        testSentences.add("John was able to open the door.");
-        testSentences.add("John said that Mary was sick");
-        testSentences.add("John was building a house.");
-        testSentences.add("John saw the monkey with the telescope.");
-        testSentences.add("John died on the table");
+        testSentences.add("Every man loves a woman.");
+
 
 
         DependencyParser parser = new DependencyParser();
