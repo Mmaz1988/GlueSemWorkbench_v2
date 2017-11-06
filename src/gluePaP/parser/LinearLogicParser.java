@@ -99,6 +99,20 @@ public class LinearLogicParser {
             throw new ParserInputException("Unmatched closing paranthesis");
         }
 
+        // character is a universal quantifier, try parsing a quantified expression
+        else if (c == 14846080) {
+            LLTerm var;
+            var = parseTerm(unparsedInput,polarity);
+            if (!(var instanceof LLVariable))
+                throw new ParserInputException(pos);
+            pos++;
+            LLTerm term;
+            term = parseTerm(unparsedInput,polarity);
+            if (!(term instanceof LLFormula))
+                throw new ParserInputException(pos);
+            return new LLUniversalQuant((LLVariable) var,(LLFormula) term);
+        }
+
         else {
             throw new ParserInputException("ParserError: Unknown character in formula");
         }

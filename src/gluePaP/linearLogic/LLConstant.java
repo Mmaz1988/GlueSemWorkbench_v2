@@ -28,7 +28,8 @@ public class LLConstant extends LLTerm implements LLAtom {
     @Override
     public boolean checkEquivalence(LLTerm term) {
         if (term instanceof LLConstant) {
-            if (this.name.equals(((LLConstant) term).name)){
+            if (this.name.equals(((LLConstant) term).name)
+                    && this.type.equals(((LLConstant) term).type)){
                 return true;
             }
         }
