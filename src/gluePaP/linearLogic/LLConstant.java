@@ -2,6 +2,7 @@ package gluePaP.linearLogic;
 
 public class LLConstant extends LLTerm implements Atom {
     private String name;
+    private Type type;
 
     public String getName() {
         return name;
@@ -33,5 +34,10 @@ public class LLConstant extends LLTerm implements Atom {
         }
         return false;
 
+    }
+
+    @Override
+    public Type getType() {
+        return this.type;
     }
 }

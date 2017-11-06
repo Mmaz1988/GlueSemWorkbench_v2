@@ -2,6 +2,7 @@ package gluePaP.linearLogic;
 
 public class LLVariable extends LLTerm implements Atom{
     private String name;
+    private Type type;
 
 
     public String getName() {
@@ -28,5 +29,10 @@ public class LLVariable extends LLTerm implements Atom{
     // TODO implement equivalence check for LL variables
     public boolean checkEquivalence(LLTerm term) {
         return false;
+    }
+
+    @Override
+    public Type getType() {
+        return this.type;
     }
 }
