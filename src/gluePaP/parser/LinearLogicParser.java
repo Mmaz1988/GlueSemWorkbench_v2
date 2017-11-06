@@ -99,8 +99,11 @@ public class LinearLogicParser {
             throw new ParserInputException("Unmatched closing paranthesis");
         }
 
-        // character is a universal quantifier, try parsing a quantified expression
-        else if (c == 14846080) {
+        /*
+        character is a universal quantifier (either 'A' or the unicode character,
+        try parsing a quantified expression
+        */
+        else if (c == 14846080|| c == 65) {
             LLTerm var;
             var = parseTerm(unparsedInput,polarity);
             if (!(var instanceof LLVariable))

@@ -47,19 +47,16 @@ public class LLFormula extends LLTerm {
     }
 
     public LLTerm instantiateVar(LLVariable var, LLTerm quTerm, LLTerm instTerm) {
-        if (instTerm instanceof LLConstant) {
-            if (quTerm instanceof LLConstant && quTerm.checkEquivalence(instTerm))
-                return instTerm;
+        if (quTerm instanceof LLConstant && quTerm.checkEquivalence(instTerm))
+            return instTerm;
             // TODO Does the equals() check work?
-            else if (quTerm instanceof LLVariable && quTerm.equals(var))
-                return instTerm;
-            else if (quTerm instanceof LLFormula && instTerm instanceof  LLFormula){
-                LLTerm newLeft = instantiateVar(var, ((LLFormula) quTerm).getLhs(),((LLFormula) instTerm).getLhs());
-                LLOperator op = this.operator;
-                LLTerm newRight = instantiateVar(var,((LLFormula) quTerm).getRhs(),((LLFormula) instTerm).getRhs());
-                return new LLFormula(quTerm.getTermId(),newLeft,op,newRight,quTerm.isPolarity());
-
-            }
+        else if (instTerm instanceof LLConstant && quTerm instanceof LLVariable && quTerm.equals(var))
+            return instTerm;
+        else if (instTerm instanceof LLFormula && quTerm instanceof  LLFormula){
+            LLTerm newLeft = instantiateVar(var, ((LLFormula) quTerm).getLhs(),((LLFormula) instTerm).getLhs());
+            LLOperator op = this.operator;
+            LLTerm newRight = instantiateVar(var,((LLFormula) quTerm).getRhs(),((LLFormula) instTerm).getRhs());
+            return new LLFormula(quTerm.getTermId(),newLeft,op,newRight,quTerm.isPolarity());
         }
 
         // Something didn't work out abort and return null
