@@ -53,14 +53,16 @@ public class LLFormula extends LLTerm {
             // TODO Does the equals() check work?
             else if (quTerm instanceof LLVariable && quTerm.equals(var))
                 return instTerm;
-            else if (quTerm instanceof LLFormula){
+            else if (quTerm instanceof LLFormula && instTerm instanceof  LLFormula){
                 LLTerm newLeft = instantiateVar(var, ((LLFormula) quTerm).getLhs(),((LLFormula) instTerm).getLhs());
                 LLOperator op = this.operator;
                 LLTerm newRight = instantiateVar(var,((LLFormula) quTerm).getRhs(),((LLFormula) instTerm).getRhs());
                 return new LLFormula(quTerm.getTermId(),newLeft,op,newRight,quTerm.isPolarity());
 
+            }
         }
-        }
+
+        // Something didn't work out abort and return null
         return null;
 
     }
