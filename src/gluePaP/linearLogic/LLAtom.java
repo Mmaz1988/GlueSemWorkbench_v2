@@ -1,6 +1,6 @@
 package gluePaP.linearLogic;
 
-public interface Atom {
+public interface LLAtom {
 
 
 }

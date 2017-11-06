@@ -7,7 +7,7 @@ import java.util.List;
 
 public class Sequent {
     private List<Premise> lhs;
-    private Atom rhs;
+    private LLAtom rhs;
 
     public List<Premise> getLhs() {
         return lhs;

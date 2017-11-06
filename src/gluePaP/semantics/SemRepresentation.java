@@ -1,4 +1,7 @@
 package gluePaP.semantics;
 
-public class SemRepresentation {
+public abstract class SemRepresentation {
+
+    private String semRep;
+
 }

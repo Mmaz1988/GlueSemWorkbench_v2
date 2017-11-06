@@ -1,4 +1,4 @@
-package gluePaP.grammar;
+package gluePaP.glue;
 
 // Base class for creating glue semantic representations with a meaning side and a glue side
 

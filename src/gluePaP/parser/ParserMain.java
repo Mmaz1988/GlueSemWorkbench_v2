@@ -14,7 +14,7 @@ import java.util.List;
 public class ParserMain {
     public String Input;
     public List<LLTerm> Premises;
-    public Atom Goal;
+    public LLAtom Goal;
 
     public ParserMain(String input)
     {
@@ -59,7 +59,7 @@ public class ParserMain {
         testpremises.add(test5);
         testpremises.add(test6);
 
-        Atom goal = new LLConstant("1","d", false);
+        LLAtom goal = new LLConstant("1","d", false);
 
         LinearLogicParser parser = new LinearLogicParser(testpremises);
         Sequent testseq = new Sequent(parser.premises);

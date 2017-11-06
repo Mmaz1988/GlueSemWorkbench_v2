@@ -1,6 +1,5 @@
-package gluePaP.grammar;
+package gluePaP.glue;
 
-import edu.stanford.nlp.trees.GrammaticalStructure;
 import gluePaP.linearLogic.LLTerm;
 import gluePaP.semantics.SemRepresentation;
 

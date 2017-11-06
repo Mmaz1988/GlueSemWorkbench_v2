@@ -1,4 +1,4 @@
-package gluePaP.grammar;
+package gluePaP.glue;
 
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -43,6 +43,8 @@ public class DependencyParser {
         testSentences.add("John was able to open the door.");
         testSentences.add("John said that Mary was sick");
         testSentences.add("John was building a house.");
+        testSentences.add("John saw the monkey with the telescope.");
+        testSentences.add("John died on the table");
 
 
         DependencyParser parser = new DependencyParser();
@@ -52,7 +54,6 @@ public class DependencyParser {
             Tree tree = parser.parse(sentence);
             GrammaticalStructure gs = dp.gsf.newGrammaticalStructure(tree);
 
-            dp.parseSet.add(gs);
 
             tree.pennPrint();
             System.out.print(gs.typedDependenciesEnhanced());
