@@ -59,7 +59,7 @@ public class ParserMain {
         testpremises.add(test5);
         testpremises.add(test6);
 
-        LLAtom goal = new LLConstant("1","d", LLAtom.Type.T, false);
+       // LLAtom goal = new LLAtom("1","d", LLAtom.Type.T, false);
 
         LinearLogicParser parser = new LinearLogicParser(testpremises);
         Sequent testseq = new Sequent(parser.premises);

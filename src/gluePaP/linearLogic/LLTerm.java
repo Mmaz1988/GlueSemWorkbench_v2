@@ -1,8 +1,19 @@
 package gluePaP.linearLogic;
 
+
+import Prover.AtomEquality;
+
+import java.util.List;
+
 public abstract class LLTerm {
+
+    public enum Type {
+        E, T, COMPLEX
+    }
+
     private String termId;
     private boolean polarity;
+    private Type type;
 
     //Default constructor
     public LLTerm(){ }
@@ -19,5 +30,15 @@ public abstract class LLTerm {
 
     public abstract boolean checkEquivalence(LLTerm term);
 
+
+    //Get and set type
+
+    public Type getType(){
+        return this.type;
+    }
+
+    public void setType(Type type) {
+        this.type = type;
+    }
 
 }

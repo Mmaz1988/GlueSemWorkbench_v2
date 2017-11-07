@@ -69,16 +69,16 @@ public class LLFormula extends LLTerm {
     }
 
 
-    public static LLTerm instantiateVar(LLVariable var, LLTerm quTerm, LLTerm instTerm) {
-        if (quTerm instanceof LLConstant && quTerm.checkEquivalence(instTerm))
+    public static LLTerm instantiateVar(LLAtom var, LLTerm quTerm, LLTerm instTerm) {
+        if (quTerm instanceof LLAtom && quTerm.checkEquivalence(instTerm))
             return instTerm;
         else if (instTerm instanceof LLConstant && quTerm instanceof LLVariable && quTerm.checkEquivalence(var))
             return instTerm;
-        else if (instTerm instanceof LLFormula && quTerm instanceof  LLFormula){
-            LLTerm newLeft = instantiateVar(var, ((LLFormula) quTerm).getLhs(),((LLFormula) instTerm).getLhs());
+        else if (instTerm instanceof LLFormula && quTerm instanceof LLFormula) {
+            LLTerm newLeft = instantiateVar(var, ((LLFormula) quTerm).getLhs(), ((LLFormula) instTerm).getLhs());
             LLOperator op = ((LLFormula) quTerm).operator;
-            LLTerm newRight = instantiateVar(var,((LLFormula) quTerm).getRhs(),((LLFormula) instTerm).getRhs());
-            return new LLFormula(instTerm.getTermId(),newLeft,op,newRight,quTerm.isPolarity());
+            LLTerm newRight = instantiateVar(var, ((LLFormula) quTerm).getRhs(), ((LLFormula) instTerm).getRhs());
+            return new LLFormula(instTerm.getTermId(), newLeft, op, newRight, quTerm.isPolarity());
         }
 
         // Something didn't work out, abort and return null

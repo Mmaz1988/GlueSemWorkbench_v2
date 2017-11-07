@@ -89,6 +89,9 @@ public class LLProver {
     if both checks succeed a new Premise is created containing the unified set of indexes
     and the RHS LL term of func (see below)
     */
+
+
+
     public Premise combinePremises(Premise func, Premise arg) {
 
         if (((LLFormula) func.getTerm()).getLhs().checkEquivalence(arg.getTerm())) {
@@ -100,13 +103,14 @@ public class LLProver {
         }
         else if (func.getTerm() instanceof LLUniversalQuant) {
             LLUniversalQuant quant = (LLUniversalQuant) func.getTerm();
-            LLFormula inst = (LLFormula) LLFormula.instantiateVar(quant.getVariable(),quant.getTerm().getLhs(),arg.getTerm());
 
 
+            return null;
         }
         else {
             return null;
         }
+
     }
 
 

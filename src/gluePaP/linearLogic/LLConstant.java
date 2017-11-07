@@ -1,6 +1,6 @@
 package gluePaP.linearLogic;
 
-public class LLConstant extends LLTerm implements LLAtom {
+public class LLConstant extends LLTerm {
     private String name;
     private Type type;
 

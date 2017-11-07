@@ -1,8 +1,8 @@
 package gluePaP.linearLogic;
 
-public class LLVariable extends LLTerm implements LLAtom {
+public class LLVariable extends LLTerm {
     private String name;
-    private Type type;
+
 
 
     public String getName() {
@@ -18,7 +18,7 @@ public class LLVariable extends LLTerm implements LLAtom {
     public LLVariable(String id, String name, Type type, boolean pol) {
         this.name = name;
         this.setTermId(id);
-        this.type = type;
+         this.setType(type);
         this.setPolarity(pol);
     }
 
@@ -31,7 +31,7 @@ public class LLVariable extends LLTerm implements LLAtom {
     public boolean checkEquivalence(LLTerm term) {
         if (term instanceof LLVariable) {
             if (this.name.equals(((LLVariable) term).name)
-                    && this.type.equals(((LLVariable) term).type)){
+                    && this.getType().equals(((LLVariable) term).getType())){
                 return true;
             }
         }
@@ -40,6 +40,6 @@ public class LLVariable extends LLTerm implements LLAtom {
 
     @Override
     public Type getType() {
-        return this.type;
+        return this.getType();
     }
 }

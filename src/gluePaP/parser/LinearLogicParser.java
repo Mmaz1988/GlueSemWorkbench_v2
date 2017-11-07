@@ -67,7 +67,7 @@ public class LinearLogicParser {
 
         // character is a lower case letter
         if(c >= 97 && c <= 122){
-            return new LLConstant(assignId(),""+(char) c, LLAtom.Type.E, polarity);
+            return new LLAtom(assignId(),""+(char) c, LLTerm.Type.E, LLAtom.LLType.CONST, polarity);
         }
 
         /*
@@ -75,7 +75,7 @@ public class LinearLogicParser {
         reservered characters: 'A' for universal quantifier
         */
         else if (c >= 66 && c <= 90){
-            return new LLVariable(assignId(),""+(char) c, LLAtom.Type.E,polarity);
+            return new LLAtom(assignId(),""+(char) c, LLTerm.Type.E, LLAtom.LLType.VAR,polarity);
         }
 
         // character is a minus, might be first part of linear implication
@@ -111,14 +111,14 @@ public class LinearLogicParser {
         else if (c == 14846080|| c == 65) {
             LLTerm var;
             var = parseTerm(unparsedInput,polarity);
-            if (!(var instanceof LLVariable))
+            if (!(var instanceof LLAtom && ((LLAtom) var).getLLtype() == LLAtom.LLType.VAR))
                 throw new ParserInputException(pos);
             pos++;
             LLTerm term;
             term = parseTerm(unparsedInput,polarity);
             if (!(term instanceof LLFormula))
                 throw new ParserInputException(pos);
-            return new LLUniversalQuant((LLVariable) var,(LLFormula) term);
+            return new LLUniversalQuant((LLAtom) var,(LLFormula) term);
         }
 
         else {

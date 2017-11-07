@@ -1,5 +1,9 @@
 package gluePaP.linearLogic;
 
+import Prover.AtomEquality;
+
+import java.util.List;
+
 public class LLImplication extends LLTerm implements LLOperator {
     private final String symbol = "\u22B8";
 
@@ -14,4 +18,5 @@ public class LLImplication extends LLTerm implements LLOperator {
             return true;
         return false;
     }
+
 }
