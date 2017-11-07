@@ -92,6 +92,7 @@ public class LinearLogicParser {
 
         // character is a left parenthesis, set scope
         else if (c == 40) {
+
             LLTerm left = parseTerm(unparsedInput, !polarity);
             LLOperator op = (LLOperator) parseTerm(unparsedInput, polarity);
             LLTerm right = parseTerm(unparsedInput, polarity);

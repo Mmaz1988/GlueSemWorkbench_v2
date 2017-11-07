@@ -52,6 +52,23 @@ public class LLFormula extends LLTerm {
     * with all variable occurrences instantiated. If the structures of the two input
     * formulas don't match it returns null instead.
     */
+    public static LLConstant getInstantiation(LLVariable var, LLTerm quTerm, LLTerm instTerm){
+        if (instTerm instanceof LLConstant && quTerm instanceof LLVariable && quTerm.checkEquivalence(var))
+            return (LLConstant) instTerm;
+        else if (instTerm instanceof LLFormula && quTerm instanceof LLFormula){
+            if(getInstantiation(var,((LLFormula) quTerm).getLhs(),((LLFormula) instTerm).getLhs()) != null)
+                return getInstantiation(var,((LLFormula) quTerm).getLhs(),((LLFormula) instTerm).getLhs());
+            if(getInstantiation(var,((LLFormula) quTerm).getRhs(),((LLFormula) instTerm).getRhs()) != null)
+                return getInstantiation(var,((LLFormula) quTerm).getRhs(),((LLFormula) instTerm).getRhs());
+        }
+        return null;
+    }
+
+    public void instantiate(LLVariable var, LLConstant constant){
+
+    }
+
+
     public static LLTerm instantiateVar(LLVariable var, LLTerm quTerm, LLTerm instTerm) {
         if (quTerm instanceof LLConstant && quTerm.checkEquivalence(instTerm))
             return instTerm;

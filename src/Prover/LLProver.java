@@ -98,6 +98,12 @@ public class LLProver {
                 combined_IDs.addAll(arg.getPremiseIDs());
                 return new Premise(combined_IDs,((LLFormula) func.getTerm()).getRhs());
         }
+        else if (func.getTerm() instanceof LLUniversalQuant) {
+            LLUniversalQuant quant = (LLUniversalQuant) func.getTerm();
+            LLFormula inst = (LLFormula) LLFormula.instantiateVar(quant.getVariable(),quant.getTerm().getLhs(),arg.getTerm());
+
+
+        }
         else {
             return null;
         }
