@@ -1,13 +1,12 @@
 package gluePaP.lexicon;
 
-import java.util.StringJoiner;
+public class Noun implements LexicalEntry {
 
-public class Verb implements LexicalEntry {
 
     LexType lexType;
     String formula;
 
-    public Verb(LexType type, String lemma) {
+    public Noun(LexType type, String lemma) {
 
         //StringJoiner sj = new StringJoiner(" ");
 
@@ -16,15 +15,12 @@ public class Verb implements LexicalEntry {
         //h is standard variable for object
 
         switch (type) {
-            case V_INTR:
+            case N_NNP:
 
-                this.formula = "(g -o f)";
+                this.formula = Character.toString(lemma.charAt(0)).toLowerCase();
 
                 break;
 
-            case V_TRANS:
-
-                this.formula = "(g -o (h -o f))";
 
 
         }

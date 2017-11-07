@@ -32,6 +32,8 @@ public class DependencyParser {
 
     //Main method for testing parser functionalities
 
+    /*
+
     public static void main(String[] args) {
 
         DependencyParser dp = new DependencyParser();
@@ -44,6 +46,7 @@ public class DependencyParser {
         // testSentences.add("Cats chase dogs.");
         testSentences.add("John loves Maria.");
         testSentences.add("Every man loves a woman.");
+        testSentences.add("John said that Mary was sick.");
 
 
 
@@ -61,7 +64,7 @@ public class DependencyParser {
             System.out.print(gs.typedDependencies());
         }
     }
-
+*/
 
     public List<GrammaticalStructure> generateParses(List<String> sentences) {
 

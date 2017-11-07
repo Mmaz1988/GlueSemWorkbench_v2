@@ -31,11 +31,11 @@ public class GrammarMain {
 
         testSentences.add("John snores.");
         testSentences.add("John loves Maria.");
-        testSentences.add("John was able to open the door.");
-        testSentences.add("John said that Mary was sick");
-        testSentences.add("John was building a house.");
-        testSentences.add("John saw the monkey with the telescope.");
-        testSentences.add("John died on the table");
+//        testSentences.add("John was able to open the door.");
+//        testSentences.add("John said that Mary was sick");
+//        testSentences.add("John was building a house.");
+//        testSentences.add("John saw the monkey with the telescope.");
+//        testSentences.add("John died on the table");
 
         GrammarMain grammar = new GrammarMain(testSentences);
 
