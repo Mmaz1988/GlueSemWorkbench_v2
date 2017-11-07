@@ -5,6 +5,14 @@ public class LLUniversalQuant extends LLTerm{
     private LLVariable variable;
     private LLFormula term;
 
+    public LLVariable getVariable() {
+        return variable;
+    }
+
+    public LLFormula getTerm() {
+        return term;
+    }
+
     public LLUniversalQuant(LLVariable variable, LLFormula term) {
         this.variable = variable;
         this.term = term;

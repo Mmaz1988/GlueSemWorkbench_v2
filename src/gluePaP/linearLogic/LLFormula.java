@@ -46,20 +46,25 @@ public class LLFormula extends LLTerm {
         return false;
     }
 
-    public LLTerm instantiateVar(LLVariable var, LLTerm quTerm, LLTerm instTerm) {
+    /*
+    * Recursively goes through a LL formula and instantiates all occurrences of the variable var
+    * to an appropriately typed LL constant. Returns a LL formula like the input quTerm, but
+    * with all variable occurrences instantiated. If the structures of the two input
+    * formulas don't match it returns null instead.
+    */
+    public static LLTerm instantiateVar(LLVariable var, LLTerm quTerm, LLTerm instTerm) {
         if (quTerm instanceof LLConstant && quTerm.checkEquivalence(instTerm))
             return instTerm;
-            // TODO Does the equals() check work?
-        else if (instTerm instanceof LLConstant && quTerm instanceof LLVariable && quTerm.equals(var))
+        else if (instTerm instanceof LLConstant && quTerm instanceof LLVariable && quTerm.checkEquivalence(var))
             return instTerm;
         else if (instTerm instanceof LLFormula && quTerm instanceof  LLFormula){
             LLTerm newLeft = instantiateVar(var, ((LLFormula) quTerm).getLhs(),((LLFormula) instTerm).getLhs());
-            LLOperator op = this.operator;
+            LLOperator op = ((LLFormula) quTerm).operator;
             LLTerm newRight = instantiateVar(var,((LLFormula) quTerm).getRhs(),((LLFormula) instTerm).getRhs());
-            return new LLFormula(quTerm.getTermId(),newLeft,op,newRight,quTerm.isPolarity());
+            return new LLFormula(instTerm.getTermId(),newLeft,op,newRight,quTerm.isPolarity());
         }
 
-        // Something didn't work out abort and return null
+        // Something didn't work out, abort and return null
         return null;
 
     }

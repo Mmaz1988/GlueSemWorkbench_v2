@@ -59,7 +59,7 @@ public class ParserMain {
         testpremises.add(test5);
         testpremises.add(test6);
 
-        LLAtom goal = new LLConstant("1","d", false);
+        LLAtom goal = new LLConstant("1","d", LLAtom.Type.T, false);
 
         LinearLogicParser parser = new LinearLogicParser(testpremises);
         Sequent testseq = new Sequent(parser.premises);
@@ -77,52 +77,18 @@ public class ParserMain {
         System.out.println(result.toString());
         System.out.println("Done!");
 
-    }
+        String quantStr = "AX.((g -o X) -o X)";
+        String instStr = "((g -o f) -o f)";
 
 
-
-    /*
-    public void parse(String str) {
-        // Initialize list of left hand side terms for the sequent
-        List<LLTerm> lhs_terms;
-        // Initialize new sequent
-        //Sequent input_seq = new Sequent();
-        // Read input string characterwise
-        for (int i = 0; i < str.length(); i++) {
-            int c = (int) str.charAt(i);
-
-            // character is a whitespace
-            if (c == 32)
-                continue;
-                // character is a lower case letter
-            else if (c >= 97 || c <= 122) {
-                lhs_terms.add(new LLConstant(Character.toString((char) c)));
-            }
-            // character is an upper case letter
-            else if (c >= 65 || c <= 90) {
-                lhs_terms.add(new LLVariable(Character.toString((char) c)));
-            }
-            // character is a left parenthesis, set scope
-            else if (c == 40) {
-
-            }
-            // character is a comma, delimits premises
-            else if (c == 44) {
-
-            }
-            // character is an equal sign, might be first part of consequent separator (=>)
-            else if (c == 61) {
-
-            }
-            // character is a minus, might be first part of linear implication
-            else if (c == 45) {
-
-            } else {
-                // return exception?
-            }
-
-
+        try {
+            System.out.println("Testing Variable instantiation");
+            LLUniversalQuant quant = (LLUniversalQuant) parser.parse(quantStr);
+            LLFormula inst = (LLFormula) parser.parse(instStr);
+            LLTerm inst_result = LLFormula.instantiateVar(quant.getVariable(),quant.getTerm(),inst);
+            System.out.println(inst_result.toString());
+        } catch (ParserInputException e) {
+            e.printStackTrace();
         }
     }
-    */
 }

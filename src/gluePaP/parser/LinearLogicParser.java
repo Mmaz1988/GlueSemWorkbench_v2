@@ -54,6 +54,7 @@ public class LinearLogicParser {
         return parseTerm(unparsedInput, true);
     }
 
+    // TODO properly add types (e or t)
     private LLTerm parseTerm(String unparsedInput, boolean polarity) throws ParserInputException {
 
         //skip whitespaces
@@ -66,12 +67,15 @@ public class LinearLogicParser {
 
         // character is a lower case letter
         if(c >= 97 && c <= 122){
-            return new LLConstant(assignId(),""+(char) c, polarity);
+            return new LLConstant(assignId(),""+(char) c, LLAtom.Type.E, polarity);
         }
 
-        // character is an upper case letter
-        else if (c >= 65 && c <= 90){
-            return new LLVariable(assignId(),""+(char) c, polarity);
+        /*
+        character is an upper case letter
+        reservered characters: 'A' for universal quantifier
+        */
+        else if (c >= 66 && c <= 90){
+            return new LLVariable(assignId(),""+(char) c, LLAtom.Type.E,polarity);
         }
 
         // character is a minus, might be first part of linear implication

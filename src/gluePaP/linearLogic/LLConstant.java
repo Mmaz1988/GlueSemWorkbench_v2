@@ -14,9 +14,10 @@ public class LLConstant extends LLTerm implements LLAtom {
 
 
 
-    public LLConstant(String id, String name, boolean pol) {
+    public LLConstant(String id, String name, Type type, boolean pol) {
         this.name = name;
         this.setTermId(id);
+        this.type = type;
         this.setPolarity(pol);
     }
 

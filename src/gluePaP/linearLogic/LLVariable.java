@@ -15,9 +15,10 @@ public class LLVariable extends LLTerm implements LLAtom {
 
 
 
-    public LLVariable(String id, String name, boolean pol) {
+    public LLVariable(String id, String name, Type type, boolean pol) {
         this.name = name;
         this.setTermId(id);
+        this.type = type;
         this.setPolarity(pol);
     }
 
@@ -28,6 +29,12 @@ public class LLVariable extends LLTerm implements LLAtom {
 
     // TODO implement equivalence check for LL variables
     public boolean checkEquivalence(LLTerm term) {
+        if (term instanceof LLVariable) {
+            if (this.name.equals(((LLVariable) term).name)
+                    && this.type.equals(((LLVariable) term).type)){
+                return true;
+            }
+        }
         return false;
     }
 
