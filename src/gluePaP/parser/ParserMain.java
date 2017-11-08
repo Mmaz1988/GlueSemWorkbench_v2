@@ -43,21 +43,16 @@ public class ParserMain {
     }
 
     public static void main(String[] args) {
-        String test2 = "(a -o b)";
-        String test1 = "f";
-        String test4 = "((a -o b) -o (f -o (d -o (e -o g))))";
-        String test5 = "d";
-        String test6 = "e";
+        String test1 = "(a -o b)";
+        String test2 = "(a -o (b -o (c -o d))";
+        String test3 = "c";
 
         System.out.println("Parsing input...");
 
         List<String> testpremises = new ArrayList<String>();
         testpremises.add(test1);
         testpremises.add(test2);
-        //testpremises.add(test3);
-        testpremises.add(test4);
-        testpremises.add(test5);
-        testpremises.add(test6);
+        testpremises.add(test3);
 
        // LLAtom goal = new LLAtom("1","d", LLAtom.Type.T, false);
 

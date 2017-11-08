@@ -3,7 +3,9 @@ package gluePaP.linearLogic;
 
 import Prover.AtomEquality;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public abstract class LLTerm {
 
@@ -13,8 +15,11 @@ public abstract class LLTerm {
 
     private String termId;
     private boolean polarity;
-    private boolean assumption;
     private Type type;
+
+    // experimental fields for compilation process
+    public Set<LLTerm> assumptions = new HashSet<>();
+    public Set<LLTerm> discharges = new HashSet<>();
 
     //Default constructor
     public LLTerm(){ }
@@ -30,10 +35,6 @@ public abstract class LLTerm {
     public void setPolarity(boolean pol) { this.polarity = pol; }
 
     public abstract boolean checkEquivalence(LLTerm term);
-
-    public boolean isAssumption() { return assumption; }
-
-    public void setAssumption(boolean assumption) { this.assumption = assumption; }
 
     //Get and set type
 
