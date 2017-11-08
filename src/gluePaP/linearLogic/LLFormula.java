@@ -5,6 +5,8 @@ import Prover.Equality;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class LLFormula extends LLTerm {
     private String name;
@@ -52,6 +54,26 @@ public class LLFormula extends LLTerm {
             }
         }
         return false;
+    }
+
+    @Override
+    public List<Equality> checkCompatibility(LLTerm term) {
+        if (term instanceof LLFormula){
+            if (this.lhs.checkCompatibility(((LLFormula) term).lhs) != null &&
+                    this.rhs.checkCompatibility(((LLFormula) term).rhs) != null &&
+                    ((LLTerm) this.operator).checkCompatibility(((LLTerm) ((LLFormula) term).operator)) != null)
+                    {
+                List<Equality> left = this.lhs.checkCompatibility(((LLFormula) term).lhs);
+                List<Equality> right = this.rhs.checkCompatibility(((LLFormula) term).rhs);
+                List<Equality> operator = ((LLTerm) this.operator).checkCompatibility(((LLTerm) ((LLFormula) term).operator));
+
+
+                List<Equality> dummy = Stream.concat(right.stream(), left.stream()).collect(Collectors.toList());
+
+                return Stream.concat(dummy.stream(), operator.stream()).collect(Collectors.toList());
+            }
+        }
+        return null;
     }
 
     /*
@@ -102,8 +124,5 @@ public class LLFormula extends LLTerm {
     }
 
 
-    @Override
-    public List<Equality> checkCompatibility(LLTerm term) {
-        return null;
-    }
+
 }

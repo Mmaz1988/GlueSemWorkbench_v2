@@ -2,6 +2,7 @@ package gluePaP.linearLogic;
 
 import Prover.Equality;
 
+import java.util.Collections;
 import java.util.List;
 
 public class LLImplication extends LLTerm implements LLOperator {
@@ -21,6 +22,14 @@ public class LLImplication extends LLTerm implements LLOperator {
 
     @Override
     public List<Equality> checkCompatibility(LLTerm term) {
-        return null;
+        if (term instanceof LLImplication)
+        {
+            List<Equality> emptyList = Collections.emptyList();
+            return emptyList;
+        }
+        else
+        {
+            return null;
+        }
     }
 }

@@ -154,15 +154,16 @@ public class LLProver {
             }
         }
         else if (func.getTerm() instanceof LLUniversalQuant) {
-            LLUniversalQuant quant = (LLUniversalQuant) func.getTerm();
 
-            if (quant.getTerm().getLhs().checkEquivalence(arg.getTerm()))
-            {
+           if ( ((LLUniversalQuant) func.getTerm()).getTerm().getLhs() != null )
+           {
+               
+           }
+
+
                 return null;
-            }
 
 
-            return null;
         }
         else {
             return null;

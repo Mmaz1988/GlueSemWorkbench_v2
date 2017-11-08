@@ -109,6 +109,11 @@ public class LLUniversalQuant extends LLTerm{
 
     @Override
     public List<Equality> checkCompatibility(LLTerm term) {
-        return null;
+
+
+        List<Equality> emptyList = Collections.emptyList();
+
+        return emptyList;
+
     }
 }

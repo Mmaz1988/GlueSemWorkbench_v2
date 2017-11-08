@@ -58,28 +58,43 @@ public class LLAtom extends LLTerm {
 
     @Override
     public List<Equality> checkCompatibility(LLTerm term) {
-        if (this.getLLtype().equals(LLType.VAR)){
-            if (term instanceof LLAtom)
-            {
-                if (((LLAtom) term).getLLtype().equals(LLType.VAR))
+        if (term instanceof LLAtom) {
+            if (this.getLLtype().equals(LLType.VAR)) {
                 {
-                    List<Equality> emptyList = Collections.emptyList();
-                    return emptyList;
-                } else
-                {
-                if (this.getType().equals(((LLAtom) term).getType()))
-                    {
-                        List<Equality> newEq = new ArrayList<>();
-                        newEq.add(new Equality(this,(LLAtom) term));
-                        return newEq;
+                    if (((LLAtom) term).getLLtype().equals(LLType.VAR)) {
+                        List<Equality> emptyList = Collections.emptyList();
+                        return emptyList;
+                    } else if ( ((LLAtom) term).getLLtype().equals(LLType.CONST) &&
+                            this.getType().equals((term.getType()))) {
+                        {
+                            List<Equality> newEq = new ArrayList<>();
+                            newEq.add(new Equality(this, (LLAtom) term));
+                            return newEq;
+                        }
                     }
                 }
-                }
-
+            } else if (this.getLLtype().equals(LLType.CONST)) {
+                if (((LLAtom) term).getLLtype().equals(LLType.CONST)) {
+                    if (this.getName().equals(((LLAtom) term).getName()) &&
+                            this.getType().equals(term.getType())) {
+                        List<Equality> emptyList = Collections.emptyList();
+                        return emptyList;
+                    } else
+                        {
+                            return null;
+                        }
+                } else if (((LLAtom) term).getLLtype().equals(LLType.VAR) &&
+                        this.getType().equals(term.getType()))
+                    {
+                        List<Equality> newEq = new ArrayList<>();
+                        newEq.add(new Equality((LLAtom) term,  this));
+                        return newEq;
+                    }
 
 
             }
-        return null;
+        }
+            return null;
     }
 
 
