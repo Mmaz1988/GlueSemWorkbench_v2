@@ -43,17 +43,17 @@ public class ParserMain {
     }
 
     public static void main(String[] args) {
-        String test1 = "(a -o b)";
-        String test2 = "(a -o (b -o (c -o d))";
+        String test1 = "((((a -o b) -o c) -o d) -o e)";
+        String test2 = "(((a -o b) -o c) -o d)";
         String test3 = "c";
-        String test4 = "a";
+        //String test4 = "a";
 
         System.out.println("Parsing input...");
 
         List<String> testpremises = new ArrayList<String>();
         testpremises.add(test1);
-        //testpremises.add(test2);
-        testpremises.add(test4);
+        testpremises.add(test2);
+        testpremises.add(test3);
 
         LinearLogicParser parser = new LinearLogicParser(testpremises);
         Sequent testseq = new Sequent(parser.premises);
