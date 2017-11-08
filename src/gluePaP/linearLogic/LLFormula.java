@@ -9,10 +9,6 @@ public class LLFormula extends LLTerm {
     private LLTerm rhs;
     private LLOperator operator;
 
-    // experimental fields for compilation process
-    public Set<LLTerm> assumptions = new HashSet<>();
-    public Set<LLTerm> discharges = new HashSet<>();
-
 
     public String getName() {
         return name;

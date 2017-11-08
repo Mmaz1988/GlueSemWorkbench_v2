@@ -1,4 +1,5 @@
 import Prover.LLProver;
+import gluePaP.linearLogic.LLFormula;
 import gluePaP.linearLogic.LLTerm;
 import gluePaP.parser.LinearLogicParser;
 import gluePaP.parser.ParserInputException;

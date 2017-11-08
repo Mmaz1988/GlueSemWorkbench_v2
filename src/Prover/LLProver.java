@@ -71,6 +71,9 @@ public class LLProver {
                 If successful add the newly created Premise to the database.
                 */
                 if (db_premise.getTerm() instanceof LLFormula) {
+                    if (!db_premise.getTerm().assumptions.isEmpty()) {
+
+                    }
                     Premise new_premise = this.combinePremises(db_premise,curr_premise);
                     if (new_premise != null) {
                         if (new_premise.getPremiseIDs().equals(goalIDs)) {
@@ -119,6 +122,25 @@ public class LLProver {
 
         if (((LLFormula) func.getTerm()).getLhs().checkEquivalence(arg.getTerm())) {
             HashSet<Integer> combined_IDs = new HashSet<>();
+
+            /*
+            * If
+            * */
+
+            if (!arg.getTerm().assumptions.isEmpty()) {
+                if (!((LLFormula) func.getTerm()).getLhs().discharges.isEmpty()) {
+                    if (!((LLFormula) func.getTerm()).getLhs().assumptions.
+                            containsAll(arg.getTerm().discharges)) {
+                        return null;
+                    }
+                }
+                else {
+                    if (Collections.disjoint(func.getPremiseIDs(),arg.getPremiseIDs()))
+                        combined_IDs.addAll(func.getPremiseIDs());
+                    combined_IDs.addAll(arg.getPremiseIDs());
+                    return new Premise(combined_IDs,((LLFormula) func.getTerm()).getRhs());
+                }
+            }
             if (Collections.disjoint(func.getPremiseIDs(),arg.getPremiseIDs()))
                 combined_IDs.addAll(func.getPremiseIDs());
                 combined_IDs.addAll(arg.getPremiseIDs());
@@ -184,7 +206,7 @@ public class LLProver {
                 */
                 // TODO add semantic operations for conversion steps (i.e. lambda abstraction)
                 LLTerm assumption = convert(((LLFormula) f.getLhs()).getLhs());
-                assumption.setAssumption(true);
+                assumption.assumptions.add(assumption);
                 LLTerm dependency = convert(new LLFormula(f.getTermId(),((LLFormula) f.getLhs()).getRhs(),
                         f.getOperator(),f.getRhs(),f.isPolarity()));
                 ((LLFormula) dependency).assumptions.add(assumption);
