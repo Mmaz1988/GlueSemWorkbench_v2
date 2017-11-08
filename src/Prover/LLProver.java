@@ -6,6 +6,8 @@ import java.util.*;
 
 public class LLProver {
 
+    private List<Equality> equalities;
+
     /*
     Does a deduction of a given sequent by evaluating the list of premises on its LHS
     and trying to find a valid proof for its RHS.
@@ -124,6 +126,11 @@ public class LLProver {
         }
         else if (func.getTerm() instanceof LLUniversalQuant) {
             LLUniversalQuant quant = (LLUniversalQuant) func.getTerm();
+
+            if (quant.getTerm().getLhs().checkEquivalence(arg.getTerm()))
+            {
+
+            }
 
 
             return null;

@@ -1,7 +1,7 @@
 package gluePaP.linearLogic;
 
 
-import Prover.AtomEquality;
+import Prover.Equality;
 
 import java.util.List;
 
@@ -13,7 +13,6 @@ public abstract class LLTerm {
 
     private String termId;
     private boolean polarity;
-    private boolean assumption;
     private Type type;
 
     //Default constructor
@@ -31,9 +30,8 @@ public abstract class LLTerm {
 
     public abstract boolean checkEquivalence(LLTerm term);
 
-    public boolean isAssumption() { return assumption; }
+    public abstract List<Equality> checkCompatibility(LLTerm term);
 
-    public void setAssumption(boolean assumption) { this.assumption = assumption; }
 
     //Get and set type
 

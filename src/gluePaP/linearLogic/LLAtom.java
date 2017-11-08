@@ -1,5 +1,11 @@
 package gluePaP.linearLogic;
 
+import Prover.Equality;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 public class LLAtom extends LLTerm {
 
 
@@ -21,14 +27,11 @@ public class LLAtom extends LLTerm {
         this.setTermId(id);
         this.setType(type);
         this.setPolarity(pol);
-        this.setLltype(lltype);
-        this.setAssumption(false);
+        this.setLLtype(lltype);
     }
 
 
-    public LLType getLLtype(){
-        return this.lltype;
-    }
+
 
 
     // toString method
@@ -53,15 +56,32 @@ public class LLAtom extends LLTerm {
 
     }
 
-    public boolean checkEquivalencies(LLTerm term){
+    @Override
+    public List<Equality> checkCompatibility(LLTerm term) {
+        if (this.getLLtype().equals(LLType.VAR)){
+            if (term instanceof LLAtom)
+            {
+                if (((LLAtom) term).getLLtype().equals(LLType.VAR))
+                {
+                    List<Equality> emptyList = Collections.emptyList();
+                    return emptyList;
+                } else
+                {
+                if (this.getType().equals(((LLAtom) term).getType()))
+                    {
+                        List<Equality> newEq = new ArrayList<>();
+                        newEq.add(new Equality(this,(LLAtom) term));
+                        return newEq;
+                    }
+                }
+                }
 
-        if (term instanceof LLAtom)
-        {
 
-        }
 
-        return false;
+            }
+        return null;
     }
+
 
 
     // Getter and Setter name
@@ -74,11 +94,11 @@ public class LLAtom extends LLTerm {
     }
 
     // Getter and setter LLType
-    public LLType getLltype() {
+    public LLType getLLtype() {
         return lltype;
     }
 
-    public void setLltype(LLType lltype) {
+    public void setLLtype(LLType lltype) {
         this.lltype = lltype;
     }
 

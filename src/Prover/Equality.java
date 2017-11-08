@@ -2,12 +2,12 @@ package Prover;
 
 import gluePaP.linearLogic.LLAtom;
 
-public class AtomEquality {
+public class Equality {
 
     private final LLAtom variable;
     private final LLAtom constant;
 
-    public AtomEquality(LLAtom variable, LLAtom constant)
+    public Equality(LLAtom variable, LLAtom constant)
     {
         this.variable = variable;
         this.constant = constant;

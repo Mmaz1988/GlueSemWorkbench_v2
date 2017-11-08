@@ -1,6 +1,8 @@
 package gluePaP.linearLogic;
 
 
+import Prover.Equality;
+
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -104,4 +106,9 @@ public class LLUniversalQuant extends LLTerm{
         return false;
     }
 
+
+    @Override
+    public List<Equality> checkCompatibility(LLTerm term) {
+        return null;
+    }
 }
