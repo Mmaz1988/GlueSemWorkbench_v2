@@ -4,6 +4,7 @@ package gluePaP.linearLogic;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Sequent {
     private List<Premise> lhs;
@@ -22,7 +23,6 @@ public class Sequent {
         }
     }
 
-
     // Returns the set containing all index sets (usually singletons) of the sequent's premises
     public HashSet<Integer> getMaxIDSet() {
         HashSet<Integer> maxIDSet = new HashSet<>();
@@ -30,6 +30,14 @@ public class Sequent {
             maxIDSet.addAll(premise.getPremiseIDs());
         }
         return maxIDSet;
+    }
+
+    public Integer getNewID() {
+        Set<Integer> ids = new HashSet<>(this.getMaxIDSet());
+        Integer newId = 1;
+        while (ids.contains(newId))
+            newId++;
+        return newId;
     }
 
     @Override

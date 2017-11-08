@@ -1,10 +1,17 @@
 package gluePaP.linearLogic;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class LLFormula extends LLTerm {
     private String name;
     private LLTerm lhs;
     private LLTerm rhs;
     private LLOperator operator;
+
+    // experimental fields for compilation process
+    public Set<LLTerm> assumptions = new HashSet<>();
+    public Set<LLTerm> discharges = new HashSet<>();
 
 
     public String getName() {
@@ -19,6 +26,8 @@ public class LLFormula extends LLTerm {
         return rhs;
     }
 
+    public LLOperator getOperator() { return operator; }
+
 
     public LLFormula(String id, LLTerm lhs, LLOperator operator,LLTerm rhs, boolean pol) {
         this.lhs = lhs;
@@ -27,6 +36,7 @@ public class LLFormula extends LLTerm {
         this.operator = operator;
         this.setTermId(id);
         this.name = this.toString();
+        this.setAssumption(false);
     }
 
     @Override
@@ -84,6 +94,10 @@ public class LLFormula extends LLTerm {
         // Something didn't work out, abort and return null
         return null;
 
+    }
+
+    public boolean isNested(){
+        return this.getLhs() instanceof LLFormula;
     }
 
 

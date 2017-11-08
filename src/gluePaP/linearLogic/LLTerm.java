@@ -13,6 +13,7 @@ public abstract class LLTerm {
 
     private String termId;
     private boolean polarity;
+    private boolean assumption;
     private Type type;
 
     //Default constructor
@@ -30,6 +31,9 @@ public abstract class LLTerm {
 
     public abstract boolean checkEquivalence(LLTerm term);
 
+    public boolean isAssumption() { return assumption; }
+
+    public void setAssumption(boolean assumption) { this.assumption = assumption; }
 
     //Get and set type
 

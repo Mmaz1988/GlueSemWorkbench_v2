@@ -29,4 +29,8 @@ public class Premise {
     public boolean equals(Premise p) {
         return false;
     }
+
+    public void setTerm(LLTerm term) {
+        this.term = term;
+    }
 }

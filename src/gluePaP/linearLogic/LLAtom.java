@@ -22,6 +22,7 @@ public class LLAtom extends LLTerm {
         this.setType(type);
         this.setPolarity(pol);
         this.setLltype(lltype);
+        this.setAssumption(false);
     }
 
 

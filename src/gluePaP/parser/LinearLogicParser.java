@@ -43,7 +43,7 @@ public class LinearLogicParser {
         this.curr_id = 0;
     }
 
-    private String assignId() {
+    public String assignId() {
         this.curr_id++;
         return Integer.toString(curr_id);
     }

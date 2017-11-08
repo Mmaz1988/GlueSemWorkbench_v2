@@ -78,7 +78,7 @@ public class ParserMain {
         System.out.println("Done!");
 
         String quantStr = "AX.((g -o X) -o X)";
-        String instStr = "((g -o f) -o f)";
+        String instStr = "(g -o f)";
 
 
         try {
