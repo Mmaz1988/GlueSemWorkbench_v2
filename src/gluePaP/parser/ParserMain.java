@@ -46,15 +46,14 @@ public class ParserMain {
         String test1 = "(a -o b)";
         String test2 = "(a -o (b -o (c -o d))";
         String test3 = "c";
+        String test4 = "a";
 
         System.out.println("Parsing input...");
 
         List<String> testpremises = new ArrayList<String>();
         testpremises.add(test1);
-        testpremises.add(test2);
-        testpremises.add(test3);
-
-       // LLAtom goal = new LLAtom("1","d", LLAtom.Type.T, false);
+        //testpremises.add(test2);
+        testpremises.add(test4);
 
         LinearLogicParser parser = new LinearLogicParser(testpremises);
         Sequent testseq = new Sequent(parser.premises);
