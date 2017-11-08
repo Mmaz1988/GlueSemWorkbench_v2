@@ -1,3 +1,4 @@
+/*
 package gluePaP.linearLogic;
 
 public class LLVariable extends LLTerm {
@@ -43,3 +44,4 @@ public class LLVariable extends LLTerm {
         return this.getType();
     }
 }
+*/

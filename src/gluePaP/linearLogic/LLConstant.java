@@ -1,4 +1,4 @@
-package gluePaP.linearLogic;
+/* package gluePaP.linearLogic;
 
 public class LLConstant extends LLTerm {
     private String name;
@@ -43,3 +43,4 @@ public class LLConstant extends LLTerm {
         return this.type;
     }
 }
+*/

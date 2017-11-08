@@ -75,7 +75,7 @@ public class ParserMain {
         String quantStr = "AX.((g -o X) -o X)";
         String instStr = "(g -o f)";
 
-
+/*
         try {
             System.out.println("Testing Variable instantiation");
             LLUniversalQuant quant = (LLUniversalQuant) parser.parse(quantStr);
@@ -85,5 +85,8 @@ public class ParserMain {
         } catch (ParserInputException e) {
             e.printStackTrace();
         }
+
+    */
     }
+
 }

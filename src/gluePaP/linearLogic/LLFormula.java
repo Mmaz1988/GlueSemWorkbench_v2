@@ -60,6 +60,8 @@ public class LLFormula extends LLTerm {
     * with all variable occurrences instantiated. If the structures of the two input
     * formulas don't match it returns null instead.
     */
+
+    /*
     public static LLConstant getInstantiation(LLVariable var, LLTerm quTerm, LLTerm instTerm){
         if (instTerm instanceof LLConstant && quTerm instanceof LLVariable && quTerm.checkEquivalence(var))
             return (LLConstant) instTerm;
@@ -93,6 +95,7 @@ public class LLFormula extends LLTerm {
         return null;
 
     }
+*/
 
     public boolean isNested(){
         return this.getLhs() instanceof LLFormula;
