@@ -121,49 +121,44 @@ public class LLProver {
     public Premise combinePremises(Premise func, Premise arg) {
 
         if (((LLFormula) func.getTerm()).getLhs().checkEquivalence(arg.getTerm())) {
-            HashSet<Integer> combined_IDs = new HashSet<>();
             // TODO review this again
             /*
             * No assumptions or discharges involved, proceed with a "normal" implication elimination
             * */
             if (arg.getTerm().assumptions.isEmpty()
                     && ((LLFormula) func.getTerm()).getLhs().discharges.isEmpty()) {
-                if (Collections.disjoint(func.getPremiseIDs(),arg.getPremiseIDs()))
-                    combined_IDs.addAll(func.getPremiseIDs());
-                combined_IDs.addAll(arg.getPremiseIDs());
-                return new Premise(combined_IDs,((LLFormula) func.getTerm()).getRhs());
+                return combineDisjointID(func, arg);
             } else {
                 /*
                 * The argument has some assumptions. If the functor has discharges then the set
                 * of the functor's discharges must be a subset of the arguments assumptions
                 * */
                 if (!((LLFormula) func.getTerm()).getLhs().discharges.isEmpty()) {
-                    if (!((LLFormula) func.getTerm()).getLhs().assumptions.
+                    if (((LLFormula) func.getTerm()).getLhs().assumptions.
                             containsAll(arg.getTerm().discharges)) {
-                        return null;
+                        return combineDisjointID(func, arg);
                     }
+                    return null;
+
                 }
                 /*
                 * The argument has assumptions associated with it but the functor has no discharges.
                 * Add the argument's assumptions to the functors assumptions (if it has any).
                 * */
                 else {
-                    if (Collections.disjoint(func.getPremiseIDs(),arg.getPremiseIDs()))
-                        combined_IDs.addAll(func.getPremiseIDs());
-                    combined_IDs.addAll(arg.getPremiseIDs());
-                    Premise combined = new Premise(combined_IDs,((LLFormula) func.getTerm()).getRhs());
-                    combined.getTerm().assumptions.addAll(arg.getTerm().assumptions);
+                    Premise combined = combineDisjointID(func, arg);
+                    if (combined != null)
+                        combined.getTerm().assumptions.addAll(arg.getTerm().assumptions);
                     return combined;
                 }
             }
-
         }
         else if (func.getTerm() instanceof LLUniversalQuant) {
             LLUniversalQuant quant = (LLUniversalQuant) func.getTerm();
 
             if (quant.getTerm().getLhs().checkEquivalence(arg.getTerm()))
             {
-
+                return null;
             }
 
 
@@ -173,6 +168,16 @@ public class LLProver {
             return null;
         }
 
+    }
+
+    private Premise combineDisjointID(Premise func, Premise arg) {
+        HashSet<Integer> combined_IDs = new HashSet<>();
+        if (Collections.disjoint(func.getPremiseIDs(),arg.getPremiseIDs())){
+            combined_IDs.addAll(func.getPremiseIDs());
+            combined_IDs.addAll(arg.getPremiseIDs());
+            return new Premise(combined_IDs,((LLFormula) func.getTerm()).getRhs());
+        }
+        return null;
     }
 
 
