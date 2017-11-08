@@ -1,6 +1,9 @@
 package gluePaP.linearLogic;
 
+import Prover.Equality;
+
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class LLFormula extends LLTerm {
@@ -32,7 +35,6 @@ public class LLFormula extends LLTerm {
         this.operator = operator;
         this.setTermId(id);
         this.name = this.toString();
-        this.setAssumption(false);
     }
 
     @Override
@@ -97,7 +99,8 @@ public class LLFormula extends LLTerm {
     }
 
 
-
-
-
+    @Override
+    public List<Equality> checkCompatibility(LLTerm term) {
+        return null;
+    }
 }
