@@ -1,7 +1,7 @@
 package gluePaP.linearLogic;
 
 
-import Prover.AtomEquality;
+import Prover.Equality;
 
 import java.util.HashSet;
 import java.util.List;
@@ -35,6 +35,8 @@ public abstract class LLTerm {
     public void setPolarity(boolean pol) { this.polarity = pol; }
 
     public abstract boolean checkEquivalence(LLTerm term);
+
+    public abstract List<Equality> checkCompatibility(LLTerm term);
 
     //Get and set type
 
