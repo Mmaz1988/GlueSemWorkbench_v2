@@ -57,6 +57,7 @@ public class ParserMain {
 
         LinearLogicParser parser = new LinearLogicParser(testpremises);
         Sequent testseq = new Sequent(parser.premises);
+        Sequent tempseq = testseq;
 
         System.out.println(testseq.toString());
 
@@ -64,7 +65,7 @@ public class ParserMain {
         LLProver prover = new LLProver();
         Premise result = null;
         try {
-            result = prover.deduce(testseq);
+            result = prover.deduce(tempseq);
         } catch (ProverException e) {
             e.printStackTrace();
         }
