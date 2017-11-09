@@ -37,6 +37,13 @@ public class LLAtom extends LLTerm {
     // toString method
     @Override
     public String toString() {
+        if (!this.assumptions.isEmpty())
+            return "{" + name + "_" + this.getTermId() + "}";
+        else
+            return name + "_" + this.getTermId();
+    }
+
+    public String toPlainString() {
         return name + "_" + this.getTermId();
     }
 

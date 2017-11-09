@@ -53,7 +53,7 @@ public class ParserMain {
         List<String> testpremises = new ArrayList<String>();
         testpremises.add(test1);
         testpremises.add(test2);
-        testpremises.add(test3);
+        //testpremises.add(test3);
 
         LinearLogicParser parser = new LinearLogicParser(testpremises);
         Sequent testseq = new Sequent(parser.premises);
@@ -69,7 +69,7 @@ public class ParserMain {
         } catch (ProverException e) {
             e.printStackTrace();
         }
-        System.out.println(result.toString());
+        System.out.println("Found valid deduction: " + result.toString());
         System.out.println("Done!");
 
         String quantStr = "(AX.(X -o Y) -o X)";

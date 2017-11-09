@@ -19,7 +19,7 @@ public abstract class LLTerm {
 
     // experimental fields for compilation process
     public Set<LLTerm> assumptions = new HashSet<>();
-    public Set<LLTerm> discharges = new HashSet<>();
+    private LLTerm discharge;
 
     //Default constructor
     public LLTerm(){ }
@@ -48,4 +48,15 @@ public abstract class LLTerm {
         this.type = type;
     }
 
+    public LLTerm getDischarge() {
+        return discharge;
+    }
+
+    public void setDischarge(LLTerm discharges) {
+        this.discharge = discharges;
+    }
+
+    public String toPlainString() {
+        return super.toString();
+    }
 }

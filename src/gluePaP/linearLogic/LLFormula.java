@@ -41,8 +41,16 @@ public class LLFormula extends LLTerm {
 
     @Override
     public String toString() {
-        return "(" + lhs + " " + operator + " "  + rhs + ")_"+ this.getTermId();
+        if (!this.assumptions.isEmpty())
+            return "{(" + lhs.toPlainString() + " " + operator + " "  + rhs.toPlainString() + ")_"+ this.getTermId() + "}";
+        else
+            return "(" + lhs.toPlainString() + " " + operator + " "  + rhs.toPlainString() + ")_"+ this.getTermId();
     }
+
+    public String toPlainString() {
+        return "(" + lhs.toPlainString() + " " + operator + " "  + rhs.toPlainString() + ")_"+ this.getTermId();
+    }
+
 
     @Override
     public boolean checkEquivalence(LLTerm term) {
