@@ -2,6 +2,7 @@ package gluePaP.linearLogic;
 
 
 import Prover.Equality;
+import Prover.VariableBindingException;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -107,8 +108,22 @@ public class LLUniversalQuant extends LLTerm{
     }
 
 
+    public LLTerm instantiateVariables(Equality eq)
+    {
+        if (this.isInstance(eq.getVariable()))
+        {
+            for (LLAtom var : boundVariables.get(this.variable))
+            {
+                var.setName(eq.getConstant().getName());
+                var.setLLtype(LLAtom.LLType.CONST);
+            }
+            return term;
+        }
+        return term;
+    }
+
     @Override
-    public List<Equality> checkCompatibility(LLTerm term) {
+    public LinkedHashSet<Equality> checkCompatibility(LLTerm term) {
 
         if (term instanceof LLUniversalQuant) {
 
@@ -122,6 +137,8 @@ public class LLUniversalQuant extends LLTerm{
         }
         return null;
     }
+
+
 
 
 //        List<Equality> emptyList = Collections.emptyList();

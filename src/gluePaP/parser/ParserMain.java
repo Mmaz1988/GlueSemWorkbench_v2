@@ -6,6 +6,7 @@ package gluePaP.parser;
 
 import Prover.LLProver;
 import Prover.ProverException;
+import Prover.VariableBindingException;
 import gluePaP.linearLogic.*;
 
 import java.util.ArrayList;
@@ -42,10 +43,10 @@ public class ParserMain {
 
     }
 
-    public static void main(String[] args) {
-        String test1 = "((((a -o b) -o c) -o d) -o e)";
-        String test2 = "(((a -o b) -o c) -o d)";
-        String test3 = "c";
+    public static void main(String[] args) throws VariableBindingException {
+        String test1 = "AX.(X -o g)";
+        String test2 = "h";
+        //String test3 = "h";
         //String test4 = "a";
 
         System.out.println("Parsing input...");
@@ -72,8 +73,8 @@ public class ParserMain {
         System.out.println("Found valid deduction: " + result.toString());
         System.out.println("Done!");
 
-        String quantStr = "(AX.(X -o Y) -o X)";
-        String instStr = "(f -o g)";
+        String quantStr = "(AX.(X -o (X -o X) -o X)";
+        String instStr = "(f -o (f -o g))";
 
 
 
@@ -82,7 +83,12 @@ public class ParserMain {
             System.out.println("Testing Variable instantiation");
             LLFormula quant = (LLFormula) parser.parse(quantStr);
             LLFormula inst = (LLFormula) parser.parse(instStr);
-            System.out.println(quant.getLhs().checkCompatibility(inst));
+
+            if (quant.getLhs().checkCompatibility(inst) != null) {
+
+                System.out.println(quant.getLhs().checkCompatibility(inst));
+                System.out.print(LLProver.checkDuplicateBinding(quant.getLhs().checkCompatibility(inst)));
+            }
         } catch (ParserInputException e) {
             e.printStackTrace();
         }

@@ -4,7 +4,7 @@ package gluePaP.linearLogic;
 import Prover.Equality;
 
 import java.util.HashSet;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public abstract class LLTerm {
@@ -36,7 +36,7 @@ public abstract class LLTerm {
 
     public abstract boolean checkEquivalence(LLTerm term);
 
-    public abstract List<Equality> checkCompatibility(LLTerm term);
+    public abstract LinkedHashSet<Equality> checkCompatibility(LLTerm term);
 
     //Get and set type
 

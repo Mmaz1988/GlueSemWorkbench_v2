@@ -13,7 +13,7 @@ public class LLProver {
     and trying to find a valid proof for its RHS.
     TODO Check if compilation works properly
      */
-    public Premise deduce(Sequent seq) throws ProverException {
+    public Premise deduce(Sequent seq) throws ProverException,VariableBindingException {
         /*
         Initialize an agenda stack initially containing all premises from the sequent.
         Premises are popped from the stack into the database and additionally created
@@ -130,9 +130,40 @@ public class LLProver {
     if both checks succeed a new Premise is created containing the unified set of indexes
     and the RHS LL term of func (see below)
     */
-    public Premise combinePremises(Premise func, Premise arg) {
+    public Premise combinePremises(Premise func, Premise arg) throws VariableBindingException {
 
-        if (((LLFormula) func.getTerm()).getLhs().checkEquivalence(arg.getTerm())) {
+        Premise func_copy;
+
+        if (func.getTerm() instanceof LLUniversalQuant)
+        {
+            ((LLUniversalQuant) func.getTerm()).getTerm()
+        }
+
+        if (((LLFormula) func.getTerm()).getLhs().checkCompatibility(arg.getTerm()) != null) {
+
+            LinkedHashSet<Equality> substitutions =
+                    ((LLFormula) func.getTerm()).getLhs().checkCompatibility(arg.getTerm());
+
+            if (LLProver.checkDuplicateBinding(substitutions)){
+                throw new VariableBindingException();
+            }
+
+            if (!substitutions.isEmpty())
+            {
+            for (Equality eq : substitutions)
+            {
+                if (((LLFormula) func.getTerm()).getLhs() instanceof LLUniversalQuant)
+                {
+                    ((LLUniversalQuant) (((LLFormula) func.getTerm()).getLhs())).instantiateVariables(eq);
+                }
+                if (arg.getTerm() instanceof LLUniversalQuant)
+                {
+                    ((LLUniversalQuant) arg.getTerm()).instantiateVariables(eq);
+                }
+            }
+
+            }
+
             Premise combined;
 
             // TODO review this again
@@ -183,9 +214,30 @@ public class LLProver {
 
            if ( ((LLUniversalQuant) func.getTerm()).getTerm().getLhs().checkCompatibility(arg.getTerm()) != null )
            {
-               List<Equality> equalitiesqualities =
+               LinkedHashSet<Equality> substitutions =
                ((LLUniversalQuant) func.getTerm()).getTerm().getLhs().checkCompatibility(arg.getTerm());
 
+               if (LLProver.checkDuplicateBinding(substitutions)){
+                   throw new VariableBindingException();
+               }
+/*
+               if (!substitutions.isEmpty())
+               {
+                   for (Equality eq : substitutions)
+                   {
+                       if (((LLFormula) func.getTerm()).getLhs() instanceof LLUniversalQuant)
+                       {
+                           ((LLUniversalQuant) (((LLFormula) func.getTerm()).getLhs())).instantiateVariables(eq);
+                       }
+                       if (arg.getTerm() instanceof LLUniversalQuant)
+                       {
+                           ((LLUniversalQuant) arg.getTerm()).instantiateVariables(eq);
+                       }
+                   }
+
+               }
+
+   */
 
 
            }
@@ -277,5 +329,38 @@ public class LLProver {
         }
         return term;
     }
+
+
+    public LLTerm substitute( List<Equality> substitutions, LLTerm formula)
+    {
+
+        return null;
+    }
+
+
+    public static boolean checkDuplicateBinding(LinkedHashSet<Equality> in) {
+         List<Equality> eqs = new ArrayList<>();
+         eqs.addAll(0,in);
+
+        if (eqs.size() <= 1){
+            return false;
+        }
+
+        for (int i = 0; i < eqs.size(); i++)
+        {
+            for (int j = 0; j <eqs.size(); j++)
+            {
+                if (eqs.get(i).getVariable().getName().equals(eqs.get(j).getVariable().getName())
+                        && eqs.get(i).getVariable().getType().equals(eqs.get(j).getVariable().getType())
+                        && !(eqs.get(i).getConstant().getName().equals(eqs.get(j).getConstant().getName())))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+
 
 }
