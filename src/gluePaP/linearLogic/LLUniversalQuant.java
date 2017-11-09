@@ -110,10 +110,23 @@ public class LLUniversalQuant extends LLTerm{
     @Override
     public List<Equality> checkCompatibility(LLTerm term) {
 
+        if (term instanceof LLUniversalQuant) {
 
-        List<Equality> emptyList = Collections.emptyList();
+            if (this.getTerm().checkCompatibility(term) != null) {
+                return this.getTerm().checkCompatibility(term);
+            }
+        } else
+        {if (term instanceof LLFormula) {
+            return this.getTerm().checkCompatibility(term);
+        }
+        }
+        return null;
+    }
 
-        return emptyList;
+
+//        List<Equality> emptyList = Collections.emptyList();
+
+//        return emptyList;
 
     }
-}
+

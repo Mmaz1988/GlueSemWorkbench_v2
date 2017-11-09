@@ -73,6 +73,13 @@ public class LLFormula extends LLTerm {
                 return Stream.concat(dummy.stream(), operator.stream()).collect(Collectors.toList());
             }
         }
+
+        /* reverse arguments so that you don't have to write a new case for this but can just use the override
+        LLQuant*/
+        if (term instanceof LLUniversalQuant){
+            return term.checkCompatibility(this);
+        }
+
         return null;
     }
 

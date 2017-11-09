@@ -22,4 +22,9 @@ public class Equality {
         return constant;
     }
 
+
+    @Override
+    public String toString() {
+        return variable.getName() + constant.getName();
+    }
 }

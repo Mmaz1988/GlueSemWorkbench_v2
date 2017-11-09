@@ -71,21 +71,21 @@ public class ParserMain {
         System.out.println(result.toString());
         System.out.println("Done!");
 
-        String quantStr = "AX.((g -o X) -o X)";
-        String instStr = "(g -o f)";
+        String quantStr = "(AX.(X -o Y) -o X)";
+        String instStr = "(f -o g)";
 
-/*
-        try {
+
+
+
+        try{
             System.out.println("Testing Variable instantiation");
-            LLUniversalQuant quant = (LLUniversalQuant) parser.parse(quantStr);
+            LLFormula quant = (LLFormula) parser.parse(quantStr);
             LLFormula inst = (LLFormula) parser.parse(instStr);
-            LLTerm inst_result = LLFormula.instantiateVar(quant.getVariable(),quant.getTerm(),inst);
-            System.out.println(inst_result.toString());
+            System.out.println(quant.getLhs().checkCompatibility(inst));
         } catch (ParserInputException e) {
             e.printStackTrace();
         }
 
-    */
     }
 
 }

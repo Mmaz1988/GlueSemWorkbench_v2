@@ -62,8 +62,10 @@ public class LLAtom extends LLTerm {
             if (this.getLLtype().equals(LLType.VAR)) {
                 {
                     if (((LLAtom) term).getLLtype().equals(LLType.VAR)) {
-                        List<Equality> emptyList = Collections.emptyList();
-                        return emptyList;
+                       // List<Equality> emptyList = Collections.emptyList();
+                        // return emptyList;
+                        // Not possible to unify two variables?
+                        return null;
                     } else if ( ((LLAtom) term).getLLtype().equals(LLType.CONST) &&
                             this.getType().equals((term.getType()))) {
                         {

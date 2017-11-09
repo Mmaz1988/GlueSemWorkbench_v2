@@ -155,9 +155,13 @@ public class LLProver {
         }
         else if (func.getTerm() instanceof LLUniversalQuant) {
 
-           if ( ((LLUniversalQuant) func.getTerm()).getTerm().getLhs() != null )
+           if ( ((LLUniversalQuant) func.getTerm()).getTerm().getLhs().checkCompatibility(arg.getTerm()) != null )
            {
-               
+               List<Equality> equalitiesqualities =
+               ((LLUniversalQuant) func.getTerm()).getTerm().getLhs().checkCompatibility(arg.getTerm());
+
+
+
            }
 
 
