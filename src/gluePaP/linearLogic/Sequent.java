@@ -9,6 +9,8 @@ import java.util.Set;
 public class Sequent {
     private List<Premise> lhs;
     private LLAtom rhs;
+    private int idCounter;
+
 
     public List<Premise> getLhs() {
         return lhs;
@@ -16,11 +18,12 @@ public class Sequent {
 
     public Sequent(List<LLTerm> parsedTerms) {
         lhs = new ArrayList<>();
-        for (int i = 0; i < parsedTerms.size(); i++) {
+        for (idCounter = 0; idCounter < parsedTerms.size(); idCounter++) {
             HashSet<Integer> idSet = new HashSet<>();
-            idSet.add(i);
-            lhs.add(new Premise(idSet,parsedTerms.get(i)));
+            idSet.add(idCounter);
+            lhs.add(new Premise(idSet,parsedTerms.get(idCounter)));
         }
+
     }
 
     // Returns the set containing all index sets (usually singletons) of the sequent's premises
@@ -33,11 +36,7 @@ public class Sequent {
     }
 
     public Integer getNewID() {
-        Set<Integer> ids = new HashSet<>(this.getMaxIDSet());
-        Integer newId = 1;
-        while (ids.contains(newId))
-            newId++;
-        return newId;
+        return idCounter++;
     }
 
     @Override
