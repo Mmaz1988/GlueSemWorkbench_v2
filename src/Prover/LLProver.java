@@ -262,8 +262,8 @@ public class LLProver {
             LLFormula f = (LLFormula) term;
 
             // the formula is a modifer no need to convert it
-            if (f.getLhs().checkEquivalence(f.getRhs()))
-                return term;
+/*            if (f.getLhs().checkEquivalence(f.getRhs()))
+                return term;*/
 
             /*
             The LHS of the LHS of f will become an assumption which in turn gets converted as well.

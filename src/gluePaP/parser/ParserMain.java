@@ -45,18 +45,32 @@ public class ParserMain {
 
     public static void main(String[] args) throws VariableBindingException {
         String test1 = "AX_t.(g_e -o X_t) -o X_t";
-        String test3 = "AY_t.(h_e -o Y_t) -o Y_t";
-        String test4 = "(g_e -o (h_e -o f_t))";
-        //String test4 = "a";
+        String test2 = "AY_t.(h_e -o Y_t) -o Y_t";
+        String test3 = "(g_e -o (h_e -o f_t))";
+
+
+        String test4 = "((((a -o b) -o c) -o d) -o (e -o f))";
+        String test5 = "((((a -o b) -o c) -o d)";
+        String test6 = "((e -o f) -o (e -o f))";
+        String test7 = "e";
 
         System.out.println("Parsing input...");
 
-        List<String> testpremises = new ArrayList<String>();
-        testpremises.add(test1);
-        testpremises.add(test3);
-        testpremises.add(test4);
+        List<String> testquant = new ArrayList<String>();
+        List<String> testmod = new ArrayList<String>();
 
-        LinearLogicParser parser = new LinearLogicParser(testpremises);
+        // Test for quantifier premise
+        testquant.add(test1);
+        testquant.add(test3);
+        testquant.add(test3);
+        // Test for modifier premises
+        testmod.add(test4);
+        testmod.add(test5);
+        testmod.add(test6);
+        testmod.add(test7);
+
+        LinearLogicParser parser = new LinearLogicParser(testmod);
+        //LinearLogicParser parser = new LinearLogicParser(testquant);
         Sequent testseq = new Sequent(parser.premises);
 
         System.out.println(testseq.toString());
@@ -78,23 +92,7 @@ public class ParserMain {
 
         String quantStr = "(AX.(X -o (X -o X) -o X)";
         String instStr = "(f -o (f -o g))";
-
-
-
-
-        try{
-            System.out.println("Testing Variable instantiation");
-            LLFormula quant = (LLFormula) parser.parse(quantStr);
-            LLFormula inst = (LLFormula) parser.parse(instStr);
-
-            if (quant.getLhs().checkCompatibility(inst) != null) {
-
-                System.out.println(quant.getLhs().checkCompatibility(inst));
-                System.out.print(LLProver.checkDuplicateBinding(quant.getLhs().checkCompatibility(inst)));
-            }
-        } catch (ParserInputException e) {
-            e.printStackTrace();
-        }
+        
 
     }
 
