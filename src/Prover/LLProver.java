@@ -132,37 +132,22 @@ public class LLProver {
     */
     public Premise combinePremises(Premise func, Premise arg) throws VariableBindingException {
 
-        Premise func_copy;
 
-        if (func.getTerm() instanceof LLUniversalQuant)
+        LinkedHashSet<Equality> eqs = new LinkedHashSet<>();
+
+        if (func.getTerm() instanceof LLUniversalQuant) {
+            eqs = ((LLUniversalQuant) func.getTerm()).getTerm().getLhs().checkCompatibility(arg.getTerm());
+        }
+        else
         {
-            ((LLUniversalQuant) func.getTerm()).getTerm()
+            eqs =  ((LLFormula) func.getTerm()).getLhs().checkCompatibility(arg.getTerm());
         }
 
-        if (((LLFormula) func.getTerm()).getLhs().checkCompatibility(arg.getTerm()) != null) {
 
-            LinkedHashSet<Equality> substitutions =
-                    ((LLFormula) func.getTerm()).getLhs().checkCompatibility(arg.getTerm());
+        if (eqs.size() == 1) {
 
-            if (LLProver.checkDuplicateBinding(substitutions)){
-                throw new VariableBindingException();
-            }
 
-            if (!substitutions.isEmpty())
-            {
-            for (Equality eq : substitutions)
-            {
-                if (((LLFormula) func.getTerm()).getLhs() instanceof LLUniversalQuant)
-                {
-                    ((LLUniversalQuant) (((LLFormula) func.getTerm()).getLhs())).instantiateVariables(eq);
-                }
-                if (arg.getTerm() instanceof LLUniversalQuant)
-                {
-                    ((LLUniversalQuant) arg.getTerm()).instantiateVariables(eq);
-                }
-            }
 
-            }
 
             Premise combined;
 
@@ -331,12 +316,6 @@ public class LLProver {
     }
 
 
-    public LLTerm substitute( List<Equality> substitutions, LLTerm formula)
-    {
-
-        return null;
-    }
-
 
     public static boolean checkDuplicateBinding(LinkedHashSet<Equality> in) {
          List<Equality> eqs = new ArrayList<>();
@@ -361,6 +340,31 @@ public class LLProver {
         return false;
     }
 
+
+    public Premise resolveQuantifiers(Premise func, Premise arg) throws VariableBindingException{
+        LinkedHashSet<Equality> substitutions =
+                ((LLFormula) func.getTerm()).getLhs().checkCompatibility(arg.getTerm());
+
+        if (LLProver.checkDuplicateBinding(substitutions)){ throw new VariableBindingException();
+        }
+
+        if (!substitutions.isEmpty())
+        {
+            for (Equality eq : substitutions)
+            {
+                if (((LLFormula) func.getTerm()).getLhs() instanceof LLUniversalQuant)
+                {
+                    ((LLUniversalQuant) (((LLFormula) func.getTerm()).getLhs())).instantiateVariables(eq);
+                }
+                if (arg.getTerm() instanceof LLUniversalQuant)
+                {
+                    ((LLUniversalQuant) arg.getTerm()).instantiateVariables(eq);
+                }
+            }
+
+        }
+        return null;
+    }
 
 
 }
