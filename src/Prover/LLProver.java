@@ -1,6 +1,7 @@
 package Prover;
 
 import gluePaP.linearLogic.*;
+import sun.security.util.Cache;
 
 import java.util.*;
 
@@ -118,7 +119,6 @@ public class LLProver {
                 }
             }
         }
-
         throw new ProverException("No valid proof found for premises");
     }
 
@@ -137,9 +137,20 @@ public class LLProver {
 
         eqs = ((LLFormula) func.getTerm()).getLhs().checkCompatibility(arg.getTerm());
 
+        if (eqs == null) {return null;}
 
-        if (eqs.size() == 0) {
-            
+
+            if (eqs.size() > 0) {
+
+                if (LLProver.checkDuplicateBinding(eqs)) {
+                    throw new VariableBindingException();
+                } else {
+                    for (Equality eq : eqs) {
+                        ((LLFormula) func.getTerm()).instantiateVariables(eq);
+                    }
+                }
+
+            }
 
             Premise combined;
 
@@ -188,10 +199,7 @@ public class LLProver {
 
         }
 
-                return null;
 
-
-}
 
         /*
         else if (func.getTerm() instanceof LLUniversalQuant) {
