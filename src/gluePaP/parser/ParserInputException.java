@@ -9,4 +9,9 @@ public class ParserInputException extends Exception {
     public ParserInputException(String message) {
         super(message);
     }
+
+    public ParserInputException(int position, String message) {
+        super("ParserError at position " + position + ": " + message);
+    }
 }
+

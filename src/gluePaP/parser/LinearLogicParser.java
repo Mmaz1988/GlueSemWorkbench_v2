@@ -55,7 +55,7 @@ public class LinearLogicParser {
     }
 
     // TODO properly add types (e or t)
-    private LLTerm parseTerm(String unparsedInput, boolean polarity) throws ParserInputException {
+    private LLTerm parseTerm(String unparsedInput, boolean polarity) throws ParserInputException, StringIndexOutOfBoundsException {
 
         //skip whitespaces
         while(unparsedInput.charAt(pos) == ' '){
@@ -63,10 +63,31 @@ public class LinearLogicParser {
         }
         // get current character and increment the position counter
         int c = (int) unparsedInput.charAt(pos);
+        char test = (char) c;
         pos++;
 
         // character is a lower case letter
         if(c >= 97 && c <= 122){
+            // check for a type identifier
+            try {
+                if(unparsedInput.charAt(pos) == '_') {
+                    pos++;
+                    if (unparsedInput.charAt(pos ) == 'e') {
+                        pos++;
+                        return new LLAtom(assignId(), "" + (char) c,
+                                LLTerm.Type.E, LLAtom.LLType.CONST, polarity);
+                    }
+                    else if (unparsedInput.charAt(pos) == 't') {
+                        pos++;
+                        return new LLAtom(assignId(), "" + (char) c,
+                                LLTerm.Type.T, LLAtom.LLType.CONST, polarity);
+                    }
+                    else
+                        throw new ParserInputException(pos,"Type identifier expected (e or t)");
+                }
+            } catch (StringIndexOutOfBoundsException e) {
+                return new LLAtom(assignId(),""+(char) c, LLTerm.Type.E, LLAtom.LLType.CONST,polarity);
+            }
             return new LLAtom(assignId(),""+(char) c, LLTerm.Type.E, LLAtom.LLType.CONST, polarity);
         }
 
@@ -75,7 +96,27 @@ public class LinearLogicParser {
         reservered characters: 'A' for universal quantifier
         */
         else if (c >= 66 && c <= 90){
+            try {
+                if(unparsedInput.charAt(pos) == '_') {
+                    pos++;
+                    if (unparsedInput.charAt(pos ) == 'e') {
+                        pos++;
+                        return new LLAtom(assignId(), "" + (char) c,
+                                LLTerm.Type.E, LLAtom.LLType.VAR, polarity);
+                    }
+                    else if (unparsedInput.charAt(pos) == 't') {
+                        pos++;
+                        return new LLAtom(assignId(), "" + (char) c,
+                                LLTerm.Type.T, LLAtom.LLType.VAR, polarity);
+                    }
+                    else
+                        throw new ParserInputException(pos,"Type identifier expected (e or t)");
+                }
+            } catch (StringIndexOutOfBoundsException e) {
+                return new LLAtom(assignId(),""+(char) c, LLTerm.Type.E, LLAtom.LLType.VAR,polarity);
+            }
             return new LLAtom(assignId(),""+(char) c, LLTerm.Type.E, LLAtom.LLType.VAR,polarity);
+
         }
 
         // character is a minus, might be first part of linear implication

@@ -1,6 +1,5 @@
 package Prover;
 
-import com.sun.tools.corba.se.idl.constExpr.Equal;
 import gluePaP.linearLogic.LLAtom;
 
 public class Equality {

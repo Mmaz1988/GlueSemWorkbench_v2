@@ -1,7 +1,6 @@
 package Prover;
 
 import gluePaP.linearLogic.*;
-import sun.security.util.Cache;
 
 import java.util.*;
 
@@ -177,9 +176,13 @@ public class LLProver {
                     && arg.getTerm().getDischarge() == null
                     && func.getTerm().getDischarge() == null) {
                 combined = combineDisjointID(func, arg);
-                combined.getTerm().assumptions = arg.getTerm().assumptions;
-                combined.getTerm().assumptions.addAll(func.getTerm().assumptions);
-                combined.getTerm().assumptions.remove(func.getTerm().getDischarge());
+                try {
+                    combined.getTerm().assumptions = arg.getTerm().assumptions;
+                    combined.getTerm().assumptions.addAll(func.getTerm().assumptions);
+                    combined.getTerm().assumptions.remove(func.getTerm().getDischarge());
+                } catch (NullPointerException npe){
+                    return null;
+                }
                 return combined;
             }
             /*

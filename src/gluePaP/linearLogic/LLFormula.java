@@ -1,8 +1,6 @@
 package gluePaP.linearLogic;
 
 import Prover.Equality;
-import Prover.VariableBindingException;
-import com.sun.org.apache.xpath.internal.operations.Variable;
 
 import java.util.*;
 import java.util.stream.Collectors;
