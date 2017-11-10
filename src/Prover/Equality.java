@@ -31,8 +31,7 @@ public class Equality {
 
 
 
-
-
+    // equals for this object yields true if within the constant and the variable name and type are equal
     @Override
     public boolean equals(Object b)
     {
@@ -68,6 +67,7 @@ public class Equality {
     }
 
 
+    //used by equals() to determine similarity between elements relevant for equals()
     @Override
     public int hashCode(){
         int result = 17;

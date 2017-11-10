@@ -133,6 +133,7 @@ public class LLProver {
     public Premise combinePremises(Premise func, Premise arg) throws VariableBindingException {
 
 
+        // possible substitutions for variables and constants
         LinkedHashSet<Equality> eqs = new LinkedHashSet<>();
 
         eqs = ((LLFormula) func.getTerm()).getLhs().checkCompatibility(arg.getTerm());
@@ -142,9 +143,11 @@ public class LLProver {
 
             if (eqs.size() > 0) {
 
+                //If there are duplicate bindings no valid proof can be reached.
                 if (LLProver.checkDuplicateBinding(eqs)) {
                     throw new VariableBindingException();
                 } else {
+                    //instantiates variables with constants (i.e. skolemizes the formula so it can take a constant) 
                     for (Equality eq : eqs) {
                         ((LLFormula) func.getTerm()).instantiateVariables(eq);
                     }
@@ -314,11 +317,13 @@ public class LLProver {
     }
 
 
+    //returns false if a variable is asigned more than one value
 
     public static boolean checkDuplicateBinding(LinkedHashSet<Equality> in) {
          List<Equality> eqs = new ArrayList<>();
          eqs.addAll(0,in);
 
+         // no multiple assignments possible
         if (eqs.size() <= 1){
             return false;
         }

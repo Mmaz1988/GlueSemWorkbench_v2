@@ -40,6 +40,8 @@ public class LLFormula extends LLTerm {
     public LLOperator getOperator() { return operator; }
 
 
+    //Constructor for formulas without variables
+
     public LLFormula(String id, LLTerm lhs, LLOperator operator,LLTerm rhs, boolean pol) {
         this.lhs = lhs;
         this.rhs = rhs;
@@ -49,6 +51,7 @@ public class LLFormula extends LLTerm {
         this.name = this.toString();
     }
 
+    //Constructor for formulas with variables
     public LLFormula(String id, LLTerm lhs, LLOperator operator, LLTerm rhs, boolean pol,
                      LLAtom var) {
         this.lhs = lhs;
@@ -73,9 +76,12 @@ public class LLFormula extends LLTerm {
     ################################
      */
 
+    // represents the binder relation between the quantifier and the variables in the scope of the quantifier
 
     public List<LLAtom> findBoundOccurrences(LLTerm term){
 
+
+        // Variables that are equivalent are bound by the quantifier
         if (term instanceof LLAtom) {
             if (((LLAtom) term).getLLtype() == LLAtom.LLType.VAR){
 
@@ -86,6 +92,8 @@ public class LLFormula extends LLTerm {
                     return var;
                 }
             }
+
+            //Recursive call to find embedded instances of variables
         } else if ( term instanceof LLFormula)
         {
             List <LLAtom> right = findBoundOccurrences(((LLFormula) term).getLhs());
@@ -99,6 +107,7 @@ public class LLFormula extends LLTerm {
 
 
 
+    //Checks to which quantifier a specific variable belongs
     public boolean isInstance(LLAtom var){
 
         Set keys = boundVariables.keySet();
@@ -115,6 +124,7 @@ public class LLFormula extends LLTerm {
     }
 
 
+    //Variables carry over properties of corresponding constants
     public LLTerm instantiateVariables(Equality eq)
     {
         if (this.isInstance(eq.getVariable()))
