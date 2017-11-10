@@ -155,7 +155,7 @@ public class LLProver {
                 if (LLProver.checkDuplicateBinding(eqs)) {
                     throw new VariableBindingException();
                 } else {
-                    //instantiates variables with constants (i.e. skolemizes the formula so it can take a constant) 
+                    //instantiates variables with constants (i.e. skolemizes the formula so it can take a constant)
                     for (Equality eq : eqs) {
                         ((LLFormula) func.getTerm()).instantiateVariables(eq);
                     }

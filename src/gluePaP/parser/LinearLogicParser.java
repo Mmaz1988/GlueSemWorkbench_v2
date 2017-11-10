@@ -118,9 +118,9 @@ public class LinearLogicParser {
                         throw new ParserInputException(pos,"Type identifier expected (e or t)");
                 }
             } catch (StringIndexOutOfBoundsException e) {
-                return new LLAtom(assignId(),""+(char) c, LLTerm.Type.E, LLAtom.LLType.VAR,polarity);
+                return new LLAtom(assignId(),""+(char) c, LLTerm.Type.T, LLAtom.LLType.VAR,polarity);
             }
-            return new LLAtom(assignId(),""+(char) c, LLTerm.Type.E, LLAtom.LLType.VAR,polarity);
+            return new LLAtom(assignId(),""+(char) c, LLTerm.Type.T, LLAtom.LLType.VAR,polarity);
 
         }
 
