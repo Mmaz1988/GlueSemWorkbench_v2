@@ -303,7 +303,7 @@ public class LLProver {
                 LLTerm discharge = assumption;
                 assumption.assumptions.add(assumption);
                 LLTerm dependency = convert(new LLFormula(f.getTermId(),((LLFormula) f.getLhs()).getRhs(),
-                        f.getOperator(),f.getRhs(),f.isPolarity()));
+                        f.getOperator(),f.getRhs(),f.isPolarity(),f.getVariable()));
                 ((LLFormula) dependency).assumptions.addAll(assumption.assumptions);
                 dependency.setDischarge(discharge);
 

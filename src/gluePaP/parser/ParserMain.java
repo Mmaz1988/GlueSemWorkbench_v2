@@ -44,8 +44,9 @@ public class ParserMain {
     }
 
     public static void main(String[] args) throws VariableBindingException {
-        String test1 = "(AX.(g -o X) -o X)";
-        String test3 = "(g -o h)";
+        String test1 = "AX.(g -o X) -o X";
+        String test3 = "AY.(h -o Y) -o Y";
+        String test4 = "(g -o (h -o f))";
         //String test4 = "a";
 
         System.out.println("Parsing input...");
@@ -53,7 +54,7 @@ public class ParserMain {
         List<String> testpremises = new ArrayList<String>();
         testpremises.add(test1);
         testpremises.add(test3);
-        //testpremises.add(test4);
+        testpremises.add(test4);
 
         LinearLogicParser parser = new LinearLogicParser(testpremises);
         Sequent testseq = new Sequent(parser.premises);
