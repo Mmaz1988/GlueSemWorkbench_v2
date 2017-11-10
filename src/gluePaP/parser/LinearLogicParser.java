@@ -51,7 +51,12 @@ public class LinearLogicParser {
 
     public LLTerm parse(String unparsedInput) throws ParserInputException {
         this.resetParser();
-        return parseTerm(unparsedInput, true);
+        try {
+            return parseTerm(unparsedInput, true);
+        }
+        catch (StringIndexOutOfBoundsException se) {
+            throw new ParserInputException("ParserError: Unexpected end of input term");
+        }
     }
 
     // TODO properly add types (e or t)
@@ -63,7 +68,7 @@ public class LinearLogicParser {
         }
         // get current character and increment the position counter
         int c = (int) unparsedInput.charAt(pos);
-        char test = (char) c;
+        //char test = (char) c;
         pos++;
 
         // character is a lower case letter

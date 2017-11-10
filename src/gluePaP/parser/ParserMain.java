@@ -58,19 +58,22 @@ public class ParserMain {
 
         LinearLogicParser parser = new LinearLogicParser(testpremises);
         Sequent testseq = new Sequent(parser.premises);
-        Sequent tempseq = testseq;
 
         System.out.println(testseq.toString());
 
         System.out.println("Checking simple prover...");
         LLProver prover = new LLProver();
-        Premise result = null;
+        List<Premise> result = null;
         try {
-            result = prover.deduce(tempseq);
+            result = prover.deduce(testseq);
+            System.out.println("Found valid deduction(s): ");
+            for (Premise sol : result) {
+                System.out.println(sol.toString());
+            }
         } catch (ProverException e) {
             e.printStackTrace();
         }
-        System.out.println("Found valid deduction: " + result.toString());
+
         System.out.println("Done!");
 
         String quantStr = "(AX.(X -o (X -o X) -o X)";

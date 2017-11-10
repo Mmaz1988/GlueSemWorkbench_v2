@@ -13,7 +13,7 @@ public class LLProver {
     and trying to find a valid proof for its RHS.
     TODO Check if compilation works properly
      */
-    public Premise deduce(Sequent seq) throws ProverException,VariableBindingException {
+    public List<Premise> deduce(Sequent seq) throws ProverException,VariableBindingException {
         /*
         Initialize an agenda stack initially containing all premises from the sequent.
         Premises are popped from the stack into the database and additionally created
@@ -23,6 +23,7 @@ public class LLProver {
         */
         Stack<Premise> agenda = new Stack<>();
         List<Premise> database = new ArrayList<>();
+        List<Premise> solutions = new ArrayList<>();
         for (Premise p: seq.getLhs()) {
 
             /*
@@ -90,7 +91,7 @@ public class LLProver {
                     if (new_premise != null) {
                         System.out.println("Combining premises " + db_premise +" and " + curr_premise + " : " + new_premise);
                         if (new_premise.getPremiseIDs().equals(goalIDs)) {
-                            return new_premise;
+                            solutions.add(new_premise);
                         }
                         else {
                             agenda.push(new_premise);
@@ -108,17 +109,25 @@ public class LLProver {
                         System.out.println("Combining premises " + curr_premise +" and " + db_premise + " : " + new_premise);
 
                         if (new_premise.getPremiseIDs().equals(goalIDs)) {
-                            return new_premise;
+                            solutions.add(new_premise);
                         }
                         else {
                             agenda.push(new_premise);
                         }
                     }
-
                 }
             }
         }
-        throw new ProverException("No valid proof found for premises");
+
+        /*
+        All premises of the agenda were added to the database. If there are
+        no possible solutions now, return a ProverException, otherwise return
+        the set of solutions.
+        */
+        if (solutions.isEmpty())
+            throw new ProverException("No valid proof found for premises");
+        else
+            return solutions;
     }
 
 
@@ -129,7 +138,7 @@ public class LLProver {
     if both checks succeed a new Premise is created containing the unified set of indexes
     and the RHS LL term of func (see below)
     */
-    public Premise combinePremises(Premise func, Premise arg) throws VariableBindingException {
+    private Premise combinePremises(Premise func, Premise arg) throws VariableBindingException {
 
 
         // possible substitutions for variables and constants
@@ -205,45 +214,7 @@ public class LLProver {
             }
             // The discharges are somehow incompatible, return null.
             return null;
-
-        }
-
-
-
-        /*
-        else if (func.getTerm() instanceof LLUniversalQuant) {
-
-           if ( ((LLUniversalQuant) func.getTerm()).getTerm().getLhs().checkCompatibility(arg.getTerm()) != null )
-           {
-               LinkedHashSet<Equality> substitutions =
-               ((LLUniversalQuant) func.getTerm()).getTerm().getLhs().checkCompatibility(arg.getTerm());
-
-               if (LLProver.checkDuplicateBinding(substitutions)){
-                   throw new VariableBindingException();
-               }
-*/
-/*
-               if (!substitutions.isEmpty())
-               {
-                   for (Equality eq : substitutions)
-                   {
-                       if (((LLFormula) func.getTerm()).getLhs() instanceof LLUniversalQuant)
-                       {
-                           ((LLUniversalQuant) (((LLFormula) func.getTerm()).getLhs())).instantiateVariables(eq);
-                       }
-                       if (arg.getTerm() instanceof LLUniversalQuant)
-                       {
-                           ((LLUniversalQuant) arg.getTerm()).instantiateVariables(eq);
-                       }
-                   }
-
-               }
-
-   */
-
-
-
-
+    }
 
 
     /*
