@@ -44,7 +44,7 @@ public class ParserMain {
     }
 
     public static void main(String[] args) throws VariableBindingException {
-        String test1 = "AX_t.(g_e -o X) -o X";
+        String test1 = "AX_t.(g_e -o X_t) -o X_t";
         String test3 = "AY_t.(h_e -o Y_t) -o Y_t";
         String test4 = "(g_e -o (h_e -o f_t))";
         //String test4 = "a";

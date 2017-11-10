@@ -179,7 +179,10 @@ public class LLProver {
                 try {
                     combined.getTerm().assumptions = arg.getTerm().assumptions;
                     combined.getTerm().assumptions.addAll(func.getTerm().assumptions);
-                    combined.getTerm().assumptions.remove(func.getTerm().getDischarge());
+                    LLTerm discharge = func.getTerm().getDischarge();
+                    combined.getTerm().assumptions.remove(discharge);
+                    // add this back to the functor's assumptions
+                    arg.getTerm().assumptions.add(discharge);
                 } catch (NullPointerException npe){
                     return null;
                 }

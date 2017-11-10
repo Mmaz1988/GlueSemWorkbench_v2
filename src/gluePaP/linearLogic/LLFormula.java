@@ -68,6 +68,17 @@ public class LLFormula extends LLTerm {
 
     }
 
+    public LLFormula(LLFormula term) {
+        this.assumptions = new HashSet<>(term.assumptions);
+        this.setDischarge(term.getDischarge());
+        this.name = term.getName();
+        this.setTermId(term.getTermId());
+        this.setType(term.getType());
+        this.setPolarity(term.isPolarity());
+        this.lhs = term.getLhs();
+        this.rhs = term.getRhs();
+    }
+
 
         /* ##############################
     Modified LLFormula
@@ -145,6 +156,7 @@ public class LLFormula extends LLTerm {
 
 
     @Override
+    // TODO properly represent formulas that have assumptions associated with them are not themselves assumptions.
     public String toString() {
         if (!this.assumptions.isEmpty())
             return "{(" + lhs.toPlainString() + " " + operator + " "  + rhs.toPlainString() + ")_"+ this.getTermId() + "}";

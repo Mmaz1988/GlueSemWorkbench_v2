@@ -2,10 +2,7 @@ package gluePaP.linearLogic;
 
 import Prover.Equality;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.List;
+import java.util.*;
 
 public class LLAtom extends LLTerm {
 
@@ -29,6 +26,16 @@ public class LLAtom extends LLTerm {
         this.setType(type);
         this.setPolarity(pol);
         this.setLLtype(lltype);
+    }
+
+    public LLAtom(LLAtom term) {
+        this.assumptions = new HashSet<>(term.assumptions);
+        this.setDischarge(term.getDischarge());
+        this.name = term.getName();
+        this.setTermId(term.getTermId());
+        this.setType(term.getType());
+        this.setPolarity(term.isPolarity());
+        this.setLLtype(term.getLLtype());
     }
 
 

@@ -24,6 +24,15 @@ public abstract class LLTerm {
     //Default constructor
     public LLTerm(){ }
 
+    public LLTerm(LLTerm term) {
+        this.assumptions = term.assumptions;
+        this.discharge = term.discharge;
+        this.termId = term.termId;
+        this.type = term.type;
+        this.polarity = term.polarity;
+
+    }
+
     public String getTermId() {
         return termId;
     }
