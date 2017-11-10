@@ -1,3 +1,4 @@
+/*
 package gluePaP.linearLogic;
 
 
@@ -8,10 +9,13 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+*/
+/*
 public class LLUniversalQuant extends LLTerm{
     private final String symbol = "\u2200";
-    private LLAtom variable;
     private LLFormula term;
+    private LLAtom variable;
+
     private HashMap<LLAtom,List<LLAtom>> boundVariables;
 
     public LLAtom getVariable() {
@@ -27,7 +31,7 @@ public class LLUniversalQuant extends LLTerm{
         this.term = term;
         this.boundVariables = new HashMap<LLAtom,List<LLAtom>>();
 
-        this.boundVariables.put(variable,findBoundOccurrences(this.term));
+   //     this.boundVariables.put(variable,findBoundOccurrences(this.term));
 
         System.out.println(boundVariables);
 
@@ -41,11 +45,13 @@ public class LLUniversalQuant extends LLTerm{
     @Override
     // TODO is this required?
     public boolean checkEquivalence(LLTerm term) {
-/*        if (term instanceof LLUniversalQuant)
+      if (term instanceof LLUniversalQuant)
             return true;
-        return false;*/
+        return false;
         return true;
     }
+  */
+
 /*
     public void findBoundOccurences(){
 
@@ -63,7 +69,7 @@ public class LLUniversalQuant extends LLTerm{
     }
 */
 
-
+/*
     public List<LLAtom> findBoundOccurrences(LLTerm term){
 
         if (term instanceof LLAtom) {
@@ -91,7 +97,8 @@ public class LLUniversalQuant extends LLTerm{
         return emptyList;
     }
 
-
+*/
+/*
     public boolean isInstance(LLAtom var){
 
         Set keys = boundVariables.keySet();
@@ -106,7 +113,9 @@ public class LLUniversalQuant extends LLTerm{
         }
         return false;
     }
+*/
 
+/*
 
     public LLTerm instantiateVariables(Equality eq)
     {
@@ -122,6 +131,8 @@ public class LLUniversalQuant extends LLTerm{
         return term;
     }
 
+*/
+/*
     @Override
     public LinkedHashSet<Equality> checkCompatibility(LLTerm term) {
 
@@ -138,12 +149,12 @@ public class LLUniversalQuant extends LLTerm{
         return null;
     }
 
-
+*/
 
 
 //        List<Equality> emptyList = Collections.emptyList();
 
 //        return emptyList;
 
-    }
+//    }
 

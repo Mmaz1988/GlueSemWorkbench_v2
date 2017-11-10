@@ -135,19 +135,11 @@ public class LLProver {
 
         LinkedHashSet<Equality> eqs = new LinkedHashSet<>();
 
-        if (func.getTerm() instanceof LLUniversalQuant) {
-            eqs = ((LLUniversalQuant) func.getTerm()).getTerm().getLhs().checkCompatibility(arg.getTerm());
-        }
-        else
-        {
-            eqs =  ((LLFormula) func.getTerm()).getLhs().checkCompatibility(arg.getTerm());
-        }
+        eqs = ((LLFormula) func.getTerm()).getLhs().checkCompatibility(arg.getTerm());
 
 
-        if (eqs.size() == 1) {
-
-
-
+        if (eqs.size() == 0) {
+            
 
             Premise combined;
 
@@ -195,6 +187,13 @@ public class LLProver {
             return null;
 
         }
+
+                return null;
+
+
+}
+
+        /*
         else if (func.getTerm() instanceof LLUniversalQuant) {
 
            if ( ((LLUniversalQuant) func.getTerm()).getTerm().getLhs().checkCompatibility(arg.getTerm()) != null )
@@ -205,6 +204,7 @@ public class LLProver {
                if (LLProver.checkDuplicateBinding(substitutions)){
                    throw new VariableBindingException();
                }
+*/
 /*
                if (!substitutions.isEmpty())
                {
@@ -225,18 +225,8 @@ public class LLProver {
    */
 
 
-           }
 
 
-                return null;
-
-
-        }
-        else {
-            return null;
-        }
-
-    }
 
 
     /*
@@ -340,6 +330,7 @@ public class LLProver {
         return false;
     }
 
+    /*
 
     public Premise resolveQuantifiers(Premise func, Premise arg) throws VariableBindingException{
         LinkedHashSet<Equality> substitutions =
@@ -365,6 +356,6 @@ public class LLProver {
         }
         return null;
     }
-
+*/
 
 }

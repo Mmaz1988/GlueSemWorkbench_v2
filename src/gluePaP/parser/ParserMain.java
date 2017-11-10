@@ -44,7 +44,7 @@ public class ParserMain {
     }
 
     public static void main(String[] args) throws VariableBindingException {
-        String test1 = "AX.(X -o g)";
+        String test1 = "AX.X -o g";
         String test2 = "h";
         //String test3 = "h";
         //String test4 = "a";

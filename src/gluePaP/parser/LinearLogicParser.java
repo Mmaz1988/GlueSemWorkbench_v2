@@ -114,11 +114,12 @@ public class LinearLogicParser {
             if (!(var instanceof LLAtom && ((LLAtom) var).getLLtype() == LLAtom.LLType.VAR))
                 throw new ParserInputException(pos);
             pos++;
-            LLTerm term;
-            term = parseTerm(unparsedInput,polarity);
-            if (!(term instanceof LLFormula))
-                throw new ParserInputException(pos);
-            return new LLUniversalQuant((LLAtom) var,(LLFormula) term);
+            LLTerm left = parseTerm(unparsedInput, !polarity);
+            LLOperator op = (LLOperator) parseTerm(unparsedInput, polarity);
+            LLTerm right = parseTerm(unparsedInput, polarity);
+            pos++;
+            return new LLFormula(assignId(),left,op,right, polarity,(LLAtom) var);
+
         }
 
         else {
