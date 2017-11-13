@@ -28,7 +28,7 @@ public class LLAtom extends LLTerm {
         this.setLLtype(lltype);
     }
 
-    /*
+
     public LLAtom(LLAtom term) {
         this.assumptions = new HashSet<>(term.assumptions);
         this.setDischarge(term.getDischarge());
@@ -40,7 +40,7 @@ public class LLAtom extends LLTerm {
 
 
     }
-*/
+
 
 
 

@@ -188,7 +188,10 @@ public class LLProver {
                     && func.getTerm().getDischarge() == null) {
                 combined = combineDisjointID(func, arg);
                 try {
-                    combined.getTerm().assumptions = arg.getTerm().assumptions;
+                    combined.getTerm().assumptions = new HashSet<>();
+                    /* create new set of assumptions which can be modified independently from
+                    the set of assumptions of arg and func and add all assumptions to it */
+                    combined.getTerm().assumptions.addAll(arg.getTerm().assumptions);
                     combined.getTerm().assumptions.addAll(func.getTerm().assumptions);
                 //    LLTerm discharge = func.getTerm().getDischarge();
                  //   combined.getTerm().assumptions.remove(discharge);
@@ -215,8 +218,10 @@ public class LLProver {
                 {
 
                     combined = combineDisjointID(func, arg);
-
-                  combined.getTerm().assumptions = arg.getTerm().assumptions;
+                    /* create new set of assumptions which can be modified independently from
+                    the set of assumptions of arg and add arg's assumptions to it*/
+                    combined.getTerm().assumptions = new HashSet<>();
+                    combined.getTerm().assumptions.addAll(arg.getTerm().assumptions);
 
                 /*
                     for (LLTerm as : (arg.getTerm().assumptions))
@@ -266,6 +271,12 @@ public class LLProver {
             the other "copy" will also receive this modification leading to
             unwanted combinations of terms
             */
+            // TODO make sure that the HashSet of assumptions is not just a reference to
+            // the hashset of arg??
+            // Solved by creating a new LLAtom as copy of the RHS of func. If the RHS
+            // is an LLFormula then just copy the reference, it shouldn't cause any problems.
+            if (((LLFormula) func.getTerm()).getRhs() instanceof  LLAtom)
+                return new Premise(combined_IDs,new LLAtom((LLAtom) ((LLFormula) func.getTerm()).getRhs()));
             return new Premise(combined_IDs,((LLFormula) func.getTerm()).getRhs());
         }
         return null;

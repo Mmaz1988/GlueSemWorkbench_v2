@@ -45,13 +45,13 @@ public class ParserMain {
     }
 
     public static void main(String[] args) throws VariableBindingException {
-       // String test1 = "AX_t.(g_e -o X_t) -o X_t";
-        // String test2 = "AY_t.(h_e -o Y_t) -o Y_t";
-        // String test3 = "(g_e -o (h_e -o f_t))";
+        String test1 = "AX_t.(g_e -o X_t) -o X_t";
+        String test2 = "AY_t.(h_e -o Y_t) -o Y_t";
+        String test3 = "(g_e -o (h_e -o f_t))";
 
 
         String test4 = "(e -o f)";
-        // String test5 = "(((a -o b) -o c) -o d)";
+        String test5 = "(((a -o b) -o c) -o d)";
         String test6 = "((e -o f) -o (e -o f))";
         String test7 = "e";
 
@@ -61,12 +61,12 @@ public class ParserMain {
         List<String> testmod = new ArrayList<String>();
 
         // Test for quantifier premise
-        //testquant.add(test1);
-        //testquant.add(test3);
-        //testquant.add(test3);
+        testquant.add(test1);
+        testquant.add(test2);
+        testquant.add(test3);
         // Test for modifier premises
         testmod.add(test4);
-        // testmod.add(test5);
+        testmod.add(test5);
         testmod.add(test6);
         testmod.add(test7);
 
