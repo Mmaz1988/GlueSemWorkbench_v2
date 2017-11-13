@@ -28,6 +28,7 @@ public class LLAtom extends LLTerm {
         this.setLLtype(lltype);
     }
 
+    /*
     public LLAtom(LLAtom term) {
         this.assumptions = new HashSet<>(term.assumptions);
         this.setDischarge(term.getDischarge());
@@ -36,8 +37,10 @@ public class LLAtom extends LLTerm {
         this.setType(term.getType());
         this.setPolarity(term.isPolarity());
         this.setLLtype(term.getLLtype());
-    }
 
+
+    }
+*/
 
 
 
@@ -47,8 +50,8 @@ public class LLAtom extends LLTerm {
     public String toString() {
         if (!this.assumptions.isEmpty())
             return "{" + name + "_" + this.getTermId() + "}";
-        else
-            return name + "_" + this.getTermId();
+       else
+           return name + "_" + this.getTermId();
     }
 
     public String toPlainString() {

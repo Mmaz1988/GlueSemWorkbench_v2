@@ -49,6 +49,8 @@ public class LLFormula extends LLTerm {
         this.name = this.toString();
     }
 
+
+
     //Constructor for formulas with variables
     public LLFormula(String id, LLTerm lhs, LLOperator operator, LLTerm rhs, boolean pol,
                      LLAtom var) {
@@ -158,10 +160,26 @@ public class LLFormula extends LLTerm {
     @Override
     // TODO properly represent formulas that have assumptions associated with them are not themselves assumptions.
     public String toString() {
-        if (!this.assumptions.isEmpty())
-            return "{(" + lhs.toPlainString() + " " + operator + " "  + rhs.toPlainString() + ")_"+ this.getTermId() + "}";
-        else
-            return "(" + lhs.toPlainString() + " " + operator + " "  + rhs.toPlainString() + ")_"+ this.getTermId();
+        String as = "";
+        String dc = "";
+        if (!(this.assumptions.isEmpty()))
+        // return "{(" + lhs.toPlainString() + " " + operator + " "  + rhs.toPlainString() + ")_"+ this.getTermId() + "}";
+        {
+            as = "{" + assumptions.toString() + "}";
+        }
+
+        if ((this.getDischarge() != null))
+        // return "{(" + lhs.toPlainString() + " " + operator + " "  + rhs.toPlainString() + ")_"+ this.getTermId() + "}";
+        {
+            dc = "[" + this.getDischarge().toString() + "]";
+        }
+
+   //     } else {
+     //   }
+        return "(" + lhs.toPlainString() + " "
+                + dc + " "
+                + operator + " " + rhs.toPlainString() + ")_" + this.getTermId()
+                + " " + as;
     }
 
     public String toPlainString() {
