@@ -162,11 +162,12 @@ public class LLFormula extends LLTerm {
     public String toString() {
         String as = "";
         String dc = "";
-        if (!(this.assumptions.isEmpty()))
-        // return "{(" + lhs.toPlainString() + " " + operator + " "  + rhs.toPlainString() + ")_"+ this.getTermId() + "}";
-        {
-            as = "{" + assumptions.toString() + "}";
+        if (!(this.assumptions.isEmpty())) {
+             return "{(" + lhs.toPlainString() + " " + operator + " "  + rhs.toPlainString() + ")_"+ this.getTermId() + "}";
         }
+            /*        {
+            as = "{" + assumptions.toString() + "}";
+        }*/
 
         if ((this.getDischarge() != null))
         // return "{(" + lhs.toPlainString() + " " + operator + " "  + rhs.toPlainString() + ")_"+ this.getTermId() + "}";

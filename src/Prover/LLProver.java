@@ -219,9 +219,10 @@ public class LLProver {
 
                     combined = combineDisjointID(func, arg);
                     /* create new set of assumptions which can be modified independently from
-                    the set of assumptions of arg and add arg's assumptions to it*/
+                    the sets of assumptions of arg and func and add all assumptions to it*/
                     combined.getTerm().assumptions = new HashSet<>();
                     combined.getTerm().assumptions.addAll(arg.getTerm().assumptions);
+                    combined.getTerm().assumptions.addAll(func.getTerm().assumptions);
 
                 /*
                     for (LLTerm as : (arg.getTerm().assumptions))
