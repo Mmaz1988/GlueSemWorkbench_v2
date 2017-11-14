@@ -1,8 +1,9 @@
 package gluePaP.semantics;
 
 public class SemAtom extends Identifier {
-    public String name;
-    public String value;
+    private String name;
+    private String value;
+    //private Type type;
 
 
 

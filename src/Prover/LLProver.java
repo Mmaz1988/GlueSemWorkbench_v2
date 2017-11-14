@@ -168,15 +168,13 @@ public class LLProver {
 
             Premise combined;
 
-            // TODO review this again
             /*
             * No assumptions or discharges involved, proceed with a "normal" implication elimination
             * */
-
             if (arg.getTerm().assumptions.isEmpty()
-                    && arg.getTerm().getDischarge() == null
+                    && arg.getTerm().discharges.isEmpty()
                     && func.getTerm().assumptions.isEmpty()
-                    && func.getTerm().getDischarge() == null) {
+                    && func.getTerm().discharges.isEmpty()) {
                 return combineDisjointID(func, arg);
             }
             /*
@@ -185,8 +183,8 @@ public class LLProver {
             * */
             else if ((!arg.getTerm().assumptions.isEmpty()
                     || !func.getTerm().assumptions.isEmpty())
-                    && arg.getTerm().getDischarge() == null
-                    && func.getTerm().getDischarge() == null) {
+                    && arg.getTerm().discharges.isEmpty()
+                    && func.getTerm().discharges.isEmpty()) {
                 combined = combineDisjointID(func, arg);
                 try {
                     combined.getTerm().assumptions = new HashSet<>();
@@ -214,8 +212,8 @@ public class LLProver {
             from arg are copied, except the one that was discharged in func.
             func: (b[a] -o c); arg: {a,(x -o y)} ==> c with assumption {(x -o y)}
             */
-            else if (func.getTerm().getDischarge() != null) {
-                if (arg.getTerm().assumptions.contains(func.getTerm().getDischarge()))
+            else if (!func.getTerm().discharges.isEmpty()) {
+                if (arg.getTerm().assumptions.containsAll(func.getTerm().discharges))
                 {
 
                     combined = combineDisjointID(func, arg);
@@ -235,8 +233,8 @@ public class LLProver {
                     }
                 */
 
-
-                    Iterator it = combined.getTerm().assumptions.iterator();
+                    combined.getTerm().assumptions.removeAll(func.getTerm().discharges);
+/*                    Iterator it = combined.getTerm().assumptions.iterator();
 
                     while (it.hasNext())
                     {
@@ -245,7 +243,7 @@ public class LLProver {
                             it.remove();
                         }
                     //    combined.getTerm().assumptions.remove(func.getTerm().getDischarge());
-                    }
+                    }*/
 
                     return combined;
                 }
@@ -273,8 +271,6 @@ public class LLProver {
             the other "copy" will also receive this modification leading to
             unwanted combinations of terms
             */
-            // TODO make sure that the HashSet of assumptions is not just a reference to
-            // the hashset of arg??
             // Solved by creating a new LLAtom as copy of the RHS of func. If the RHS
             // is an LLFormula then just copy the reference, it shouldn't cause any problems.
             if (((LLFormula) func.getTerm()).getRhs() instanceof  LLAtom)
@@ -308,6 +304,17 @@ public class LLProver {
 
     // TODO add lists for modifiers and skeletons (see Dick's code)
     // TODO use premises instead of formulas?
+    /*
+    The LHS of the LHS of f will become an assumption which in turn gets converted as well.
+    The assumption gets converted as well and is marked as an assumption
+    by adding itself to its set of assumptions. That is, an LLTerm "a" is an assumption
+    iff its set of assumptions contains "a". This way of marking assumptions allows easy
+    combination with other assumptions and LLTerms with discharges.
+    All extracted assumptions are stored in a HashSet in dependency
+    Ex. if f = ((a -o b) -o c) then dependency = (b -o c) and assumption = {a}
+    Dependency is a new formula consisting of the rest of f, that is, the RHS of the LHS of f
+    and the RHS of f.
+    */
     public LLTerm convert(LLTerm term) {
         if (term instanceof LLFormula) {
             LLFormula f = (LLFormula) term;
@@ -315,28 +322,17 @@ public class LLProver {
             // the formula is a modifer no need to convert it
 /*            if (f.getLhs().checkEquivalence(f.getRhs()))
                 return term;*/
-
-            /*
-            The LHS of the LHS of f will become an assumption which in turn gets converted as well.
-            The assumption gets converted as well and is marked as an assumption
-            by adding itself to its set of assumptions. That is, an LLTerm "a" is an assumption
-            iff its set of assumptions contains "a". This way of marking assumptions allows easy
-            combination with other assumptions and LLTerms with discharges.
-            All extracted assumptions are stored in a HashSet in dependency
-            Ex. if f = ((a -o b) -o c) then dependency = (b -o c) and assumption = {a}
-            Dependency is a new formula consisting of the rest of f, that is, the RHS of the LHS of f
-            and the RHS of f.
-            */
             // TODO add semantic operations for conversion steps (i.e. lambda abstraction)
             if (f.getLhs() instanceof LLFormula &&
                     ((LLFormula) f.getLhs()).getOperator() instanceof LLImplication) {
                 LLTerm assumption = convert(((LLFormula) f.getLhs()).getLhs());
-                LLTerm discharge = assumption;
+                //LLTerm discharge = assumption;
                 assumption.assumptions.add(assumption);
                 LLTerm dependency = convert(new LLFormula(f.getTermId(),((LLFormula) f.getLhs()).getRhs(),
                         f.getOperator(),f.getRhs(),f.isPolarity(),f.getVariable()));
-                ((LLFormula) dependency).assumptions.addAll(assumption.assumptions);
-                dependency.setDischarge(discharge);
+                dependency.assumptions.addAll(assumption.assumptions);
+                dependency.discharges.addAll(assumption.assumptions);
+                //dependency.setDischarge(discharge);
 
                 return dependency;
             }

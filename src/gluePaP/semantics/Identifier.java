@@ -1,4 +1,4 @@
 package gluePaP.semantics;
 
-public class Identifier extends SemRepresentation {
+public class Identifier {
 }

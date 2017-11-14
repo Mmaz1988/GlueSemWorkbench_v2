@@ -72,7 +72,7 @@ public class LLFormula extends LLTerm {
 
     public LLFormula(LLFormula term) {
         this.assumptions = new HashSet<>(term.assumptions);
-        this.setDischarge(term.getDischarge());
+        this.discharges = new HashSet<>(term.discharges);
         this.name = term.getName();
         this.setTermId(term.getTermId());
         this.setType(term.getType());
@@ -169,10 +169,10 @@ public class LLFormula extends LLTerm {
             as = "{" + assumptions.toString() + "}";
         }*/
 
-        if ((this.getDischarge() != null))
+        if (!this.discharges.isEmpty())
         // return "{(" + lhs.toPlainString() + " " + operator + " "  + rhs.toPlainString() + ")_"+ this.getTermId() + "}";
         {
-            dc = "[" + this.getDischarge().toString() + "]";
+            dc = this.discharges.toString();
         }
 
    //     } else {

@@ -19,14 +19,14 @@ public abstract class LLTerm {
 
     // experimental fields for compilation process
     public Set<LLTerm> assumptions = new HashSet<>();
-    private LLTerm discharge;
+    public Set<LLTerm> discharges = new HashSet<>();
 
     //Default constructor
     public LLTerm(){ }
 
     public LLTerm(LLTerm term) {
         this.assumptions = term.assumptions;
-        this.discharge = term.discharge;
+        this.discharges = term.discharges;
         this.termId = term.termId;
         this.type = term.type;
         this.polarity = term.polarity;
@@ -57,13 +57,13 @@ public abstract class LLTerm {
         this.type = type;
     }
 
-    public LLTerm getDischarge() {
+/*    public LLTerm getDischarge() {
         return discharge;
     }
 
     public void setDischarge(LLTerm discharges) {
         this.discharge = discharges;
-    }
+    }*/
 
     public String toPlainString() {
         return super.toString();

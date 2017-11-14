@@ -31,7 +31,7 @@ public class LLAtom extends LLTerm {
 
     public LLAtom(LLAtom term) {
         this.assumptions = new HashSet<>(term.assumptions);
-        this.setDischarge(term.getDischarge());
+        this.discharges = new HashSet<>(term.discharges);
         this.name = term.getName();
         this.setTermId(term.getTermId());
         this.setType(term.getType());
