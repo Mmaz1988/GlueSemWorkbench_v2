@@ -6,7 +6,7 @@ public class SemFunction extends SemRepresentation {
 
     // Operator: lambda, quantifiers. What about connectives?
     private final char operator = '\u03BB';
-    private SemVariable binder;
+    private SemAtom binder;
     // Is this necessary or do we only have one list on the SemPred?
     private List<SemVariable> boundVars;
     // The body of the function, a nested SemFunction or Predicate
@@ -20,9 +20,15 @@ public class SemFunction extends SemRepresentation {
         return funcBody.getArg(i);
     }
 
-    public SemFunction(SemVariable binder, SemRepresentation funcBody) {
+    public SemFunction(SemAtom binder, SemRepresentation funcBody) {
         this.binder = binder;
         this.funcBody = funcBody;
+    }
+
+    public SemFunction(SemAtom binder, SemRepresentation funcBody, SemRepresentation argument) {
+        this.binder = binder;
+        this.funcBody = funcBody;
+        this.argument = argument;
     }
 
     @Override
@@ -38,6 +44,13 @@ public class SemFunction extends SemRepresentation {
 
     // TODO for variable instantiation we could probably recycle the mechanism from the
     // glue side, including the Equality class.
+
+    public SemRepresentation betaReduce() {
+        if (argument != null) {
+
+        }
+        return null;
+    }
 
 
 

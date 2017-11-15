@@ -2,19 +2,35 @@ package gluePaP.semantics;
 
 public class SemAtom extends Identifier {
     private String name;
-    private String value;
-    //private Type type;
+    //private String value;
+    private SemType type;
+    private SemSort sort;
 
 
 
-    public SemAtom(String name, String value)
+    public SemAtom(SemSort sort, String name, SemType type)
     {
         this.name = name;
-        this.value = value;
+        this.sort = sort;
+        this.type = type;
     }
 
 
+    public enum SemType {
+        E,T,COMPLEX
+    }
 
+    public enum SemSort {
+        VAR, CONST
+    }
+
+    public SemType getType() {
+        return type;
+    }
+
+    public void setType(SemType type) {
+        this.type = type;
+    }
 
 
     //Getter and Setter methods
@@ -27,11 +43,8 @@ public class SemAtom extends Identifier {
         this.name = name;
     }
 
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
+    @Override
+    public String toString() {
+        return name + "_" + type;
     }
 }
