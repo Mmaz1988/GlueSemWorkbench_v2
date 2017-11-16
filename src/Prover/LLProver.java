@@ -1,12 +1,14 @@
 package Prover;
 
 import gluePaP.linearLogic.*;
+import gluePaP.semantics.SemAtom;
 
 import java.util.*;
 
 public class LLProver {
 
     private List<Equality> equalities;
+    private Set<SemAtom> identifierDatabase = new HashSet<>();
 
     /*
     Does a deduction of a given sequent by evaluating the list of premises on its LHS
@@ -367,6 +369,25 @@ public class LLProver {
             }
         }
         return false;
+    }
+
+
+    /*
+    * Check if semantic atom a is already in the database of identifiers.
+    * If not, add it and return true; otherwise return false.
+    * */
+    public boolean addIdentifier(SemAtom a) {
+        if (this.identifierDatabase.contains(a))
+            return false;
+        else {
+            this.identifierDatabase.add(a);
+            return true;
+        }
+    }
+
+    // Returns the set of used semantic identifiers in this proof
+    public Set<SemAtom> getIdentifiers() {
+        return this.identifierDatabase;
     }
 
     /*
