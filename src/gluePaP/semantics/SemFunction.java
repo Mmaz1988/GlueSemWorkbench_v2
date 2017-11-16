@@ -74,8 +74,12 @@ public class SemFunction extends SemRepresentation {
     // glue side, including the Equality class.
 
     public SemRepresentation betaReduce() {
-        if (argument != null&& argument.getType().equalsType(binder.getType())) {
-            //binder.setName(argument.);
+        if (argument != null) {
+            SemRepresentation reduced = apply(argument);
+            if (reduced instanceof SemFunction)
+                return ((SemFunction) reduced).betaReduce();
+            else
+                return reduced;
         }
         return this;
     }
@@ -91,7 +95,7 @@ public class SemFunction extends SemRepresentation {
     }
 
     public boolean applyTo(SemAtom var,SemRepresentation arg) {
-        return this.funcBody.applyTo(var,arg);
+        return (this.funcBody.applyTo(var,arg) || this.argument.applyTo(var,arg));
     }
 
 

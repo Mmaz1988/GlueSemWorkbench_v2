@@ -13,9 +13,10 @@ public class SemMain {
         SemAtom varX = new SemAtom(VAR,"x",E);
         SemFunction arg1 = new SemFunction(varX,new SemPred("sleep",varX));
         SemFunction func1 = new SemFunction(varP,new SemPred("obviously",varP));
+        func1.setArgument(arg1);
         System.out.println(func1.toString());
         System.out.println("Applying constant...");
-        SemPred res = (SemPred) func1.apply(arg1);
+        SemPred res = (SemPred) func1.betaReduce();
         System.out.println(res.toString());
 
     }
