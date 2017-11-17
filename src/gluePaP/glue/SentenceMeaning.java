@@ -3,21 +3,19 @@ package gluePaP.glue;
 import Prover.LLProver;
 import Prover.ProverException;
 import Prover.VariableBindingException;
+import com.sun.jdi.event.ModificationWatchpointEvent;
 import edu.stanford.nlp.ling.IndexedWord;
 import edu.stanford.nlp.trees.GrammaticalStructure;
 import edu.stanford.nlp.trees.TypedDependency;
-import gluePaP.lexicon.LexicalEntry;
-import gluePaP.lexicon.Noun;
+import gluePaP.lexicon.*;
 import gluePaP.linearLogic.LLTerm;
 import gluePaP.linearLogic.Premise;
 import gluePaP.linearLogic.Sequent;
 import gluePaP.parser.LinearLogicParser;
 import gluePaP.semantics.SemAtom;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.lang.reflect.Array;
+import java.util.*;
 import java.util.regex.Pattern;
 
 // Sentence meaning is a set of glue representations (i.e. a set that represents the available premises)
@@ -69,33 +67,46 @@ public class SentenceMeaning {
                 System.out.println( t.right.toString() + " This is a complement");
             }
 
+
+            //Processes subject
            else if (t.left.contains("subj")) {
-                if (dependencyMap.get(t.right) == null)
-                {
-                    if (t.right.tag().equals("NNP"))
-                    {
-                        if (t.right.lemma() == null)
+
+
+                HashMap<String,List<LexicalEntry>> subj = extractArgumentEntries(t.right,"g");
+
+                List<LexicalEntry> main = (List<LexicalEntry>) subj.get("main");
+
+                subCatFrame.put("agent",main.get(0));
+
+                premises.add(main.get(0).llFormula);
+                subj.remove("main");
+
+
+                if (!subj.keySet().isEmpty()) {
+                    for (String key : subj.keySet()) {
+                        for (LexicalEntry lex : subj.get(key))
                         {
-                            System.out.println("lemma is null!");
+                            premises.add(lex.llFormula);
                         }
-                        Noun agent = new Noun(LexicalEntry.LexType.N_NNP,t.right.value());
-                        premises.add(agent.formula);
-                        subCatFrame.put("agent",agent);
+
                     }
+
                 }
+
                 it.remove();
                 rootArity++;
                 System.out.println( t.right.toString() + " This is a subject");
             }
 
+            //Processes object
           else if (t.left.contains("obj"))
             {
                 if (dependencyMap.get(t.right) == null)
                 {
                     if (t.right.tag().equals("NNP"))
                     {
-                        Noun patient = new Noun(LexicalEntry.LexType.N_NNP,t.right.value());
-                        premises.add(patient.formula);
+                        Noun patient = new Noun(LexicalEntry.LexType.N_NNP,"h");
+                        premises.add(patient.llFormula);
                         subCatFrame.put("patient",patient);
                     }
                 }
@@ -109,9 +120,17 @@ public class SentenceMeaning {
         }
 
 
+        Verb rootverb;
 
        if (dependencyMap.get(root).isEmpty())
        {
+           rootverb = new Verb(subCatFrame,root.lemma());
+           premises.add(rootverb.getLlFormula());
+
+
+
+
+           /*
             StringBuilder sb = new StringBuilder();
 
            sb.append("(");
@@ -124,6 +143,8 @@ public class SentenceMeaning {
            sb.append("))");
           // sb.append(")");
             premises.add(sb.toString());
+
+            */
       }
 
 
@@ -202,7 +223,7 @@ public class SentenceMeaning {
     {
          for (Tuple tuple : dependencyMap.get(word))
          {
-             if (dependency == tuple.left)
+             if (dependency.equals(tuple.left))
              {
                  return true;
              }
@@ -238,6 +259,59 @@ public class SentenceMeaning {
         return null;
     }
 
+
+    // Process arguments (Subjects, objects)
+
+    private HashMap<String,List<LexicalEntry>> extractArgumentEntries(IndexedWord iw, String identifier)
+    {
+        HashMap<String,List<LexicalEntry>> lexEn = new HashMap<>();
+
+        if (iw.tag().equals("NNP"))
+        {
+            Noun main = new Noun(LexicalEntry.LexType.N_NNP,identifier);
+    //        premises.add(agent.llFormula);
+    //        subCatFrame.put("agent",agent);
+
+            lexEn.put("main",new ArrayList<LexicalEntry>(Arrays.asList(main)));
+        }
+        else if (iw.tag().equals("NN"))
+        {
+            Noun main = new Noun(LexicalEntry.LexType.N_NN,identifier);
+            //        premises.add(agent.llFormula);
+            //        subCatFrame.put("agent",agent);
+
+            lexEn.put("main",new ArrayList<LexicalEntry>(Arrays.asList(main)));
+        }
+
+        if (dependencyMap.get(iw) != null)
+        {
+        for (Tuple t : dependencyMap.get(iw))
+        {
+
+            if (t.left.equals("amod"))
+            {
+                if (!lexEn.containsKey("mod"))
+                {
+                    List<LexicalEntry> modifiers = new ArrayList<>();
+                    modifiers.add(new Modifier(identifier));
+                    lexEn.put("mod",modifiers);
+                }
+                else
+                {
+                    lexEn.get("mod").add(new Modifier(identifier));
+                }
+            }
+            else if (t.left.equals("det"))
+            {
+                Determiner det = new Determiner(identifier);
+                lexEn.put("det",new ArrayList<LexicalEntry>(Arrays.asList(det)));
+            }
+
+        }
+        }
+
+        return lexEn;
+    }
 
     }
 

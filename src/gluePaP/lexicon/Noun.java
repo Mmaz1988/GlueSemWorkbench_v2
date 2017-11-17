@@ -1,12 +1,12 @@
 package gluePaP.lexicon;
 
-public class Noun implements LexicalEntry {
+public class Noun extends LexicalEntry {
 
 
     public LexType lexType;
-    public String formula;
 
-    public Noun(LexType type, String lemma) {
+
+    public Noun(LexType type, String identifier) {
 
         //StringJoiner sj = new StringJoiner(" ");
 
@@ -18,7 +18,12 @@ public class Noun implements LexicalEntry {
         switch (this.lexType) {
             case N_NNP:
 
-                this.formula = Character.toString(lemma.charAt(0)).toLowerCase() + "_e";
+                this.llFormula = identifier + "_e";
+
+                break;
+
+            case N_NN:
+                this.llFormula = identifier + "_e";
 
                 break;
 

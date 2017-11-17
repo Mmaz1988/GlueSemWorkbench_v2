@@ -6,8 +6,8 @@ import gluePaP.semantics.SemRepresentation;
 public class GlueRepresentation {
 
 
-    public LLTerm glueSide;
-    public SemRepresentation meaningSide;
+    private String glueSide;
+    private SemRepresentation meaningSide;
 
 
 }
