@@ -28,10 +28,17 @@ public class Premise {
 
     public void setSemTerm(SemRepresentation semTerm) { this.semTerm = semTerm; }
 
+
     public Premise(HashSet<Integer> premiseIDs, LLTerm llterm) {
         this.premiseIDs = premiseIDs;
         this.glueTerm = llterm;
         this.glueTerm.setPolarity(true);
+    }
+
+    public Premise(SemRepresentation semTerm, LLTerm glueTerm) {
+        this.premiseIDs = new HashSet<>();
+        this.glueTerm = glueTerm;
+        this.semTerm = semTerm;
     }
 
     @Override

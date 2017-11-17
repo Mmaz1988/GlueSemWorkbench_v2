@@ -2,8 +2,12 @@ package Prover;
 
 import gluePaP.linearLogic.*;
 import gluePaP.semantics.SemAtom;
+import gluePaP.semantics.SemFunction;
+import gluePaP.semantics.SemRepresentation;
 
 import java.util.*;
+
+import static gluePaP.semantics.SemAtom.SemSort.VAR;
 
 public class LLProver {
 
@@ -282,12 +286,45 @@ public class LLProver {
             // TODO add semantic operations for conversion steps (i.e. lambda abstraction)
             if (f.getLhs() instanceof LLFormula &&
                     ((LLFormula) f.getLhs()).getOperator() instanceof LLImplication) {
-                Premise assumption = convert(new Premise(seq.getNewID(),((LLFormula) f.getLhs()).getLhs()));
-                assumption.getGlueTerm().assumptions.add(assumption.getGlueTerm());
-                agenda.add(assumption);
-                Premise dependency = convert(new Premise(p.getPremiseIDs(),new LLFormula(f.getTermId(),((LLFormula) f.getLhs()).getRhs(),
-                        f.getOperator(),f.getRhs(),f.isPolarity(),f.getVariable())));
-                //dependency.getGlueTerm().assumptions.addAll(assumption.getGlueTerm().assumptions);
+                return convertNested(p);
+            }
+            else {
+                // the term is of the form (A -o B), where A is an atomic formula
+                // no conversion step needed on the glue side, but lambda abstraction on
+                // the meaning side is necessary. But only if there has been no conversion?
+                p.setSemTerm(this.convertSemantics(p.getSemTerm()));
+                return p;
+            }
+        }
+        return p;
+    }
+
+    /*
+    * Recursively converts a semantic term by replacing the variables with newly created ones    *
+    * */
+    // TODO turn private again after testing
+    public SemRepresentation convertSemantics(SemRepresentation sem) {
+        if (sem instanceof SemFunction) {
+            // create new variable with the type of the binder of the inner function
+            SemAtom var = new SemAtom(VAR,"u",((SemFunction) sem).getBinder().getType());
+            // apply var
+            SemRepresentation compiled = ((SemFunction) sem).apply(var);
+            SemRepresentation inner = convertSemantics(compiled);
+            // return new function with the applied variable as binder
+            return new SemFunction(var,inner);
+        }
+        return sem;
+    }
+
+    private Premise convertNested(Premise p) {
+        if (p.getGlueTerm() instanceof LLFormula) {
+            LLFormula f = (LLFormula) p.getGlueTerm();
+            Premise assumption = convertNested(new Premise(seq.getNewID(), ((LLFormula) f.getLhs()).getLhs()));
+            assumption.getGlueTerm().assumptions.add(assumption.getGlueTerm());
+            agenda.add(assumption);
+            Premise dependency = convertNested(new Premise(p.getPremiseIDs(), new LLFormula(f.getTermId(), ((LLFormula) f.getLhs()).getRhs(),
+                    f.getOperator(), f.getRhs(), f.isPolarity(), f.getVariable())));
+            //dependency.getGlueTerm().assumptions.addAll(assumption.getGlueTerm().assumptions);
                 /* NOTE:
                 * In cases where a formula like ((((a -o b) -o c) -o d) -o e) is compiled
                 * we want to derive the assumptions {a} and {(b -o c)} and the dependency
@@ -299,21 +336,14 @@ public class LLProver {
                 * This is achieved by only adding the single assumption that is currently
                 * being extracted to the dependency's discharges.
                 * */
-                dependency.getGlueTerm().discharges.add(assumption.getGlueTerm());
-                return dependency;
-            }
-            else {
-                // the term is of the form (A -o B), where A is an atomic formula
-                // no conversion step needed on the glue side, but lambda abstaction on
-                // the meaning side is necessary. But only if there has been no conversion?
-                return p;
-            }
+            dependency.getGlueTerm().discharges.add(assumption.getGlueTerm());
+            return dependency;
         }
         return p;
     }
 
 
-    //returns false if a variable is asigned more than one value
+    //returns false if a variable is assigned more than one value
     public static boolean checkDuplicateBinding(LinkedHashSet<Equality> in) {
          List<Equality> eqs = new ArrayList<>();
          eqs.addAll(0,in);

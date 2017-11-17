@@ -38,11 +38,6 @@ public class SemFunction extends SemRepresentation {
         this.setType(new SemType(binder.getType(),funcBody.getType()));
     }
 
-/*    @Override
-    public SemType getType() {
-        return new SemType(binder.getType(),funcBody.getType());
-    }*/
-
     public SemRepresentation getFuncBody() {
         return funcBody;
     }
@@ -57,6 +52,10 @@ public class SemFunction extends SemRepresentation {
 
     public void setArgument(SemRepresentation argument) {
         this.argument = argument;
+    }
+
+    public SemAtom getBinder() {
+        return binder;
     }
 
     @Override

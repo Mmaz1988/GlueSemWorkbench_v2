@@ -8,28 +8,32 @@ import static gluePaP.semantics.SemType.AtomicType.T;
 
 public class SemPred extends SemRepresentation {
 
-    String predForm;
+    private String predForm;
     // Does a stack make sense here? We always want to have the same number of args!
     // Maybe a Hashmap is better
-    HashMap<Integer,SemRepresentation> argList;
+    private SemRepresentation[] argList;
 
     public SemRepresentation getArg(int i) {
-        return argList.get(i);
+        return argList[i];
     }
 
     public SemPred(String predForm, SemRepresentation arg0) {
         this.predForm = predForm;
-        this.argList = new HashMap<>();
-        this.argList.put(1,arg0);
+        argList = new SemRepresentation[] {arg0};
         this.setType(T);
     }
 
 
     public SemPred(String predForm, SemRepresentation arg0, SemRepresentation arg1) {
         this.predForm = predForm;
-        this.argList = new HashMap<>();
-        this.argList.put(0,arg0);
-        this.argList.put(1,arg1);
+        this.argList = new SemRepresentation[] {arg0,arg1};
+        this.setType(T);
+    }
+
+    public SemPred(String predForm, SemRepresentation arg0, SemRepresentation arg1, SemRepresentation arg2) {
+        this.predForm = predForm;
+        this.argList = new SemRepresentation[] {arg0,arg1,arg2};
+        this.setType(T);
     }
 
     @Override
@@ -38,19 +42,23 @@ public class SemPred extends SemRepresentation {
     }
 
     private String printArgs() {
-        String str = "(";
-        for (int i = 1; i <= argList.size(); i++) {
-            str = str + argList.get(i).toString();
+        StringBuilder sb = new StringBuilder();
+        sb.append("(");
+        for (int i = 0; i < argList.length; i++) {
+            sb.append(argList[i]);
+            if (i+1 < argList.length)
+                sb.append(", ");
         }
-        return str + ")";
+        sb.append(")");
+        return sb.toString();
     }
 
 
     @Override
     public boolean applyTo(SemAtom var, SemRepresentation arg) {
-        for (int i = 1; i <= argList.size(); i++) {
-            if (argList.get(i) == var) {
-                argList.put(i,arg);
+        for (int i = 0; i <= argList.length; i++) {
+            if (argList[i] == var) {
+                argList[i] = arg;
                 return true;
             }
         }
