@@ -3,8 +3,8 @@ package gluePaP.lexicon;
 public class Noun implements LexicalEntry {
 
 
-    LexType lexType;
-    String formula;
+    public LexType lexType;
+    public String formula;
 
     public Noun(LexType type, String lemma) {
 
@@ -13,11 +13,12 @@ public class Noun implements LexicalEntry {
         //f is standard variable for complete f-structure
         //g is standard variable for subject
         //h is standard variable for object
+        this.lexType = type;
 
-        switch (type) {
+        switch (this.lexType) {
             case N_NNP:
 
-                this.formula = Character.toString(lemma.charAt(0)).toLowerCase();
+                this.formula = Character.toString(lemma.charAt(0)).toLowerCase() + "_e";
 
                 break;
 
