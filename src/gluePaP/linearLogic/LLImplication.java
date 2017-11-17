@@ -7,7 +7,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 public class LLImplication extends LLTerm implements LLOperator {
-    private final String symbol = "\u22B8";
+    public final String symbol = "\u22B8";
 
 
     public String toString() {
@@ -24,13 +24,8 @@ public class LLImplication extends LLTerm implements LLOperator {
     @Override
     public LinkedHashSet<Equality> checkCompatibility(LLTerm term) {
         if (term instanceof LLImplication)
-        {
-            LinkedHashSet<Equality> emptyList = new LinkedHashSet();
-            return emptyList;
-        }
+            return new LinkedHashSet<>();
         else
-        {
             return null;
-        }
     }
 }

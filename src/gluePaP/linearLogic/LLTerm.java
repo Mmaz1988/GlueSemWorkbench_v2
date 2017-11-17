@@ -10,14 +10,12 @@ import java.util.Set;
 public abstract class LLTerm {
 
     public enum Type {
-        E, T, COMPLEX
+        E, T,
     }
 
     private String termId;
     private boolean polarity;
     private Type type;
-
-    // experimental fields for compilation process
     public Set<LLTerm> assumptions = new HashSet<>();
     public Set<LLTerm> discharges = new HashSet<>();
 
@@ -47,8 +45,6 @@ public abstract class LLTerm {
 
     public abstract LinkedHashSet<Equality> checkCompatibility(LLTerm term);
 
-    //Get and set type
-
     public Type getType(){
         return this.type;
     }
@@ -56,14 +52,6 @@ public abstract class LLTerm {
     public void setType(Type type) {
         this.type = type;
     }
-
-/*    public LLTerm getDischarge() {
-        return discharge;
-    }
-
-    public void setDischarge(LLTerm discharges) {
-        this.discharge = discharges;
-    }*/
 
     public String toPlainString() {
         return super.toString();

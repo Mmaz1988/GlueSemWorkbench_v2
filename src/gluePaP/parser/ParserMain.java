@@ -75,14 +75,14 @@ public class ParserMain {
         //testmod.add(test5);
         testmod.add(test6);
         testmod.add(test7);
-        testnest.add(test5);
+        testnest.add(test9);
         testnest.add(test8);
 
 
 
 
-        //LinearLogicParser parser = new LinearLogicParser(testnest);
-        LinearLogicParser parser = new LinearLogicParser(testquant);
+        LinearLogicParser parser = new LinearLogicParser(testnest);
+        //LinearLogicParser parser = new LinearLogicParser(testquant);
         Sequent testseq = new Sequent(parser.premises);
 
         System.out.println(testseq.toString());

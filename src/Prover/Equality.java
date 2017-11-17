@@ -35,7 +35,6 @@ public class Equality {
     public boolean equals(Object b)
     {
 
-
         if (!(b instanceof Equality))
         {
             return false;
@@ -51,18 +50,6 @@ public class Equality {
                 eq.variable.getType().equals(this.variable.getType()) &&
                 eq.constant.getName().equals(this.constant.getName()) &&
                 eq.constant.getType().equals(this.constant.getType());
-
-        /*
-
-        if (this.variable.getName().equals(((Equality) b).variable.getName()) &&
-                this.variable.getType().equals(((Equality) b).variable.getType()) &&
-                this.constant.getName().equals(((Equality) b).constant.getName()) &&
-                this.constant.getType().equals(((Equality) b).constant.getType()) )
-        {
-            return true;
-        }
-        return false;
-    */
     }
 
 

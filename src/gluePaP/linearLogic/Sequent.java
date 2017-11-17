@@ -44,13 +44,5 @@ public class Sequent {
         return lhs + " => " +  "null";//rhs.toString();
     }
 
-    /*    public String toString() {
-        String toString = lhs.get(0).toString();
-        for (int i = 1; i < lhs.size(); i++) {
-            toString = toString + ", " + lhs.get(i).toString();
-        }
-        return toString + "=>" + rhs.toString();
-    }*/
-
 
 }

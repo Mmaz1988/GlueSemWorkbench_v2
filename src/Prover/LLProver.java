@@ -148,67 +148,64 @@ public class LLProver {
 
 
         // possible substitutions for variables and constants
-        LinkedHashSet<Equality> eqs = new LinkedHashSet<>();
-
-        eqs = ((LLFormula) func.getTerm()).getLhs().checkCompatibility(arg.getTerm());
+        LinkedHashSet<Equality> eqs = ((LLFormula) func.getTerm()).getLhs().checkCompatibility(arg.getTerm());
 
         if (eqs == null) {return null;}
 
+        if (eqs.size() > 0) {
 
-            if (eqs.size() > 0) {
-
-                //If there are duplicate bindings no valid proof can be reached.
-                if (LLProver.checkDuplicateBinding(eqs)) {
-                    throw new VariableBindingException();
-                } else {
-                    //instantiates variables with constants (i.e. skolemizes the formula so it can take a constant)
-                    for (Equality eq : eqs) {
-                        ((LLFormula) func.getTerm()).instantiateVariables(eq);
-                        System.out.println(eq);
-                    }
+            //If there are duplicate bindings no valid proof can be reached.
+            if (LLProver.checkDuplicateBinding(eqs)) {
+                throw new VariableBindingException();
+            } else {
+                //instantiates variables with constants (i.e. skolemizes the formula so it can take a constant)
+                for (Equality eq : eqs) {
+                    ((LLFormula) func.getTerm()).instantiateVariables(eq);
+                    System.out.println(eq);
                 }
-
             }
 
-            Premise combined;
+        }
+
+        Premise combined;
 
             /*
             * No assumptions or discharges involved, proceed with a "normal" implication elimination
             * */
-            if (arg.getTerm().assumptions.isEmpty()
-                    && arg.getTerm().discharges.isEmpty()
-                    && func.getTerm().assumptions.isEmpty()
-                    && func.getTerm().discharges.isEmpty()) {
-                return combineDisjointID(func, arg);
-            }
+        if (arg.getTerm().assumptions.isEmpty()
+                && arg.getTerm().discharges.isEmpty()
+                && func.getTerm().assumptions.isEmpty()
+                && func.getTerm().discharges.isEmpty()) {
+            return combineDisjointID(func, arg);
+        }
             /*
             * Func or arg contain assumptions, but no discharges.
             * Combine the terms and their sets of assumptions
             * */
-            else if ((!arg.getTerm().assumptions.isEmpty()
-                    || !func.getTerm().assumptions.isEmpty())
-                    && arg.getTerm().discharges.isEmpty()
-                    && func.getTerm().discharges.isEmpty()) {
-                combined = combineDisjointID(func, arg);
-                try {
-                    combined.getTerm().assumptions = new HashSet<>();
+        else if ((!arg.getTerm().assumptions.isEmpty()
+                || !func.getTerm().assumptions.isEmpty())
+                && arg.getTerm().discharges.isEmpty()
+                && func.getTerm().discharges.isEmpty()) {
+            combined = combineDisjointID(func, arg);
+            try {
+                combined.getTerm().assumptions = new HashSet<>();
                     /* create new set of assumptions which can be modified independently from
                     the set of assumptions of arg and func and add all assumptions to it */
-                    combined.getTerm().assumptions.addAll(arg.getTerm().assumptions);
-                    combined.getTerm().assumptions.addAll(func.getTerm().assumptions);
+                combined.getTerm().assumptions.addAll(arg.getTerm().assumptions);
+                combined.getTerm().assumptions.addAll(func.getTerm().assumptions);
                 //    LLTerm discharge = func.getTerm().getDischarge();
-                 //   combined.getTerm().assumptions.remove(discharge);
-                    // add this back to the functor's assumptions
+                //   combined.getTerm().assumptions.remove(discharge);
+                // add this back to the functor's assumptions
 
 
-   //                     arg.getTerm().assumptions.add(discharge);
+                //                     arg.getTerm().assumptions.add(discharge);
 
 
-                } catch (NullPointerException npe){
-                    return null;
-                }
-                return combined;
+            } catch (NullPointerException npe){
+                return null;
             }
+            return combined;
+        }
             /*
             Functor has discharges, check if they are a subset of the argument's assumptions.
             If so call combineDisjointID which checks the ID sets of func and arg and then
@@ -216,44 +213,24 @@ public class LLProver {
             from arg are copied, except the one that was discharged in func.
             func: (b[a] -o c); arg: {a,(x -o y)} ==> c with assumption {(x -o y)}
             */
-            else if (!func.getTerm().discharges.isEmpty()) {
-                if (arg.getTerm().assumptions.containsAll(func.getTerm().discharges))
-                {
+        else if (!func.getTerm().discharges.isEmpty()) {
+            if (arg.getTerm().assumptions.containsAll(func.getTerm().discharges))
+            {
 
-                    combined = combineDisjointID(func, arg);
-                    /* create new set of assumptions which can be modified independently from
-                    the sets of assumptions of arg and func and add all assumptions to it*/
-                    combined.getTerm().assumptions = new HashSet<>();
-                    combined.getTerm().assumptions.addAll(arg.getTerm().assumptions);
-                    combined.getTerm().assumptions.addAll(func.getTerm().assumptions);
+                combined = combineDisjointID(func, arg);
+                /* create new set of assumptions which can be modified independently from
+                the sets of assumptions of arg and func and add all assumptions to it*/
+                combined.getTerm().assumptions = new HashSet<>();
+                combined.getTerm().assumptions.addAll(arg.getTerm().assumptions);
+                combined.getTerm().assumptions.addAll(func.getTerm().assumptions);
+                combined.getTerm().assumptions.removeAll(func.getTerm().discharges);
 
-                /*
-                    for (LLTerm as : (arg.getTerm().assumptions))
-                    {
-                        if (as != func.getTerm().getDischarge())
-                        {
-                            combined.getTerm().assumptions.add(as);
-                        }
-                    }
-                */
-
-                    combined.getTerm().assumptions.removeAll(func.getTerm().discharges);
-/*                    Iterator it = combined.getTerm().assumptions.iterator();
-
-                    while (it.hasNext())
-                    {
-                        if (it.next() == func.getTerm().getDischarge())
-                        {
-                            it.remove();
-                        }
-                    //    combined.getTerm().assumptions.remove(func.getTerm().getDischarge());
-                    }*/
-
-                    return combined;
-                }
+                return combined;
             }
-            // The discharges are somehow incompatible, return null.
-            return null;
+        }
+
+        // The discharges are somehow incompatible, return null.
+        return null;
     }
 
 
@@ -269,14 +246,14 @@ public class LLProver {
             combined_IDs.addAll(func.getPremiseIDs());
             combined_IDs.addAll(arg.getPremiseIDs());
 
-            /*TODO this is a problem since if we use the same func twice
+            /*Mark: this is a problem since if we use the same func twice
             the resulting object uses the same term in both occasions.
             Thus, if a future modification of one instances of the term occurs,
             the other "copy" will also receive this modification leading to
-            unwanted combinations of terms
+            unwanted combinations of terms.
+            Moritz: Solved by creating a new LLAtom as copy of the RHS of func. If the RHS
+            is an LLFormula then just copy the reference, it shouldn't cause any problems.
             */
-            // Solved by creating a new LLAtom as copy of the RHS of func. If the RHS
-            // is an LLFormula then just copy the reference, it shouldn't cause any problems.
             if (((LLFormula) func.getTerm()).getRhs() instanceof  LLAtom)
                 return new Premise(combined_IDs,new LLAtom((LLAtom) ((LLFormula) func.getTerm()).getRhs()));
             return new Premise(combined_IDs,((LLFormula) func.getTerm()).getRhs());
@@ -285,29 +262,13 @@ public class LLProver {
     }
 
 
-    /*
-    Similar to combinePremises(), but for simple LL terms
-    implementation of the linear implication elimination rule for LL terms
-    check if arg is equivalent to LHS of func and then return RHS of func
-    e.g. func = a -o b; arg = a --> returns b
-    */
-    public LLTerm combineTerms(LLFormula func, LLTerm arg) {
-
-        if (func.getLhs().checkEquivalence(arg)) {
-            return func.getRhs();
-        }
-        else {
-            return null;
-        }
-    }
-
-    // wrapper method for later
+    // wrapper method for conversion
     public LLFormula convert(LLFormula term) {
         return (LLFormula) convert((LLTerm) term);
     }
 
+
     // TODO add lists for modifiers and skeletons (see Dick's code)
-    // TODO use premises instead of formulas?
     /*
     The LHS of the LHS of f will become an assumption which in turn gets converted as well.
     The assumption gets converted as well and is marked as an assumption
@@ -323,20 +284,30 @@ public class LLProver {
         if (term instanceof LLFormula) {
             LLFormula f = (LLFormula) term;
 
-            // the formula is a modifer no need to convert it
-/*            if (f.getLhs().checkEquivalence(f.getRhs()))
-                return term;*/
+            // TODO the formula is a modifer no need to convert it
+            /*if (f.getLhs().checkEquivalence(f.getRhs()))
+                return term;
+             */
             // TODO add semantic operations for conversion steps (i.e. lambda abstraction)
             if (f.getLhs() instanceof LLFormula &&
                     ((LLFormula) f.getLhs()).getOperator() instanceof LLImplication) {
                 LLTerm assumption = convert(((LLFormula) f.getLhs()).getLhs());
-                //LLTerm discharge = assumption;
                 assumption.assumptions.add(assumption);
                 LLTerm dependency = convert(new LLFormula(f.getTermId(),((LLFormula) f.getLhs()).getRhs(),
                         f.getOperator(),f.getRhs(),f.isPolarity(),f.getVariable()));
                 dependency.assumptions.addAll(assumption.assumptions);
-                dependency.discharges.addAll(assumption.assumptions);
-                //dependency.setDischarge(discharge);
+                /* NOTE:
+                * In cases where a formula like ((((a -o b) -o c) -o d) -o e) is compiled
+                * we want to derive the assumptions {a} and {(b -o c)} and the dependency
+                * (d -o e)[(b -o c)[a]], that is, a discharge with a nested discharge.
+                * However, for a formula like (((a -o (b -o c)) -o d)
+                * we want to get {a} and {b} and the dependency (c -o d)[a,b], that is,
+                * with a list of (atomic) discharges. Otherwise we would run into a dead end
+                * while combining the extracted premises.
+                * This is achieved by only adding the single assumption that is currently
+                * being extracted to the dependency's discharges.
+                * */
+                dependency.discharges.add(assumption);
 
                 return dependency;
             }
@@ -346,15 +317,13 @@ public class LLProver {
 
 
     //returns false if a variable is asigned more than one value
-
     public static boolean checkDuplicateBinding(LinkedHashSet<Equality> in) {
          List<Equality> eqs = new ArrayList<>();
          eqs.addAll(0,in);
 
          // no multiple assignments possible
-        if (eqs.size() <= 1){
+        if (eqs.size() <= 1)
             return false;
-        }
 
         for (int i = 0; i < eqs.size(); i++)
         {
@@ -390,32 +359,5 @@ public class LLProver {
         return this.identifierDatabase;
     }
 
-    /*
-
-    public Premise resolveQuantifiers(Premise func, Premise arg) throws VariableBindingException{
-        LinkedHashSet<Equality> substitutions =
-                ((LLFormula) func.getTerm()).getLhs().checkCompatibility(arg.getTerm());
-
-        if (LLProver.checkDuplicateBinding(substitutions)){ throw new VariableBindingException();
-        }
-
-        if (!substitutions.isEmpty())
-        {
-            for (Equality eq : substitutions)
-            {
-                if (((LLFormula) func.getTerm()).getLhs() instanceof LLUniversalQuant)
-                {
-                    ((LLUniversalQuant) (((LLFormula) func.getTerm()).getLhs())).instantiateVariables(eq);
-                }
-                if (arg.getTerm() instanceof LLUniversalQuant)
-                {
-                    ((LLUniversalQuant) arg.getTerm()).instantiateVariables(eq);
-                }
-            }
-
-        }
-        return null;
-    }
-*/
 
 }

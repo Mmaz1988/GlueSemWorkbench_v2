@@ -41,11 +41,6 @@ public class LLAtom extends LLTerm {
 
     }
 
-
-
-
-
-    // toString method
     @Override
     public String toString() {
         if (!this.assumptions.isEmpty())
@@ -65,7 +60,6 @@ public class LLAtom extends LLTerm {
         if (term instanceof LLAtom) {
             if (this.name.equals(((LLAtom) term).name)
                     && this.getType().equals(((LLAtom) term).getType()))
-                 //   && this.getLLtype().equals(((LLAtom) term).getLLtype()))
             {
                 return true;
             }
@@ -80,8 +74,6 @@ public class LLAtom extends LLTerm {
             if (this.getLLtype().equals(LLType.VAR)) {
                 {
                     if (((LLAtom) term).getLLtype().equals(LLType.VAR)) {
-                       // List<Equality> emptyList = Collections.emptyList();
-                        // return emptyList;
                         // Not possible to unify two variables?
                         return null;
                     } else if ( ((LLAtom) term).getLLtype().equals(LLType.CONST) &&

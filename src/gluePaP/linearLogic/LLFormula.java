@@ -17,10 +17,6 @@ public class LLFormula extends LLTerm {
     private HashMap<LLAtom,List<LLAtom>> boundVariables = new HashMap<>();
 
 
-    public String getName() {
-        return name;
-    }
-
     public LLTerm getLhs() {
         return lhs;
     }
@@ -39,7 +35,6 @@ public class LLFormula extends LLTerm {
 
 
     //Constructor for formulas without variables
-
     public LLFormula(String id, LLTerm lhs, LLOperator operator,LLTerm rhs, boolean pol) {
         this.lhs = lhs;
         this.rhs = rhs;
@@ -70,25 +65,10 @@ public class LLFormula extends LLTerm {
 
     }
 
-    public LLFormula(LLFormula term) {
-        this.assumptions = new HashSet<>(term.assumptions);
-        this.discharges = new HashSet<>(term.discharges);
-        this.name = term.getName();
-        this.setTermId(term.getTermId());
-        this.setType(term.getType());
-        this.setPolarity(term.isPolarity());
-        this.lhs = term.getLhs();
-        this.rhs = term.getRhs();
-    }
-
-
-        /* ##############################
-    Modified LLFormula
-    ################################
-     */
-
-    // represents the binder relation between the quantifier and the variables in the scope of the quantifier
-
+    /*
+    Represents the binder relation between the quantifier
+    and the variables in the scope of the quantifier
+    */
     public List<LLAtom> findBoundOccurrences(LLTerm term){
 
 
@@ -151,12 +131,6 @@ public class LLFormula extends LLTerm {
     }
 
 
-    /* ##############################
-    Original LLFormula
-    ################################
-     */
-
-
     @Override
     // TODO properly represent formulas that have assumptions associated with them are not themselves assumptions.
     public String toString() {
@@ -165,18 +139,12 @@ public class LLFormula extends LLTerm {
         if (!(this.assumptions.isEmpty())) {
              return "{(" + lhs.toPlainString() + " " + operator + " "  + rhs.toPlainString() + ")_"+ this.getTermId() + "}";
         }
-            /*        {
-            as = "{" + assumptions.toString() + "}";
-        }*/
 
         if (!this.discharges.isEmpty())
-        // return "{(" + lhs.toPlainString() + " " + operator + " "  + rhs.toPlainString() + ")_"+ this.getTermId() + "}";
         {
             dc = this.discharges.toString();
         }
 
-   //     } else {
-     //   }
         return "(" + lhs.toPlainString() + " "
                 + dc + " "
                 + operator + " " + rhs.toPlainString() + ")_" + this.getTermId()
@@ -218,54 +186,9 @@ public class LLFormula extends LLTerm {
             }
         }
 
-        /* reverse arguments so that you don't have to write a new case for this but can just use the override
-        LLQuant*/
-
         return null;
     }
 
-    /*
-    * Recursively goes through a LL formula and instantiates all occurrences of the variable var
-    * to an appropriately typed LL constant. Returns a LL formula like the input quTerm, but
-    * with all variable occurrences instantiated. If the structures of the two input
-    * formulas don't match it returns null instead.
-    */
-
-    /*
-    public static LLConstant getInstantiation(LLVariable var, LLTerm quTerm, LLTerm instTerm){
-        if (instTerm instanceof LLConstant && quTerm instanceof LLVariable && quTerm.checkEquivalence(var))
-            return (LLConstant) instTerm;
-        else if (instTerm instanceof LLFormula && quTerm instanceof LLFormula){
-            if(getInstantiation(var,((LLFormula) quTerm).getLhs(),((LLFormula) instTerm).getLhs()) != null)
-                return getInstantiation(var,((LLFormula) quTerm).getLhs(),((LLFormula) instTerm).getLhs());
-            if(getInstantiation(var,((LLFormula) quTerm).getRhs(),((LLFormula) instTerm).getRhs()) != null)
-                return getInstantiation(var,((LLFormula) quTerm).getRhs(),((LLFormula) instTerm).getRhs());
-        }
-        return null;
-    }
-
-    public void instantiate(LLVariable var, LLConstant constant){
-
-    }
-
-
-    public static LLTerm instantiateVar(LLAtom var, LLTerm quTerm, LLTerm instTerm) {
-        if (quTerm instanceof LLAtom && quTerm.checkEquivalence(instTerm))
-            return instTerm;
-        else if (instTerm instanceof LLConstant && quTerm instanceof LLVariable && quTerm.checkEquivalence(var))
-            return instTerm;
-        else if (instTerm instanceof LLFormula && quTerm instanceof LLFormula) {
-            LLTerm newLeft = instantiateVar(var, ((LLFormula) quTerm).getLhs(), ((LLFormula) instTerm).getLhs());
-            LLOperator op = ((LLFormula) quTerm).operator;
-            LLTerm newRight = instantiateVar(var, ((LLFormula) quTerm).getRhs(), ((LLFormula) instTerm).getRhs());
-            return new LLFormula(instTerm.getTermId(), newLeft, op, newRight, quTerm.isPolarity());
-        }
-
-        // Something didn't work out, abort and return null
-        return null;
-
-    }
-*/
 
     public boolean isNested(){
         return this.getLhs() instanceof LLFormula;

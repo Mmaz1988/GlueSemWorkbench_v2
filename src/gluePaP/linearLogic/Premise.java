@@ -30,10 +30,6 @@ public class Premise {
         return term + "[" + premiseIDs + "]";
     }
 
-    public boolean equals(Premise p) {
-        return false;
-    }
-
     public void setTerm(LLTerm term) {
         this.term = term;
     }
