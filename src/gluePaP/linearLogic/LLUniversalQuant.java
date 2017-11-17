@@ -138,12 +138,12 @@ public class LLUniversalQuant extends LLTerm{
 
         if (term instanceof LLUniversalQuant) {
 
-            if (this.getTerm().checkCompatibility(term) != null) {
-                return this.getTerm().checkCompatibility(term);
+            if (this.getGlueTerm().checkCompatibility(term) != null) {
+                return this.getGlueTerm().checkCompatibility(term);
             }
         } else
         {if (term instanceof LLFormula) {
-            return this.getTerm().checkCompatibility(term);
+            return this.getGlueTerm().checkCompatibility(term);
         }
         }
         return null;

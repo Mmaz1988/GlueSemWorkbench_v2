@@ -1,38 +1,45 @@
 package gluePaP.linearLogic;
 
-import java.util.ArrayList;
+import gluePaP.semantics.SemRepresentation;
+
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class Premise {
-    private Set<Integer> premiseIDs;
-    private LLTerm term;
+    private HashSet<Integer> premiseIDs;
+    private LLTerm glueTerm;
+    private SemRepresentation semTerm;
     private Premise func;
     private Premise arg;
 
-    public Set<Integer> getPremiseIDs() {
+    public HashSet<Integer> getPremiseIDs() {
         return premiseIDs;
     }
 
-    public LLTerm getTerm() {
-        return term;
+    public LLTerm getGlueTerm() {
+        return glueTerm;
     }
+
+    public void setGlueTerm(LLTerm glueTerm) {
+        this.glueTerm = glueTerm;
+    }
+
+    public SemRepresentation getSemTerm() { return semTerm; }
+
+    public void setSemTerm(SemRepresentation semTerm) { this.semTerm = semTerm; }
 
     public Premise(HashSet<Integer> premiseIDs, LLTerm llterm) {
         this.premiseIDs = premiseIDs;
-        this.term = llterm;
-        this.term.setPolarity(true);
+        this.glueTerm = llterm;
+        this.glueTerm.setPolarity(true);
     }
 
     @Override
     public String toString() {
-        return term + "[" + premiseIDs + "]";
+        return glueTerm + "[" + premiseIDs + "]";
     }
 
-    public void setTerm(LLTerm term) {
-        this.term = term;
-    }
+
 
 
     /*

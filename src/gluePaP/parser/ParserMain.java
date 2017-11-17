@@ -75,23 +75,23 @@ public class ParserMain {
         //testmod.add(test5);
         testmod.add(test6);
         testmod.add(test7);
-        testnest.add(test9);
+        testnest.add(test5);
         testnest.add(test8);
 
 
 
 
         LinearLogicParser parser = new LinearLogicParser(testnest);
-        //LinearLogicParser parser = new LinearLogicParser(testquant);
-        Sequent testseq = new Sequent(parser.premises);
+        LinearLogicParser parser2 = new LinearLogicParser(testquant);
+        Sequent testseq = new Sequent(parser2.premises);
 
         System.out.println(testseq.toString());
 
         System.out.println("Checking simple prover...");
-        LLProver prover = new LLProver();
+        LLProver prover = new LLProver(testseq);
         List<Premise> result = null;
         try {
-            result = prover.deduce(testseq);
+            result = prover.deduce();
             System.out.println("Found valid deduction(s): ");
             for (Premise sol : result) {
                 System.out.println(sol.toString());
