@@ -20,6 +20,10 @@ import java.util.regex.Pattern;
 
 // Sentence meaning is a set of glue representations (i.e. a set that represents the available premises)
 
+/*This class determines which lexical entry (if any) is constructed for a given word in the sentence
+based on its syntactic structure. (Mainly dependency structure for now)
+*/
+
 public class SentenceMeaning {
     private final GrammaticalStructure dependencyStructure;
     private final LinkedHashMap<IndexedWord,List<Tuple>> dependencyMap;
@@ -30,25 +34,32 @@ public class SentenceMeaning {
     {
         this.dependencyStructure = parsedSentence;
 
+        /* A depdency map is a hash map whose key is a word in the parsed sentence and whose value is
+        a list of all (direct) dependencies of this word. For example:
+        Every dog barks.
+        every = []
+        dog = det(every)
+        barks = subj(dog)
+        Thus we have a flat structure that still preserves possible transitive relations
+        (i.e. A - B - C => A - C) For reference see Unhammer(2010; LFG-based Constituent and Function Alignment for Parallel Treebanking)
+        for a similar approach on LFG
+         */
         this.dependencyMap = generateDependencyMap();
-
         System.out.println(dependencyStructure.typedDependencies());
 
          // Returns the root verb
         IndexedWord root = returnRoot();
 
-
+        //SubCatFrame produced from syntactic input; is used to derive meaning constructors
         LinkedHashMap<String,LexicalEntry> subCatFrame = new LinkedHashMap<>();
-        /*
-        if (hasDependencyType("cop",root))
-        {
-            System.out.println("ROOT is a copula verb");
-        }
-        */
 
-
-
+        // Collection of LLFormulas for generating premises
         List<String> premises = new ArrayList<>();
+
+        /* Arity of the root verb;
+         TODO We need to make this a method that processes all verbal heads,
+        so that complements can also be analyzed like this
+        */
         Integer rootArity = 0;
 
         Iterator it = dependencyMap.get(root).iterator();
@@ -56,41 +67,40 @@ public class SentenceMeaning {
         while (it.hasNext())
         {
             Tuple t = (Tuple)it.next();
-
+            //Basic categorization based on Universal dependency tags
+            //All types of modifiers
             if (t.left.contains("mod"))
             {
                 System.out.println( t.right.toString() + " This is a modifier");
             }
+            //All types of complements
             else if (t.left.contains("comp"))
             {
                 rootArity++;
                 System.out.println( t.right.toString() + " This is a complement");
             }
 
-
             //Processes subject
            else if (t.left.contains("subj")) {
 
 
+                //TODO Subjects usually have the identifier g, what to do with embedded subjects?
                 HashMap<String,List<LexicalEntry>> subj = extractArgumentEntries(t.right,"g");
-
                 List<LexicalEntry> main = (List<LexicalEntry>) subj.get("main");
-
                 subCatFrame.put("agent",main.get(0));
 
                 premises.add(main.get(0).llFormula);
                 subj.remove("main");
 
 
+                //Adds modifiers of the subject
                 if (!subj.keySet().isEmpty()) {
                     for (String key : subj.keySet()) {
                         for (LexicalEntry lex : subj.get(key))
                         {
                             premises.add(lex.llFormula);
                         }
-
                     }
-
                 }
 
                 it.remove();
@@ -98,19 +108,19 @@ public class SentenceMeaning {
                 System.out.println( t.right.toString() + " This is a subject");
             }
 
-            //Processes object
+            //Processes object -- Same problem as subject
           else if (t.left.contains("obj"))
             {
                 HashMap<String,List<LexicalEntry>> obj = extractArgumentEntries(t.right,"h");
 
                 List<LexicalEntry> main = (List<LexicalEntry>) obj.get("main");
 
-                subCatFrame.put("agent",main.get(0));
+                subCatFrame.put("patient",main.get(0));
 
                 premises.add(main.get(0).llFormula);
                 obj.remove("main");
 
-
+                //Adds modifiers of the object
                 if (!obj.keySet().isEmpty()) {
                     for (String key : obj.keySet()) {
                         for (LexicalEntry lex : obj.get(key))
@@ -129,6 +139,9 @@ public class SentenceMeaning {
 
         }
 
+        /* Verb is generated last based on the structure of the sentence
+        The verb is generated when all its dependencies have been processed
+        */
 
         Verb rootverb;
 
@@ -158,12 +171,11 @@ public class SentenceMeaning {
       }
 
 
-
         System.out.println(root.toString() + " has arity " + rootArity);
 
+        //System.out.print(premises);
 
-        System.out.print(premises);
-
+        // Calling engine for deduction for test purposes here
 
         LinearLogicParser parser = new LinearLogicParser(premises);
         //LinearLogicParser parser = new LinearLogicParser(testquant);
@@ -185,24 +197,10 @@ public class SentenceMeaning {
         }
 
         System.out.println("Done!");
-
-
-
-
-
-
-
-
-
-
-
-
-   //     System.out.println(generateDependencyMap());
-
     }
 
 
-    // generates a HashMap for search purposes
+    // generates a HashMap for search purposes; flat representation of dependency structure
     public LinkedHashMap<IndexedWord,List<Tuple>> generateDependencyMap()
     {
         LinkedHashMap<IndexedWord,List<Tuple>> dependencyMap = new LinkedHashMap<>();
@@ -222,13 +220,12 @@ public class SentenceMeaning {
                         dependencyMap.get(structure.gov()).add(new Tuple(structure.reln().toString(),structure.dep()));
             }
         }
-
         return dependencyMap;
     }
 
 
 
-
+    // checks if a word has a specific governing dependency relation
     public boolean hasDependencyType(String dependency,IndexedWord word)
     {
          for (Tuple tuple : dependencyMap.get(word))
@@ -242,6 +239,7 @@ public class SentenceMeaning {
     }
 
 
+    //Checks dominance relation disregarding dependency
     public boolean governsWord(IndexedWord word1, IndexedWord word2)
     {
         for (Tuple tuple : dependencyMap.get(word1))
@@ -255,6 +253,7 @@ public class SentenceMeaning {
     }
 
 
+    //Returns the main verb of the sentence
     public IndexedWord returnRoot()
     {
 
@@ -270,15 +269,14 @@ public class SentenceMeaning {
     }
 
 
-    // Process arguments (Subjects, objects)
-
+    // Process (nominal) arguments (Subjects, objects)
     private HashMap<String,List<LexicalEntry>> extractArgumentEntries(IndexedWord iw, String identifier)
     {
         HashMap<String,List<LexicalEntry>> lexEn = new HashMap<>();
 
         if (iw.tag().equals("NNP"))
         {
-            Noun main = new Noun(LexicalEntry.LexType.N_NNP,identifier);
+            Noun main = new Noun(LexicalEntry.LexType.N_NNP,identifier,iw);
     //        premises.add(agent.llFormula);
     //        subCatFrame.put("agent",agent);
 
@@ -286,7 +284,7 @@ public class SentenceMeaning {
         }
         else if (iw.tag().equals("NN"))
         {
-            Noun main = new Noun(LexicalEntry.LexType.N_NN,identifier);
+            Noun main = new Noun(LexicalEntry.LexType.N_NN,identifier,iw);
             //        premises.add(agent.llFormula);
             //        subCatFrame.put("agent",agent);
 
@@ -321,10 +319,8 @@ public class SentenceMeaning {
 
                 lexEn.put("main",new ArrayList<LexicalEntry>(Arrays.asList(det)));
             }
-
         }
         }
-
         return lexEn;
     }
 

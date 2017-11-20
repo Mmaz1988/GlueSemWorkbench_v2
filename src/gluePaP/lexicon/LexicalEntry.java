@@ -1,5 +1,7 @@
 package gluePaP.lexicon;
 
+import gluePaP.semantics.SemRepresentation;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -9,6 +11,7 @@ public class LexicalEntry {
 
     HashSet<String> usedVariables = new HashSet<>();
     public String llFormula;
+    public SemRepresentation sem;
 
     public enum LexType {
 
@@ -33,24 +36,6 @@ public class LexicalEntry {
 
 
     //basic way for returning an unused variable out of an available set of variables
-    public String returnNewVar()
-    {
-        List<String> variables = new ArrayList<>(Arrays.asList("Y","Z"));
 
-        if (usedVariables.isEmpty())
-        {
-            return "X";
-        } else
-        {
-        for (String var : variables)
-        {
-            if (!usedVariables.contains(var))
-            {
-                return var;
-            }
-        }
-        }
-        return null;
-    }
 
 }

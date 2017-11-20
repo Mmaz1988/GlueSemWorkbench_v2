@@ -1,5 +1,7 @@
 package gluePaP.lexicon;
 
+import gluePaP.glue.LexVariableHandler;
+
 public class Determiner extends LexicalEntry{
     public LexicalEntry.LexType lexType;
 
@@ -13,8 +15,10 @@ public class Determiner extends LexicalEntry{
     {
         this.lexType = LexType.DET;
 
+        LexVariableHandler handler = new LexVariableHandler();
+
         String i = identifier + "_e";
-        String var = returnNewVar() + "_t";
+        String var = handler.returnNewVar() + "_t";
 
         this.llFormula = "A" +var + ".(" + i + " -o " + var + ") -o " + var;
     }

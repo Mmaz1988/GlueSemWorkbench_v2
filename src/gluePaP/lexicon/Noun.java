@@ -1,12 +1,16 @@
 package gluePaP.lexicon;
 
+import edu.stanford.nlp.ling.IndexedWord;
+import gluePaP.semantics.SemAtom;
+import gluePaP.semantics.SemType;
+
 public class Noun extends LexicalEntry {
 
 
     public LexType lexType;
 
 
-    public Noun(LexType type, String identifier) {
+    public Noun(LexType type, String identifier, IndexedWord main) {
 
         //StringJoiner sj = new StringJoiner(" ");
 
@@ -19,7 +23,8 @@ public class Noun extends LexicalEntry {
             case N_NNP:
 
                 this.llFormula = identifier + "_e";
-
+                this.sem = new SemAtom(SemAtom.SemSort.CONST,main.value().substring(0,1).toLowerCase(),
+                        SemType.AtomicType.E);
                 break;
 
             case N_NN:
