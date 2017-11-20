@@ -34,6 +34,7 @@ public class GrammarMain {
         testSentences.add("John snores.");
         testSentences.add("John loves Maria.");
         testSentences.add("A loud dog barks.");
+        testSentences.add("A loud dog chases every small cat.");
 /*        testSentences.add("John is happy.");
         testSentences.add("John ran quickly.");
         testSentences.add("John died on the bed");

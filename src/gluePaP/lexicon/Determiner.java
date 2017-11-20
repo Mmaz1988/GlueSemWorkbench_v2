@@ -15,6 +15,7 @@ public class Determiner extends LexicalEntry{
 
         String i = identifier + "_e";
         String var = returnNewVar() + "_t";
+
         this.llFormula = "A" +var + ".(" + i + " -o " + var + ") -o " + var;
     }
 

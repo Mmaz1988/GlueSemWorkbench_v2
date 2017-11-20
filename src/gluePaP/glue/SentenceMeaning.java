@@ -101,13 +101,23 @@ public class SentenceMeaning {
             //Processes object
           else if (t.left.contains("obj"))
             {
-                if (dependencyMap.get(t.right) == null)
-                {
-                    if (t.right.tag().equals("NNP"))
-                    {
-                        Noun patient = new Noun(LexicalEntry.LexType.N_NNP,"h");
-                        premises.add(patient.llFormula);
-                        subCatFrame.put("patient",patient);
+                HashMap<String,List<LexicalEntry>> obj = extractArgumentEntries(t.right,"h");
+
+                List<LexicalEntry> main = (List<LexicalEntry>) obj.get("main");
+
+                subCatFrame.put("agent",main.get(0));
+
+                premises.add(main.get(0).llFormula);
+                obj.remove("main");
+
+
+                if (!obj.keySet().isEmpty()) {
+                    for (String key : obj.keySet()) {
+                        for (LexicalEntry lex : obj.get(key))
+                        {
+                            premises.add(lex.llFormula);
+                        }
+
                     }
                 }
                 it.remove();
@@ -304,7 +314,12 @@ public class SentenceMeaning {
             else if (t.left.equals("det"))
             {
                 Determiner det = new Determiner(identifier);
-                lexEn.put("det",new ArrayList<LexicalEntry>(Arrays.asList(det)));
+
+                //TODO make this proper
+                lexEn.remove("main");
+
+
+                lexEn.put("main",new ArrayList<LexicalEntry>(Arrays.asList(det)));
             }
 
         }
