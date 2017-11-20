@@ -162,10 +162,10 @@ public class SentenceMeaning {
         System.out.println(testseq.toString());
 
         System.out.println("Checking simple prover...");
-        LLProver prover = new LLProver();
+        LLProver prover = new LLProver(testseq);
         List<Premise> result = null;
         try {
-            result = prover.deduce(testseq);
+            result = prover.deduce();
             System.out.println("Found valid deduction(s): ");
             for (Premise sol : result) {
                 System.out.println(sol.toString());

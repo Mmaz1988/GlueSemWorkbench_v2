@@ -35,8 +35,10 @@ public class Sequent {
         return maxIDSet;
     }
 
-    public Integer getNewID() {
-        return idCounter++;
+    public HashSet<Integer> getNewID() {
+        HashSet<Integer> newID = new HashSet<>();
+        newID.add(idCounter++);
+        return newID;
     }
 
     @Override
