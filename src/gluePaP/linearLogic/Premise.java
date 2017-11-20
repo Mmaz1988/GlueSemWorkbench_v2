@@ -35,15 +35,15 @@ public class Premise {
         this.glueTerm.setPolarity(true);
     }
 
-    public Premise(SemRepresentation semTerm, LLTerm glueTerm) {
-        this.premiseIDs = new HashSet<>();
+    public Premise(HashSet<Integer> premiseIDs, SemRepresentation semTerm, LLTerm glueTerm) {
+        this.premiseIDs = premiseIDs;
         this.glueTerm = glueTerm;
         this.semTerm = semTerm;
     }
 
     @Override
     public String toString() {
-        return glueTerm + "[" + premiseIDs + "]";
+        return glueTerm + " : " + semTerm + "[" + premiseIDs + "]";
     }
 
 

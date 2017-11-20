@@ -4,6 +4,7 @@ import gluePaP.linearLogic.*;
 import gluePaP.semantics.SemAtom;
 import gluePaP.semantics.SemFunction;
 import gluePaP.semantics.SemRepresentation;
+import gluePaP.semantics.SemType;
 
 import java.util.*;
 
@@ -12,11 +13,13 @@ import static gluePaP.semantics.SemAtom.SemSort.VAR;
 public class LLProver {
 
     private List<Equality> equalities;
-    private Set<SemAtom> identifierDatabase = new HashSet<>();
+    private Set<String> identifierDatabase = new HashSet<>();
     private Stack<Premise> agenda = new Stack<>();
     private List<Premise> database = new ArrayList<>();
     private List<Premise> solutions = new ArrayList<>();
     private Sequent seq;
+
+    final String[] EVARS = {"x","y","z","r","s"};
 
 
     public LLProver(Sequent seq) {
@@ -283,10 +286,10 @@ public class LLProver {
             /*if (f.getLhs().checkEquivalence(f.getRhs()))
                 return term;
              */
-            // TODO add semantic operations for conversion steps (i.e. lambda abstraction)
+
             if (f.getLhs() instanceof LLFormula &&
                     ((LLFormula) f.getLhs()).getOperator() instanceof LLImplication) {
-                return convertNested(p);
+                return convertNested(p,null);
             }
             else {
                 // the term is of the form (A -o B), where A is an atomic formula
@@ -316,15 +319,23 @@ public class LLProver {
         return sem;
     }
 
-    private Premise convertNested(Premise p) {
+    private Premise convertNested(Premise p, SemAtom var) {
         if (p.getGlueTerm() instanceof LLFormula) {
             LLFormula f = (LLFormula) p.getGlueTerm();
-            Premise assumption = convertNested(new Premise(seq.getNewID(), ((LLFormula) f.getLhs()).getLhs()));
-            assumption.getGlueTerm().assumptions.add(assumption.getGlueTerm());
-            agenda.add(assumption);
-            Premise dependency = convertNested(new Premise(p.getPremiseIDs(), new LLFormula(f.getTermId(), ((LLFormula) f.getLhs()).getRhs(),
-                    f.getOperator(), f.getRhs(), f.isPolarity(), f.getVariable())));
-            //dependency.getGlueTerm().assumptions.addAll(assumption.getGlueTerm().assumptions);
+
+            // nested formula; extract assumption and build new term
+            if (f.getLhs() instanceof LLFormula) {
+                SemAtom assumpVar = var;
+                // In a non-recursive call (directly from convert() the new variable is not yet
+                // instantiated and it will be done now.
+                // TODO type assignment not working yet
+                if (var == null)
+                    assumpVar = new SemAtom(VAR, "v", ((SemFunction) p.getSemTerm()).getBinder().getType());
+                Premise assumption = convertNested(new Premise(seq.getNewID(), ((LLFormula) f.getLhs()).getLhs()), assumpVar);
+                assumption.getGlueTerm().assumptions.add(assumption.getGlueTerm());
+                agenda.add(assumption);
+                Premise dependency = convertNested(new Premise(p.getPremiseIDs(), p.getSemTerm(), new LLFormula(f.getTermId(), ((LLFormula) f.getLhs()).getRhs(),
+                        f.getOperator(), f.getRhs(), f.isPolarity(), f.getVariable())), assumpVar);
                 /* NOTE:
                 * In cases where a formula like ((((a -o b) -o c) -o d) -o e) is compiled
                 * we want to derive the assumptions {a} and {(b -o c)} and the dependency
@@ -336,10 +347,23 @@ public class LLProver {
                 * This is achieved by only adding the single assumption that is currently
                 * being extracted to the dependency's discharges.
                 * */
-            dependency.getGlueTerm().discharges.add(assumption.getGlueTerm());
-            return dependency;
+                dependency.getGlueTerm().discharges.add(assumption.getGlueTerm());
+                return dependency;
+            }
+            // simple implication; return the formula but with the new variable lambda bound
+            else {
+                SemAtom binderVar = new SemAtom(VAR,"u",var.getType());
+                SemFunction newArg = new SemFunction(var,binderVar);
+                p.setSemTerm(new SemFunction(binderVar,p.getSemTerm(),newArg));
+                return p;
+            }
         }
-        return p;
+        // only an atomic glue term which will become an assumption;
+        // return it and add the new variable as meaning side
+        else {
+            p.setSemTerm(var);
+            return p;
+        }
     }
 
 
@@ -373,17 +397,21 @@ public class LLProver {
     * If not, add it and return true; otherwise return false.
     * */
     public boolean addIdentifier(SemAtom a) {
-        if (this.identifierDatabase.contains(a))
+        if (this.identifierDatabase.contains(a.getName()))
             return false;
         else {
-            this.identifierDatabase.add(a);
+            this.identifierDatabase.add(a.getName());
             return true;
         }
     }
 
     // Returns the set of used semantic identifiers in this proof
-    public Set<SemAtom> getIdentifiers() {
+    public Set<String> getIdentifiers() {
         return this.identifierDatabase;
+    }
+
+    public SemAtom newIdentifier(SemAtom.SemSort s) {
+        return null;
     }
 
 
