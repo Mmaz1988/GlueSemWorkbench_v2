@@ -43,7 +43,7 @@ public class Premise {
 
     @Override
     public String toString() {
-        return glueTerm + " : " + semTerm + "[" + premiseIDs + "]";
+        return glueTerm + " : " + semTerm + premiseIDs;
     }
 
 

@@ -27,9 +27,5 @@ public class SemMain {
         SemPred res = (SemPred) obv.betaReduce();
         System.out.println(res.toString());
 
-        LLProver lp = new LLProver(null);
-        SemRepresentation converted = lp.convertSemantics(give);
-        System.out.println(converted.toString());
-
     }
 }

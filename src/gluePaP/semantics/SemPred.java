@@ -55,13 +55,12 @@ public class SemPred extends SemRepresentation {
 
 
     @Override
-    public boolean applyTo(SemAtom var, SemRepresentation arg) {
-        for (int i = 0; i <= argList.length; i++) {
+    public SemRepresentation applyTo(SemAtom var, SemRepresentation arg) {
+        for (int i = 0; i < argList.length; i++) {
             if (argList[i] == var) {
                 argList[i] = arg;
-                return true;
             }
         }
-        return false;
+        return this;
     }
 }

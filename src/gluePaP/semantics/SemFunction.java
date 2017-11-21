@@ -75,6 +75,7 @@ public class SemFunction extends SemRepresentation {
     public SemRepresentation betaReduce() {
         if (argument != null) {
             SemRepresentation reduced = apply(argument);
+            argument = null;
             if (reduced instanceof SemFunction)
                 return ((SemFunction) reduced).betaReduce();
             else
@@ -93,8 +94,31 @@ public class SemFunction extends SemRepresentation {
         return null;
     }
 
-    public boolean applyTo(SemAtom var,SemRepresentation arg) {
-        return (this.funcBody.applyTo(var,arg) || this.argument.applyTo(var,arg));
+    public SemRepresentation applyTo(SemAtom var,SemRepresentation arg) {
+        SemRepresentation applied = null;
+        if (this.argument != null) {
+            applied = this.argument.applyTo(var, arg);
+        }
+        if (applied == null) {
+            /* NOTE:
+            * We only want to get rid of the lambda binder if it is
+            * actually the variable that is being replaced. In Hepple-style
+            * deductions we get situations like the following:
+            * functor: \v.u     arg: sleep(v)
+            * where the u is bound somewhere else and we replace it with the arg whilst
+            * keeping the \v slot.
+            * */
+            if (this.binder == var)
+                return this.funcBody.applyTo(var, arg);
+            else {
+                this.setFuncBody(funcBody.applyTo(var, arg));
+                return this;
+            }
+
+        } else {
+            this.argument = applied;
+            return this;
+        }
     }
 
 

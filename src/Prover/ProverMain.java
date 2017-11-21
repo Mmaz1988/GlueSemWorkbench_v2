@@ -21,7 +21,7 @@ public class ProverMain {
 
     public static void main(String[] args) throws VariableBindingException {
         String test1 = "AX_t.(g_e -o X_t) -o X_t";
-        String test2 = "(h_e -o f_t)";
+        String test2 = "(g_e -o f_t)";
 
 
         System.out.println("Parsing input...");

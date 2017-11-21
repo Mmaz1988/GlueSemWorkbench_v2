@@ -1,14 +1,12 @@
 package Prover;
 
 import gluePaP.linearLogic.*;
-import gluePaP.semantics.SemAtom;
-import gluePaP.semantics.SemFunction;
-import gluePaP.semantics.SemRepresentation;
-import gluePaP.semantics.SemType;
+import gluePaP.semantics.*;
 
 import java.util.*;
 
 import static gluePaP.semantics.SemAtom.SemSort.VAR;
+import static gluePaP.semantics.SemType.AtomicType.T;
 
 public class LLProver {
 
@@ -19,8 +17,7 @@ public class LLProver {
     private List<Premise> solutions = new ArrayList<>();
     private Sequent seq;
 
-    final String[] EVARS = {"x","y","z","r","s"};
-
+    // TODO add comments for meaning side operations
 
     public LLProver(Sequent seq) {
         this.seq = seq;
@@ -59,7 +56,6 @@ public class LLProver {
             terms with discharges are by design always formulas and can therefore not be arguments.
             Their assumptions are thus not relevant in the derivation process.
             */
-            // TODO unnecessary checks?
             agenda.push(convert(p));
         }
         seq.getLhs().clear();
@@ -237,7 +233,8 @@ public class LLProver {
     /*
     * Check if the LHS of func is equivalent to arg
     * and if the two sets of indexes associated with them are disjoint.
-    * If so return the simplified term (the RHS of func) with combined ID sets.
+    * If so return the simplified term (the RHS of func) with combined ID sets and
+    * apply the meaning side of the argument to that of the functor and beta-reduce.
     * */
     private Premise combineDisjointID(Premise func, Premise arg) {
         HashSet<Integer> combined_IDs = new HashSet<>();
@@ -245,6 +242,10 @@ public class LLProver {
                 && Collections.disjoint(func.getPremiseIDs(),arg.getPremiseIDs())){
             combined_IDs.addAll(func.getPremiseIDs());
             combined_IDs.addAll(arg.getPremiseIDs());
+
+            // Apply and beta-reduce meaning side
+            ((SemFunction) func.getSemTerm()).setArgument(arg.getSemTerm());
+            SemRepresentation reducedSem = ((SemFunction) func.getSemTerm()).betaReduce();
 
             /*Mark: this is a problem since if we use the same func twice
             the resulting object uses the same term in both occasions.
@@ -254,16 +255,15 @@ public class LLProver {
             Moritz: Solved by creating a new LLAtom as copy of the RHS of func. If the RHS
             is an LLFormula then just copy the reference, it shouldn't cause any problems.
             */
-            if (((LLFormula) func.getGlueTerm()).getRhs() instanceof  LLAtom)
-                return new Premise(combined_IDs,new LLAtom((LLAtom) ((LLFormula) func.getGlueTerm()).getRhs()));
-            return new Premise(combined_IDs,((LLFormula) func.getGlueTerm()).getRhs());
+            if (((LLFormula) func.getGlueTerm()).getRhs() instanceof  LLAtom) {
+                return new Premise(combined_IDs, reducedSem,
+                        new LLAtom((LLAtom) ((LLFormula) func.getGlueTerm()).getRhs()));
+            }
+            return new Premise(combined_IDs, reducedSem, ((LLFormula) func.getGlueTerm()).getRhs());
         }
         return null;
     }
 
-
-    // wrapper method for conversion
-    //public Premise convert(Premise term) {return (LLFormula) convert((LLTerm) term);}
 
 
     // TODO add lists for modifiers and skeletons (see Dick's code)
@@ -305,8 +305,7 @@ public class LLProver {
     /*
     * Recursively converts a semantic term by replacing the variables with newly created ones    *
     * */
-    // TODO turn private again after testing
-    public SemRepresentation convertSemantics(SemRepresentation sem) {
+    private SemRepresentation convertSemantics(SemRepresentation sem) {
         if (sem instanceof SemFunction) {
             // create new variable with the type of the binder of the inner function
             SemAtom var = new SemAtom(VAR,"u",((SemFunction) sem).getBinder().getType());
@@ -329,8 +328,9 @@ public class LLProver {
                 // In a non-recursive call (directly from convert() the new variable is not yet
                 // instantiated and it will be done now.
                 // TODO type assignment not working yet
-                if (var == null)
-                    assumpVar = new SemAtom(VAR, "v", ((SemFunction) p.getSemTerm()).getBinder().getType());
+                if (var == null) {
+                    assumpVar = new SemAtom(VAR, "v", ((SemFunction) p.getSemTerm()).getBinder().getType().getLeft());
+                }
                 Premise assumption = convertNested(new Premise(seq.getNewID(), ((LLFormula) f.getLhs()).getLhs()), assumpVar);
                 assumption.getGlueTerm().assumptions.add(assumption.getGlueTerm());
                 agenda.add(assumption);
@@ -350,11 +350,18 @@ public class LLProver {
                 dependency.getGlueTerm().discharges.add(assumption.getGlueTerm());
                 return dependency;
             }
-            // simple implication; return the formula but with the new variable lambda bound
+            /*
+            simple implication; create new lambda function which binds var (the variable
+            associated with the assumption created in this method). Then add this new lambda
+            term as argument to the current meaning term and wrap everything in a new lambda
+            term binding the newly created variable.
+            */
+            // TODO better comment and example needed...
             else {
-                SemAtom binderVar = new SemAtom(VAR,"u",var.getType());
+                SemAtom binderVar = new SemAtom(VAR,"u",T);
                 SemFunction newArg = new SemFunction(var,binderVar);
-                p.setSemTerm(new SemFunction(binderVar,p.getSemTerm(),newArg));
+                ((SemFunction) p.getSemTerm()).setArgument(newArg);
+                p.setSemTerm(new SemFunction(binderVar,p.getSemTerm()));
                 return p;
             }
         }
@@ -368,7 +375,7 @@ public class LLProver {
 
 
     //returns false if a variable is assigned more than one value
-    public static boolean checkDuplicateBinding(LinkedHashSet<Equality> in) {
+    private static boolean checkDuplicateBinding(LinkedHashSet<Equality> in) {
          List<Equality> eqs = new ArrayList<>();
          eqs.addAll(0,in);
 

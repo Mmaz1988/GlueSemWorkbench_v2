@@ -27,11 +27,7 @@ public abstract class SemRepresentation {
         this.type = type;
     }
 
-    public abstract boolean applyTo(SemAtom var, SemRepresentation arg);
-
-    enum SemOperator {
-
-    }
+    public abstract SemRepresentation applyTo(SemAtom var, SemRepresentation arg);
 
     //public abstract SemRepresentation betaReduce();
 

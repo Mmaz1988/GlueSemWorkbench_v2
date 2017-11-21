@@ -31,10 +31,13 @@ public class SemAtom extends SemRepresentation {
     }
 
 
-    // If this method is called, something must have gone wrong, return false.
+    // TODO check this again, does var need to be equal to this object?
     @Override
-    public boolean applyTo(SemAtom var, SemRepresentation arg) {
-        return false;
+    public SemRepresentation applyTo(SemAtom var, SemRepresentation arg) {
+        if (this == var)
+            return arg;
+        else
+            return this;
     }
 
     public String getName() {
