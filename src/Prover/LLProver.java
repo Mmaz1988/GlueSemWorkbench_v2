@@ -334,7 +334,7 @@ public class LLProver {
                 Premise assumption = convertNested(new Premise(seq.getNewID(), ((LLFormula) f.getLhs()).getLhs()), assumpVar);
                 assumption.getGlueTerm().assumptions.add(assumption.getGlueTerm());
                 agenda.add(assumption);
-                Premise dependency = convertNested(new Premise(p.getPremiseIDs(), p.getSemTerm(), new LLFormula(f.getTermId(), ((LLFormula) f.getLhs()).getRhs(),
+                Premise dependency = convertNested(new Premise(p.getPremiseIDs(), p.getSemTerm(), new LLFormula(((LLFormula) f.getLhs()).getRhs(),
                         f.getOperator(), f.getRhs(), f.isPolarity(), f.getVariable())), assumpVar);
                 /* NOTE:
                 * In cases where a formula like ((((a -o b) -o c) -o d) -o e) is compiled

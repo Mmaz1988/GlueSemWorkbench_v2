@@ -20,11 +20,17 @@ public class LLAtom extends LLTerm {
 
 
 
-    public LLAtom(String id, String name, Type type, LLType lltype, boolean pol) {
+    public LLAtom(String name, Type type, LLType lltype, boolean pol) {
         this.name = name;
-        this.setTermId(id);
         this.setType(type);
         this.setPolarity(pol);
+        this.setLLtype(lltype);
+    }
+
+    //binder variables are not polarized -- they can occur in positive and negative formulas
+    public LLAtom(String name, Type type, LLType lltype) {
+        this.name = name;
+        this.setType(type);
         this.setLLtype(lltype);
     }
 
@@ -33,7 +39,6 @@ public class LLAtom extends LLTerm {
         this.assumptions = new HashSet<>(term.assumptions);
         this.discharges = new HashSet<>(term.discharges);
         this.name = term.getName();
-        this.setTermId(term.getTermId());
         this.setType(term.getType());
         this.setPolarity(term.isPolarity());
         this.setLLtype(term.getLLtype());
@@ -44,13 +49,13 @@ public class LLAtom extends LLTerm {
     @Override
     public String toString() {
         if (!this.assumptions.isEmpty())
-            return "{" + name + "_" + this.getTermId() + "}";
+            return "{" + name + "}";
        else
-           return name + "_" + this.getTermId();
+           return name;
     }
 
     public String toPlainString() {
-        return name + "_" + this.getTermId();
+        return name;
     }
 
 

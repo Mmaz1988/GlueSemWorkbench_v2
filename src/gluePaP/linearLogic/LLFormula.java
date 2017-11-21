@@ -35,25 +35,23 @@ public class LLFormula extends LLTerm {
 
 
     //Constructor for formulas without variables
-    public LLFormula(String id, LLTerm lhs, LLOperator operator,LLTerm rhs, boolean pol) {
+    public LLFormula(LLTerm lhs, LLOperator operator,LLTerm rhs, boolean pol) {
         this.lhs = lhs;
         this.rhs = rhs;
         this.setPolarity(pol);
         this.operator = operator;
-        this.setTermId(id);
         this.name = this.toString();
     }
 
 
 
     //Constructor for formulas with variables
-    public LLFormula(String id, LLTerm lhs, LLOperator operator, LLTerm rhs, boolean pol,
+    public LLFormula(LLTerm lhs, LLOperator operator, LLTerm rhs, boolean pol,
                      LLAtom var) {
         this.lhs = lhs;
         this.rhs = rhs;
         this.setPolarity(pol);
         this.operator = operator;
-        this.setTermId(id);
         this.name = this.toString();
         this.variable = var;
 
@@ -137,7 +135,7 @@ public class LLFormula extends LLTerm {
         String as = "";
         String dc = "";
         if (!(this.assumptions.isEmpty())) {
-             return "{(" + lhs.toPlainString() + " " + operator + " "  + rhs.toPlainString() + ")_"+ this.getTermId() + "}";
+             return "{(" + lhs.toPlainString() + " " + operator + " "  + rhs.toPlainString() + ")" + "}";
         }
 
         if (!this.discharges.isEmpty())
@@ -147,12 +145,12 @@ public class LLFormula extends LLTerm {
 
         return "(" + lhs.toPlainString() + " "
                 + dc + " "
-                + operator + " " + rhs.toPlainString() + ")_" + this.getTermId()
+                + operator + " " + rhs.toPlainString() + ")"
                 + " " + as;
     }
 
     public String toPlainString() {
-        return "(" + lhs.toPlainString() + " " + operator + " "  + rhs.toPlainString() + ")_"+ this.getTermId();
+        return "(" + lhs.toPlainString() + " " + operator + " "  + rhs.toPlainString() + ")";
     }
 
 

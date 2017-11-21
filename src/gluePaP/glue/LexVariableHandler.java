@@ -1,52 +1,84 @@
 package gluePaP.glue;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class LexVariableHandler {
 
-    public static List<String> usedVariables = new ArrayList<>();
+    public enum variableType{
+        LLvar,
+        SemVar
+/*
+Possibly add more types, e.g. SemVarE, SemVarT etc.
+*/
+
+    }
 
 
+    private static HashMap<variableType,List<String>> usedVariables = usedVars();
 
 
-    public static String returnNewVar()
+    //Instantiates memory for used vars
+    private static HashMap usedVars() {
+        HashMap<variableType, List<String>> reservedVars = new HashMap<>();
+
+        reservedVars.put(variableType.LLvar,
+                new ArrayList<String>());
+
+        reservedVars.put(variableType.SemVar,
+                new ArrayList<String>());
+
+        return reservedVars;
+
+    }
+
+
+    private static HashMap<variableType,List<String>> reservedVariables = reservedVars();
+
+
+    private static HashMap reservedVars()
     {
-        List<String> variables = new ArrayList<>(Arrays.asList("Y","Z"));
+        HashMap<variableType,List<String>> reservedVars = new HashMap<>();
 
-        if (usedVariables.isEmpty())
-        {
-            usedVariables.add("X");
-            return "X";
+        reservedVars.put(variableType.LLvar,
+                new ArrayList<String>(Arrays.asList("X","Y","Z")));
 
-        } else
-        {
+        return reservedVars;
+    }
+
+
+    public static String returnNewVar(variableType varType)
+    {
+        List<String> variables = reservedVariables.get(varType);
+
             for (String var : variables)
             {
-                if (!usedVariables.contains(var))
+                if (!usedVariables.get(varType).contains(var))
                 {
-                    usedVariables.add(var);
+                    usedVariables.get(varType).add(var);
                     return var;
                 }
             }
-        }
+
+            int i = 1;
+            //threshhold for trying out new indices; can be set higher?
+            while (i < 3) {
+
+                for (String var : variables) {
+
+                    String varPrime = var + String.join("", Collections.nCopies(i, "'"));
+                    if (!usedVariables.get(varType).
+                            contains(varPrime)) {
+                        return varPrime;
+                    }
+                }
+                i++;
+            }
         return null;
     }
 
 
 
     //setters and Getters
-    public static List<String> getUsedVariables()
-    {
-        return usedVariables;
-    }
-
-    public static void setUsedVariables(List<String> usedVariables)
-    {
-        LexVariableHandler.usedVariables = usedVariables;
-    }
-
 
 
 }

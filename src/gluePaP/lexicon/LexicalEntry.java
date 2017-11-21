@@ -1,5 +1,6 @@
 package gluePaP.lexicon;
 
+import gluePaP.linearLogic.LLTerm;
 import gluePaP.semantics.SemRepresentation;
 
 import java.util.ArrayList;
@@ -11,7 +12,11 @@ public class LexicalEntry {
 
     HashSet<String> usedVariables = new HashSet<>();
     public String llFormula;
+    public LLTerm llTerm;
     public SemRepresentation sem;
+
+    //TODO maybe we want to remove this at some point?
+    public Integer llId = 0;
 
     public enum LexType {
 
@@ -34,6 +39,11 @@ public class LexicalEntry {
 
     }
 
+    public String assignID()
+    {
+        this.llId++;
+        return this.llId.toString();
+    }
 
     //basic way for returning an unused variable out of an available set of variables
 

@@ -79,21 +79,21 @@ public class LinearLogicParser {
                     pos++;
                     if (unparsedInput.charAt(pos ) == 'e') {
                         pos++;
-                        return new LLAtom(assignId(), "" + (char) c,
+                        return new LLAtom( "" + (char) c,
                                 LLTerm.Type.E, LLAtom.LLType.CONST, polarity);
                     }
                     else if (unparsedInput.charAt(pos) == 't') {
                         pos++;
-                        return new LLAtom(assignId(), "" + (char) c,
+                        return new LLAtom("" + (char) c,
                                 LLTerm.Type.T, LLAtom.LLType.CONST, polarity);
                     }
                     else
                         throw new ParserInputException(pos,"Type identifier expected (e or t)");
                 }
             } catch (StringIndexOutOfBoundsException e) {
-                return new LLAtom(assignId(),""+(char) c, LLTerm.Type.E, LLAtom.LLType.CONST,polarity);
+                return new LLAtom(""+(char) c, LLTerm.Type.E, LLAtom.LLType.CONST,polarity);
             }
-            return new LLAtom(assignId(),""+(char) c, LLTerm.Type.E, LLAtom.LLType.CONST, polarity);
+            return new LLAtom(""+(char) c, LLTerm.Type.E, LLAtom.LLType.CONST, polarity);
         }
 
         /*
@@ -106,21 +106,21 @@ public class LinearLogicParser {
                     pos++;
                     if (unparsedInput.charAt(pos ) == 'e') {
                         pos++;
-                        return new LLAtom(assignId(), "" + (char) c,
+                        return new LLAtom( "" + (char) c,
                                 LLTerm.Type.E, LLAtom.LLType.VAR, polarity);
                     }
                     else if (unparsedInput.charAt(pos) == 't') {
                         pos++;
-                        return new LLAtom(assignId(), "" + (char) c,
+                        return new LLAtom( "" + (char) c,
                                 LLTerm.Type.T, LLAtom.LLType.VAR, polarity);
                     }
                     else
                         throw new ParserInputException(pos,"Type identifier expected (e or t)");
                 }
             } catch (StringIndexOutOfBoundsException e) {
-                return new LLAtom(assignId(),""+(char) c, LLTerm.Type.T, LLAtom.LLType.VAR,polarity);
+                return new LLAtom(""+(char) c, LLTerm.Type.T, LLAtom.LLType.VAR,polarity);
             }
-            return new LLAtom(assignId(),""+(char) c, LLTerm.Type.T, LLAtom.LLType.VAR,polarity);
+            return new LLAtom(""+(char) c, LLTerm.Type.T, LLAtom.LLType.VAR,polarity);
 
         }
 
@@ -143,7 +143,7 @@ public class LinearLogicParser {
             LLOperator op = (LLOperator) parseTerm(unparsedInput, polarity);
             LLTerm right = parseTerm(unparsedInput, polarity);
             pos++;
-            return new LLFormula(assignId(),left,op,right, polarity);
+            return new LLFormula(left,op,right, polarity);
         }
 
         else if (c == 41) {
@@ -164,7 +164,7 @@ public class LinearLogicParser {
             LLOperator op = (LLOperator) parseTerm(unparsedInput, polarity);
             LLTerm right = parseTerm(unparsedInput, polarity);
             pos++;
-            return new LLFormula(assignId(),left,op,right, polarity,(LLAtom) var);
+            return new LLFormula(left,op,right, polarity,(LLAtom) var);
 
         }
 
