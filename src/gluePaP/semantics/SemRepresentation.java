@@ -5,15 +5,10 @@ import static gluePaP.semantics.SemType.AtomicType.E;
 import static gluePaP.semantics.SemType.AtomicType.T;
 
 public abstract class SemRepresentation {
-
-    private String name;
     private SemType type;
 
-    //public final SemType ET = new SemType(E,T);
-
-    //public abstract SemAtom getArg(int i);
-
-
+    public SemRepresentation() {
+    }
 
     public SemType getType() {
         return type;
@@ -27,9 +22,12 @@ public abstract class SemRepresentation {
         this.type = type;
     }
 
+    public abstract SemRepresentation betaReduce();
+
     public abstract SemRepresentation applyTo(SemAtom var, SemRepresentation arg);
 
-    //public abstract SemRepresentation betaReduce();
+    public abstract SemRepresentation clone();
+
 
 
 }

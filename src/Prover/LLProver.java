@@ -244,8 +244,9 @@ public class LLProver {
             combined_IDs.addAll(arg.getPremiseIDs());
 
             // Apply and beta-reduce meaning side
-            ((SemFunction) func.getSemTerm()).setArgument(arg.getSemTerm());
-            SemRepresentation reducedSem = ((SemFunction) func.getSemTerm()).betaReduce();
+            //FuncApp applied = new FuncApp(new SemFunction((SemFunction) func.getSemTerm()),arg.getSemTerm());
+            FuncApp applied = new FuncApp(func.getSemTerm(),arg.getSemTerm());
+            SemRepresentation reducedSem = applied.betaReduce();
 
             /*Mark: this is a problem since if we use the same func twice
             the resulting object uses the same term in both occasions.
@@ -310,7 +311,7 @@ public class LLProver {
             // create new variable with the type of the binder of the inner function
             SemAtom var = new SemAtom(VAR,"u",((SemFunction) sem).getBinder().getType());
             // apply var
-            SemRepresentation compiled = ((SemFunction) sem).apply(var);
+            SemRepresentation compiled = new FuncApp(sem,var).betaReduce();
             SemRepresentation inner = convertSemantics(compiled);
             // return new function with the applied variable as binder
             return new SemFunction(var,inner);
@@ -360,8 +361,8 @@ public class LLProver {
             else {
                 SemAtom binderVar = new SemAtom(VAR,"u",T);
                 SemFunction newArg = new SemFunction(var,binderVar);
-                ((SemFunction) p.getSemTerm()).setArgument(newArg);
-                p.setSemTerm(new SemFunction(binderVar,p.getSemTerm()));
+                //((SemFunction) p.getSemTerm()).setArgument(newArg);
+                p.setSemTerm(new SemFunction(binderVar,new FuncApp(p.getSemTerm(),newArg)));
                 return p;
             }
         }

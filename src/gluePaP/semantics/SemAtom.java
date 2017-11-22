@@ -3,10 +3,10 @@ package gluePaP.semantics;
 
 
 public class SemAtom extends SemRepresentation {
-    private String name;
+    private final String name;
     //private String value;
     //private AtomicType atomicType;
-    private SemSort sort;
+    private final SemSort sort;
 
 
     // Constructor for atomic type atom
@@ -25,11 +25,22 @@ public class SemAtom extends SemRepresentation {
         this.setType(type);
     }
 
+    public SemAtom(SemAtom a) {
+        this.name = a.name;
+        this.sort = a.sort;
+        this.setType(a.getType());
+    }
+
 
     public enum SemSort {
         VAR, CONST
     }
 
+
+    @Override
+    public SemRepresentation betaReduce() {
+        return this;
+    }
 
     // TODO check this again, does var need to be equal to this object?
     @Override
@@ -40,10 +51,18 @@ public class SemAtom extends SemRepresentation {
             return this;
     }
 
+    @Override
+    public SemRepresentation clone() {
+        return new SemAtom(this);
+    }
+
     public String getName() {
         return name;
     }
 
+    public SemSort getSort() {
+        return sort;
+    }
 
     @Override
     public String toString() {
