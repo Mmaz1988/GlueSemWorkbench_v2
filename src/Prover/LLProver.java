@@ -322,8 +322,8 @@ public class LLProver {
 
     On the semantic side this amounts to creating a new variable for the assumption and a lambda
     term that binds the new variable of the assumption.
-    Ex. \P.Ex[person(x) & P(x)] : ((g -o X) -o X) is converted to
-        \u.\P.Ex[person(x) & P(x)](\v.u) : (X[g] -o X) and v:{g}
+    Ex. LP.Ex[person(x) & P(x)] : ((g -o X) -o X) is converted to
+        Lu.LP.Ex[person(x) & P(x)](Lv.u) : (X[g] -o X) and v:{g}
     */
     private Premise convertNested(Premise p, SemAtom var) {
         if (p.getGlueTerm() instanceof LLFormula) {

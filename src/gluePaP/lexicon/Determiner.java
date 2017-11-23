@@ -24,6 +24,8 @@ public class Determiner extends LexicalEntry{
         this.llFormula = "A" +var + ".(" + i + " -o " + var + ") -o " + var;
 
 
+        /*This whole block generates the glue side of the determiner*/
+
         //binding variable of the quantifier
         LLAtom binder = new LLAtom(var, LLTerm.Type.T, LLAtom.LLType.VAR);
 
@@ -41,7 +43,7 @@ public class Determiner extends LexicalEntry{
 
         System.out.println(det.toString());
 
-;
+
 
 
     }

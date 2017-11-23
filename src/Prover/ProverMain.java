@@ -52,6 +52,7 @@ public class ProverMain {
         //SemFunction some1 = new SemFunction(varY,some0);
         SemFunction some = new SemFunction(varQ,some0);
 
+        /*
         // Parsing
         LinearLogicParser parser2 = new LinearLogicParser(testquant);
         Sequent testseq = new Sequent(parser2.premises);
@@ -75,6 +76,6 @@ public class ProverMain {
         } catch (ProverException e) {
             e.printStackTrace();
         }
-
+        */
     }
 }

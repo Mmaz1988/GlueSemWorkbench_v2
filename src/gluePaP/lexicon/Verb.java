@@ -1,5 +1,8 @@
 package gluePaP.lexicon;
 
+import gluePaP.linearLogic.LLFormula;
+import gluePaP.linearLogic.LLTerm;
+
 import java.util.LinkedHashMap;
 import java.util.StringJoiner;
 
@@ -12,7 +15,6 @@ public class Verb extends LexicalEntry {
 
 
     this.lexType = lexTypeFromSubCat(subCatFrame);
-
 /*
         StringBuilder sb = new StringBuilder();
 
@@ -40,13 +42,21 @@ public class Verb extends LexicalEntry {
 
                 this.llFormula = "(g_e -o f_t)";
 
+                LLTerm intr = new LLFormula();
+
                 break;
 
             case V_TRANS:
 
                 this.llFormula = "(g_e -o (h_e -o f_t))";
 
+                break;
 
+            case V_COMP:
+
+
+
+                break;
         }
     }
 

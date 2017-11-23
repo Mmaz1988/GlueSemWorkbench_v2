@@ -1,6 +1,8 @@
 package gluePaP.linearLogic;
 
 
+import gluePaP.lexicon.LexicalEntry;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -16,15 +18,25 @@ public class Sequent {
         return lhs;
     }
 
+    /*
     public Sequent(List<LLTerm> parsedTerms) {
         lhs = new ArrayList<>();
         for (idCounter = 0; idCounter < parsedTerms.size(); idCounter++) {
             HashSet<Integer> idSet = new HashSet<>();
             idSet.add(idCounter);
-            lhs.add(new Premise(idSet,parsedTerms.get(idCounter)));
+            lhs.add(new Premise(idSet, parsedTerms.get(idCounter)));
         }
-
     }
+    */
+
+     public Sequent(List<LexicalEntry> lexEn) {
+         lhs = new ArrayList<>();
+         for (idCounter = 0; idCounter < lexEn.size(); idCounter++) {
+             HashSet<Integer> idSet = new HashSet<>();
+             idSet.add(idCounter);
+             lhs.add(new Premise(idSet, lexEn.get(idCounter)));
+         }
+     }
 
     // Returns the set containing all index sets (usually singletons) of the sequent's premises
     public HashSet<Integer> getMaxIDSet() {

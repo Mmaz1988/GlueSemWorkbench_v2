@@ -1,5 +1,6 @@
 package gluePaP.linearLogic;
 
+import gluePaP.lexicon.LexicalEntry;
 import gluePaP.semantics.SemRepresentation;
 
 import java.util.HashSet;
@@ -40,6 +41,14 @@ public class Premise {
         this.glueTerm = glueTerm;
         this.semTerm = semTerm;
     }
+
+    //For work with Lexicon
+    public Premise(HashSet<Integer> premiseIDs, LexicalEntry lexEn) {
+        this.premiseIDs = premiseIDs;
+        this.glueTerm = lexEn.llTerm;
+        this.semTerm = lexEn.sem;
+    }
+
 
     @Override
     public String toString() {

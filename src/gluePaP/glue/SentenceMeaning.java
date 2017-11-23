@@ -54,7 +54,7 @@ public class SentenceMeaning {
         LinkedHashMap<String,LexicalEntry> subCatFrame = new LinkedHashMap<>();
 
         // Collection of LLFormulas for generating premises
-        List<String> premises = new ArrayList<>();
+        List<LexicalEntry> lexicalEntries = new ArrayList<>();
 
         /* Arity of the root verb;
          TODO We need to make this a method that processes all verbal heads,
@@ -89,7 +89,7 @@ public class SentenceMeaning {
                 List<LexicalEntry> main = (List<LexicalEntry>) subj.get("main");
                 subCatFrame.put("agent",main.get(0));
 
-                premises.add(main.get(0).llFormula);
+                lexicalEntries.add(main.get(0));
                 subj.remove("main");
 
 
@@ -98,7 +98,7 @@ public class SentenceMeaning {
                     for (String key : subj.keySet()) {
                         for (LexicalEntry lex : subj.get(key))
                         {
-                            premises.add(lex.llFormula);
+                            lexicalEntries.add(lex);
                         }
                     }
                 }
@@ -117,7 +117,7 @@ public class SentenceMeaning {
 
                 subCatFrame.put("patient",main.get(0));
 
-                premises.add(main.get(0).llFormula);
+                lexicalEntries.add(main.get(0));
                 obj.remove("main");
 
                 //Adds modifiers of the object
@@ -125,7 +125,7 @@ public class SentenceMeaning {
                     for (String key : obj.keySet()) {
                         for (LexicalEntry lex : obj.get(key))
                         {
-                            premises.add(lex.llFormula);
+                            lexicalEntries.add(lex);
                         }
 
                     }
@@ -148,7 +148,7 @@ public class SentenceMeaning {
        if (dependencyMap.get(root).isEmpty())
        {
            rootverb = new Verb(subCatFrame,root.lemma());
-           premises.add(rootverb.getLlFormula());
+           lexicalEntries.add(rootverb);
 
 
 
@@ -177,9 +177,13 @@ public class SentenceMeaning {
 
         // Calling engine for deduction for test purposes here
 
-        LinearLogicParser parser = new LinearLogicParser(premises);
+        //LinearLogicParser parser = new LinearLogicParser(premises);
+
+
+
+
         //LinearLogicParser parser = new LinearLogicParser(testquant);
-        Sequent testseq = new Sequent(parser.premises);
+        Sequent testseq = new Sequent(lexicalEntries);
 
         System.out.println(testseq.toString());
 

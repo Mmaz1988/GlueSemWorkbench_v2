@@ -1,6 +1,8 @@
 package gluePaP.lexicon;
 
 import edu.stanford.nlp.ling.IndexedWord;
+import gluePaP.linearLogic.LLAtom;
+import gluePaP.linearLogic.LLTerm;
 import gluePaP.semantics.SemAtom;
 import gluePaP.semantics.SemType;
 
@@ -23,6 +25,8 @@ public class Noun extends LexicalEntry {
             case N_NNP:
 
                 this.llFormula = identifier + "_e";
+                this.llTerm = new LLAtom(identifier, LLTerm.Type.E, LLAtom.LLType.CONST,true);
+
                 this.sem = new SemAtom(SemAtom.SemSort.CONST,main.value().substring(0,1).toLowerCase(),
                         SemType.AtomicType.E);
                 break;

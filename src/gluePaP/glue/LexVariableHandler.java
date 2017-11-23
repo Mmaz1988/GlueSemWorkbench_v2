@@ -39,8 +39,12 @@ Possibly add more types, e.g. SemVarE, SemVarT etc.
     {
         HashMap<variableType,List<String>> reservedVars = new HashMap<>();
 
+        //Variables for linear logic
         reservedVars.put(variableType.LLvar,
                 new ArrayList<String>(Arrays.asList("X","Y","Z")));
+
+        //Variables for Semantics
+        
 
         return reservedVars;
     }
