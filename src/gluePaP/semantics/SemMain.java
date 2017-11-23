@@ -5,6 +5,7 @@ import Prover.LLProver;
 import static gluePaP.semantics.BinaryTerm.SemOperator.AND;
 import static gluePaP.semantics.SemAtom.SemSort.CONST;
 import static gluePaP.semantics.SemAtom.SemSort.VAR;
+import static gluePaP.semantics.SemQuantEx.SemQuant.EX;
 import static gluePaP.semantics.SemType.AtomicType.E;
 import static gluePaP.semantics.SemType.AtomicType.T;
 
@@ -22,7 +23,7 @@ public class SemMain {
         FuncApp leftAnd = new FuncApp(varP,varX);
         FuncApp rightAnd = new FuncApp(varQ,varX);
         SemFunction and = new SemFunction(varP,new SemFunction(varQ,
-                new SemFunction(varX, new BinaryTerm(leftAnd,AND,rightAnd))));
+                new SemQuantEx(EX,varX, new BinaryTerm(leftAnd,AND,rightAnd))));
         SemFunction sleep = new SemFunction(varY,new SemPred("sleep",varY));
 
         SemRepresentation applied = new FuncApp(and,sleep).betaReduce();

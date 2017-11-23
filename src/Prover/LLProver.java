@@ -268,17 +268,7 @@ public class LLProver {
 
 
     // TODO add lists for modifiers and skeletons (see Dick's code)
-    /*
-    The LHS of the LHS of f will become an assumption which in turn gets converted as well.
-    The assumption gets converted as well and is marked as an assumption
-    by adding itself to its set of assumptions. That is, an LLTerm "a" is an assumption
-    iff its set of assumptions contains "a". This way of marking assumptions allows easy
-    combination with other assumptions and LLTerms with discharges.
-    All extracted assumptions are stored in a HashSet in dependency
-    Ex. if f = ((a -o b) -o c) then dependency = (b -o c) and assumption = {a}
-    Dependency is a new formula consisting of the rest of f, that is, the RHS of the LHS of f
-    and the RHS of f.
-    */
+    // converts premises by calling convertSemantics() and convertNested()
     public Premise convert(Premise p) {
         if (p.getGlueTerm() instanceof LLFormula) {
             LLFormula f = (LLFormula) p.getGlueTerm();
@@ -319,6 +309,22 @@ public class LLProver {
         return sem;
     }
 
+    /*
+    The LHS of the LHS of f will become an assumption which in turn gets converted as well.
+    The assumption gets converted as well and is marked as an assumption
+    by adding itself to its set of assumptions. That is, an LLTerm "a" is an assumption
+    iff its set of assumptions contains "a". This way of marking assumptions allows easy
+    combination with other assumptions and LLTerms with discharges.
+    All extracted assumptions are stored in a HashSet in dependency.
+    Ex. if f = ((a -o b) -o c) then dependency = (b -o c) and assumption = {a}
+    Dependency is a new formula consisting of the rest of f, that is, the RHS of the LHS of f
+    and the RHS of f.
+
+    On the semantic side this amounts to creating a new variable for the assumption and a lambda
+    term that binds the new variable of the assumption.
+    Ex. \P.Ex[person(x) & P(x)] : ((g -o X) -o X) is converted to
+        \u.\P.Ex[person(x) & P(x)](\v.u) : (X[g] -o X) and v:{g}
+    */
     private Premise convertNested(Premise p, SemAtom var) {
         if (p.getGlueTerm() instanceof LLFormula) {
             LLFormula f = (LLFormula) p.getGlueTerm();
@@ -326,9 +332,10 @@ public class LLProver {
             // nested formula; extract assumption and build new term
             if (f.getLhs() instanceof LLFormula) {
                 SemAtom assumpVar = var;
-                // In a non-recursive call (directly from convert() the new variable is not yet
-                // instantiated and it will be done now.
-                // TODO type assignment not working yet
+                /*
+                In a non-recursive call (directly from convert() the new variable is not yet
+                instantiated and it will be done here.
+                */
                 if (var == null) {
                     assumpVar = new SemAtom(VAR, "v", ((SemFunction) p.getSemTerm()).getBinder().getType().getLeft());
                 }

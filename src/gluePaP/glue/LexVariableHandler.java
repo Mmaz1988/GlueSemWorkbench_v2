@@ -60,7 +60,7 @@ Possibly add more types, e.g. SemVarE, SemVarT etc.
             }
 
             int i = 1;
-            //threshhold for trying out new indices; can be set higher?
+            //threshold for trying out new indices; can be set higher?
             while (i < 3) {
 
                 for (String var : variables) {

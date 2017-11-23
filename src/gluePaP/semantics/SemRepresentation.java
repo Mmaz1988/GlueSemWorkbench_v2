@@ -26,6 +26,8 @@ public abstract class SemRepresentation {
 
     public abstract SemRepresentation applyTo(SemAtom var, SemRepresentation arg);
 
+    // This is not a regular clone() method, it just calls the copy constructor
+    // of the respective class.
     public abstract SemRepresentation clone();
 
 

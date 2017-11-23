@@ -33,7 +33,7 @@ public class FuncApp extends SemRepresentation{
         return this;
     }
 
-    // Applies the functor to the argument. The functor must be a SemFunc and the
+    // Applies the functor to the argument. The functor must be a SemFunc or SemQuantEx and the
     // applyTo() function of the functor is called for the actual application step.
     public SemRepresentation apply(SemRepresentation arg) {
         if (this.functor instanceof SemFunction) {
@@ -41,6 +41,16 @@ public class FuncApp extends SemRepresentation{
             if (lambda.getBinder().getType().equalsType(arg.getType())) {
                 SemRepresentation newBody = lambda.getFuncBody();
                 newBody = newBody.applyTo(lambda.getBinder(), arg);
+                newBody = newBody.betaReduce();
+
+                return newBody;
+            }
+        }
+        else if (this.functor instanceof SemQuantEx) {
+            SemQuantEx quant = (SemQuantEx) this.functor;
+            if (quant.getBinder().getType().equalsType(arg.getType())) {
+                SemRepresentation newBody = quant.getQuantBody();
+                newBody = newBody.applyTo(quant.getBinder(), arg);
                 newBody = newBody.betaReduce();
 
                 return newBody;
@@ -61,7 +71,7 @@ public class FuncApp extends SemRepresentation{
     public SemRepresentation applyTo(SemAtom var,SemRepresentation arg) {
             SemRepresentation appliedFunc = this.functor.applyTo(var, arg);
             if (appliedFunc instanceof FuncApp)
-                appliedFunc = ((FuncApp) appliedFunc).betaReduce();
+                appliedFunc = appliedFunc.betaReduce();
             SemRepresentation appliedArg = this.argument.applyTo(var, arg);
 
             return new FuncApp(appliedFunc,appliedArg);

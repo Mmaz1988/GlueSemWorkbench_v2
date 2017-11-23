@@ -1,5 +1,6 @@
 package gluePaP.semantics;
 
+import static gluePaP.semantics.SemQuantEx.SemQuant.UNI;
 import static gluePaP.semantics.SemType.AtomicType.T;
 
 public class SemQuantEx extends SemRepresentation{
@@ -23,6 +24,13 @@ public class SemQuantEx extends SemRepresentation{
         UNI,EX
     }
 
+    public SemAtom getBinder() {
+        return binder;
+    }
+
+    public SemRepresentation getQuantBody() {
+        return quantBody;
+    }
 
     @Override
     public SemType getType() {
@@ -31,16 +39,24 @@ public class SemQuantEx extends SemRepresentation{
 
     @Override
     public SemRepresentation betaReduce() {
-        return quantBody.betaReduce();
+        return new SemQuantEx(quantifier, binder, quantBody.betaReduce());
     }
 
     @Override
     public SemRepresentation applyTo(SemAtom var, SemRepresentation arg) {
-        return quantBody.applyTo(var,arg);
+        return new SemQuantEx(quantifier, binder, quantBody.applyTo(var,arg));
     }
 
     @Override
     public SemRepresentation clone() {
         return new SemQuantEx(this);
+    }
+
+    @Override
+    public String toString() {
+        if (quantifier == UNI)
+            return String.valueOf('\u2200') + binder + "[" + quantBody + "]";
+        else
+            return String.valueOf('\u2203') + binder + "[" + quantBody + "]";
     }
 }

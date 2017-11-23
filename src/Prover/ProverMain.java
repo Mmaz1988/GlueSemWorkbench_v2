@@ -10,6 +10,7 @@ import java.util.List;
 
 import static gluePaP.semantics.BinaryTerm.SemOperator.AND;
 import static gluePaP.semantics.SemAtom.SemSort.VAR;
+import static gluePaP.semantics.SemQuantEx.SemQuant.EX;
 import static gluePaP.semantics.SemType.AtomicType.E;
 import static gluePaP.semantics.SemType.AtomicType.T;
 
@@ -43,7 +44,7 @@ public class ProverMain {
         SemFunction love = new SemFunction(varX2, new SemFunction(varY2,new SemPred("love",varX2,varY2)));
         SemFunction sleep = new SemFunction(varX2, new SemPred("sleep",varX2));
         // TODO the second argument should be a pred too
-        BinaryTerm every0 = new BinaryTerm(new SemPred("person",varX),AND,new FuncApp(varP,varX));
+        SemQuantEx every0 = new SemQuantEx(EX,varX,new BinaryTerm(new SemPred("person",varX),AND,new FuncApp(varP,varX)));
         //SemFunction every1 = new SemFunction(varX,every0);
         SemFunction every = new SemFunction(varP,every0);
 
