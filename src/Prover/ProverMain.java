@@ -17,7 +17,7 @@ import static gluePaP.semantics.SemType.AtomicType.T;
 public class ProverMain {
 
     public static void main(String[] args) throws VariableBindingException {
-        String test1 = "AX_t.(g_e -o X_t) -o X_t";
+    /*    String test1 = "AX_t.(g_e -o X_t) -o X_t";
         String test2 = "AY_t.(h_e -o Y_t) -o Y_t";
         String test3 = "(g_e -o (h_e -o f_t))";
         String test4 = "(g_e -o f_t)";
@@ -52,7 +52,7 @@ public class ProverMain {
         //SemFunction some1 = new SemFunction(varY,some0);
         SemFunction some = new SemFunction(varQ,some0);
 
-        /*
+
         // Parsing
         LinearLogicParser parser2 = new LinearLogicParser(testquant);
         Sequent testseq = new Sequent(parser2.premises);
@@ -76,6 +76,6 @@ public class ProverMain {
         } catch (ProverException e) {
             e.printStackTrace();
         }
-        */
+*/
     }
 }

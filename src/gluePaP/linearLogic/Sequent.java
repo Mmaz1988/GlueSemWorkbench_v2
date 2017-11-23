@@ -18,6 +18,7 @@ public class Sequent {
         return lhs;
     }
 
+
     /*
     public Sequent(List<LLTerm> parsedTerms) {
         lhs = new ArrayList<>();

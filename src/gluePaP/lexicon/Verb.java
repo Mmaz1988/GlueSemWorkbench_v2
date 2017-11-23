@@ -1,10 +1,13 @@
 package gluePaP.lexicon;
 
+import gluePaP.glue.LexVariableHandler;
+import gluePaP.linearLogic.LLAtom;
 import gluePaP.linearLogic.LLFormula;
+import gluePaP.linearLogic.LLImplication;
 import gluePaP.linearLogic.LLTerm;
+import gluePaP.semantics.*;
 
-import java.util.LinkedHashMap;
-import java.util.StringJoiner;
+import java.util.*;
 
 public class Verb extends LexicalEntry {
 
@@ -12,6 +15,7 @@ public class Verb extends LexicalEntry {
 
 
     public Verb(LinkedHashMap<String,LexicalEntry> subCatFrame, String lemma) {
+
 
 
     this.lexType = lexTypeFromSubCat(subCatFrame);
@@ -39,19 +43,79 @@ public class Verb extends LexicalEntry {
 
         switch (this.getLexType()) {
             case V_INTR:
+                //Parentheses necessary for variable scope!
+                {
+                LexicalEntry agent = subCatFrame.get("agent");
 
-                this.llFormula = "(g_e -o f_t)";
+                /*Linear Logic*/
 
-                LLTerm intr = new LLFormula();
+                //generating consumer
+                LLAtom agentRes = new LLAtom(agent.identifier, LLTerm.Type.E, LLAtom.LLType.CONST,false);
+
+                //generate semantics
+                LLAtom fsem = new LLAtom(LexVariableHandler.returnNewVar(LexVariableHandler.variableType.LLatomT),
+                        LLTerm.Type.T, LLAtom.LLType.CONST,true);
+
+                this.llTerm = new LLFormula(agentRes, new LLImplication(),fsem,true );
+
+
+                /*Semantics*/
+
+                SemAtom agentVar = new SemAtom(SemAtom.SemSort.VAR,
+                        //binding variable
+                        LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVarE),
+                        SemType.AtomicType.E
+                        );
+
+                SemFunction verbSem = new SemFunction(agentVar,new SemPred(lemma,agentVar));
+
+                this.sem = verbSem;
 
                 break;
+            }
 
-            case V_TRANS:
+            case V_TRANS: {
 
-                this.llFormula = "(g_e -o (h_e -o f_t))";
+
+                LexicalEntry agent = subCatFrame.get("agent");
+                LexicalEntry patient = subCatFrame.get("patient");
+
+                /*Linear Logic*/
+
+                //generating consumer
+                LLAtom agentRes = new LLAtom(agent.identifier, LLTerm.Type.E, LLAtom.LLType.CONST, false);
+                LLAtom patientRes = new LLAtom(patient.identifier, LLTerm.Type.E, LLAtom.LLType.CONST, false);
+                //generate semantics
+                LLAtom fsem = new LLAtom("f", LLTerm.Type.T, LLAtom.LLType.CONST, true);
+
+                LLFormula firstArg = new LLFormula(patientRes, new LLImplication(), fsem, true);
+
+                this.llTerm = new LLFormula(agentRes, new LLImplication(), firstArg, true);
+
+
+                /*Semantics*/
+
+                SemAtom agentVar = new SemAtom(SemAtom.SemSort.VAR,
+                        //binding variable
+                        LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVarE),
+                        SemType.AtomicType.E
+                );
+
+                SemAtom patientVar = new SemAtom(SemAtom.SemSort.VAR,
+                        //binding variable
+                        LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVarE),
+                        SemType.AtomicType.E
+                );
+
+                
+                SemFunction verbSem = new SemFunction(agentVar,
+                                            new SemFunction(patientVar,
+                                                    new SemPred(lemma,agentVar,patientVar)));
+
+                this.sem = verbSem;
 
                 break;
-
+            }
             case V_COMP:
 
 
@@ -71,6 +135,7 @@ public class Verb extends LexicalEntry {
         this.lexType = lexType;
     }
 
+    /*
     public String getLlFormula() {
         return llFormula;
     }
@@ -78,7 +143,7 @@ public class Verb extends LexicalEntry {
     public void setLlFormula(String llFormula) {
         this.llFormula = llFormula;
     }
-
+*/
 
     //trivial version of generating LexType from SubCatFrame
     public LexType lexTypeFromSubCat(LinkedHashMap<String,LexicalEntry> subCat)

@@ -2,11 +2,13 @@ package gluePaP.glue;
 
 import java.util.*;
 
-public class LexVariableHandler {
+public abstract class LexVariableHandler {
 
     public enum variableType{
         LLvar,
-        SemVar
+        LLatomT,
+        SemVar,
+        SemVarE
 /*
 Possibly add more types, e.g. SemVarE, SemVarT etc.
 */
@@ -24,7 +26,13 @@ Possibly add more types, e.g. SemVarE, SemVarT etc.
         reservedVars.put(variableType.LLvar,
                 new ArrayList<String>());
 
+        reservedVars.put(variableType.LLatomT,
+                new ArrayList<String>());
+
         reservedVars.put(variableType.SemVar,
+                new ArrayList<String>());
+
+        reservedVars.put(variableType.SemVarE,
                 new ArrayList<String>());
 
         return reservedVars;
@@ -43,8 +51,15 @@ Possibly add more types, e.g. SemVarE, SemVarT etc.
         reservedVars.put(variableType.LLvar,
                 new ArrayList<String>(Arrays.asList("X","Y","Z")));
 
-        //Variables for Semantics
-        
+
+        //variables for the semantics of (partial) f-structures
+
+        reservedVars.put(variableType.LLatomT,
+                new ArrayList<String>(Arrays.asList("f","g","h","i")));
+
+        //Variables for Semantics; Entities
+        reservedVars.put(variableType.SemVarE,
+                new ArrayList<String>(Arrays.asList("x","y","z")));
 
         return reservedVars;
     }
@@ -80,6 +95,11 @@ Possibly add more types, e.g. SemVarE, SemVarT etc.
         return null;
     }
 
+
+    public static void resetVars()
+    {
+        usedVariables = usedVars();
+    }
 
 
     //setters and Getters

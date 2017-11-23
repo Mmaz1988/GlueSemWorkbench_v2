@@ -16,12 +16,11 @@ public class Determiner extends LexicalEntry{
     {
         this.lexType = LexType.DET;
 
-        LexVariableHandler handler = new LexVariableHandler();
 
         String i = identifier + "_e";
-        String var = handler.returnNewVar(LexVariableHandler.variableType.LLvar) + "_t";
+        String var = handler.returnNewVar(LexVariableHandler.variableType.LLvar);
 
-        this.llFormula = "A" +var + ".(" + i + " -o " + var + ") -o " + var;
+      //  this.llFormula = "A" +var + ".(" + i + " -o " + var + ") -o " + var;
 
 
         /*This whole block generates the glue side of the determiner*/
@@ -39,7 +38,10 @@ public class Determiner extends LexicalEntry{
         //antecedent
         LLFormula ant = new LLFormula(argsem,new LLImplication(),left,false);
 
+        //wrapping in consequent
         LLFormula det = new LLFormula(ant,new LLImplication(),right,true, binder);
+
+        this.llTerm = det;
 
         System.out.println(det.toString());
 

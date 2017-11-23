@@ -147,11 +147,8 @@ public class SentenceMeaning {
 
        if (dependencyMap.get(root).isEmpty())
        {
-           rootverb = new Verb(subCatFrame,root.lemma());
+           rootverb = new Verb(subCatFrame,root.value());
            lexicalEntries.add(rootverb);
-
-
-
 
            /*
             StringBuilder sb = new StringBuilder();
@@ -168,6 +165,9 @@ public class SentenceMeaning {
             premises.add(sb.toString());
 
             */
+
+           LexVariableHandler.resetVars();
+
       }
 
 

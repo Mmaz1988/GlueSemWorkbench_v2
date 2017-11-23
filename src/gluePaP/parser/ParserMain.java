@@ -79,8 +79,7 @@ public class ParserMain {
         testnest.add(test8);
 
 
-
-/*
+        /*
         LinearLogicParser parser = new LinearLogicParser(testnest);
         LinearLogicParser parser2 = new LinearLogicParser(testquant);
         Sequent testseq = new Sequent(parser2.premises);
@@ -104,8 +103,8 @@ public class ParserMain {
 
         String quantStr = "(AX.(X -o (X -o X) -o X)";
         String instStr = "(f -o (f -o g))";
-        
-    */
+     */
+
     }
 
 }
