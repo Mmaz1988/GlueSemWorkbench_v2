@@ -86,7 +86,8 @@ public class Verb extends LexicalEntry {
                 LLAtom agentRes = new LLAtom(agent.identifier, LLTerm.Type.E, LLAtom.LLType.CONST, false);
                 LLAtom patientRes = new LLAtom(patient.identifier, LLTerm.Type.E, LLAtom.LLType.CONST, false);
                 //generate semantics
-                LLAtom fsem = new LLAtom("f", LLTerm.Type.T, LLAtom.LLType.CONST, true);
+                LLAtom fsem = new LLAtom(LexVariableHandler.returnNewVar(LexVariableHandler.variableType.LLatomT),
+                        LLTerm.Type.T, LLAtom.LLType.CONST, true);
 
                 LLFormula firstArg = new LLFormula(patientRes, new LLImplication(), fsem, true);
 
@@ -107,7 +108,7 @@ public class Verb extends LexicalEntry {
                         SemType.AtomicType.E
                 );
 
-                
+
                 SemFunction verbSem = new SemFunction(agentVar,
                                             new SemFunction(patientVar,
                                                     new SemPred(lemma,agentVar,patientVar)));

@@ -3,20 +3,14 @@ package gluePaP.glue;
 import Prover.LLProver;
 import Prover.ProverException;
 import Prover.VariableBindingException;
-import com.sun.jdi.event.ModificationWatchpointEvent;
 import edu.stanford.nlp.ling.IndexedWord;
 import edu.stanford.nlp.trees.GrammaticalStructure;
 import edu.stanford.nlp.trees.TypedDependency;
 import gluePaP.lexicon.*;
-import gluePaP.linearLogic.LLTerm;
 import gluePaP.linearLogic.Premise;
 import gluePaP.linearLogic.Sequent;
-import gluePaP.parser.LinearLogicParser;
-import gluePaP.semantics.SemAtom;
 
-import java.lang.reflect.Array;
 import java.util.*;
-import java.util.regex.Pattern;
 
 // Sentence meaning is a set of glue representations (i.e. a set that represents the available premises)
 
@@ -27,7 +21,6 @@ based on its syntactic structure. (Mainly dependency structure for now)
 public class SentenceMeaning {
     private final GrammaticalStructure dependencyStructure;
     private final LinkedHashMap<IndexedWord,List<Tuple>> dependencyMap;
-    public List<GlueRepresentation> gluePremises;
 
 
     public SentenceMeaning(GrammaticalStructure parsedSentence) throws VariableBindingException
@@ -44,6 +37,7 @@ public class SentenceMeaning {
         (i.e. A - B - C => A - C) For reference see Unhammer(2010; LFG-based Constituent and Function Alignment for Parallel Treebanking)
         for a similar approach on LFG
          */
+
         this.dependencyMap = generateDependencyMap();
         System.out.println(dependencyStructure.typedDependencies());
 
@@ -83,10 +77,11 @@ public class SentenceMeaning {
             //Processes subject
            else if (t.left.contains("subj")) {
 
-
                 //TODO Subjects usually have the identifier g, what to do with embedded subjects?
-                HashMap<String,List<LexicalEntry>> subj = extractArgumentEntries(t.right,"g");
-                List<LexicalEntry> main = (List<LexicalEntry>) subj.get("main");
+                HashMap<String,List<LexicalEntry>> subj =
+                        extractArgumentEntries(t.right,
+                                LexVariableHandler.returnNewVar(LexVariableHandler.variableType.LLatomE));
+                List<LexicalEntry> main = subj.get("main");
                 subCatFrame.put("agent",main.get(0));
 
                 lexicalEntries.add(main.get(0));
@@ -102,7 +97,6 @@ public class SentenceMeaning {
                         }
                     }
                 }
-
                 it.remove();
                 rootArity++;
                 System.out.println( t.right.toString() + " This is a subject");
@@ -127,18 +121,13 @@ public class SentenceMeaning {
                         {
                             lexicalEntries.add(lex);
                         }
-
                     }
                 }
                 it.remove();
                 rootArity++;
                 System.out.println( t.right.toString() + " This is a object");
             }
-
-
-
         }
-
         /* Verb is generated last based on the structure of the sentence
         The verb is generated when all its dependencies have been processed
         */
@@ -276,19 +265,14 @@ public class SentenceMeaning {
     // Process (nominal) arguments (Subjects, objects)
     private HashMap<String,List<LexicalEntry>> extractArgumentEntries(IndexedWord iw, String identifier)
     {
+
+        //Method variables
         HashMap<String,List<LexicalEntry>> lexEn = new HashMap<>();
+        boolean isQuantified = false;
 
         if (iw.tag().equals("NNP"))
         {
             Noun main = new Noun(LexicalEntry.LexType.N_NNP,identifier,iw);
-    //        premises.add(agent.llFormula);
-    //        subCatFrame.put("agent",agent);
-
-            lexEn.put("main",new ArrayList<LexicalEntry>(Arrays.asList(main)));
-        }
-        else if (iw.tag().equals("NN"))
-        {
-            Noun main = new Noun(LexicalEntry.LexType.N_NN,identifier,iw);
             //        premises.add(agent.llFormula);
             //        subCatFrame.put("agent",agent);
 
@@ -315,16 +299,26 @@ public class SentenceMeaning {
             }
             else if (t.left.equals("det"))
             {
-                Determiner det = new Determiner(identifier);
+               // String type = t.left
+                Determiner det = new Determiner(identifier,t.right.value(),lexEn);
 
-                //TODO make this proper
-                lexEn.remove("main");
-
-
-                lexEn.put("main",new ArrayList<LexicalEntry>(Arrays.asList(det)));
+                lexEn.put("det",new ArrayList<LexicalEntry>(Arrays.asList(det)));
+                isQuantified = true;
             }
         }
         }
+
+        if (iw.tag().equals("NN"))
+        {
+
+            Noun main = new Noun(LexicalEntry.LexType.N_NN,identifier,iw);
+            //        premises.add(agent.llFormula);
+            //        subCatFrame.put("agent",agent);
+
+            lexEn.put("main",new ArrayList<LexicalEntry>(Arrays.asList(main)));
+        }
+
+
         return lexEn;
     }
 

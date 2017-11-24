@@ -33,7 +33,9 @@ public class GrammarMain {
 //        testSentences.add("The ball flew through the broken window");
         testSentences.add("John snores.");
         testSentences.add("John loves Maria.");
+        testSentences.add("Every man owns a dog");
    //     testSentences.add("A loud dog barks.");
+     //   testSentences.add("Every man with a dog owns a leash.");
         testSentences.add("A loud dog chases every small cat.");
 /*        testSentences.add("John is happy.");
         testSentences.add("John ran quickly.");

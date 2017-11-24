@@ -1,9 +1,14 @@
 package gluePaP.lexicon;
 
 import edu.stanford.nlp.ling.IndexedWord;
+import gluePaP.glue.LexVariableHandler;
 import gluePaP.linearLogic.LLAtom;
+import gluePaP.linearLogic.LLFormula;
+import gluePaP.linearLogic.LLImplication;
 import gluePaP.linearLogic.LLTerm;
 import gluePaP.semantics.SemAtom;
+import gluePaP.semantics.SemFunction;
+import gluePaP.semantics.SemPred;
 import gluePaP.semantics.SemType;
 
 public class Noun extends LexicalEntry {
@@ -34,7 +39,28 @@ public class Noun extends LexicalEntry {
                 break;
 
             case N_NN:
-               //this.llFormula = identifier + "_e";
+
+                 /*Linear Logic*/
+
+                //generating consumer
+                LLAtom agentRes = new LLAtom(identifier, LLTerm.Type.E, LLAtom.LLType.CONST,false);
+
+                //generate semantics
+                LLAtom fsem = new LLAtom(identifier,
+                        LLTerm.Type.T, LLAtom.LLType.CONST,true);
+
+                this.llTerm = new LLFormula(agentRes, new LLImplication(),fsem,true );
+
+                /*Semantics*/
+
+                SemAtom agentVar = new SemAtom(SemAtom.SemSort.VAR,
+                        //binding variable
+                        LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVarE),
+                        SemType.AtomicType.E
+                );
+
+                SemFunction nounSem = new SemFunction(agentVar,new SemPred(main.value(),agentVar));
+                this.sem = nounSem;
 
                 break;
 

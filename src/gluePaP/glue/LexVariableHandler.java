@@ -7,6 +7,7 @@ public abstract class LexVariableHandler {
     public enum variableType{
         LLvar,
         LLatomT,
+        LLatomE,
         SemVar,
         SemVarE
 /*
@@ -27,6 +28,9 @@ Possibly add more types, e.g. SemVarE, SemVarT etc.
                 new ArrayList<String>());
 
         reservedVars.put(variableType.LLatomT,
+                new ArrayList<String>());
+
+        reservedVars.put(variableType.LLatomE,
                 new ArrayList<String>());
 
         reservedVars.put(variableType.SemVar,
@@ -55,7 +59,9 @@ Possibly add more types, e.g. SemVarE, SemVarT etc.
         //variables for the semantics of (partial) f-structures
 
         reservedVars.put(variableType.LLatomT,
-                new ArrayList<String>(Arrays.asList("f","g","h","i")));
+                new ArrayList<String>(Arrays.asList("f")));
+        reservedVars.put(variableType.LLatomE,
+                new ArrayList<String>(Arrays.asList("g","h","i")));
 
         //Variables for Semantics; Entities
         reservedVars.put(variableType.SemVarE,
@@ -93,6 +99,12 @@ Possibly add more types, e.g. SemVarE, SemVarT etc.
                 i++;
             }
         return null;
+    }
+
+
+    public static void addUsedVariable(variableType varType,String var)
+    {
+    usedVariables.get(varType).add(var);
     }
 
 
