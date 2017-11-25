@@ -33,6 +33,15 @@ public class LLFormula extends LLTerm {
 
     public LLOperator getOperator() { return operator; }
 
+    //Constructor for formulas without variables and with a linear implication as operator
+    public LLFormula(LLTerm lhs, LLTerm rhs, boolean pol) {
+        this.lhs = lhs;
+        this.rhs = rhs;
+        this.setPolarity(pol);
+        this.operator = new LLImplication();
+        this.name = this.toString();
+    }
+
 
     //Constructor for formulas without variables
     public LLFormula(LLTerm lhs, LLOperator operator,LLTerm rhs, boolean pol) {
@@ -55,11 +64,11 @@ public class LLFormula extends LLTerm {
         this.name = this.toString();
         this.variable = var;
 
-        List<LLAtom> bvl = Stream.concat(findBoundOccurrences(lhs).stream(),
-                findBoundOccurrences(rhs).stream()).collect(Collectors.toList());
-
-
-        this.boundVariables.put(variable,bvl);
+        if(variable!= null) {
+            List<LLAtom> bvl = Stream.concat(findBoundOccurrences(lhs).stream(),
+                    findBoundOccurrences(rhs).stream()).collect(Collectors.toList());
+            this.boundVariables.put(variable, bvl);
+        }
 
     }
 

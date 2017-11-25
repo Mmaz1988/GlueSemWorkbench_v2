@@ -1,33 +1,33 @@
 package Prover;
 
+import gluePaP.glue.LexVariableHandler;
 import gluePaP.linearLogic.*;
 import gluePaP.semantics.*;
 
 import java.util.*;
 
+import static gluePaP.glue.LexVariableHandler.variableType.SemVar;
 import static gluePaP.semantics.SemAtom.SemSort.VAR;
 import static gluePaP.semantics.SemType.AtomicType.T;
 
 public class LLProver {
 
-    private List<Equality> equalities;
-    private Set<String> identifierDatabase = new HashSet<>();
     private Stack<Premise> agenda = new Stack<>();
     private List<Premise> database = new ArrayList<>();
     private List<Premise> solutions = new ArrayList<>();
     private Sequent seq;
 
-    // TODO add comments for meaning side operations
+
 
     public LLProver(Sequent seq) {
         this.seq = seq;
     }
 
     /*
-        Does a deduction of a given sequent by evaluating the list of premises on its LHS
-        and trying to find a valid proof for its RHS.
-        TODO Check if compilation works properly
-         */
+    Does a deduction of a given sequent by evaluating the list of premises on its LHS
+    and trying to find a valid proof for its RHS.
+    TODO Check if compilation works properly
+     */
     public List<Premise> deduce() throws ProverException,VariableBindingException {
         /*
         Initialize an agenda stack initially containing all premises from the sequent.
@@ -49,14 +49,17 @@ public class LLProver {
             * as new premises with new IDs. Assumptions are premises that contain themselves
             * in their set of assumptions, but in the course of the derivation they may carry
             * additional assumptions (when they combine with other assumptions).
-            * */
-            /*
-            NOTE: due to the design of the conversion algorithm, a given term's discharge is always
-            contained in that term's set of assumptions. This shouldn't be a problem, however, as
-            terms with discharges are by design always formulas and can therefore not be arguments.
-            Their assumptions are thus not relevant in the derivation process.
+            * NOTE: due to the design of the conversion algorithm, a given term's discharge is always
+            * contained in that term's set of assumptions. This shouldn't be a problem, however, as
+            * terms with discharges are by design always formulas and can therefore not be arguments.
+            * Their assumptions are thus not relevant in the derivation process.
             */
-            agenda.push(convert(p));
+
+            try {
+                agenda.push(convert(p));
+            } catch (ProverException e) {
+                e.printStackTrace();
+            }
         }
         seq.getLhs().clear();
         seq.getLhs().addAll(agenda);
@@ -165,50 +168,38 @@ public class LLProver {
 
         Premise combined;
 
-            /*
-            * No assumptions or discharges involved, proceed with a "normal" implication elimination
-            * */
+        // No assumptions or discharges involved, proceed with a "normal" implication elimination
         if (arg.getGlueTerm().assumptions.isEmpty()
                 && arg.getGlueTerm().discharges.isEmpty()
                 && func.getGlueTerm().assumptions.isEmpty()
                 && func.getGlueTerm().discharges.isEmpty()) {
             return combineDisjointID(func, arg);
         }
-            /*
-            * Func or arg contain assumptions, but no discharges.
-            * Combine the terms and their sets of assumptions
-            * */
+        /*
+        * Func or arg contain assumptions, but no discharges.
+        * Combine the terms and their sets of assumptions
+        * */
         else if ((!arg.getGlueTerm().assumptions.isEmpty()
                 || !func.getGlueTerm().assumptions.isEmpty())
                 && arg.getGlueTerm().discharges.isEmpty()
                 && func.getGlueTerm().discharges.isEmpty()) {
             combined = combineDisjointID(func, arg);
-            try {
-                combined.getGlueTerm().assumptions = new HashSet<>();
-                    /* create new set of assumptions which can be modified independently from
-                    the set of assumptions of arg and func and add all assumptions to it */
-                combined.getGlueTerm().assumptions.addAll(arg.getGlueTerm().assumptions);
-                combined.getGlueTerm().assumptions.addAll(func.getGlueTerm().assumptions);
-                //    LLTerm discharge = func.getGlueTerm().getDischarge();
-                //   combined.getGlueTerm().assumptions.remove(discharge);
-                // add this back to the functor's assumptions
 
+            /* create new set of assumptions which can be modified independently from
+            the set of assumptions of arg and func and add all assumptions to it */
+            combined.getGlueTerm().assumptions = new HashSet<>();
+            combined.getGlueTerm().assumptions.addAll(arg.getGlueTerm().assumptions);
+            combined.getGlueTerm().assumptions.addAll(func.getGlueTerm().assumptions);
 
-                //                     arg.getGlueTerm().assumptions.add(discharge);
-
-
-            } catch (NullPointerException npe){
-                return null;
-            }
             return combined;
         }
-            /*
-            Functor has discharges, check if they are a subset of the argument's assumptions.
-            If so call combineDisjointID which checks the ID sets of func and arg and then
-            does the actual implication elimination step. For the new premise, all assumptions
-            from arg are copied, except the one that was discharged in func.
-            func: (b[a] -o c); arg: {a,(x -o y)} ==> c with assumption {(x -o y)}
-            */
+        /*
+        Functor has discharges, check if they are a subset of the argument's assumptions.
+        If so call combineDisjointID which checks the ID sets of func and arg and then
+        does the actual implication elimination step. For the new premise, all assumptions
+        from arg are copied, except the one that was discharged in func.
+        func: (b[a] -o c); arg: {a,(x -o y)} ==> c with assumption {(x -o y)}
+        */
         else if (!func.getGlueTerm().discharges.isEmpty()) {
             if (arg.getGlueTerm().assumptions.containsAll(func.getGlueTerm().discharges))
             {
@@ -269,7 +260,7 @@ public class LLProver {
 
     // TODO add lists for modifiers and skeletons (see Dick's code)
     // converts premises by calling convertSemantics() and convertNested()
-    public Premise convert(Premise p) {
+    public Premise convert(Premise p) throws ProverException {
         if (p.getGlueTerm() instanceof LLFormula) {
             LLFormula f = (LLFormula) p.getGlueTerm();
 
@@ -294,7 +285,7 @@ public class LLProver {
     }
 
     /*
-    * Recursively converts a semantic term by replacing the variables with newly created ones    *
+    * Recursively converts a semantic term by replacing the variables with newly created ones
     * */
     private SemRepresentation convertSemantics(SemRepresentation sem) {
         if (sem instanceof SemFunction) {
@@ -310,53 +301,77 @@ public class LLProver {
     }
 
     /*
-    The LHS of the LHS of f will become an assumption which in turn gets converted as well.
-    The assumption gets converted as well and is marked as an assumption
-    by adding itself to its set of assumptions. That is, an LLTerm "a" is an assumption
-    iff its set of assumptions contains "a". This way of marking assumptions allows easy
-    combination with other assumptions and LLTerms with discharges.
-    All extracted assumptions are stored in a HashSet in dependency.
-    Ex. if f = ((a -o b) -o c) then dependency = (b -o c) and assumption = {a}
-    Dependency is a new formula consisting of the rest of f, that is, the RHS of the LHS of f
-    and the RHS of f.
-
-    On the semantic side this amounts to creating a new variable for the assumption and a lambda
-    term that binds the new variable of the assumption.
-    Ex. LP.Ex[person(x) & P(x)] : ((g -o X) -o X) is converted to
-        Lu.LP.Ex[person(x) & P(x)](Lv.u) : (X[g] -o X) and v:{g}
-    */
-    private Premise convertNested(Premise p, SemAtom var) {
+    * The LHS of the LHS of f will become an assumption which in turn gets converted as well.
+    * The assumption gets converted as well and is marked as an assumption
+    * by adding itself to its set of assumptions. That is, an LLTerm "a" is an assumption
+    * iff its set of assumptions contains "a". This way of marking assumptions allows easy
+    * combination with other assumptions and LLTerms with discharges.
+    * All extracted assumptions are stored in a HashSet in dependency.
+    * Ex. if f = ((a -o b) -o c) then dependency = (b -o c) and assumption = {a}
+    * Dependency is a new formula consisting of the rest of f, that is, the RHS of the LHS of f
+    * and the RHS of f.
+    *
+    * On the semantic side this amounts to creating a new variable for the assumption and a lambda
+    * term that binds the new variable of the assumption.
+    * Ex. LP.Ex[person(x) & P(x)] : ((g -o X) -o X) is converted to
+    *    Lu.LP.Ex[person(x) & P(x)](Lv.u) : (X[g] -o X) and v:{g}
+    * NOTE:
+    * In cases where a formula like ((((a -o b) -o c) -o d) -o e) is compiled
+    * we want to derive the assumptions {a} and {(b -o c)} and the dependency
+    * (d -o e)[(b -o c)[a]], that is, a discharge with a nested discharge.
+    * However, for a formula like (((a -o (b -o c)) -o d)
+    * we want to get {a} and {b} and the dependency (c -o d)[a,b], that is,
+    * with a list of (atomic) discharges. Otherwise we would run into a dead end
+    * while combining the extracted premises.
+    * This is achieved by only adding the single assumption that is currently
+    * being extracted to the dependency's discharges.
+    * */
+    private Premise convertNested(Premise p, SemAtom var) throws ProverException {
         if (p.getGlueTerm() instanceof LLFormula) {
             LLFormula f = (LLFormula) p.getGlueTerm();
 
             // nested formula; extract assumption and build new term
             if (f.getLhs() instanceof LLFormula) {
+
+                if (!(p.getSemTerm() instanceof SemFunction))
+                    throw new ProverException("Meaning side does not match structure of glue side");
+
                 SemAtom assumpVar = var;
                 /*
                 In a non-recursive call (directly from convert() the new variable is not yet
                 instantiated and it will be done here.
                 */
                 if (var == null) {
-                    assumpVar = new SemAtom(VAR, "v", ((SemFunction) p.getSemTerm()).getBinder().getType().getLeft());
+                    assumpVar = new SemAtom(VAR, LexVariableHandler.returnNewVar(SemVar),
+                            ((SemFunction) p.getSemTerm()).getBinder().getType().getLeft());
                 }
                 Premise assumption = convertNested(new Premise(seq.getNewID(), ((LLFormula) f.getLhs()).getLhs()), assumpVar);
                 assumption.getGlueTerm().assumptions.add(assumption.getGlueTerm());
                 agenda.add(assumption);
-                Premise dependency = convertNested(new Premise(p.getPremiseIDs(), p.getSemTerm(), new LLFormula(((LLFormula) f.getLhs()).getRhs(),
-                        f.getOperator(), f.getRhs(), f.isPolarity(), f.getVariable())), assumpVar);
-                /* NOTE:
-                * In cases where a formula like ((((a -o b) -o c) -o d) -o e) is compiled
-                * we want to derive the assumptions {a} and {(b -o c)} and the dependency
-                * (d -o e)[(b -o c)[a]], that is, a discharge with a nested discharge.
-                * However, for a formula like (((a -o (b -o c)) -o d)
-                * we want to get {a} and {b} and the dependency (c -o d)[a,b], that is,
-                * with a list of (atomic) discharges. Otherwise we would run into a dead end
-                * while combining the extracted premises.
-                * This is achieved by only adding the single assumption that is currently
-                * being extracted to the dependency's discharges.
-                * */
+                Premise dependency = new Premise(p.getPremiseIDs(), p.getSemTerm(), new LLFormula(((LLFormula) f.getLhs()).getRhs(),
+                        f.getOperator(), f.getRhs(), f.isPolarity(), f.getVariable()));
                 dependency.getGlueTerm().discharges.add(assumption.getGlueTerm());
+                dependency = convertNested(dependency,assumpVar);
+                /*
+                If reordering is required (see function below), reorder the dependency, by
+                temporarily removing the newly created lambda term on the meaning side
+                and reapplying it after the reordering process.
+                */
+                if (((LLFormula) dependency.getGlueTerm()).getRhs() instanceof LLFormula) {
+                    SemRepresentation inner = ((SemFunction) dependency.getSemTerm()).getFuncBody();
+                    Premise reordered = reorder(new Premise(p.getPremiseIDs(),inner,dependency.getGlueTerm()));
+                    dependency = new Premise(p.getPremiseIDs(),
+                            new SemFunction(((SemFunction) dependency.getSemTerm()).getBinder(),reordered.getSemTerm()),reordered.getGlueTerm());
+                }
+
                 return dependency;
+            }
+            // There might be cases like a -o ((b -o c) -o d) where reordering is necessary before
+            // the term can be compiled
+            else if (f.getRhs() instanceof  LLFormula &&
+                    ((LLFormula) f.getRhs()).getLhs() instanceof LLFormula) {
+                // TODO could this end in an endless loop? If so something is wrong here...
+                p = convertNested(reorder(p),var);
             }
             /*
             simple implication; create new lambda function which binds var (the variable
@@ -365,13 +380,11 @@ public class LLProver {
             term binding the newly created variable.
             */
             // TODO better comment and example needed...
-            else {
-                SemAtom binderVar = new SemAtom(VAR,"u",T);
-                SemFunction newArg = new SemFunction(var,binderVar);
-                //((SemFunction) p.getSemTerm()).setArgument(newArg);
-                p.setSemTerm(new SemFunction(binderVar,new FuncApp(p.getSemTerm(),newArg)));
-                return p;
-            }
+            SemAtom binderVar = new SemAtom(VAR,LexVariableHandler.returnNewVar(SemVar),T);
+            SemFunction newArg = new SemFunction(var,binderVar);
+            //((SemFunction) p.getSemTerm()).setArgument(newArg);
+            p.setSemTerm(new SemFunction(binderVar,new FuncApp(p.getSemTerm(),newArg)));
+            return p;
         }
         // only an atomic glue term which will become an assumption;
         // return it and add the new variable as meaning side
@@ -381,13 +394,67 @@ public class LLProver {
         }
     }
 
+    /*
+    * A method for restructuring the glue side of a premise so that it has the form A -o (b -o C)
+    * (where lower case letters denote atoms and upper case letters complex
+    * formulas). The full term consists only of subformulas of this form where A and C are at most binary formulas
+    * This is the form that is compilable by our algorithm. Glue terms are swapped to obtain
+    * the desired form. All swapping operations on the glue side amount to swapping operations of lambda binders
+    * on the meaning side to keep the two sides aligned.
+    *
+    * */
+    private Premise reorder(Premise p) throws ProverException{
+        // Glue term has the form A -o (B -o C)
+        if (((LLFormula) p.getGlueTerm()).getRhs() instanceof LLFormula) {
+
+            // Glue term has the form A -o ((B -o D) -o C) check if A and B can be swapped, then
+            // recursively call the function on the RHS of the (potentially swapped) formula
+            if (((LLFormula)((LLFormula) p.getGlueTerm()).getRhs()).getLhs() instanceof LLFormula) {
+                SemFunction sem = (SemFunction) p.getSemTerm();
+                LLFormula glue = (LLFormula) p.getGlueTerm();
+
+                // Glue term has the form a -o ((B -o D) -o C); swap a and (B -o D)
+                if (((LLFormula) p.getGlueTerm()).getLhs() instanceof LLAtom) {
+                    LLTerm oldLeft = ((LLFormula) p.getGlueTerm()).getLhs();
+                    LLTerm oldInnerLeft = ((LLFormula) ((LLFormula) p.getGlueTerm()).getRhs()).getLhs();
+                    LLTerm oldInnerRight = ((LLFormula) ((LLFormula) p.getGlueTerm()).getRhs()).getRhs();
+                    if (!(p.getSemTerm() instanceof SemFunction))
+                        throw new ProverException("Semantic term does not match structure of glue side.");
+                    else
+                        sem = swapLambdas(sem);
+                    LLFormula newinner = new LLFormula(oldLeft, oldInnerRight, oldInnerRight.isPolarity());
+                    newinner.discharges.addAll(glue.discharges);
+                    glue = new LLFormula(oldInnerLeft,newinner, p.getGlueTerm().isPolarity());
+                }
+                Premise inner = reorder(new Premise(p.getPremiseIDs(),sem.getFuncBody(),glue.getRhs()));
+                glue = new LLFormula(glue.getLhs(),inner.getGlueTerm(),glue.isPolarity());
+                sem = new SemFunction(sem.getBinder(),inner.getSemTerm());
+
+                return new Premise(p.getPremiseIDs(),sem,glue);
+            }
+        }
+        // other cases? A -o b; no reordering required
+        // TODO are these all cases?
+        return p;
+    }
+
+
+    private SemFunction swapLambdas(SemFunction outer) throws ProverException{
+        if (outer.getFuncBody() instanceof SemFunction) {
+            SemFunction inner = (SemFunction) outer.getFuncBody();
+            return new SemFunction(inner.getBinder(),new SemFunction(outer.getBinder(),inner.getFuncBody()));
+        }
+        else
+            throw new ProverException("Semantic term does not match structure of glue side.");
+    }
+
 
     //returns false if a variable is assigned more than one value
     private static boolean checkDuplicateBinding(LinkedHashSet<Equality> in) {
-         List<Equality> eqs = new ArrayList<>();
-         eqs.addAll(0,in);
+        List<Equality> eqs = new ArrayList<>();
+        eqs.addAll(0,in);
 
-         // no multiple assignments possible
+        // no multiple assignments possible
         if (eqs.size() <= 1)
             return false;
 
@@ -404,29 +471,6 @@ public class LLProver {
             }
         }
         return false;
-    }
-
-
-    /*
-    * Check if semantic atom a is already in the database of identifiers.
-    * If not, add it and return true; otherwise return false.
-    * */
-    public boolean addIdentifier(SemAtom a) {
-        if (this.identifierDatabase.contains(a.getName()))
-            return false;
-        else {
-            this.identifierDatabase.add(a.getName());
-            return true;
-        }
-    }
-
-    // Returns the set of used semantic identifiers in this proof
-    public Set<String> getIdentifiers() {
-        return this.identifierDatabase;
-    }
-
-    public SemAtom newIdentifier(SemAtom.SemSort s) {
-        return null;
     }
 
 

@@ -11,17 +11,17 @@ import java.util.List;
 import static gluePaP.semantics.BinaryTerm.SemOperator.AND;
 import static gluePaP.semantics.SemAtom.SemSort.VAR;
 import static gluePaP.semantics.SemQuantEx.SemQuant.EX;
-import static gluePaP.semantics.SemType.AtomicType.E;
-import static gluePaP.semantics.SemType.AtomicType.T;
+import static gluePaP.semantics.SemType.AtomicType.*;
 
 public class ProverMain {
 
     public static void main(String[] args) throws VariableBindingException {
-    /*    String test1 = "AX_t.(g_e -o X_t) -o X_t";
-        String test2 = "AY_t.(h_e -o Y_t) -o Y_t";
+        String test1 = "AX_t.(g_e -o X_t) -o X_t";
+        //String test2 = "AY_t.(h_e -o Y_t) -o Y_t";
+        String test2 = "((h_e -o f_t) -o f_t)";
         String test3 = "(g_e -o (h_e -o f_t))";
         String test4 = "(g_e -o f_t)";
-
+        String test5 = "((v_e -o r_t) -o AY_t.(h_e -o Y_t) -o Y_t)";
 
         System.out.println("Parsing input...");
 
@@ -30,7 +30,7 @@ public class ProverMain {
         List<String> testnest = new ArrayList<String>();
 
         // Test for quantifier premise
-        testquant.add(test1);
+        testquant.add(test5);
         testquant.add(test4);
 
         // Instantiating semantic sides for "everybody loves someone"
@@ -43,10 +43,11 @@ public class ProverMain {
 
         SemFunction love = new SemFunction(varX2, new SemFunction(varY2,new SemPred("love",varX2,varY2)));
         SemFunction sleep = new SemFunction(varX2, new SemPred("sleep",varX2));
-        // TODO the second argument should be a pred too
-        SemQuantEx every0 = new SemQuantEx(EX,varX,new BinaryTerm(new SemPred("person",varX),AND,new FuncApp(varP,varX)));
+        SemQuantEx everyone0 = new SemQuantEx(EX,varX,new BinaryTerm(new SemPred("person",varX),AND,new FuncApp(varP,varX)));
+        SemQuantEx every0 = new SemQuantEx(EX,varX,new BinaryTerm(new FuncApp(varP,varX),AND,new FuncApp(varQ,varX)));
         //SemFunction every1 = new SemFunction(varX,every0);
-        SemFunction every = new SemFunction(varP,every0);
+        SemFunction every = new SemFunction(varP,new SemFunction(varQ,every0));
+        SemFunction everyone = new SemFunction(varP,everyone0);
 
         SemPred some0 = new SemPred("some",new SemPred("person",varY),varQ);
         //SemFunction some1 = new SemFunction(varY,some0);
@@ -55,7 +56,7 @@ public class ProverMain {
 
         // Parsing
         LinearLogicParser parser2 = new LinearLogicParser(testquant);
-        Sequent testseq = new Sequent(parser2.premises);
+        Sequent testseq = new Sequent(parser2.premises,"test");
 
         // Adding meaning side to premises
         testseq.getLhs().get(0).setSemTerm(every);
@@ -76,6 +77,6 @@ public class ProverMain {
         } catch (ProverException e) {
             e.printStackTrace();
         }
-*/
+
     }
 }

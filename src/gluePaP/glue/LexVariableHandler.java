@@ -64,7 +64,7 @@ Possibly add more types, e.g. SemVarE, SemVarT etc.
                 new ArrayList<String>(Arrays.asList("g","h","i")));
 
         //Variables for Semantics; Entities
-        reservedVars.put(variableType.SemVarE,
+        reservedVars.put(variableType.SemVar,
                 new ArrayList<String>(Arrays.asList("x","y","z")));
 
         return reservedVars;

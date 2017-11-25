@@ -52,8 +52,7 @@ public class SemFunction extends SemRepresentation {
     }
 
     public SemRepresentation applyTo(SemAtom var, SemRepresentation arg) {
-        SemFunction applied = new SemFunction(this.binder,this.funcBody.applyTo(var, arg));
-        return applied; //.betaReduce();
+        return new SemFunction(this.binder,this.funcBody.applyTo(var, arg));
     }
 
     @Override

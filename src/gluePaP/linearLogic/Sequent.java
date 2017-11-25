@@ -19,8 +19,8 @@ public class Sequent {
     }
 
 
-    /*
-    public Sequent(List<LLTerm> parsedTerms) {
+
+    public Sequent(List<LLTerm> parsedTerms,String msg) {
         lhs = new ArrayList<>();
         for (idCounter = 0; idCounter < parsedTerms.size(); idCounter++) {
             HashSet<Integer> idSet = new HashSet<>();
@@ -28,7 +28,7 @@ public class Sequent {
             lhs.add(new Premise(idSet, parsedTerms.get(idCounter)));
         }
     }
-    */
+
 
      public Sequent(List<LexicalEntry> lexEn) {
          lhs = new ArrayList<>();

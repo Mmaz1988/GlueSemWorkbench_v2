@@ -25,8 +25,13 @@ public class SemMain {
         SemFunction and = new SemFunction(varP,new SemFunction(varQ,
                 new SemQuantEx(EX,varX, new BinaryTerm(leftAnd,AND,rightAnd))));
         SemFunction sleep = new SemFunction(varY,new SemPred("sleep",varY));
+        SemFunction student = new SemFunction(varZ,new SemPred("student",varZ));
 
-        SemRepresentation applied = new FuncApp(and,sleep).betaReduce();
+        FuncApp innerFunc = new FuncApp(and,student);
+        FuncApp outerFunc = new FuncApp(innerFunc,sleep);
+
+
+        SemRepresentation applied = outerFunc.betaReduce();
 
         System.out.println(applied.toString());
 
