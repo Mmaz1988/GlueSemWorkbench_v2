@@ -42,6 +42,21 @@ public class LLFormula extends LLTerm {
         this.name = this.toString();
     }
 
+    public LLFormula(LLTerm lhs, LLTerm rhs, boolean pol, LLAtom var) {
+        this.lhs = lhs;
+        this.rhs = rhs;
+        this.setPolarity(pol);
+        this.operator = new LLImplication();
+        this.name = this.toString();
+        this.variable = var;
+
+        if(variable!= null) {
+            List<LLAtom> bvl = Stream.concat(findBoundOccurrences(lhs).stream(),
+                    findBoundOccurrences(rhs).stream()).collect(Collectors.toList());
+            this.boundVariables.put(variable, bvl);
+        }
+    }
+
 
     //Constructor for formulas without variables
     public LLFormula(LLTerm lhs, LLOperator operator,LLTerm rhs, boolean pol) {

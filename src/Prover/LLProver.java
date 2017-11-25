@@ -422,12 +422,12 @@ public class LLProver {
                         throw new ProverException("Semantic term does not match structure of glue side.");
                     else
                         sem = swapLambdas(sem);
-                    LLFormula newinner = new LLFormula(oldLeft, oldInnerRight, oldInnerRight.isPolarity());
+                    LLFormula newinner = new LLFormula(oldLeft, oldInnerRight, oldInnerRight.isPolarity(),((LLFormula) ((LLFormula) p.getGlueTerm()).getRhs()).getVariable());
                     newinner.discharges.addAll(glue.discharges);
-                    glue = new LLFormula(oldInnerLeft,newinner, p.getGlueTerm().isPolarity());
+                    glue = new LLFormula(oldInnerLeft,newinner, p.getGlueTerm().isPolarity(), newinner.getVariable());
                 }
                 Premise inner = reorder(new Premise(p.getPremiseIDs(),sem.getFuncBody(),glue.getRhs()));
-                glue = new LLFormula(glue.getLhs(),inner.getGlueTerm(),glue.isPolarity());
+                glue = new LLFormula(glue.getLhs(),inner.getGlueTerm(),glue.isPolarity(),glue.getVariable());
                 sem = new SemFunction(sem.getBinder(),inner.getSemTerm());
 
                 return new Premise(p.getPremiseIDs(),sem,glue);

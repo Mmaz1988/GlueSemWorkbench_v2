@@ -65,7 +65,7 @@ Possibly add more types, e.g. SemVarE, SemVarT etc.
         reservedVars.put(variableType.LLatomT,
                 new ArrayList<String>(Arrays.asList("f")));
         reservedVars.put(variableType.LLatomE,
-                new ArrayList<String>(Arrays.asList("g","h","i")));
+                new ArrayList<String>(Arrays.asList("g","h","i","j")));
 
 
         //Variables for Semantics; Entities

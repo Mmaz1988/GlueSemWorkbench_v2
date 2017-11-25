@@ -96,7 +96,7 @@ public class Determiner extends LexicalEntry{
                 LLTerm.Type.T, LLAtom.LLType.VAR,true);
 
 
-        LLFormula scopeComplete = new LLFormula(scope, new LLImplication(),detRes,true);
+        LLFormula scopeComplete = new LLFormula(scope, new LLImplication(),detRes,true,detRes);
 
         LLFormula detSem = new LLFormula(restrSem,new LLImplication(),scopeComplete,true);
 
