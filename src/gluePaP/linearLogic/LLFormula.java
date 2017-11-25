@@ -79,13 +79,32 @@ public class LLFormula extends LLTerm {
         this.name = this.toString();
         this.variable = var;
 
-        if(variable!= null) {
+        if (variable != null) {
             List<LLAtom> bvl = Stream.concat(findBoundOccurrences(lhs).stream(),
                     findBoundOccurrences(rhs).stream()).collect(Collectors.toList());
             this.boundVariables.put(variable, bvl);
         }
 
     }
+
+        public LLFormula(LLFormula f)
+        {
+            this.lhs = f.getLhs().clone();
+            this.rhs = f.getRhs().clone();
+            this.setPolarity(f.isPolarity());
+            this.operator = f.getOperator();
+            this.name = f.toString();
+            if (f.variable != null) {
+            this.variable = new LLAtom(f.variable);
+                List<LLAtom> bvl = Stream.concat(findBoundOccurrences(lhs).stream(),
+                        findBoundOccurrences(rhs).stream()).collect(Collectors.toList());
+                this.boundVariables.put(variable, bvl);
+            }
+
+        }
+
+
+
 
     /*
     Represents the binder relation between the quantifier
@@ -177,6 +196,11 @@ public class LLFormula extends LLTerm {
         return "(" + lhs.toPlainString() + " " + operator + " "  + rhs.toPlainString() + ")";
     }
 
+    @Override
+    public LLTerm clone() {
+        return new LLFormula(this   );
+    }
+
 
     @Override
     public boolean checkEquivalence(LLTerm term) {
@@ -218,4 +242,14 @@ public class LLFormula extends LLTerm {
 
 
 
+
+    public void setVarbinding(LLFormula formula) {
+        this.variable = new LLAtom(formula.variable);
+
+            List<LLAtom> bvl = Stream.concat(findBoundOccurrences(lhs).stream(),
+                    findBoundOccurrences(rhs).stream()).collect(Collectors.toList());
+            this.boundVariables.put(variable, bvl);
+
+
+    }
 }

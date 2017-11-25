@@ -134,4 +134,11 @@ public class LLAtom extends LLTerm {
         this.lltype = lltype;
     }
 
+
+    @Override
+    public LLTerm clone() {
+        return new LLAtom(this   );
+    }
+
+
 }

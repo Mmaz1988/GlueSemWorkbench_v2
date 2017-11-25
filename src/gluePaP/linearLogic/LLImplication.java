@@ -6,6 +6,8 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 
+//TODO delete this stuff
+
 public class LLImplication extends LLTerm implements LLOperator {
     public final String symbol = "\u22B8";
 
@@ -28,4 +30,11 @@ public class LLImplication extends LLTerm implements LLOperator {
         else
             return null;
     }
+
+    @Override
+    public LLTerm clone() {
+        return null;
+    }
+
+
 }

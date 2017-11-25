@@ -22,6 +22,7 @@ public abstract class LLTerm {
     //Default constructor
     public LLTerm(){ }
 
+/*
     public LLTerm(LLTerm term) {
         this.assumptions = term.assumptions;
         this.discharges = term.discharges;
@@ -30,6 +31,7 @@ public abstract class LLTerm {
         this.polarity = term.polarity;
 
     }
+*/
 
     public String getTermId() {
         return termId;
@@ -56,4 +58,10 @@ public abstract class LLTerm {
     public String toPlainString() {
         return super.toString();
     }
+
+    // This is not a regular clone() method, it just calls the copy constructor
+    // of the respective class.
+    public abstract LLTerm clone();
+
+
 }

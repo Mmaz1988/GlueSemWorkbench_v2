@@ -148,7 +148,9 @@ public class LLProver {
 
         // possible substitutions for variables and constants
         LinkedHashSet<Equality> eqs = ((LLFormula) f.getGlueTerm()).getLhs().checkCompatibility(arg.getGlueTerm());
-        Premise func = f;
+
+        Premise func = new Premise(f.getPremiseIDs(),f.getSemTerm().clone(),f.getGlueTerm().clone());
+
         if (eqs == null) {return null;}
 
         if (eqs.size() > 0) {
@@ -158,6 +160,7 @@ public class LLProver {
                 throw new VariableBindingException();
             } else {
                 //instantiates variables with constants (i.e. skolemizes the formula so it can take a constant)
+
                 for (Equality eq : eqs) {
                     ((LLFormula) func.getGlueTerm()).instantiateVariables(eq);
                 }
