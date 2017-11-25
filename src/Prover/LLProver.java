@@ -160,7 +160,7 @@ public class LLProver {
                 //instantiates variables with constants (i.e. skolemizes the formula so it can take a constant)
                 for (Equality eq : eqs) {
                     ((LLFormula) func.getGlueTerm()).instantiateVariables(eq);
-                    System.out.println(eq);
+
                 }
             }
 
