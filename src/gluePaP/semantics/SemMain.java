@@ -27,11 +27,14 @@ public class SemMain {
         SemFunction sleep = new SemFunction(varY,new SemPred("sleep",varY));
         SemFunction student = new SemFunction(varZ,new SemPred("student",varZ));
 
+
+        /*TODO This does not work properly*/
+
         FuncApp innerFunc = new FuncApp(and,student);
         FuncApp outerFunc = new FuncApp(innerFunc,sleep);
 
-
         SemRepresentation applied = outerFunc.betaReduce();
+
 
         System.out.println(applied.toString());
 

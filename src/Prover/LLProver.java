@@ -147,9 +147,11 @@ public class LLProver {
 
 
         // possible substitutions for variables and constants
-        LinkedHashSet<Equality> eqs = ((LLFormula) f.getGlueTerm()).getLhs().checkCompatibility(arg.getGlueTerm());
+
 
         Premise func = new Premise(f.getPremiseIDs(),f.getSemTerm().clone(),f.getGlueTerm().clone());
+
+        LinkedHashSet<Equality> eqs = ((LLFormula) func.getGlueTerm()).getLhs().checkCompatibility(arg.getGlueTerm());
 
         if (eqs == null) {return null;}
 

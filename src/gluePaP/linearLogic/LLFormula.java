@@ -89,6 +89,8 @@ public class LLFormula extends LLTerm {
 
         public LLFormula(LLFormula f)
         {
+            this.assumptions = new HashSet<>(f.assumptions);
+            this.discharges = new HashSet<>(f.discharges);
             this.lhs = f.getLhs().clone();
             this.rhs = f.getRhs().clone();
             this.setPolarity(f.isPolarity());
