@@ -143,12 +143,12 @@ public class LLProver {
     if both checks succeed a new Premise is created containing the unified set of indexes
     and the RHS LL term of func (see below)
     */
-    private Premise combinePremises(Premise func, Premise arg) throws VariableBindingException {
+    private Premise combinePremises(Premise f, Premise arg) throws VariableBindingException {
 
 
         // possible substitutions for variables and constants
-        LinkedHashSet<Equality> eqs = ((LLFormula) func.getGlueTerm()).getLhs().checkCompatibility(arg.getGlueTerm());
-
+        LinkedHashSet<Equality> eqs = ((LLFormula) f.getGlueTerm()).getLhs().checkCompatibility(arg.getGlueTerm());
+        Premise func = f;
         if (eqs == null) {return null;}
 
         if (eqs.size() > 0) {
@@ -160,10 +160,8 @@ public class LLProver {
                 //instantiates variables with constants (i.e. skolemizes the formula so it can take a constant)
                 for (Equality eq : eqs) {
                     ((LLFormula) func.getGlueTerm()).instantiateVariables(eq);
-
                 }
             }
-
         }
 
         Premise combined;
