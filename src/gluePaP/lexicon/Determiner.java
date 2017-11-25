@@ -12,8 +12,25 @@ import static gluePaP.semantics.SemQuantEx.SemQuant.EX;
 
 public class Determiner extends LexicalEntry{
     public LexicalEntry.LexType lexType;
-    private static String scope =
-            LexVariableHandler.returnNewVar(LexVariableHandler.variableType.LLatomE);
+
+
+    private static HashMap<String,String> scope;
+
+            //TODO I'd rather have a seperate system in place for this.
+            private static void  setScope(String role)
+            {
+                String var = LexVariableHandler.returnNewVar(LexVariableHandler.variableType.LLatomE);
+                if (scope == null)
+                {
+                scope = new HashMap<>();
+
+                scope.put(role,var);
+                } else
+                {
+                    scope.put(role,var); 
+                }
+
+            }
 
     enum QuantType
     {
@@ -21,8 +38,10 @@ public class Determiner extends LexicalEntry{
         EX
     }
 
-    public Determiner(String identifier, String detType, HashMap<String,List<LexicalEntry>> lexEn)
+    public Determiner(String identifier, String detType, String role)
     {
+        //Part of determining scope relations; kind of hacky
+        setScope(role);
 
         this.lexType = LexType.DET;
         this.identifier = identifier;
@@ -61,7 +80,7 @@ public class Determiner extends LexicalEntry{
 
         //Scope
 
-        LLAtom scopeConst = new LLAtom(scope, LLTerm.Type.E, LLAtom.LLType.CONST,false);
+        LLAtom scopeConst = new LLAtom(scope.get(role), LLTerm.Type.E, LLAtom.LLType.CONST,false);
 
         //Identifier for the semantics of the whole things
         String detVar = LexVariableHandler.returnNewVar(LexVariableHandler.variableType.LLvar);
@@ -107,12 +126,30 @@ public class Determiner extends LexicalEntry{
 
         /*Semantics*/
 
+        // p = restr
+        SemAtom p = new SemAtom(SemAtom.SemSort.VAR,
+                LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVarComp),
+                new SemType(SemType.AtomicType.E, SemType.AtomicType.T));
+
+        // q = scope
+        SemAtom q = new SemAtom(SemAtom.SemSort.VAR,
+                LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVarComp),
+                new SemType(SemType.AtomicType.E, SemType.AtomicType.T));
+
         if (detType.toLowerCase().equals("a"))
         {
 
+            //binder variable
+            SemAtom semBinder = new SemAtom(SemAtom.SemSort.VAR,
+                    LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVarE),
+                    SemType.AtomicType.E);
 
+            FuncApp restrFA = new FuncApp(p,semBinder);
+            FuncApp scopeFA = new FuncApp(q,semBinder);
+            SemFunction ex = new SemFunction(p,new SemFunction(q, new SemQuantEx(SemQuantEx.SemQuant.EX,
+                    semBinder, new BinaryTerm(restrFA,BinaryTerm.SemOperator.AND,scopeFA))));
 
-
+            this.sem = ex;
             /*
             // Test case for a conjunction with two FuncApps
             FuncApp leftAnd = new FuncApp(varP,varX);
@@ -129,15 +166,37 @@ public class Determiner extends LexicalEntry{
         else if (detType.toLowerCase().equals("every"))
         {
 
+
+            //binder variable
+            SemAtom semBinder = new SemAtom(SemAtom.SemSort.VAR,
+                    LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVarE),
+                    SemType.AtomicType.E);
+
+
+            FuncApp restrFA = new FuncApp(p,semBinder);
+            FuncApp scopeFA = new FuncApp(q,semBinder);
+            SemFunction uni = new SemFunction(p,new SemFunction(q, new SemQuantEx(SemQuantEx.SemQuant.UNI,
+                    semBinder, new BinaryTerm(restrFA, BinaryTerm.SemOperator.IMP,scopeFA))));
+
+            this.sem = uni;
+
         }
 
 
         /*Semantics*/
-
-
-
-
     }
+
+    public static HashMap getterScope()
+    {
+    return Determiner.scope;
+    }
+    // Setter and Getter
+    public static String getScope(String role)
+    {
+        return scope.get(role);
+    }
+
+
 
 }
 

@@ -7,6 +7,7 @@ import edu.stanford.nlp.ling.IndexedWord;
 import edu.stanford.nlp.trees.GrammaticalStructure;
 import edu.stanford.nlp.trees.TypedDependency;
 import gluePaP.lexicon.*;
+import gluePaP.linearLogic.LLAtom;
 import gluePaP.linearLogic.Premise;
 import gluePaP.linearLogic.Sequent;
 
@@ -77,9 +78,10 @@ public class SentenceMeaning {
             //Processes subject
            else if (t.left.contains("subj")) {
 
-                //TODO Subjects usually have the identifier g, what to do with embedded subjects?
+
                 HashMap<String,List<LexicalEntry>> subj =
-                        extractArgumentEntries(t.right,
+                        extractArgumentEntries("subj",
+                                t.right,
                                 LexVariableHandler.returnNewVar(LexVariableHandler.variableType.LLatomE));
                 List<LexicalEntry> main = subj.get("main");
                 subCatFrame.put("agent",main.get(0));
@@ -105,7 +107,8 @@ public class SentenceMeaning {
             //Processes object -- Same problem as subject
           else if (t.left.contains("obj"))
             {
-                HashMap<String,List<LexicalEntry>> obj = extractArgumentEntries(t.right,"h");
+                HashMap<String,List<LexicalEntry>> obj = extractArgumentEntries("obj",t.right,
+                        LexVariableHandler.returnNewVar(LexVariableHandler.variableType.LLatomE));
 
                 List<LexicalEntry> main = (List<LexicalEntry>) obj.get("main");
 
@@ -263,7 +266,8 @@ public class SentenceMeaning {
 
 
     // Process (nominal) arguments (Subjects, objects)
-    private HashMap<String,List<LexicalEntry>> extractArgumentEntries(IndexedWord iw, String identifier)
+    private HashMap<String,List<LexicalEntry>>
+    extractArgumentEntries(String role, IndexedWord iw, String identifier)
     {
 
         //Method variables
@@ -300,10 +304,10 @@ public class SentenceMeaning {
             else if (t.left.equals("det"))
             {
                // String type = t.left
-                Determiner det = new Determiner(identifier,t.right.value(),lexEn);
+                Determiner det = new Determiner(identifier,t.right.value(),role);
 
                 lexEn.put("det",new ArrayList<LexicalEntry>(Arrays.asList(det)));
-                isQuantified = true;
+
             }
         }
         }

@@ -9,7 +9,8 @@ public abstract class LexVariableHandler {
         LLatomT,
         LLatomE,
         SemVar,
-        SemVarE
+        SemVarE,
+        SemVarComp
 /*
 Possibly add more types, e.g. SemVarE, SemVarT etc.
 */
@@ -39,6 +40,9 @@ Possibly add more types, e.g. SemVarE, SemVarT etc.
         reservedVars.put(variableType.SemVarE,
                 new ArrayList<String>());
 
+        reservedVars.put(variableType.SemVarComp,
+                new ArrayList<String>());
+
         return reservedVars;
 
     }
@@ -63,9 +67,18 @@ Possibly add more types, e.g. SemVarE, SemVarT etc.
         reservedVars.put(variableType.LLatomE,
                 new ArrayList<String>(Arrays.asList("g","h","i")));
 
+
         //Variables for Semantics; Entities
         reservedVars.put(variableType.SemVar,
+                new ArrayList<String>(Arrays.asList("s","t","u","v")));
+
+        //Variables for Semantics; Entities
+        reservedVars.put(variableType.SemVarE,
                 new ArrayList<String>(Arrays.asList("x","y","z")));
+
+        //Variables for Semantics predicates of complex type
+         reservedVars.put(variableType.SemVarComp,
+                new ArrayList<String>(Arrays.asList("P","Q","R","S","T")));
 
         return reservedVars;
     }

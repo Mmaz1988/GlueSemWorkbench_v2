@@ -31,7 +31,7 @@ public class GrammarMain {
         List<String> testSentences = new ArrayList<String>();
 
 //        testSentences.add("The ball flew through the broken window");
-        testSentences.add("John snores.");
+  //      testSentences.add("John snores.");
         testSentences.add("John loves Maria.");
         testSentences.add("Every man owns a dog");
    //     testSentences.add("A loud dog barks.");

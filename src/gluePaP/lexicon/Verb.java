@@ -79,12 +79,27 @@ public class Verb extends LexicalEntry {
 
                 LexicalEntry agent = subCatFrame.get("agent");
                 LexicalEntry patient = subCatFrame.get("patient");
+                LLAtom agentRes;
+                LLAtom patientRes;
 
                 /*Linear Logic*/
 
                 //generating consumer
-                LLAtom agentRes = new LLAtom(agent.identifier, LLTerm.Type.E, LLAtom.LLType.CONST, false);
-                LLAtom patientRes = new LLAtom(patient.identifier, LLTerm.Type.E, LLAtom.LLType.CONST, false);
+                if (Determiner.getterScope() != null)
+                {
+                    agentRes = new LLAtom(Determiner.getScope("subj"), LLTerm.Type.E, LLAtom.LLType.CONST, false);
+                } else
+                {
+                    agentRes = new LLAtom(agent.identifier, LLTerm.Type.E, LLAtom.LLType.CONST, false);
+                }
+
+                if (Determiner.getterScope() != null)
+                {
+                    patientRes = new LLAtom(Determiner.getScope("obj"), LLTerm.Type.E, LLAtom.LLType.CONST, false);
+                }
+                else {
+                    patientRes = new LLAtom(patient.identifier, LLTerm.Type.E, LLAtom.LLType.CONST, false);
+                }
                 //generate semantics
                 LLAtom fsem = new LLAtom(LexVariableHandler.returnNewVar(LexVariableHandler.variableType.LLatomT),
                         LLTerm.Type.T, LLAtom.LLType.CONST, true);
