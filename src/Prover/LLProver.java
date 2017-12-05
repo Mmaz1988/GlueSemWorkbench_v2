@@ -169,7 +169,7 @@ public class LLProver {
             }
         }
 
-        Premise combined;
+        Premise combined = null;
 
         // No assumptions or discharges involved, proceed with a "normal" implication elimination
         if (arg.getGlueTerm().assumptions.isEmpty()
@@ -293,7 +293,8 @@ public class LLProver {
     private SemRepresentation convertSemantics(SemRepresentation sem) {
         if (sem instanceof SemFunction) {
             // create new variable with the type of the binder of the inner function
-            SemAtom var = new SemAtom(VAR,"u",((SemFunction) sem).getBinder().getType());
+            SemAtom var = new SemAtom(VAR,LexVariableHandler.returnNewVar(SemVar)
+                    ,((SemFunction) sem).getBinder().getType());
             // apply var
             SemRepresentation compiled = new FuncApp(sem,var).betaReduce();
             SemRepresentation inner = convertSemantics(compiled);

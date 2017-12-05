@@ -58,7 +58,7 @@ public class BinaryTerm extends SemRepresentation{
 
     @Override
     public SemRepresentation clone() {
-        return null;
+        return new BinaryTerm(this);
     }
 
     public enum SemOperator {

@@ -57,9 +57,11 @@ public class SemType {
         }
     }
 
+    // Check if both types are matching simple types of if
+    // their LHS and RHS match up (recursively).
     public boolean equalsType(SemType t) {
-        if (this.simple != null && t.simple != null)
-            return this.simple.equals(t.simple);
+        if (this.simple != null)
+            return t.simple != null && this.simple.equals(t.simple);
         else
             return (this.left.equalsType(t.left) && this.right.equalsType(t.right));
     }

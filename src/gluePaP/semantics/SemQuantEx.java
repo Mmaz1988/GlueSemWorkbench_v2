@@ -14,7 +14,7 @@ public class SemQuantEx extends SemRepresentation{
         this.quantBody = quantBody;
     }
 
-    public SemQuantEx(SemQuantEx s) {
+    private SemQuantEx(SemQuantEx s) {
         this.quantifier = s.quantifier;
         this.binder = s.binder;
         this.quantBody = s.quantBody.clone();

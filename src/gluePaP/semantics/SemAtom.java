@@ -51,9 +51,12 @@ public class SemAtom extends SemRepresentation {
             return this;
     }
 
+    // Moritz: we don't want to actually clone atoms. They need to be the same objects in copied
+    // formulas so the bindings remain intact. As atoms aren't modified during runtime anyways this
+    // is not a problem.
     @Override
     public SemRepresentation clone() {
-        return new SemAtom(this);
+        return this;
     }
 
     public String getName() {
