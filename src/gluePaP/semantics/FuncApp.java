@@ -33,17 +33,21 @@ public class FuncApp extends SemRepresentation{
         return this;
     }
 
-    // Applies the functor to the argument. The functor must be a SemFunc or SemQuantEx and the
-    // applyTo() function of the functor is called for the actual application step.
+    /*
+    Applies the functor to the argument. The functor must be a SemFunc or SemQuantEx and the
+    applyTo() function of the functor is called for the actual application step.
+    */
     public SemRepresentation apply(SemRepresentation arg) {
         if (this.functor instanceof SemFunction) {
             SemFunction lambda = (SemFunction) this.functor;
             if (lambda.getBinder().getType().equalsType(arg.getType())) {
                 SemRepresentation newBody = lambda.getFuncBody();
                 newBody = newBody.applyTo(lambda.getBinder(), arg);
-                newBody = newBody.betaReduce();
-
-                return newBody;
+                //newBody = newBody.betaReduce();
+                if (arg != this.argument)
+                    return new FuncApp(newBody,this.argument).betaReduce();
+                else
+                    return newBody.betaReduce();
             }
         }
         else if (this.functor instanceof SemQuantEx) {
@@ -51,23 +55,29 @@ public class FuncApp extends SemRepresentation{
             if (quant.getBinder().getType().equalsType(arg.getType())) {
                 SemRepresentation newBody = quant.getQuantBody();
                 newBody = newBody.applyTo(quant.getBinder(), arg);
-                newBody = newBody.betaReduce();
-
-                return newBody;
+                //newBody = newBody.betaReduce();
+                if (arg != this.argument)
+                    return new FuncApp(newBody,this.argument);
+                else
+                    return newBody.betaReduce();
             }
+        }
+        else if (this.functor instanceof FuncApp) {
+            return ((FuncApp) this.functor).apply(arg);
         }
         return this;
     }
 
-    // TODO is this enough?
-    // This method is only called when this object is the body of a SemFunc
-    // which amounts to two cases ( [] = functor, () = argument):
-    // a) [LP. Lx. P(x)]  (Ly.predicate(y))
-    // b) [Lu. LP. P  (Lv.u)] (predicate(v)))
-    // In the first case we want to substitute P for the argument and then betaReduce.
-    // In the second case we want to apply the argument of this FuncApp to arg.
-    // Both cases can be done sequentially as an unsuccessful application attempt
-    // simply returns the unsimplified expression.
+    /*
+    This method is only called when this object is the body of a SemFunc
+    which amounts to two cases ( [] = functor, () = argument):
+    a) [LP. Lx. P(x)]  (Ly.predicate(y))
+    b) [Lu. LP. P  (Lv.u)] (predicate(v)))
+    In the first case we want to substitute P for the argument and then betaReduce.
+    In the second case we want to apply the argument of this FuncApp to arg.
+    Both cases can be done sequentially as an unsuccessful application attempt
+    simply returns the unsimplified expression.
+    */
     public SemRepresentation applyTo(SemAtom var,SemRepresentation arg) {
             SemRepresentation appliedFunc = this.functor.applyTo(var, arg);
             if (appliedFunc instanceof FuncApp)

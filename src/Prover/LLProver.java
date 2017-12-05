@@ -143,7 +143,7 @@ public class LLProver {
     if both checks succeed a new Premise is created containing the unified set of indexes
     and the RHS LL term of func (see below)
     */
-    private Premise combinePremises(Premise f, Premise arg) throws VariableBindingException {
+    private Premise combinePremises(Premise f, Premise arg) throws VariableBindingException, ProverException {
 
 
         // possible substitutions for variables and constants
@@ -210,6 +210,8 @@ public class LLProver {
                 combined = combineDisjointID(func, arg);
                 /* create new set of assumptions which can be modified independently from
                 the sets of assumptions of arg and func and add all assumptions to it*/
+                if (combined == null)
+                    throw new ProverException("Meaning side does not match structure of glue side");
                 combined.getGlueTerm().assumptions = new HashSet<>();
                 combined.getGlueTerm().assumptions.addAll(arg.getGlueTerm().assumptions);
                 combined.getGlueTerm().assumptions.addAll(func.getGlueTerm().assumptions);
