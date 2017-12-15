@@ -48,10 +48,14 @@ public class LLAtom extends LLTerm {
 
     @Override
     public String toString() {
-        if (!this.assumptions.isEmpty())
-            return "{" + name + "}";
-       else
-           return name;
+        if (this.assumptions.isEmpty())
+            return this.toPlainString();
+        else {
+            if (this.assumptions.size() == 1 && this.assumptions.contains(this))
+                return "{" + name + "}";
+            else
+                return name + "{" + this.printAssumptions() + "}";
+        }
     }
 
     public String toPlainString() {

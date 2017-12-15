@@ -3,6 +3,7 @@ package gluePaP.linearLogic;
 
 import Prover.Equality;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -62,6 +63,19 @@ public abstract class LLTerm {
     // This is not a regular clone() method, it just calls the copy constructor
     // of the respective class.
     public abstract LLTerm clone();
+
+    public String printAssumptions() {
+        StringBuilder sb = new StringBuilder();
+        ArrayList<LLTerm> as = new ArrayList<>(assumptions);
+        sb.append("{");
+        for (int i = 0; i < as.size(); i++) {
+            sb.append(as.get(i).toPlainString());
+            if (i+1 < as.size())
+                sb.append(",");
+        }
+        sb.append("}");
+        return sb.toString();
+    }
 
 
 }

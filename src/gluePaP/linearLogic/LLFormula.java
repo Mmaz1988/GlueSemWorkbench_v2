@@ -180,13 +180,14 @@ public class LLFormula extends LLTerm {
         String as = "";
         String dc = "";
         if (!(this.assumptions.isEmpty())) {
-             return "{(" + lhs.toPlainString() + " " + operator + " "  + rhs.toPlainString() + ")" + "}";
+            if (this.assumptions.size() == 1 && this.assumptions.contains(this))
+                return "{(" + lhs.toPlainString() + " " + operator + " "  + rhs.toPlainString() + ")" + "}";
+            else
+                as = this.printAssumptions();
         }
 
         if (!this.discharges.isEmpty())
-        {
             dc = this.discharges.toString();
-        }
 
         return "(" + lhs.toPlainString()
                 + dc + " "
