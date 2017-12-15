@@ -93,7 +93,8 @@ public class LLProver {
                     Premise new_premise = this.combinePremises(db_premise,curr_premise);
                     if (new_premise != null) {
                         new_premise.setHistory(db_premise,curr_premise);
-                        System.out.println("Combining premises " + db_premise +" and " + curr_premise + " : " + new_premise);
+                        System.out.println("Combining premises " + curr_premise +" and " + db_premise );
+                        System.out.println("-->" + new_premise);
                         if (new_premise.getPremiseIDs().equals(goalIDs)) {
                             solutions.add(new_premise);
                         }
@@ -111,7 +112,8 @@ public class LLProver {
                     Premise new_premise = this.combinePremises(curr_premise,db_premise);
                     if (new_premise != null) {
                         new_premise.setHistory(curr_premise,db_premise);
-                        System.out.println("Combining premises " + curr_premise +" and " + db_premise + " : " + new_premise);
+                        System.out.println("Combining premises " + curr_premise +" and " + db_premise );
+                        System.out.println("-->" + new_premise);
 
                         if (new_premise.getPremiseIDs().equals(goalIDs)) {
                             solutions.add(new_premise);

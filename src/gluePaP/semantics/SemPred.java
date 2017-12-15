@@ -65,7 +65,7 @@ public class SemPred extends SemRepresentation {
         for (int i = 0; i < argList.size(); i++) {
             sb.append(argList.get(i));
             if (i+1 < argList.size())
-                sb.append(", ");
+                sb.append(",");
         }
         sb.append(")");
         return sb.toString();

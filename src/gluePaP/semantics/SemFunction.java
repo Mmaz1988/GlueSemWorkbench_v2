@@ -42,7 +42,7 @@ public class SemFunction extends SemRepresentation {
 
     @Override
     public String toString() {
-            return operator + binder.toString() + "." + funcBody.toString();
+            return operator + binder.toStringTyped() + "." + funcBody.toString();
     }
 
 

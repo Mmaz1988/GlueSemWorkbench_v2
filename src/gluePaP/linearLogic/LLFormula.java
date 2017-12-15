@@ -188,10 +188,10 @@ public class LLFormula extends LLTerm {
             dc = this.discharges.toString();
         }
 
-        return "(" + lhs.toPlainString() + " "
+        return "(" + lhs.toPlainString()
                 + dc + " "
                 + operator + " " + rhs.toPlainString() + ")"
-                + " " + as;
+                + as;
     }
 
     public String toPlainString() {

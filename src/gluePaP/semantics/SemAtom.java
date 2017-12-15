@@ -69,6 +69,10 @@ public class SemAtom extends SemRepresentation {
 
     @Override
     public String toString() {
+        return name;
+    }
+
+    public String toStringTyped() {
         return name + "_" + getType();
     }
 
