@@ -52,7 +52,6 @@ public class Verb extends LexicalEntry {
                 //generating consumer
                 LLAtom agentRes = new LLAtom(agent.identifier, LLTerm.Type.E, LLAtom.LLType.CONST,false);
 
-                //generate semantics
                 LLAtom fsem = new LLAtom(LexVariableHandler.returnNewVar(LexVariableHandler.variableType.LLatomT),
                         LLTerm.Type.T, LLAtom.LLType.CONST,true);
 
