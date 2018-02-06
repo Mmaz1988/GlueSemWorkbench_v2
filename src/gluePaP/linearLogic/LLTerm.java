@@ -38,8 +38,6 @@ public abstract class LLTerm {
         return termId;
     }
 
-    void setTermId(String termId) { this.termId = termId;}
-
     public boolean isPolarity() { return polarity; }
 
     public void setPolarity(boolean pol) { this.polarity = pol; }
@@ -64,7 +62,7 @@ public abstract class LLTerm {
     // of the respective class.
     public abstract LLTerm clone();
 
-    public String printAssumptions() {
+    String printAssumptions() {
         StringBuilder sb = new StringBuilder();
         ArrayList<LLTerm> as = new ArrayList<>(assumptions);
         sb.append("{");

@@ -7,10 +7,12 @@ import gluePaP.semantics.*;
 import java.util.*;
 
 import static gluePaP.glue.LexVariableHandler.variableType.SemVar;
+import static gluePaP.glue.LexVariableHandler.variableType.SemVarE;
 import static gluePaP.semantics.SemAtom.SemSort.VAR;
 import static gluePaP.semantics.SemType.AtomicType.T;
 
 public class LLProver {
+
 
     private Stack<Premise> agenda = new Stack<>();
     private List<Premise> database = new ArrayList<>();
@@ -93,7 +95,7 @@ public class LLProver {
                     Premise new_premise = this.combinePremises(db_premise,curr_premise);
                     if (new_premise != null) {
                         new_premise.setHistory(db_premise,curr_premise);
-                        System.out.println("Combining premises " + curr_premise +" and " + db_premise );
+                        System.out.println("Combining premises " + curr_premise + " and " + db_premise );
                         System.out.println("-->" + new_premise);
                         if (new_premise.getPremiseIDs().equals(goalIDs)) {
                             solutions.add(new_premise);
@@ -350,7 +352,7 @@ public class LLProver {
                 instantiated and it will be done here.
                 */
                 if (var == null) {
-                    assumpVar = new SemAtom(VAR, LexVariableHandler.returnNewVar(SemVar),
+                    assumpVar = new SemAtom(VAR, LexVariableHandler.returnNewVar(SemVarE),
                             ((SemFunction) p.getSemTerm()).getBinder().getType().getLeft());
                 }
                 Premise assumption = convertNested(new Premise(seq.getNewID(), ((LLFormula) f.getLhs()).getLhs()), assumpVar);

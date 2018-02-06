@@ -106,6 +106,7 @@ Possibly add more types, e.g. SemVarE, SemVarT etc.
                     String varPrime = var + String.join("", Collections.nCopies(i, "'"));
                     if (!usedVariables.get(varType).
                             contains(varPrime)) {
+                        usedVariables.get(varType).add(varPrime);
                         return varPrime;
                     }
                 }
@@ -113,13 +114,6 @@ Possibly add more types, e.g. SemVarE, SemVarT etc.
             }
         return null;
     }
-
-
-    public static void addUsedVariable(variableType varType,String var)
-    {
-    usedVariables.get(varType).add(var);
-    }
-
 
     public static void resetVars()
     {
