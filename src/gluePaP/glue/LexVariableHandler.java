@@ -23,27 +23,27 @@ Possibly add more types, e.g. SemVarE, SemVarT etc.
 
     //Instantiates memory for used vars
     private static HashMap usedVars() {
-        HashMap<variableType, List<String>> reservedVars = new HashMap<>();
+        HashMap<variableType, List<String>> usedVars = new HashMap<>();
 
-        reservedVars.put(variableType.LLvar,
+        usedVars.put(variableType.LLvar,
                 new ArrayList<String>());
 
-        reservedVars.put(variableType.LLatomT,
+        usedVars.put(variableType.LLatomT,
                 new ArrayList<String>());
 
-        reservedVars.put(variableType.LLatomE,
+        usedVars.put(variableType.LLatomE,
                 new ArrayList<String>());
 
-        reservedVars.put(variableType.SemVar,
+        usedVars.put(variableType.SemVar,
                 new ArrayList<String>());
 
-        reservedVars.put(variableType.SemVarE,
+        usedVars.put(variableType.SemVarE,
                 new ArrayList<String>());
 
-        reservedVars.put(variableType.SemVarComp,
+        usedVars.put(variableType.SemVarComp,
                 new ArrayList<String>());
 
-        return reservedVars;
+        return usedVars;
 
     }
 
@@ -106,6 +106,7 @@ Possibly add more types, e.g. SemVarE, SemVarT etc.
                     String varPrime = var + String.join("", Collections.nCopies(i, "'"));
                     if (!usedVariables.get(varType).
                             contains(varPrime)) {
+                        usedVariables.get(varType).add(varPrime);
                         return varPrime;
                     }
                 }
