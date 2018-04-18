@@ -54,7 +54,7 @@ public class LLAtom extends LLTerm {
             if (this.assumptions.size() == 1 && this.assumptions.contains(this))
                 return "{" + name + "}";
             else
-                return name + "{" + this.printAssumptions() + "}";
+                return name + this.printAssumptions();
         }
     }
 

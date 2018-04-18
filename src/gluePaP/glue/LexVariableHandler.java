@@ -115,13 +115,6 @@ Possibly add more types, e.g. SemVarE, SemVarT etc.
         return null;
     }
 
-
-    public static void addUsedVariable(variableType varType,String var)
-    {
-    usedVariables.get(varType).add(var);
-    }
-
-
     public static void resetVars()
     {
         usedVariables = usedVars();

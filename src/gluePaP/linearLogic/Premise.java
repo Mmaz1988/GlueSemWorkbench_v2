@@ -7,6 +7,14 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class Premise {
+    //Definitions for colored console output
+    public static final String ANSI_RESET = "\u001B[0m";
+    public static final String ANSI_RED = "\u001B[31m";
+    public static final String ANSI_GREEN = "\u001B[32m";
+    public static final String ANSI_YELLOW = "\u001B[33m";
+    public static final String ANSI_BLUE = "\u001B[34m";
+
+
     private HashSet<Integer> premiseIDs;
     private LLTerm glueTerm;
     private SemRepresentation semTerm;
@@ -52,7 +60,7 @@ public class Premise {
 
     @Override
     public String toString() {
-        return glueTerm + " : " + semTerm + premiseIDs;
+        return ANSI_BLUE + glueTerm + ANSI_RESET + " : " + ANSI_YELLOW + semTerm + ANSI_RESET +  premiseIDs;
     }
 
 
