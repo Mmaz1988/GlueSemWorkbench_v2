@@ -76,7 +76,7 @@ public class Determiner extends LexicalEntry{
         LLAtom restr = new LLAtom(identifier, LLTerm.Type.T, LLAtom.LLType.CONST,false);
         //LexVariableHandler.addUsedVariable(LexVariableHandler.variableType.LLatomT,identifier);
 
-        LLFormula restrSem = new LLFormula(subjsem,new LLImplication(),restr,false);
+        LLFormula restrSem = new LLFormula(subjsem,restr,false);
 
         //Scope
 
@@ -89,16 +89,16 @@ public class Determiner extends LexicalEntry{
         LLAtom scopeSem = new LLAtom(detVar,
                         LLTerm.Type.T, LLAtom.LLType.VAR,false);
 
-        LLFormula scope = new LLFormula(scopeConst,new LLImplication(),scopeSem,false);
+        LLFormula scope = new LLFormula(scopeConst,scopeSem,false);
 
         // for the resulting resource
         LLAtom detRes = new LLAtom(detVar,
                 LLTerm.Type.T, LLAtom.LLType.VAR,true);
 
 
-        LLFormula scopeComplete = new LLFormula(scope, new LLImplication(),detRes,true,detRes);
+        LLFormula scopeComplete = new LLFormula(scope,detRes,true,detRes);
 
-        LLFormula detSem = new LLFormula(restrSem,new LLImplication(),scopeComplete,true);
+        LLFormula detSem = new LLFormula(restrSem,scopeComplete,true);
 
         this.llTerm = detSem;
 
@@ -116,10 +116,10 @@ public class Determiner extends LexicalEntry{
         LLAtom right = new LLAtom(var, LLTerm.Type.T, LLAtom.LLType.VAR,true);
 
         //antecedent
-        LLFormula ant = new LLFormula(argsem,new LLImplication(),left,false);
+        LLFormula ant = new LLFormula(argsem,left,false);
 
         //wrapping in consequent
-        LLFormula det = new LLFormula(ant,new LLImplication(),right,true, binder);
+        LLFormula det = new LLFormula(ant,right,true, binder);
 
        // this.llTerm = det;
 

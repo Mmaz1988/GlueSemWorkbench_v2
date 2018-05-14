@@ -98,7 +98,7 @@ public class LinearLogicParser {
 
         /*
         character is an upper case letter
-        reservered characters: 'A' for universal quantifier
+        reserved characters: 'A' for universal quantifier
         */
         else if (c >= 66 && c <= 90){
             try {
@@ -125,7 +125,7 @@ public class LinearLogicParser {
         }
 
         // character is a minus, might be first part of linear implication
-        else if (c == 45) {
+       /* else if (c == 45) {
             // currently reading in a linear implication
             if(unparsedInput.charAt(pos) == 111) {
                 pos++;
@@ -134,20 +134,27 @@ public class LinearLogicParser {
             else {
                 throw new ParserInputException(pos+1);
             }
-        }
+        }*/
 
         // character is a left parenthesis, set scope
         else if (c == 40) {
 
             LLTerm left = parseTerm(unparsedInput, !polarity);
-            LLOperator op = (LLOperator) parseTerm(unparsedInput, polarity);
-            LLTerm right = parseTerm(unparsedInput, polarity);
-            pos++;
-            return new LLFormula(left,op,right, polarity);
+            //skip whitespaces
+            while(unparsedInput.charAt(pos) == ' '){
+                pos++;
+            }
+            if(unparsedInput.charAt(pos) == '-' && unparsedInput.charAt(pos+1) == 'o') {
+                LLTerm right = parseTerm(unparsedInput, polarity);
+                pos++;
+                return new LLFormula(left,right,polarity);
+            }
+            throw new ParserInputException(pos,"implication expected");
+
         }
 
         else if (c == 41) {
-            throw new ParserInputException("Unmatched closing paranthesis");
+            throw new ParserInputException("Unmatched closing parenthesis");
         }
 
         /*
@@ -161,10 +168,11 @@ public class LinearLogicParser {
                 throw new ParserInputException(pos);
             pos++;
             LLTerm left = parseTerm(unparsedInput, !polarity);
-            LLOperator op = (LLOperator) parseTerm(unparsedInput, polarity);
+
+            //LLOperator op = (LLOperator) parseTerm(unparsedInput, polarity);
             LLTerm right = parseTerm(unparsedInput, polarity);
             pos++;
-            return new LLFormula(left,op,right, polarity,(LLAtom) var);
+            return new LLFormula(left,right, polarity,(LLAtom) var);
 
         }
 

@@ -93,10 +93,7 @@ public class SentenceMeaning {
                 //Adds modifiers of the subject
                 if (!subj.keySet().isEmpty()) {
                     for (String key : subj.keySet()) {
-                        for (LexicalEntry lex : subj.get(key))
-                        {
-                            lexicalEntries.add(lex);
-                        }
+                        lexicalEntries.addAll(subj.get(key));
                     }
                 }
                 it.remove();
@@ -120,15 +117,13 @@ public class SentenceMeaning {
                 //Adds modifiers of the object
                 if (!obj.keySet().isEmpty()) {
                     for (String key : obj.keySet()) {
-                        for (LexicalEntry lex : obj.get(key))
-                        {
-                            lexicalEntries.add(lex);
-                        }
+
+                        lexicalEntries.addAll(obj.get(key));
                     }
                 }
                 it.remove();
                 rootArity++;
-                System.out.println( t.right.toString() + " This is a object");
+                System.out.println( t.right.toString() + " This is an object");
             }
         }
         /* Verb is generated last based on the structure of the sentence
@@ -142,36 +137,12 @@ public class SentenceMeaning {
            rootverb = new Verb(subCatFrame,root.value());
            lexicalEntries.add(rootverb);
 
-           /*
-            StringBuilder sb = new StringBuilder();
-
-           sb.append("(");
-           sb.append(((Noun) subCatFrame.get("agent")).formula);
-           sb.append(" -o ");
-           sb.append("(");
-           sb.append(((Noun) subCatFrame.get("patient")).formula);
-           sb.append(" -o ");
-           sb.append(" f_t");
-           sb.append("))");
-          // sb.append(")");
-            premises.add(sb.toString());
-
-            */
-
            LexVariableHandler.resetVars();
 
       }
 
 
         System.out.println(root.toString() + " has arity " + rootArity);
-
-        //System.out.print(premises);
-
-        // Calling engine for deduction for test purposes here
-
-        //LinearLogicParser parser = new LinearLogicParser(premises);
-
-
 
 
         //LinearLogicParser parser = new LinearLogicParser(testquant);
@@ -265,7 +236,9 @@ public class SentenceMeaning {
     }
 
 
-    // Process (nominal) arguments (Subjects, objects)
+    // Process (nominal) arguments (Subjects, objects):
+    // extracts the nominal heads and all modifiers linked to it
+    // returns a HashMap containing all lexical entries related to that argument
     private HashMap<String,List<LexicalEntry>>
     extractArgumentEntries(String role, IndexedWord iw, String identifier)
     {
@@ -285,31 +258,31 @@ public class SentenceMeaning {
 
         if (dependencyMap.get(iw) != null)
         {
-        for (Tuple t : dependencyMap.get(iw))
-        {
-
-            if (t.left.equals("amod"))
+            for (Tuple t : dependencyMap.get(iw))
             {
-                if (!lexEn.containsKey("mod"))
+
+                if (t.left.equals("amod"))
                 {
-                    List<LexicalEntry> modifiers = new ArrayList<>();
-                    modifiers.add(new Modifier(identifier));
-                    lexEn.put("mod",modifiers);
+                    if (!lexEn.containsKey("mod"))
+                    {
+                        List<LexicalEntry> modifiers = new ArrayList<>();
+                        modifiers.add(new Modifier(identifier));
+                        lexEn.put("mod",modifiers);
+                    }
+                    else
+                    {
+                        lexEn.get("mod").add(new Modifier(identifier));
+                    }
                 }
-                else
+                else if (t.left.equals("det"))
                 {
-                    lexEn.get("mod").add(new Modifier(identifier));
+                   // String type = t.left
+                    Determiner det = new Determiner(identifier,t.right.value(),role);
+
+                    lexEn.put("det",new ArrayList<LexicalEntry>(Arrays.asList(det)));
+
                 }
             }
-            else if (t.left.equals("det"))
-            {
-               // String type = t.left
-                Determiner det = new Determiner(identifier,t.right.value(),role);
-
-                lexEn.put("det",new ArrayList<LexicalEntry>(Arrays.asList(det)));
-
-            }
-        }
         }
 
         if (iw.tag().equals("NN"))

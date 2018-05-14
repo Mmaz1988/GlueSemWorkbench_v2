@@ -78,12 +78,11 @@ public class LLProver {
         while (!agenda.empty()) {
             Premise curr_premise = agenda.pop();
             // add premise to database
-            database.add(curr_premise);
             for (int i = 0; i < database.size(); i++) {
                 Premise db_premise = database.get(i);
 
-                if (db_premise == curr_premise)
-                    continue;
+                //if (db_premise == curr_premise)
+                 //   continue;
 
                 /*
                 Check if the database term is a (complex) formula, if so try to do an
@@ -126,6 +125,9 @@ public class LLProver {
                     }
                 }
             }
+            // After all combination checks are made, add the current premise to the database
+            database.add(curr_premise);
+
         }
 
         /*
@@ -278,8 +280,8 @@ public class LLProver {
                 return term;
              */
 
-            if (f.getLhs() instanceof LLFormula &&
-                    ((LLFormula) f.getLhs()).getOperator() instanceof LLImplication) {
+            if (f.getLhs() instanceof LLFormula /*
+                    ((LLFormula) f.getLhs()).getOperator() instanceof LLImplication*/) {
                 return convertNested(p,null);
             }
             else {

@@ -3,7 +3,6 @@ package gluePaP.lexicon;
 import gluePaP.glue.LexVariableHandler;
 import gluePaP.linearLogic.LLAtom;
 import gluePaP.linearLogic.LLFormula;
-import gluePaP.linearLogic.LLImplication;
 import gluePaP.linearLogic.LLTerm;
 import gluePaP.semantics.*;
 
@@ -55,7 +54,7 @@ public class Verb extends LexicalEntry {
                 LLAtom fsem = new LLAtom(LexVariableHandler.returnNewVar(LexVariableHandler.variableType.LLatomT),
                         LLTerm.Type.T, LLAtom.LLType.CONST,true);
 
-                this.llTerm = new LLFormula(agentRes, new LLImplication(),fsem,true );
+                this.llTerm = new LLFormula(agentRes,fsem,true );
 
 
                 /*Semantics*/
@@ -103,9 +102,9 @@ public class Verb extends LexicalEntry {
                 LLAtom fsem = new LLAtom(LexVariableHandler.returnNewVar(LexVariableHandler.variableType.LLatomT),
                         LLTerm.Type.T, LLAtom.LLType.CONST, true);
 
-                LLFormula firstArg = new LLFormula(patientRes, new LLImplication(), fsem, true);
+                LLFormula firstArg = new LLFormula(patientRes, fsem, true);
 
-                this.llTerm = new LLFormula(agentRes, new LLImplication(), firstArg, true);
+                this.llTerm = new LLFormula(agentRes, firstArg, true);
 
 
                 /*Semantics*/

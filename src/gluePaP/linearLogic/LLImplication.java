@@ -1,3 +1,4 @@
+/*
 package gluePaP.linearLogic;
 
 import Prover.Equality;
@@ -38,3 +39,4 @@ public class LLImplication extends LLTerm implements LLOperator {
 
 
 }
+*/

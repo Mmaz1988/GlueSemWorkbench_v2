@@ -6,6 +6,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+
+import static gluePaP.linearLogic.LLFormula.LLOperator.LLIMP;
+
 public class LLFormula extends LLTerm {
     private String name;
     private LLTerm lhs;
@@ -15,6 +18,10 @@ public class LLFormula extends LLTerm {
     private LLAtom variable;
 
     private HashMap<LLAtom,List<LLAtom>> boundVariables = new HashMap<>();
+
+    public enum LLOperator{
+        LLIMP
+    }
 
 
     public LLTerm getLhs() {
@@ -38,7 +45,7 @@ public class LLFormula extends LLTerm {
         this.lhs = lhs;
         this.rhs = rhs;
         this.setPolarity(pol);
-        this.operator = new LLImplication();
+        this.operator = LLIMP;
         this.name = this.toString();
     }
 
@@ -46,7 +53,7 @@ public class LLFormula extends LLTerm {
         this.lhs = lhs;
         this.rhs = rhs;
         this.setPolarity(pol);
-        this.operator = new LLImplication();
+        this.operator = LLIMP;
         this.name = this.toString();
         this.variable = var;
 
@@ -80,8 +87,10 @@ public class LLFormula extends LLTerm {
         this.variable = var;
 
         if (variable != null) {
-            List<LLAtom> bvl = Stream.concat(findBoundOccurrences(lhs).stream(),
-                    findBoundOccurrences(rhs).stream()).collect(Collectors.toList());
+            List<LLAtom> bvl = new ArrayList<>();
+            bvl.addAll(findBoundOccurrences(lhs));
+            bvl.addAll(findBoundOccurrences(rhs));
+                    //Stream.concat(findBoundOccurrences(lhs).stream(),findBoundOccurrences(rhs).stream()).collect(Collectors.toList());
             this.boundVariables.put(variable, bvl);
         }
 
@@ -181,7 +190,7 @@ public class LLFormula extends LLTerm {
         String dc = "";
         if (!(this.assumptions.isEmpty())) {
             if (this.assumptions.size() == 1 && this.assumptions.contains(this))
-                return "{(" + lhs.toPlainString() + " " + operator + " "  + rhs.toPlainString() + ")" + "}";
+                return "{(" + lhs.toPlainString() + " " + "\u22B8" + " "  + rhs.toPlainString() + ")" + "}";
             else
                 as = this.printAssumptions();
         }
@@ -191,12 +200,12 @@ public class LLFormula extends LLTerm {
 
         return "(" + lhs.toPlainString()
                 + dc + " "
-                + operator + " " + rhs.toPlainString() + ")"
+                + "\u22B8" + " " + rhs.toPlainString() + ")"
                 + as;
     }
 
     public String toPlainString() {
-        return "(" + lhs.toPlainString() + " " + operator + " "  + rhs.toPlainString() + ")";
+        return "(" + lhs.toPlainString() + " " + "\u22B8" + " "  + rhs.toPlainString() + ")";
     }
 
     @Override
@@ -209,8 +218,7 @@ public class LLFormula extends LLTerm {
     public boolean checkEquivalence(LLTerm term) {
         if (term instanceof LLFormula) {
             if (lhs.checkEquivalence(((LLFormula) term).lhs)
-                    && rhs.checkEquivalence(((LLFormula) term).rhs)
-                    && ((LLTerm) this.operator).checkEquivalence(((LLTerm) ((LLFormula) term).operator))) {
+                    && rhs.checkEquivalence(((LLFormula) term).rhs)) {
                 return true;
             }
         }
@@ -221,17 +229,18 @@ public class LLFormula extends LLTerm {
     public LinkedHashSet<Equality> checkCompatibility(LLTerm term) {
         if (term instanceof LLFormula){
             if (this.lhs.checkCompatibility(((LLFormula) term).lhs) != null &&
-                    this.rhs.checkCompatibility(((LLFormula) term).rhs) != null &&
-                    ((LLTerm) this.operator).checkCompatibility(((LLTerm) ((LLFormula) term).operator)) != null)
+                    this.rhs.checkCompatibility(((LLFormula) term).rhs) != null)
                     {
                 LinkedHashSet<Equality> left = this.lhs.checkCompatibility(((LLFormula) term).lhs);
                 LinkedHashSet<Equality> right = this.rhs.checkCompatibility(((LLFormula) term).rhs);
-                LinkedHashSet<Equality> operator = ((LLTerm) this.operator).checkCompatibility(((LLTerm) ((LLFormula) term).operator));
 
 
-                LinkedHashSet<Equality> dummy = Stream.concat(right.stream(), left.stream()).collect(Collectors.toCollection(LinkedHashSet::new));
-
-                return Stream.concat(dummy.stream(), operator.stream()).collect(Collectors.toCollection(LinkedHashSet::new));
+                //LinkedHashSet<Equality> dummy = Stream.concat(right.stream(), left.stream()).collect(Collectors.toCollection(LinkedHashSet::new));
+                LinkedHashSet<Equality> dummy = new LinkedHashSet<>();
+                dummy.addAll(right);
+                dummy.addAll(left);
+                return dummy;
+                //return Stream.concat(dummy.stream(), Stream.of(operator)).collect(Collectors.toCollection(LinkedHashSet::new));
             }
         }
 

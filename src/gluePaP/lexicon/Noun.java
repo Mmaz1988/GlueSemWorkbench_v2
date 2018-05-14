@@ -4,7 +4,6 @@ import edu.stanford.nlp.ling.IndexedWord;
 import gluePaP.glue.LexVariableHandler;
 import gluePaP.linearLogic.LLAtom;
 import gluePaP.linearLogic.LLFormula;
-import gluePaP.linearLogic.LLImplication;
 import gluePaP.linearLogic.LLTerm;
 import gluePaP.semantics.SemAtom;
 import gluePaP.semantics.SemFunction;
@@ -49,7 +48,7 @@ public class Noun extends LexicalEntry {
                 LLAtom fsem = new LLAtom(identifier,
                         LLTerm.Type.T, LLAtom.LLType.CONST,true);
 
-                this.llTerm = new LLFormula(agentRes, new LLImplication(),fsem,true );
+                this.llTerm = new LLFormula(agentRes,fsem,true );
 
                 /*Semantics*/
 
