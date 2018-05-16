@@ -18,7 +18,7 @@ public class LLProver {
     private List<Premise> database = new ArrayList<>();
     private List<Premise> solutions = new ArrayList<>();
     private Sequent seq;
-
+    private Stack<SemAtom> assumptionVars = new Stack<>();
 
 
     public LLProver(Sequent seq) {
@@ -284,7 +284,7 @@ public class LLProver {
 
             if (f.getLhs() instanceof LLFormula /*
                     ((LLFormula) f.getLhs()).getOperator() instanceof LLImplication*/) {
-                return convertNested(p,null);
+                return convertNested(p);
             }
             else {
                 // the term is of the form (A -o B), where A is an atomic formula
@@ -340,7 +340,7 @@ public class LLProver {
     * This is achieved by only adding the single assumption that is currently
     * being extracted to the dependency's discharges.
     * */
-    private Premise convertNested(Premise p, SemAtom var) throws ProverException {
+    private Premise convertNested(Premise p) throws ProverException {
         if (p.getGlueTerm() instanceof LLFormula) {
             LLFormula f = (LLFormula) p.getGlueTerm();
 
@@ -350,22 +350,18 @@ public class LLProver {
                 if (!(p.getSemTerm() instanceof SemFunction))
                     throw new ProverException("Meaning side does not match structure of glue side");
 
-                SemAtom assumpVar = var;
-                /*
-                In a non-recursive call (directly from convert() the new variable is not yet
-                instantiated and it will be done here.
-                */
-                if (var == null) {
-                    assumpVar = new SemAtom(VAR, LexVariableHandler.returnNewVar(SemVarE),
-                            ((SemFunction) p.getSemTerm()).getBinder().getType().getLeft());
-                }
-                Premise assumption = convertNested(new Premise(seq.getNewID(), ((LLFormula) f.getLhs()).getLhs()), assumpVar);
+
+                SemAtom assumpVar = new SemAtom(VAR, LexVariableHandler.returnNewVar(SemVarE),
+                        ((SemFunction) p.getSemTerm()).getBinder().getType().getLeft());
+                assumptionVars.push(assumpVar);
+
+                Premise assumption = convertNested(new Premise(seq.getNewID(), ((LLFormula) f.getLhs()).getLhs()));
                 assumption.getGlueTerm().assumptions.add(assumption.getGlueTerm());
                 agenda.add(assumption);
                 Premise dependency = new Premise(p.getPremiseIDs(), p.getSemTerm(), new LLFormula(((LLFormula) f.getLhs()).getRhs(),
                         f.getOperator(), f.getRhs(), f.isPolarity(), f.getVariable()));
                 dependency.getGlueTerm().discharges.add(assumption.getGlueTerm());
-                dependency = convertNested(dependency,assumpVar);
+                dependency = convertNested(dependency);
                 /*
                 If reordering is required (see function below), reorder the dependency, by
                 temporarily removing the newly created lambda term on the meaning side
@@ -385,7 +381,7 @@ public class LLProver {
             else if (f.getRhs() instanceof  LLFormula &&
                     ((LLFormula) f.getRhs()).getLhs() instanceof LLFormula) {
                 // TODO could this end in an endless loop? If so something is wrong here...
-                p = convertNested(reorder(p),var);
+                p = convertNested(reorder(p));
             }
             /*
             simple implication; create new lambda function which binds var (the variable
@@ -395,7 +391,7 @@ public class LLProver {
             */
             // TODO better comment and example needed...
             SemAtom binderVar = new SemAtom(VAR,LexVariableHandler.returnNewVar(SemVar),T);
-            SemFunction newArg = new SemFunction(var,binderVar);
+            SemFunction newArg = new SemFunction(assumptionVars.pop(),binderVar);
             //((SemFunction) p.getSemTerm()).setArgument(newArg);
             p.setSemTerm(new SemFunction(binderVar,new FuncApp(p.getSemTerm(),newArg)));
             return p;
@@ -403,7 +399,7 @@ public class LLProver {
         // only an atomic glue term which will become an assumption;
         // return it and add the new variable as meaning side
         else {
-            p.setSemTerm(var);
+            p.setSemTerm(assumptionVars.peek());
             return p;
         }
     }
