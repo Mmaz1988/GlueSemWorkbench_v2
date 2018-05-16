@@ -196,6 +196,8 @@ public class LLProver {
 
             /* create new set of assumptions which can be modified independently from
             the set of assumptions of arg and func and add all assumptions to it */
+            if (combined == null)
+                throw new ProverException("Meaning side does not match structure of glue side");
             combined.getGlueTerm().assumptions = new HashSet<>();
             combined.getGlueTerm().assumptions.addAll(arg.getGlueTerm().assumptions);
             combined.getGlueTerm().assumptions.addAll(func.getGlueTerm().assumptions);

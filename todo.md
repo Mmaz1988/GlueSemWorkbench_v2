@@ -17,8 +17,10 @@
 
 #Structure/modularization
 
-1. SentenceMeaning.java: unabhängig von syntaktischem Input machen. Sollte Objekte  (oder einfach Strings) entgegen nehmen anhand derer die resources erstellt werden. Die Objekte/Strings werden dann in Klassen erzeugt die für die jeweilige Schnittstelle (UD, XLE etc) spezifisch sind.
+- SentenceMeaning.java: unabhängig von syntaktischem Input machen. Sollte Objekte  (oder einfach Strings) entgegen nehmen anhand derer die resources erstellt werden. Die Objekte/Strings werden dann in Klassen erzeugt die für die jeweilige Schnittstelle (UD, XLE etc) spezifisch sind.
 
-2. restructure betaConversion?
+- restructure betaConversion?
 
-3. why are we using streams for bound variables (e.g in the constructor of LLFormula)
+- Make scope handling an extra class, instead of a static field in Determiner class
+
+- why are we using streams for bound variables (e.g in the constructor of LLFormula)

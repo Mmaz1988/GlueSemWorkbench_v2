@@ -24,11 +24,8 @@ public class Determiner extends LexicalEntry{
                 {
                 scope = new HashMap<>();
 
-                scope.put(role,var);
-                } else
-                {
-                    scope.put(role,var); 
                 }
+                scope.put(role,var);
 
             }
 
@@ -79,7 +76,7 @@ public class Determiner extends LexicalEntry{
         LLFormula restrSem = new LLFormula(subjsem,restr,false);
 
         //Scope
-
+        //TODO intransitive verbs need the same glue variable than the one for the restrictor here
         LLAtom scopeConst = new LLAtom(scope.get(role), LLTerm.Type.E, LLAtom.LLType.CONST,false);
 
         //Identifier for the semantics of the whole things

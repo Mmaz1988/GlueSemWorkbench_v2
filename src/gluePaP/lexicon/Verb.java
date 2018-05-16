@@ -47,9 +47,14 @@ public class Verb extends LexicalEntry {
                 LexicalEntry agent = subCatFrame.get("agent");
 
                 /*Linear Logic*/
-
-                //generating consumer
-                LLAtom agentRes = new LLAtom(agent.identifier, LLTerm.Type.E, LLAtom.LLType.CONST,false);
+                LLAtom agentRes;
+                if (Determiner.getterScope() != null)
+                {
+                    agentRes = new LLAtom(Determiner.getScope("subj"), LLTerm.Type.E, LLAtom.LLType.CONST, false);
+                } else
+                {
+                    agentRes = new LLAtom(agent.identifier, LLTerm.Type.E, LLAtom.LLType.CONST, false);
+                }
 
                 LLAtom fsem = new LLAtom(LexVariableHandler.returnNewVar(LexVariableHandler.variableType.LLatomT),
                         LLTerm.Type.T, LLAtom.LLType.CONST,true);
