@@ -18,7 +18,8 @@ public class LLProver {
     private List<Premise> database = new ArrayList<>();
     private List<Premise> solutions = new ArrayList<>();
     private Sequent seq;
-    private Stack<SemAtom> assumptionVars = new Stack<>();
+    //private Stack<SemAtom> assumptionVars = new Stack<>();
+    private List<SemAtom> assumptionVars = new ArrayList<>();
 
 
     public LLProver(Sequent seq) {
@@ -65,6 +66,7 @@ public class LLProver {
         }
         seq.getLhs().clear();
         seq.getLhs().addAll(agenda);
+        System.out.println("Agenda: "+agenda.toString());
         /*
         Initialize the set containing the IDs of all premises of the sequent.
         This set is used to determine possible goal terms.
@@ -353,7 +355,7 @@ public class LLProver {
 
                 SemAtom assumpVar = new SemAtom(VAR, LexVariableHandler.returnNewVar(SemVarE),
                         ((SemFunction) p.getSemTerm()).getBinder().getType().getLeft());
-                assumptionVars.push(assumpVar);
+                assumptionVars.add(assumpVar);
 
                 Premise assumption = convertNested(new Premise(seq.getNewID(), ((LLFormula) f.getLhs()).getLhs()));
                 assumption.getGlueTerm().assumptions.add(assumption.getGlueTerm());
@@ -366,14 +368,14 @@ public class LLProver {
                 If reordering is required (see function below), reorder the dependency, by
                 temporarily removing the newly created lambda term on the meaning side
                 and reapplying it after the reordering process.
-                */
+
                 if (((LLFormula) dependency.getGlueTerm()).getRhs() instanceof LLFormula) {
                     SemRepresentation inner = ((SemFunction) dependency.getSemTerm()).getFuncBody();
                     Premise reordered = reorder(new Premise(p.getPremiseIDs(),inner,dependency.getGlueTerm()));
                     dependency = new Premise(p.getPremiseIDs(),
                             new SemFunction(((SemFunction) dependency.getSemTerm()).getBinder(),reordered.getSemTerm()),reordered.getGlueTerm());
                 }
-
+                */
                 return dependency;
             }
             // There might be cases like a -o ((b -o c) -o d) where reordering is necessary before
@@ -391,7 +393,7 @@ public class LLProver {
             */
             // TODO better comment and example needed...
             SemAtom binderVar = new SemAtom(VAR,LexVariableHandler.returnNewVar(SemVar),T);
-            SemFunction newArg = new SemFunction(assumptionVars.pop(),binderVar);
+            SemFunction newArg = new SemFunction(assumptionVars.remove(0),binderVar);
             //((SemFunction) p.getSemTerm()).setArgument(newArg);
             p.setSemTerm(new SemFunction(binderVar,new FuncApp(p.getSemTerm(),newArg)));
             return p;
@@ -399,7 +401,7 @@ public class LLProver {
         // only an atomic glue term which will become an assumption;
         // return it and add the new variable as meaning side
         else {
-            p.setSemTerm(assumptionVars.peek());
+            p.setSemTerm(assumptionVars.get(0));
             return p;
         }
     }
