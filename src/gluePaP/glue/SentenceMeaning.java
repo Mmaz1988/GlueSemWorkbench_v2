@@ -27,7 +27,7 @@ public class SentenceMeaning {
     public SentenceMeaning(GrammaticalStructure parsedSentence) throws VariableBindingException
     {
         this.dependencyStructure = parsedSentence;
-
+        LexVariableHandler.resetVars();
         /* A depdency map is a hash map whose key is a word in the parsed sentence and whose value is
         a list of all (direct) dependencies of this word. For example:
         Every dog barks.
@@ -137,7 +137,6 @@ public class SentenceMeaning {
            rootverb = new Verb(subCatFrame,root.value());
            lexicalEntries.add(rootverb);
 
-           LexVariableHandler.resetVars();
 
       }
 

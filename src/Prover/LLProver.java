@@ -298,7 +298,10 @@ public class LLProver {
                 // the term is of the form (A -o B), where A is an atomic formula
                 // no conversion step needed on the glue side, but lambda abstraction on
                 // the meaning side is necessary. But only if there has been no conversion?
-                p.setSemTerm(this.convertSemantics(p.getSemTerm()));
+                // TODO suspended semantic conversion for now...
+                // ...because it has no use and adds unnecessary complexity to the variable assignments
+                //
+                //p.setSemTerm(this.convertSemantics(p.getSemTerm()));
                 return p;
             }
         }
@@ -412,7 +415,7 @@ public class LLProver {
         // only an atomic glue term which will become an assumption;
         // return it and add the new variable as meaning side
         else {
-            p.setSemTerm(assumptionVars.get(0));
+            p.setSemTerm(assumptionVars.get(assumptionVars.size()-1));
             return p;
         }
     }
