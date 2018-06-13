@@ -26,10 +26,12 @@ public class LLProver {
         this.seq = seq;
     }
 
-    /*
-    Does a deduction of a given sequent by evaluating the list of premises on its LHS
-    and trying to find a valid proof for its RHS.
-    TODO Check if compilation works properly
+    /**TODO Check if compilation works properly
+     * Does a deduction of a given sequent by evaluating the list of premises on its LHS
+     * and trying to find a valid proof for its RHS.
+     * @return A list of all valid deductions
+     * @throws ProverException If the proof is invalid
+     * @throws VariableBindingException If an invalid variable binding is detected
      */
     public List<Premise> deduce() throws ProverException,VariableBindingException {
         /*
@@ -84,7 +86,7 @@ public class LLProver {
                 Premise db_premise = database.get(i);
 
                 //if (db_premise == curr_premise)
-                 //   continue;
+                //   continue;
 
                 /*
                 Check if the database term is a (complex) formula, if so try to do an
@@ -144,19 +146,20 @@ public class LLProver {
     }
 
 
-    /*
-    implementation of the linear implication elimination rule for indexed premises
+    /**
+    Implementation of the linear implication elimination rule for indexed premises
     check if arg is equivalent to LHS of func and then return RHS of func
     then check if the sets of indexes are disjoint
     if both checks succeed a new Premise is created containing the unified set of indexes
     and the RHS LL term of func (see below)
+     @param f the functor to be applied
+     @param arg the argument that should match the antecedent of the functor
+     @return the combined premise if successful, null if otherwise
     */
     private Premise combinePremises(Premise f, Premise arg) throws VariableBindingException, ProverException {
 
 
         // possible substitutions for variables and constants
-
-
         Premise func = new Premise(f.getPremiseIDs(),f.getSemTerm().clone(),f.getGlueTerm().clone());
 
         LinkedHashSet<Equality> eqs = ((LLFormula) func.getGlueTerm()).getLhs().checkCompatibility(arg.getGlueTerm());
@@ -236,11 +239,15 @@ public class LLProver {
     }
 
 
-    /*
+    /**
     * Check if the LHS of func is equivalent to arg
     * and if the two sets of indexes associated with them are disjoint.
     * If so return the simplified term (the RHS of func) with combined ID sets and
     * apply the meaning side of the argument to that of the functor and beta-reduce.
+     * @param func the functor to be applied
+     * @param arg the argument that the functor is applied to
+     * @return the combined premise with the unified ID set
+     *
     * */
     private Premise combineDisjointID(Premise func, Premise arg) {
         HashSet<Integer> combined_IDs = new HashSet<>();
@@ -254,14 +261,6 @@ public class LLProver {
             FuncApp applied = new FuncApp(func.getSemTerm(),arg.getSemTerm());
             SemRepresentation reducedSem = applied.betaReduce();
 
-            /*Mark: this is a problem since if we use the same func twice
-            the resulting object uses the same term in both occasions.
-            Thus, if a future modification of one instances of the term occurs,
-            the other "copy" will also receive this modification leading to
-            unwanted combinations of terms.
-            Moritz: Solved by creating a new LLAtom as copy of the RHS of func. If the RHS
-            is an LLFormula then just copy the reference, it shouldn't cause any problems.
-            */
             if (((LLFormula) func.getGlueTerm()).getRhs() instanceof  LLAtom) {
                 return new Premise(combined_IDs, reducedSem,
                         new LLAtom((LLAtom) ((LLFormula) func.getGlueTerm()).getRhs()));
@@ -274,7 +273,14 @@ public class LLProver {
 
 
     // TODO add lists for modifiers and skeletons (see Dick's code)
-    // converts premises by calling convertSemantics() and convertNested()
+    /**
+     * converts premises by calling convertSemantics() and convertNested()
+     * @param p The premise to be converted
+     * @return The converted premise, where all complex antecedents are compiled out as separate
+     *          premises. See Hepple(1996) for a descritption of the compilation process
+     * @see #convertNested(Premise)
+     * @throws ProverException
+     */
     public Premise convert(Premise p) throws ProverException {
         if (p.getGlueTerm() instanceof LLFormula) {
             LLFormula f = (LLFormula) p.getGlueTerm();
@@ -316,7 +322,10 @@ public class LLProver {
         return sem;
     }
 
-    /*
+    /**
+    * This method does the actual compilation process. It adds created "assumptions" as additional
+     * premises to the agenda and returns the compilated premise. The algorithm is based on Hepple(1996)
+     * and works as follows:
     * The LHS of the LHS of f will become an assumption which in turn gets converted as well.
     * The assumption gets converted as well and is marked as an assumption
     * by adding itself to its set of assumptions. That is, an LLTerm "a" is an assumption
@@ -341,6 +350,8 @@ public class LLProver {
     * while combining the extracted premises.
     * This is achieved by only adding the single assumption that is currently
     * being extracted to the dependency's discharges.
+     * @param p The nested premise to be converted
+     * @return The converted premise
     * */
     private Premise convertNested(Premise p) throws ProverException {
         if (p.getGlueTerm() instanceof LLFormula) {
@@ -406,14 +417,16 @@ public class LLProver {
         }
     }
 
-    /*
-    * A method for restructuring the glue side of a premise so that it has the form A -o (b -o C)
+    /**
+    * A helper method for restructuring the glue side of a premise so that it has the form A -o (b -o C)
     * (where lower case letters denote atoms and upper case letters complex
     * formulas). The full term consists only of subformulas of this form where A and C are at most binary formulas
     * This is the form that is compilable by our algorithm. Glue terms are swapped to obtain
     * the desired form. All swapping operations on the glue side amount to swapping operations of lambda binders
     * on the meaning side to keep the two sides aligned.
-    *
+    * @param p The premise to be reordered
+     * @return The reordered premise
+     * @throws ProverException
     * */
     private Premise reorder(Premise p) throws ProverException{
         // Glue term has the form A -o (B -o C)
@@ -450,7 +463,13 @@ public class LLProver {
         return p;
     }
 
-
+    /**
+     * A helper method for the reorder() method
+     * @see #reorder(Premise)
+     * @param outer the semantic function to be swapped
+     * @return the swapped semantic function
+     * @throws ProverException
+     */
     private SemFunction swapLambdas(SemFunction outer) throws ProverException{
         if (outer.getFuncBody() instanceof SemFunction) {
             SemFunction inner = (SemFunction) outer.getFuncBody();
@@ -460,11 +479,13 @@ public class LLProver {
             throw new ProverException("Semantic term does not match structure of glue side.");
     }
 
-
-    //returns false if a variable is assigned more than one value
+    /**
+     * Checks for duplicate bindings and returns false if a variable is assigned more than one value
+     * @param in
+     * @return true if no duplicate bindings were detected, false if otherwise
+     */
     private static boolean checkDuplicateBinding(LinkedHashSet<Equality> in) {
-        List<Equality> eqs = new ArrayList<>();
-        eqs.addAll(0,in);
+        List<Equality> eqs = new ArrayList<>(in);
 
         // no multiple assignments possible
         if (eqs.size() <= 1)

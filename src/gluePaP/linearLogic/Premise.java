@@ -60,7 +60,8 @@ public class Premise {
 
     @Override
     public String toString() {
-        return ANSI_BLUE + glueTerm + ANSI_RESET + " : " + ANSI_YELLOW + semTerm + ANSI_RESET +  premiseIDs;
+        //return ANSI_BLUE + glueTerm + ANSI_RESET + " : " + ANSI_YELLOW + semTerm + ANSI_RESET +  premiseIDs;
+        return glueTerm + " : " + semTerm +  premiseIDs;
     }
 
 

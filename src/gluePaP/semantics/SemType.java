@@ -57,7 +57,7 @@ public class SemType {
         }
     }
 
-    // Check if both types are matching simple types of if
+    // Check if both types are matching simple types or if
     // their LHS and RHS match up (recursively).
     public boolean equalsType(SemType t) {
         if (this.simple != null)

@@ -98,7 +98,7 @@ public class LLAtom extends LLTerm {
                 if (((LLAtom) term).getLLtype().equals(LLType.CONST)) {
                     if (this.getName().equals(((LLAtom) term).getName()) &&
                             this.getType().equals(term.getType())) {
-                        LinkedHashSet<Equality> emptyList = new LinkedHashSet();
+                        LinkedHashSet<Equality> emptyList = new LinkedHashSet<>();
                         return emptyList;
                     } else
                         {
