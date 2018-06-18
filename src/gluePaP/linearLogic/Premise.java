@@ -17,6 +17,7 @@ public class Premise {
 
     private HashSet<Integer> premiseIDs;
     private LLTerm glueTerm;
+    private boolean modifier;
     private SemRepresentation semTerm;
     private Premise func;
     private Premise arg;
@@ -48,13 +49,23 @@ public class Premise {
         this.premiseIDs = premiseIDs;
         this.glueTerm = glueTerm;
         this.semTerm = semTerm;
+        if (glueTerm instanceof LLFormula &&
+                (((LLFormula) glueTerm).getLhs().checkEquivalence(((LLFormula) glueTerm).getRhs())))
+            setModifier(true);
+        else
+            setModifier(false);
     }
 
     //For work with Lexicon
     public Premise(HashSet<Integer> premiseIDs, LexicalEntry lexEn) {
         this.premiseIDs = premiseIDs;
-        this.glueTerm = lexEn.llTerm;
-        this.semTerm = lexEn.sem;
+        this.glueTerm = lexEn.getLlTerm();
+        this.semTerm = lexEn.getSem();
+        if (glueTerm instanceof LLFormula &&
+                (((LLFormula) glueTerm).getLhs().checkEquivalence(((LLFormula) glueTerm).getRhs())))
+            setModifier(true);
+        else
+            setModifier(false);
     }
 
 
@@ -74,5 +85,13 @@ public class Premise {
     public void setHistory(Premise func, Premise arg) {
         this.func = func;
         this.arg = arg;
+    }
+
+    public boolean isModifier() {
+        return modifier;
+    }
+
+    public void setModifier(boolean modifier) {
+        this.modifier = modifier;
     }
 }

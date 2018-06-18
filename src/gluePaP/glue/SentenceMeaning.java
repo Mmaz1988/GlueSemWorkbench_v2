@@ -265,12 +265,12 @@ public class SentenceMeaning {
                     if (!lexEn.containsKey("mod"))
                     {
                         List<LexicalEntry> modifiers = new ArrayList<>();
-                        modifiers.add(new Modifier(identifier));
+                        modifiers.add(new Modifier(identifier,t.right.value()));
                         lexEn.put("mod",modifiers);
                     }
                     else
                     {
-                        lexEn.get("mod").add(new Modifier(identifier));
+                        lexEn.get("mod").add(new Modifier(identifier,t.right.value()));
                     }
                 }
                 else if (t.left.equals("det"))

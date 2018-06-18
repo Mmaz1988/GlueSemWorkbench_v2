@@ -45,27 +45,6 @@ public class Determiner extends LexicalEntry{
 
         String var = LexVariableHandler.returnNewVar(LexVariableHandler.variableType.LLvar);
 
-
-
-      //  this.llFormula = "A" +var + ".(" + i + " -o " + var + ") -o " + var;
-
-
-
-
-        // (g_e -o g_t) -o (h_e -o X_t) -o X_t//
-
-        /* {g'_e}  g_t[g'_e] -o (h_e -o X_t) -o X_t
-                  (h_e -o X_t) -o g_t[g'_e] -o X_t
-           {h'_e}      X_t[h'_e] -o g_t[g'_e] -o X_t
-             g -o g_t : Lx.yawn(x)
-             h -o h_t : Lx.person(x)
-
-             g_t{g'_e}
-             h_t{h'_e}
-
-
-             */
-
         //Restrictor
 
         LLAtom subjsem = new LLAtom(identifier, LLTerm.Type.E, LLAtom.LLType.CONST,true);
@@ -76,7 +55,6 @@ public class Determiner extends LexicalEntry{
         LLFormula restrSem = new LLFormula(subjsem,restr,false);
 
         //Scope
-        //TODO intransitive verbs need the same glue variable than the one for the restrictor here
         LLAtom scopeConst = new LLAtom(scope.get(role), LLTerm.Type.E, LLAtom.LLType.CONST,false);
 
         //Identifier for the semantics of the whole things
@@ -97,7 +75,7 @@ public class Determiner extends LexicalEntry{
 
         LLFormula detSem = new LLFormula(restrSem,scopeComplete,true);
 
-        this.llTerm = detSem;
+        this.setLlTerm(detSem);
 
 
         /*Linear Logic*/
@@ -146,7 +124,7 @@ public class Determiner extends LexicalEntry{
             SemFunction ex = new SemFunction(p,new SemFunction(q, new SemQuantEx(SemQuantEx.SemQuant.EX,
                     semBinder, new BinaryTerm(restrFA,BinaryTerm.SemOperator.AND,scopeFA))));
 
-            this.sem = ex;
+            this.setSem(ex);
             /*
             // Test case for a conjunction with two FuncApps
             FuncApp leftAnd = new FuncApp(varP,varX);
@@ -175,7 +153,7 @@ public class Determiner extends LexicalEntry{
             SemFunction uni = new SemFunction(p,new SemFunction(q, new SemQuantEx(SemQuantEx.SemQuant.UNI,
                     semBinder, new BinaryTerm(restrFA, BinaryTerm.SemOperator.IMP,scopeFA))));
 
-            this.sem = uni;
+            this.setSem(uni);
 
         }
 

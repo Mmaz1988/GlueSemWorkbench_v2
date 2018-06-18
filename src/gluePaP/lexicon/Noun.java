@@ -31,10 +31,10 @@ public class Noun extends LexicalEntry {
             case N_NNP:
 
                 //this.llFormula = identifier + "_e";
-                this.llTerm = new LLAtom(identifier, LLTerm.Type.E, LLAtom.LLType.CONST,true);
+                this.setLlTerm(new LLAtom(identifier, LLTerm.Type.E, LLAtom.LLType.CONST,true));
 
-                this.sem = new SemAtom(SemAtom.SemSort.CONST,main.value().substring(0,1).toLowerCase(),
-                        SemType.AtomicType.E);
+                this.setSem(new SemAtom(SemAtom.SemSort.CONST,main.value().substring(0,1).toLowerCase(),
+                        SemType.AtomicType.E));
                 break;
 
             case N_NN:
@@ -48,7 +48,7 @@ public class Noun extends LexicalEntry {
                 LLAtom fsem = new LLAtom(identifier,
                         LLTerm.Type.T, LLAtom.LLType.CONST,true);
 
-                this.llTerm = new LLFormula(agentRes,fsem,true );
+                this.setLlTerm(new LLFormula(agentRes,fsem,true ));
 
                 /*Semantics*/
 
@@ -59,7 +59,7 @@ public class Noun extends LexicalEntry {
                 );
 
                 SemFunction nounSem = new SemFunction(agentVar,new SemPred(main.value(),agentVar));
-                this.sem = nounSem;
+                this.setSem(nounSem);
 
                 break;
 

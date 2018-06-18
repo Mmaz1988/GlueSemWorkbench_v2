@@ -18,23 +18,6 @@ public class Verb extends LexicalEntry {
 
 
     this.lexType = lexTypeFromSubCat(subCatFrame);
-/*
-        StringBuilder sb = new StringBuilder();
-
-        sb.append("(");
-        sb.append(((Noun) subCatFrame.get("agent")).formula);
-        sb.append(" -o ");
-        sb.append("(");
-        sb.append(((Noun) subCatFrame.get("patient")).formula);
-        sb.append(" -o ");
-        sb.append(" f_t");
-        sb.append("))");
-        // sb.append(")");
-        premises.add(sb.toString());
-
-        */
-
-        //StringJoiner sj = new StringJoiner(" ");
 
         //f is standard variable for complete f-structure
         //g is standard variable for subject
@@ -59,7 +42,7 @@ public class Verb extends LexicalEntry {
                 LLAtom fsem = new LLAtom(LexVariableHandler.returnNewVar(LexVariableHandler.variableType.LLatomT),
                         LLTerm.Type.T, LLAtom.LLType.CONST,true);
 
-                this.llTerm = new LLFormula(agentRes,fsem,true );
+                 this.setLlTerm(new LLFormula(agentRes,fsem,true ));
 
 
                 /*Semantics*/
@@ -72,7 +55,7 @@ public class Verb extends LexicalEntry {
 
                 SemFunction verbSem = new SemFunction(agentVar,new SemPred(lemma,agentVar));
 
-                this.sem = verbSem;
+                this.setSem(verbSem);
 
                 break;
             }
@@ -109,7 +92,7 @@ public class Verb extends LexicalEntry {
 
                 LLFormula firstArg = new LLFormula(patientRes, fsem, true);
 
-                this.llTerm = new LLFormula(agentRes, firstArg, true);
+                this.setLlTerm(new LLFormula(agentRes, firstArg, true));
 
 
                 /*Semantics*/
@@ -131,7 +114,7 @@ public class Verb extends LexicalEntry {
                                             new SemFunction(patientVar,
                                                     new SemPred(lemma,agentVar,patientVar)));
 
-                this.sem = verbSem;
+                this.setSem(verbSem);
 
                 break;
             }

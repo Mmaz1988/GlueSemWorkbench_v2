@@ -12,14 +12,26 @@ import java.util.List;
 
 public class LexicalEntry {
 
-    public String identifier;
-    //public String llFormula;
-    public LLTerm llTerm;
-    public SemRepresentation sem;
-    public LexVariableHandler handler;
+    String identifier;
 
-    //TODO maybe we want to remove this at some point?
-    public Integer llId = 0;
+    public LLTerm getLlTerm() {
+        return llTerm;
+    }
+
+    public void setLlTerm(LLTerm llTerm) {
+        this.llTerm = llTerm;
+    }
+
+    public SemRepresentation getSem() {
+        return sem;
+    }
+
+    public void setSem(SemRepresentation sem) {
+        this.sem = sem;
+    }
+
+    private LLTerm llTerm;
+    private SemRepresentation sem;
 
     public enum LexType {
 
@@ -41,14 +53,5 @@ public class LexicalEntry {
         MOD
 
     }
-
-    public String assignID()
-    {
-        this.llId++;
-        return this.llId.toString();
-    }
-
-    //basic way for returning an unused variable out of an available set of variables
-
 
 }

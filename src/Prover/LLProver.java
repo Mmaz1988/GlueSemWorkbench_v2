@@ -277,18 +277,16 @@ public class LLProver {
      * converts premises by calling convertSemantics() and convertNested()
      * @param p The premise to be converted
      * @return The converted premise, where all complex antecedents are compiled out as separate
-     *          premises. See Hepple(1996) for a descritption of the compilation process
+     *          premises. See Hepple(1996) for a descritption of the compilation process.
+     *          Following Gupta&Lamping(1998) modifier formulas (of the form A -o A, where A
+     *          may be atomic or complex) are not compiled.
      * @see #convertNested(Premise)
      * @throws ProverException
      */
     public Premise convert(Premise p) throws ProverException {
-        if (p.getGlueTerm() instanceof LLFormula) {
+        if (p.getGlueTerm() instanceof LLFormula && !p.isModifier()) {
             LLFormula f = (LLFormula) p.getGlueTerm();
 
-            // TODO the formula is a modifer no need to convert it
-            /*if (f.getLhs().checkEquivalence(f.getRhs()))
-                return term;
-             */
 
             if (f.getLhs() instanceof LLFormula /*
                     ((LLFormula) f.getLhs()).getOperator() instanceof LLImplication*/) {
