@@ -42,7 +42,7 @@ public class SentenceMeaning {
         this.dependencyMap = generateDependencyMap();
         System.out.println(dependencyStructure.typedDependencies());
 
-         // Returns the root verb
+        // Returns the root verb
         IndexedWord root = returnRoot();
 
         //SubCatFrame produced from syntactic input; is used to derive meaning constructors
@@ -76,7 +76,7 @@ public class SentenceMeaning {
             }
 
             //Processes subject
-           else if (t.left.contains("subj")) {
+            else if (t.left.contains("subj")) {
 
 
                 HashMap<String,List<LexicalEntry>> subj =
@@ -102,7 +102,7 @@ public class SentenceMeaning {
             }
 
             //Processes object -- Same problem as subject
-          else if (t.left.contains("obj"))
+            else if (t.left.contains("obj"))
             {
                 HashMap<String,List<LexicalEntry>> obj = extractArgumentEntries("obj",t.right,
                         LexVariableHandler.returnNewVar(LexVariableHandler.variableType.LLatomE));
@@ -132,13 +132,13 @@ public class SentenceMeaning {
 
         Verb rootverb;
 
-       if (dependencyMap.get(root).isEmpty())
-       {
-           rootverb = new Verb(subCatFrame,root.value());
-           lexicalEntries.add(rootverb);
+        if (dependencyMap.get(root).isEmpty())
+        {
+            rootverb = new Verb(subCatFrame,root.value());
+            lexicalEntries.add(rootverb);
 
 
-      }
+        }
 
 
         System.out.println(root.toString() + " has arity " + rootArity);
@@ -181,9 +181,9 @@ public class SentenceMeaning {
                 values.add(new Tuple(structure.reln().toString(),structure.dep()));
                 dependencyMap.put(structure.gov(), values);
             }
-                else
-                    {
-                        dependencyMap.get(structure.gov()).add(new Tuple(structure.reln().toString(),structure.dep()));
+            else
+            {
+                dependencyMap.get(structure.gov()).add(new Tuple(structure.reln().toString(),structure.dep()));
             }
         }
         return dependencyMap;
@@ -194,14 +194,14 @@ public class SentenceMeaning {
     // checks if a word has a specific governing dependency relation
     public boolean hasDependencyType(String dependency,IndexedWord word)
     {
-         for (Tuple tuple : dependencyMap.get(word))
-         {
-             if (dependency.equals(tuple.left))
-             {
-                 return true;
-             }
-         }
-         return false;
+        for (Tuple tuple : dependencyMap.get(word))
+        {
+            if (dependency.equals(tuple.left))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
 
@@ -224,13 +224,13 @@ public class SentenceMeaning {
     {
 
         for (TypedDependency td : dependencyStructure.typedDependencies())
-              {
-                  if (td.reln().toString().equals("root"))
-                  {
-                      return td.dep();
-                  }
-              }
-              // TODO Add exception?
+        {
+            if (td.reln().toString().equals("root"))
+            {
+                return td.dep();
+            }
+        }
+        // TODO Add exception?
         return null;
     }
 
@@ -275,7 +275,7 @@ public class SentenceMeaning {
                 }
                 else if (t.left.equals("det"))
                 {
-                   // String type = t.left
+                    // String type = t.left
                     Determiner det = new Determiner(identifier,t.right.value(),role);
 
                     lexEn.put("det",new ArrayList<LexicalEntry>(Arrays.asList(det)));
@@ -298,7 +298,7 @@ public class SentenceMeaning {
         return lexEn;
     }
 
-    }
+}
 
 
 

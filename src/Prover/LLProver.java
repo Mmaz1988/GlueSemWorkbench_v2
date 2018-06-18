@@ -99,7 +99,7 @@ public class LLProver {
                     if (new_premise != null) {
                         new_premise.setHistory(db_premise,curr_premise);
                         System.out.println("Combining premises " + curr_premise + " and " + db_premise );
-                        System.out.println("-->" + new_premise);
+                        System.out.println("--> " + new_premise);
                         if (new_premise.getPremiseIDs().equals(goalIDs)) {
                             solutions.add(new_premise);
                         }
@@ -272,7 +272,6 @@ public class LLProver {
 
 
 
-    // TODO add lists for modifiers and skeletons (see Dick's code)
     /**
      * converts premises by calling convertSemantics() and convertNested()
      * @param p The premise to be converted
@@ -394,7 +393,6 @@ public class LLProver {
             // the term can be compiled
             else if (f.getRhs() instanceof  LLFormula &&
                     ((LLFormula) f.getRhs()).getLhs() instanceof LLFormula) {
-                // TODO could this end in an endless loop? If so something is wrong here...
                 p = convertNested(reorder(p));
             }
             /*
@@ -403,7 +401,6 @@ public class LLProver {
             term as argument to the current meaning term and wrap everything in a new lambda
             term binding the newly created variable.
             */
-            // TODO better comment and example needed...
             SemAtom binderVar = new SemAtom(VAR,LexVariableHandler.returnNewVar(SemVar),T);
             SemFunction newArg = new SemFunction(assumptionVars.remove(0),binderVar);
             //((SemFunction) p.getSemTerm()).setArgument(newArg);
