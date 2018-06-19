@@ -14,12 +14,15 @@ import static gluePaP.semantics.SemType.AtomicType.T;
 public class LLProver {
 
 
-    private Stack<Premise> agenda = new Stack<>();
-    private List<Premise> database = new ArrayList<>();
+    private LinkedList<Premise> skeletons = new LinkedList<>();
+    private LinkedList<Premise> modifiers = new LinkedList<>();
+    private LinkedList<Premise> database = new LinkedList<>();
+    private List<Premise> skeletonTree = new ArrayList<>();
     private List<Premise> solutions = new ArrayList<>();
     private Sequent seq;
     //private Stack<SemAtom> assumptionVars = new Stack<>();
     private List<SemAtom> assumptionVars = new ArrayList<>();
+    private int steps;
 
 
     public LLProver(Sequent seq) {
@@ -35,22 +38,24 @@ public class LLProver {
      */
     public List<Premise> deduce() throws ProverException,VariableBindingException {
         /*
-        Initialize an agenda stack initially containing all premises from the sequent.
+        Initialize an skeletons stack initially containing all premises from the sequent.
         Premises are popped from the stack into the database and additionally created
         premises get pushed onto the stack.
         Then initialize a database of all premises which is used to look for possible
         implication elimination steps.
         */
-        agenda.removeAllElements();
+        skeletons.clear();
+        modifiers.clear();
         database.clear();
-        solutions.clear();
+        skeletonTree.clear();
+        steps = 0;
 
         for (Premise p: seq.getLhs()) {
 
             /*
             * Check all premises for nested formulas. Alle nested formulas
             * (with two or more nested operators) are compiled following the algorithm
-            * outlined by Hepple(1996). All extracted assumptions are added to the agenda
+            * outlined by Hepple(1996). All extracted assumptions are added to the skeletons
             * as new premises with new IDs. Assumptions are premises that contain themselves
             * in their set of assumptions, but in the course of the derivation they may carry
             * additional assumptions (when they combine with other assumptions).
@@ -61,14 +66,18 @@ public class LLProver {
             */
 
             try {
-                agenda.push(convert(p));
+                Premise compiled = convert(p);
+                if (compiled.isModifier())
+                    skeletons.add(compiled);
+                else
+                    modifiers.add(compiled);
             } catch (ProverException e) {
                 e.printStackTrace();
             }
         }
         seq.getLhs().clear();
-        seq.getLhs().addAll(agenda);
-        System.out.println("Agenda: "+agenda.toString());
+        seq.getLhs().addAll(skeletons);
+        System.out.println("Agenda: "+ skeletons.toString());
         /*
         Initialize the set containing the IDs of all premises of the sequent.
         This set is used to determine possible goal terms.
@@ -76,73 +85,95 @@ public class LLProver {
         HashSet<Integer> goalIDs = seq.getMaxIDSet();
 
         /*
-        The algorithm loops over the agenda until it is empty or until a premise is created
+        The algorithm loops over the skeletons until it is empty or until a premise is created
         that contains all indexes of the sequent's premises and is therefore the goal.
         */
-        while (!agenda.empty()) {
-            Premise curr_premise = agenda.pop();
+        while (!(skeletons.size() == 0)) {
+            Premise curr_premise = skeletons.pop();
             // add premise to database
-            for (int i = 0; i < database.size(); i++) {
-                Premise db_premise = database.get(i);
-
+            for (Premise db_premise : database) {
                 //if (db_premise == curr_premise)
                 //   continue;
-
+                steps++;
                 /*
                 Check if the database term is a (complex) formula, if so try to do an
-                implication elimination step with the current term on the agenda (curr_premise).
+                implication elimination step with the current term on the skeletons (curr_premise).
                 If successful add the newly created Premise to the database.
                 */
                 if (db_premise.getGlueTerm() instanceof LLFormula) {
 
-                    Premise new_premise = this.combinePremises(db_premise,curr_premise);
+                    Premise new_premise = this.combinePremises(db_premise, curr_premise);
                     if (new_premise != null) {
-                        new_premise.setHistory(db_premise,curr_premise);
-                        System.out.println("Combining premises " + curr_premise + " and " + db_premise );
+                        new_premise.setHistory(db_premise, curr_premise);
+                        System.out.println("Combining premises " + curr_premise + " and " + db_premise);
                         System.out.println("--> " + new_premise);
                         if (new_premise.getPremiseIDs().equals(goalIDs)) {
-                            solutions.add(new_premise);
-                        }
-                        else {
-                            agenda.push(new_premise);
+                            skeletonTree.add(new_premise);
+                        } else {
+                            skeletons.push(new_premise);
                         }
                         continue;
                     }
                 }
                 /*
-                Check if the current term on the agenda is a (complex) formula. If so do the same procedure
+                Check if the current term on the skeletons is a (complex) formula. If so, do the same procedure
                 as above, but reverse (apply db_premise to curr_premise).
                  */
                 if (curr_premise.getGlueTerm() instanceof LLFormula) {
-                    Premise new_premise = this.combinePremises(curr_premise,db_premise);
+                    Premise new_premise = this.combinePremises(curr_premise, db_premise);
                     if (new_premise != null) {
-                        new_premise.setHistory(curr_premise,db_premise);
-                        System.out.println("Combining premises " + curr_premise +" and " + db_premise );
+                        new_premise.setHistory(curr_premise, db_premise);
+                        System.out.println("Combining premises " + curr_premise + " and " + db_premise);
                         System.out.println("-->" + new_premise);
 
                         if (new_premise.getPremiseIDs().equals(goalIDs)) {
-                            solutions.add(new_premise);
-                        }
-                        else {
-                            agenda.push(new_premise);
+                            skeletonTree.add(new_premise);
+                        } else {
+                            skeletons.push(new_premise);
                         }
                     }
                 }
             }
             // After all combination checks are made, add the current premise to the database
-            database.add(curr_premise);
+            if (curr_premise.isModifier())
+                database.addFirst(curr_premise);
+            else
+                database.addLast(curr_premise);
 
         }
 
         /*
-        All premises of the agenda were added to the database. If there are
+        All premises of the skeletons were added to the database. If there are
         no possible solutions now, return a ProverException, otherwise return
         the set of solutions.
         */
-        if (solutions.isEmpty())
+        if (skeletonTree.isEmpty())
             throw new ProverException("No valid proof found for premises");
-        else
-            return solutions;
+
+        /*
+        After all skeleton derivations have been made the derivation tree is combined
+        with the modifiers. For each modifier all possible nodes where the modifier might
+        be interpolated into the tree are checked and the interpolations executed, returning a
+        new derivation tree.
+         */
+
+
+        return solutions;
+    }
+
+    /**
+     * Helper method for doing the modifier interpolations.
+     * @param skel
+     * @param m
+     * @return
+     */
+    //TODO only pseudocode yet
+    private Premise interpolateModifiers(Premise skel, LinkedList<Premise> m) {
+        LinkedList<Premise> modifiers = new LinkedList<>(m);
+        //do interpolation
+        modifiers.removeFirst();
+        return interpolateModifiers(skel, modifiers);
+
     }
 
 
@@ -259,7 +290,8 @@ public class LLProver {
             // Apply and beta-reduce meaning side
             //FuncApp applied = new FuncApp(new SemFunction((SemFunction) func.getSemTerm()),arg.getSemTerm());
             FuncApp applied = new FuncApp(func.getSemTerm(),arg.getSemTerm());
-            SemRepresentation reducedSem = applied.betaReduce();
+            //SemRepresentation reducedSem = applied.betaReduce();
+            SemRepresentation reducedSem = applied;
 
             if (((LLFormula) func.getGlueTerm()).getRhs() instanceof  LLAtom) {
                 return new Premise(combined_IDs, reducedSem,
@@ -324,7 +356,7 @@ public class LLProver {
 
     /**
     * This method does the actual compilation process. It adds created "assumptions" as additional
-     * premises to the agenda and returns the compilated premise. The algorithm is based on Hepple(1996)
+     * premises to the skeletons and returns the compilated premise. The algorithm is based on Hepple(1996)
      * and works as follows:
     * The LHS of the LHS of f will become an assumption which in turn gets converted as well.
     * The assumption gets converted as well and is marked as an assumption
@@ -370,7 +402,7 @@ public class LLProver {
 
                 Premise assumption = convertNested(new Premise(seq.getNewID(), ((LLFormula) f.getLhs()).getLhs()));
                 assumption.getGlueTerm().assumptions.add(assumption.getGlueTerm());
-                agenda.add(assumption);
+                skeletons.add(assumption);
                 Premise dependency = new Premise(p.getPremiseIDs(), p.getSemTerm(), new LLFormula(((LLFormula) f.getLhs()).getRhs(),
                         f.getOperator(), f.getRhs(), f.isPolarity(), f.getVariable()));
                 dependency.getGlueTerm().discharges.add(assumption.getGlueTerm());
