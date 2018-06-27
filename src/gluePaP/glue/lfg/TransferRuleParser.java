@@ -17,8 +17,8 @@ public class TransferRuleParser {
     }
 
     public class TransferRule {
-        private String antecedents;
-        private String consequents;
+        private List<String> antecedents;
+        private List<String> consequents;
     }
 
 
