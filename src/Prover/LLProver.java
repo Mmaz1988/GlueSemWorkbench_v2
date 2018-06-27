@@ -12,10 +12,12 @@ import static gluePaP.semantics.SemAtom.SemSort.VAR;
 import static gluePaP.semantics.SemType.AtomicType.T;
 
 public class LLProver {
-
+    // For Lev algorithm
+    private Set<CategoryNode> catGraph = new HashSet<>();
 
     private LinkedList<Premise> skeletons = new LinkedList<>();
     private LinkedList<Premise> modifiers = new LinkedList<>();
+    private LinkedList<Premise> agenda = new LinkedList<>();
     private LinkedList<Premise> database = new LinkedList<>();
     private List<Premise> skeletonTree = new ArrayList<>();
     private List<Premise> solutions = new ArrayList<>();
@@ -67,17 +69,20 @@ public class LLProver {
 
             try {
                 Premise compiled = convert(p);
-                if (compiled.isModifier())
+                if (!compiled.isModifier())
                     skeletons.add(compiled);
                 else
                     modifiers.add(compiled);
+                agenda.add(compiled);
+                //createCategoryGraph();
             } catch (ProverException e) {
                 e.printStackTrace();
             }
         }
         seq.getLhs().clear();
         seq.getLhs().addAll(skeletons);
-        System.out.println("Agenda: "+ skeletons.toString());
+        seq.getLhs().addAll(modifiers);
+        System.out.println("Agenda: "+ seq.getLhs().toString());
         /*
         Initialize the set containing the IDs of all premises of the sequent.
         This set is used to determine possible goal terms.
@@ -91,6 +96,19 @@ public class LLProver {
         while (!(skeletons.size() == 0)) {
             Premise curr_premise = skeletons.pop();
             // add premise to database
+
+            // Check if one or more modifier are applicable to the premise and apply them right away
+            Iterator<Premise> it = modifiers.iterator();
+            while (it.hasNext()) {
+                Premise mod = it.next();
+                if (((LLFormula) mod.getGlueTerm()).getLhs().checkEquivalence(curr_premise.getGlueTerm())) {
+                    curr_premise = combinePremises(mod, curr_premise);
+                    //curr_premise.setSemTerm(curr_premise.getSemTerm().betaReduce());
+                    it.remove();
+                }
+
+            }
+
             for (Premise db_premise : database) {
                 //if (db_premise == curr_premise)
                 //   continue;
@@ -108,7 +126,7 @@ public class LLProver {
                         System.out.println("Combining premises " + curr_premise + " and " + db_premise);
                         System.out.println("--> " + new_premise);
                         if (new_premise.getPremiseIDs().equals(goalIDs)) {
-                            skeletonTree.add(new_premise);
+                            solutions.add(new_premise);
                         } else {
                             skeletons.push(new_premise);
                         }
@@ -127,7 +145,7 @@ public class LLProver {
                         System.out.println("-->" + new_premise);
 
                         if (new_premise.getPremiseIDs().equals(goalIDs)) {
-                            skeletonTree.add(new_premise);
+                            solutions.add(new_premise);
                         } else {
                             skeletons.push(new_premise);
                         }
@@ -135,10 +153,7 @@ public class LLProver {
                 }
             }
             // After all combination checks are made, add the current premise to the database
-            if (curr_premise.isModifier())
-                database.addFirst(curr_premise);
-            else
-                database.addLast(curr_premise);
+            database.addFirst(curr_premise);
 
         }
 
@@ -147,33 +162,130 @@ public class LLProver {
         no possible solutions now, return a ProverException, otherwise return
         the set of solutions.
         */
-        if (skeletonTree.isEmpty())
+        if (solutions.isEmpty())
             throw new ProverException("No valid proof found for premises");
-
-        /*
-        After all skeleton derivations have been made the derivation tree is combined
-        with the modifiers. For each modifier all possible nodes where the modifier might
-        be interpolated into the tree are checked and the interpolations executed, returning a
-        new derivation tree.
-         */
-
 
         return solutions;
     }
 
     /**
      * Helper method for doing the modifier interpolations.
-     * @param skel
+     * @param fullDerivation
      * @param m
      * @return
      */
-    //TODO only pseudocode yet
-    private Premise interpolateModifiers(Premise skel, LinkedList<Premise> m) {
+    private Premise interpolateModifiers(Premise fullDerivation, LinkedList<Premise> m) {
         LinkedList<Premise> modifiers = new LinkedList<>(m);
-        //do interpolation
-        modifiers.removeFirst();
-        return interpolateModifiers(skel, modifiers);
+        LinkedList<Premise> skelPremises = new LinkedList<>(m);
+            Premise mod = modifiers.removeFirst();
+        Premise p = fullDerivation;
+        while (p.getFunc() != null) {
+            Premise parentFunc = p.getFunc();
+            Premise parentArg = p.getArg();
+            if (((LLFormula) mod.getGlueTerm()).getLhs().checkEquivalence(parentFunc.getGlueTerm())) {
+                //do interpolation
+                // TODO what to do with all later derivations? Recursive helper function?
+                // Combine modifier with respective skeletion premise and go back the derivation tree
+                // changing all the premises accordingly.
+                Premise newParent = combineDisjointID(mod, parentFunc);
+                newParent.setHistory(parentFunc.getFunc(),parentFunc.getArg());
+            }
+            else
+                skelPremises.push(p);
+                p = parentFunc;
+        }
+        if (modifiers.isEmpty())
+            return fullDerivation;
 
+        return interpolateModifiers(fullDerivation, modifiers);
+
+    }
+
+    /*
+    Trying to implement Lev's stuff
+     */
+
+    /**
+     * Creates a category graph from the premises in the agenda. A category graph
+     * contains each glue resource exactly once as a node, as well as combinations of two
+     * resources as a connector node. Resources that can be combined link to the respective connector
+     * node and the connector node links to the resource that is created by combining the two connected
+     * resources.
+     * Ex:
+     *             connector
+     *     left:A --> o  <-- formula:A -o B
+     *                |
+     *                v
+     *          right:B
+     * @throws ProverException
+     */
+    private void createCategoryGraph() throws ProverException{
+        for (Premise p : agenda) {
+            LLTerm category = p.getGlueTerm();
+            if (category instanceof LLAtom)
+                catGraph.add(new CategoryNode(category.toPlainString(),new HashSet<>()));
+            else {
+                while (category instanceof LLFormula) {
+                    LLTerm leftNode = ((LLFormula) category).getLhs();
+                    if (!(leftNode instanceof LLAtom)) {
+                        throw new ProverException("Found uncompiled category while creating category graph");
+                    }
+                    CategoryNode formula = getNode(category.toPlainString());
+                    CategoryNode left = getNode(leftNode.toPlainString());
+                    CategoryNode right = getNode(((LLFormula) category).getRhs().toPlainString());
+                    CategoryNode connector = getNode(leftNode.toPlainString() + "+"
+                            +((LLFormula) category).getRhs().toPlainString());
+                    if (formula == null)
+                        formula = new CategoryNode(category.toPlainString(),new HashSet<>());
+                    if (left == null)
+                        left = new CategoryNode(leftNode.toPlainString(),new HashSet<>());
+                    if (right == null)
+                        right = new CategoryNode(((LLFormula) category).getRhs().toPlainString(),new HashSet<>());
+                    if (connector == null) {
+                        connector = new CategoryNode(leftNode.toPlainString() + "+"
+                                + ((LLFormula) category).getRhs().toPlainString(), new HashSet<>());
+                    }
+                    formula.addLink(connector);
+                    left.addLink(connector);
+                    connector.addLink(right);
+
+                    catGraph.add(formula);
+                    catGraph.add(left);
+                    catGraph.add(connector);
+                    catGraph.add(right);
+
+                    category = ((LLFormula) category).getRhs();
+                }
+            }
+        }
+    }
+
+    private CategoryNode getNode(String nl) {
+        for (CategoryNode node : catGraph) {
+            if (nl.equals(node.toString()))
+                return node;
+        }
+        return null;
+    }
+
+
+    private class CategoryNode {
+        String nodeLabel;
+        Set<CategoryNode> linksTo;
+
+        CategoryNode(String l, Set<CategoryNode> links) {
+            this.nodeLabel = l;
+            this.linksTo = links;
+        }
+
+        private void addLink(CategoryNode c) {
+            linksTo.add(c);
+        }
+
+        @Override
+        public String toString() {
+            return nodeLabel;
+        }
     }
 
 
@@ -290,8 +402,8 @@ public class LLProver {
             // Apply and beta-reduce meaning side
             //FuncApp applied = new FuncApp(new SemFunction((SemFunction) func.getSemTerm()),arg.getSemTerm());
             FuncApp applied = new FuncApp(func.getSemTerm(),arg.getSemTerm());
-            //SemRepresentation reducedSem = applied.betaReduce();
-            SemRepresentation reducedSem = applied;
+            SemRepresentation reducedSem = applied.betaReduce();
+            //SemRepresentation reducedSem = applied;
 
             if (((LLFormula) func.getGlueTerm()).getRhs() instanceof  LLAtom) {
                 return new Premise(combined_IDs, reducedSem,

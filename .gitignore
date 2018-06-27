@@ -26,3 +26,4 @@ hs_err_pid*
 *.xml
 .idea
 stanford-corenlp-full-2017-06-09/
+gnuprologjava-0.2.6/

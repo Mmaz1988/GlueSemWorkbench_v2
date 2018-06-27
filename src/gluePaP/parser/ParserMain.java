@@ -60,9 +60,9 @@ public class ParserMain {
 
         System.out.println("Parsing input...");
 
-        List<String> testquant = new ArrayList<String>();
-        List<String> testmod = new ArrayList<String>();
-        List<String> testnest = new ArrayList<String>();
+        List<String> testquant = new ArrayList<>();
+        List<String> testmod = new ArrayList<>();
+        List<String> testnest = new ArrayList<>();
 
         // Test for quantifier premise
         testquant.add(test1);
@@ -78,32 +78,8 @@ public class ParserMain {
         testnest.add(test5);
         testnest.add(test8);
 
-
-        /*
-        LinearLogicParser parser = new LinearLogicParser(testnest);
-        LinearLogicParser parser2 = new LinearLogicParser(testquant);
-        Sequent testseq = new Sequent(parser2.premises);
-
-        System.out.println(testseq.toString());
-
-        System.out.println("Checking simple prover...");
-        LLProver prover = new LLProver(testseq);
-        List<Premise> result = null;
-        try {
-            result = prover.deduce();
-            System.out.println("Found valid deduction(s): ");
-            for (Premise sol : result) {
-                System.out.println(sol.toString());
-            }
-        } catch (ProverException e) {
-            e.printStackTrace();
-        }
-
-        System.out.println("Done!");
-
-        String quantStr = "(AX.(X -o (X -o X) -o X)";
-        String instStr = "(f -o (f -o g))";
-     */
+        LinearLogicParser parser = new LinearLogicParser(testquant);
+        System.out.println("Parsed terms: " + parser.premises.toString());
 
     }
 

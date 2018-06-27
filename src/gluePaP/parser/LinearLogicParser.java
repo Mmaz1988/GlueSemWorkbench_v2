@@ -13,11 +13,11 @@ public class LinearLogicParser {
 
     // Handles the position in the recursive function parse(string)
     private int pos;
-    // Used for assigning ID numbers to terms of a single premise
-    private int curr_id;
 
 
     public LinearLogicParser(){}
+
+
     public LinearLogicParser(List<String> unparsedPremises) {
 
         this.premises = new ArrayList<LLTerm>();
@@ -29,23 +29,15 @@ public class LinearLogicParser {
                 System.out.println(pe.getMessage());
             }
         }
-
-
     }
 
 
-    /*
+    /**
     Set string index and ID counter to zero. Used before a new premise
     is parsed.
     */
     private void resetParser() {
         this.pos = 0;
-        this.curr_id = 0;
-    }
-
-    public String assignId() {
-        this.curr_id++;
-        return Integer.toString(curr_id);
     }
 
 
@@ -59,7 +51,14 @@ public class LinearLogicParser {
         }
     }
 
-    // TODO properly add types (e or t)
+    /**
+     * Parse string as a glue expression
+     * @param unparsedInput Input string to be parsed
+     * @param polarity Polarity of the term. Is positive by default but changes during recursive calls
+     * @return An LLTerm
+     * @throws ParserInputException
+     * @throws StringIndexOutOfBoundsException
+     */
     private LLTerm parseTerm(String unparsedInput, boolean polarity) throws ParserInputException, StringIndexOutOfBoundsException {
 
         //skip whitespaces
@@ -124,18 +123,6 @@ public class LinearLogicParser {
 
         }
 
-        // character is a minus, might be first part of linear implication
-       /* else if (c == 45) {
-            // currently reading in a linear implication
-            if(unparsedInput.charAt(pos) == 111) {
-                pos++;
-                return new LLImplication();
-            }
-            else {
-                throw new ParserInputException(pos+1);
-            }
-        }*/
-
         // character is a left parenthesis, set scope
         else if (c == 40) {
 
@@ -169,7 +156,6 @@ public class LinearLogicParser {
             pos++;
             LLTerm left = parseTerm(unparsedInput, !polarity);
 
-            //LLOperator op = (LLOperator) parseTerm(unparsedInput, polarity);
             LLTerm right = parseTerm(unparsedInput, polarity);
             pos++;
             return new LLFormula(left,right, polarity,(LLAtom) var);

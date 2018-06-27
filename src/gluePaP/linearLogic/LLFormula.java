@@ -58,8 +58,10 @@ public class LLFormula extends LLTerm {
         this.variable = var;
 
         if(variable!= null) {
-            List<LLAtom> bvl = Stream.concat(findBoundOccurrences(lhs).stream(),
-                    findBoundOccurrences(rhs).stream()).collect(Collectors.toList());
+            //List<LLAtom> bvl = Stream.concat(findBoundOccurrences(lhs).stream(),findBoundOccurrences(rhs).stream()).collect(Collectors.toList());
+            List<LLAtom> bvl = new ArrayList<>();
+            bvl.addAll(findBoundOccurrences(lhs));
+            bvl.addAll(findBoundOccurrences(rhs));
             this.boundVariables.put(variable, bvl);
         }
     }

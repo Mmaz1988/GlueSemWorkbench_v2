@@ -43,6 +43,11 @@ public class Premise {
         this.premiseIDs = premiseIDs;
         this.glueTerm = llterm;
         this.glueTerm.setPolarity(true);
+        if (glueTerm instanceof LLFormula &&
+                (((LLFormula) glueTerm).getLhs().checkEquivalence(((LLFormula) glueTerm).getRhs())))
+            setModifier(true);
+        else
+            setModifier(false);
     }
 
     public Premise(HashSet<Integer> premiseIDs, SemRepresentation semTerm, LLTerm glueTerm) {
@@ -76,15 +81,22 @@ public class Premise {
     }
 
 
-
-
-    /*
-    This method keeps track of all the previous derivation steps of a premise.
-    Not required, only for testing purposes
-    */
+    /**
+     * Keeps track of all parents of a premise and is used to record a derivation history.
+     * @param func
+     * @param arg
+     */
     public void setHistory(Premise func, Premise arg) {
         this.func = func;
         this.arg = arg;
+    }
+
+    public Premise getFunc(){
+        return this.func;
+    }
+
+    public Premise getArg() {
+        return this.arg;
     }
 
     public boolean isModifier() {

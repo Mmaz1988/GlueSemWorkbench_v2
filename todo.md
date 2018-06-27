@@ -2,18 +2,19 @@
 
 #Fixes/Bugs
 
-1. intransitve verbs not working
+- intransitve verbs not working
 
-2. variable names not assigned properly (some duplicates)
+- variable names not assigned properly (some duplicates)
 
 
 #Additional functions:
 
-1. interface for XLE
+- interface for XLE
 
-2. add modifiers, anaphors, tense/aspect etc.
+- add modifiers, anaphors, tense/aspect etc.
 
-3. modifier/skeleton distinction for more efficient parsing
+- modifier/skeleton distinction for more efficient parsing
+    - for modifiers of modifiers Gupta & Lamping's system might not work. Lev might be needed (see below)
 
 #Structure/modularization
 
@@ -24,3 +25,10 @@
 - Make scope handling an extra class, instead of a static field in Determiner class
 
 - why are we using streams for bound variables (e.g in the constructor of LLFormula)
+
+# Implementing Lev's (2007) system:
+- create category graph (done) including indices
+- detect SCCs (Kosaraju algorithm, can be found online)
+- create histories (Premises with indices of parent premises)
+- use histories to determine order of combination
+- implement optimizations
