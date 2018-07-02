@@ -4,7 +4,7 @@ import java.util.List;
 
 public class PrologComplexTerm extends PrologPredicate {
     private String functor;
-    private List<String> arguments;
+    private List<PrologPredicate> arguments;
 
 
     public String getFunctor() {
@@ -15,11 +15,11 @@ public class PrologComplexTerm extends PrologPredicate {
         this.functor = functor;
     }
 
-    public List<String> getArguments() {
+    public List<PrologPredicate> getArguments() {
         return arguments;
     }
 
-    public void setArguments(List<String> arguments) {
+    public void setArguments(List<PrologPredicate> arguments) {
         this.arguments = arguments;
     }
 }
