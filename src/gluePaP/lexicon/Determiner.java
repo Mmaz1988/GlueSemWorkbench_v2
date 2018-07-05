@@ -16,18 +16,18 @@ public class Determiner extends LexicalEntry{
 
     private static HashMap<String,String> scope;
 
-            //TODO I'd rather have a seperate system in place for this.
-            private static void  setScope(String role)
-            {
-                String var = LexVariableHandler.returnNewVar(LexVariableHandler.variableType.LLatomE);
-                if (scope == null)
-                {
-                scope = new HashMap<>();
+    //TODO I'd rather have a seperate system in place for this.
+    private static void  setScope(String role)
+    {
+        String var = LexVariableHandler.returnNewVar(LexVariableHandler.variableType.LLatomE);
+        if (scope == null)
+        {
+        scope = new HashMap<>();
 
-                }
-                scope.put(role,var);
+        }
+        scope.put(role,var);
 
-            }
+    }
 
     enum QuantType
     {

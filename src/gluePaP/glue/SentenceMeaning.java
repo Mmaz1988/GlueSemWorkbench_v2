@@ -20,12 +20,37 @@ based on its syntactic structure. (Mainly dependency structure for now)
 */
 
 public class SentenceMeaning {
-    private final GrammaticalStructure dependencyStructure;
-    private final LinkedHashMap<IndexedWord,List<Tuple>> dependencyMap;
+    private GrammaticalStructure dependencyStructure;
+    private LinkedHashMap<IndexedWord,List<Tuple>> dependencyMap;
 
 
     public SentenceMeaning(GrammaticalStructure parsedSentence) throws VariableBindingException
     {
+
+        List<LexicalEntry> lexicalEntries = extractFromDependencyParse(parsedSentence);
+
+        //LinearLogicParser parser = new LinearLogicParser(testquant);
+        Sequent testseq = new Sequent(lexicalEntries);
+
+        System.out.println(testseq.toString());
+
+        System.out.println("Checking simple prover...");
+        LLProver prover = new LLProver(testseq);
+        List<Premise> result = null;
+        try {
+            result = prover.deduce();
+            System.out.println("Found valid deduction(s): ");
+            for (Premise sol : result) {
+                System.out.println(sol.toString());
+            }
+        } catch (ProverException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("Done!");
+    }
+
+    public List<LexicalEntry> extractFromDependencyParse(GrammaticalStructure parsedSentence) {
         this.dependencyStructure = parsedSentence;
         LexVariableHandler.resetVars();
         /* A depdency map is a hash map whose key is a word in the parsed sentence and whose value is
@@ -140,29 +165,9 @@ public class SentenceMeaning {
 
         }
 
-
         System.out.println(root.toString() + " has arity " + rootArity);
 
-
-        //LinearLogicParser parser = new LinearLogicParser(testquant);
-        Sequent testseq = new Sequent(lexicalEntries);
-
-        System.out.println(testseq.toString());
-
-        System.out.println("Checking simple prover...");
-        LLProver prover = new LLProver(testseq);
-        List<Premise> result = null;
-        try {
-            result = prover.deduce();
-            System.out.println("Found valid deduction(s): ");
-            for (Premise sol : result) {
-                System.out.println(sol.toString());
-            }
-        } catch (ProverException e) {
-            e.printStackTrace();
-        }
-
-        System.out.println("Done!");
+        return lexicalEntries;
     }
 
 
