@@ -1,14 +1,22 @@
 package gluePaP.glue.lfg;
 
+import Prover.LLProver;
+import Prover.ProverException;
+import Prover.VariableBindingException;
 import gluePaP.glue.LexVariableHandler;
 import gluePaP.glue.LexicalParserException;
 import gluePaP.lexicon.Determiner;
 import gluePaP.lexicon.LexicalEntry;
 import gluePaP.lexicon.Noun;
 import gluePaP.lexicon.Verb;
+import gluePaP.linearLogic.Premise;
+import gluePaP.linearLogic.Sequent;
 import gluePaP.parser.ParserInputException;
 
+import javax.swing.*;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -19,9 +27,57 @@ public class FStructureParser {
     private final static String[] functions = {"SUBJ", "OBJ", "OBL"};
 
 
+    public static void main(String[] args) {
+        File f = null;
+        final JFileChooser fc = new JFileChooser();
+        int returnVal = fc.showOpenDialog(null);
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            f = fc.getSelectedFile();
+        }
+        else {
+            System.out.println("Something went wrongt");
 
-    public FStructureParser (Path inputpath) {
+        }
+        Path p = FileSystems.getDefault().getPath(f.getAbsolutePath());
 
+        try {
+            FStructureParser fsp = new FStructureParser(p);
+        } catch (VariableBindingException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+
+    public FStructureParser (Path inputpath) throws VariableBindingException {
+        List<LexicalEntry> lexicalEntries = null;
+        try {
+            lexicalEntries = parseFStructureFile(inputpath);
+        } catch (LexicalParserException e) {
+            e.printStackTrace();
+        }
+        if (lexicalEntries != null) {
+
+        }
+
+        Sequent testseq = new Sequent(lexicalEntries);
+
+        System.out.println(testseq.toString());
+
+        System.out.println("Checking simple prover...");
+        LLProver prover = new LLProver(testseq);
+        List<Premise> result = null;
+        try {
+            result = prover.deduce();
+            System.out.println("Found valid deduction(s): ");
+            for (Premise sol : result) {
+                System.out.println(sol.toString());
+            }
+        } catch (ProverException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("Done!");
     }
 
     /**
@@ -33,7 +89,7 @@ public class FStructureParser {
      * @param filepath the path to the Prolog file containing the f-structure information
      * @return the list of lexical entries created from the f-structure file.
      */
-    public List<LexicalEntry> parseFStructureFile(Path filepath) throws ParserInputException, LexicalParserException {
+    public List<LexicalEntry> parseFStructureFile(Path filepath) throws  LexicalParserException, IllegalStateException {
         List<String> lines = new ArrayList<>();
         String full = "";
         // A map of lexical entries where each entry has the form <nodeID,nodeFunction>
@@ -51,14 +107,12 @@ public class FStructureParser {
         // Pattern for intermediate f-structure components, i.e. those that consist of further f-structure components
         Pattern intermediate = Pattern.compile("cf\\((\\d+),eq\\(attr\\(var\\((\\d+)\\),'(\\S+)'\\),var\\((\\d+)\\)\\)\\)");
         Pattern terminal = Pattern.compile("cf\\((\\d+),eq\\(attr\\(var\\((\\d+)\\),'(\\S+)'\\),'(\\S+)'\\)\\)");
-        // Patter for extracting PRED features
-        //Pattern pred = Pattern.compile("cf\\((\\d+),eq\\(attr\\(var\\((\\d+)\\),'PRED'\\),semform\\('(\\S+)',\\d+,\\[(.+?)?],\\[]\\)\\)\\),");
         Matcher m = null;
 
         // Check for grammatical functions from the function list and add them to verbalArgs
         for (String f : functions) {
-            for (String line : lines) {
-                m = intermediate.matcher(line);
+            m = intermediate.matcher(full);
+            while (m.find()) {
                 if (m.group(3).equals(f)) {
                     verbalArgs.put(m.group(4),f);
                 }
@@ -69,16 +123,19 @@ public class FStructureParser {
         // For each lexical entry add subordinated nodes (PRED, determiners and adjuncts) and create lexical entries
         for (String i : verbalArgs.keySet()) {
             Pattern pred = Pattern.compile("attr\\(var\\("+i+"\\),'PRED'\\),semform\\('(\\S+)',\\d+,\\[(.+?)?],\\[]\\)\\)");
+            //Pattern pred = Pattern.compile("'PRED'\\),semform\\('(\\S+)',\\d+,");
             Pattern ntype= Pattern.compile("attr\\(var\\("+i+"\\),'NTYPE'\\),var\\((\\d+)\\)");
             //Get the predicate of this lexical entry
             m = pred.matcher(full);
-            String predicate = m.group(2);
+            if(!m.find()) { throw new LexicalParserException(m);}
+            String predicate = m.group(1);
 
             m = ntype.matcher(full);
-            if (!m.matches())
-                throw new LexicalParserException("LFG-Parser exception: something seems to be wrong with the f-structure file.");
-            String ntypeID = m.group(2);
-            String nsym = Pattern.compile("attr\\(var\\("+ntypeID+"\\),'NSYM'\\),'(\\S+)'").matcher(full).group(1);
+            if(!m.find()) { throw new LexicalParserException(m);}
+            String ntypeID = m.group(1);
+            m = Pattern.compile("attr\\(var\\("+ntypeID+"\\),'NSYN'\\),'(\\S+)'").matcher(full);
+            if(!m.find()) { throw new LexicalParserException(m); }
+            String nsym = m.group(1);
 
             String identifier = LexVariableHandler.returnNewVar(LexVariableHandler.variableType.LLatomE);
 
@@ -87,29 +144,32 @@ public class FStructureParser {
             if (nsym.equals("common")) {
                 Noun main = new Noun(LexicalEntry.LexType.N_NN,identifier,predicate);
                 lexicalEntries.add(main);
-                switch (predicate) {
+                switch (verbalArgs.get(i)) {
                     case "SUBJ" : subCatFrame.put("agent",main); break;
                     case "OBJ"  : subCatFrame.put("patient",main); break;
                 }
 
-                m = Pattern.compile("attr\\(var\\("+ntypeID+"\\),'SPEC'\\),var\\((\\d+)\\)").matcher(full);
+                m = Pattern.compile("attr\\(var\\("+i+"\\),'SPEC'\\),var\\((\\d+)\\)").matcher(full);
                 // Found a SPEC feature, proceed to extract determiners/quantifiers
-                if (m.matches()) {
+                if (m.find()) {
                     String specID = m.group(1);
                     m = Pattern.compile("attr\\(var\\("+specID+"\\),'(\\S+)'\\),var\\((\\d+)\\)").matcher(full);
-                    // Specifier is a quantifier
-                    if (m.group(1).equals("QUANT")) {
-                        Matcher m2 =
-                                Pattern.compile("attr\\(var\\("+m.group(2)+"\\),'PRED'\\),semform\\('(\\S+)',\\d+,\\[],\\[]\\)").matcher(full);
-                        lexicalEntries.add(new Determiner(identifier,m2.group(1),predicate.toLowerCase()));
-                    }
-                    // Specifier is a determiner
-                    else if (m.group(1).equals("DET")) {
-                        throw new LexicalParserException("Unknown lexical item: DET");
-                    }
-                    // Specifier is a number determiner
-                    else if (m.group(1).equals("NUMBER")) {
-                        throw new LexicalParserException("Unknown lexical item: NUMBER");
+                    if(!m.find()) { throw new LexicalParserException(m);}
+                    switch (m.group(1)) {
+                        // Specifier is a quantifier
+                        case "QUANT":
+                            Matcher m2 =
+                                    Pattern.compile("attr\\(var\\(" + m.group(2) + "\\),'PRED'\\),semform\\('(\\S+)',\\d+,\\[],\\[]\\)").matcher(full);
+                            if(!m2.find()) { throw new LexicalParserException(m);}
+                            lexicalEntries.add(new Determiner(identifier, m2.group(1), verbalArgs.get(i).toLowerCase()));
+                            break;
+                        // Specifier is a determiner
+                        case "DET":
+                            throw new LexicalParserException("Unknown lexical item: DET");
+
+                            // Specifier is a number determiner
+                        case "NUMBER":
+                            throw new LexicalParserException("Unknown lexical item: NUMBER");
                     }
                 }
             }
@@ -119,21 +179,23 @@ public class FStructureParser {
             }
 
             //Find all adjuncts subordinated to this function
-            Pattern adjunct = Pattern.compile("attr\\(var\\("+i+"\\),'ADJUNCT'\\),var\\((\\d+)\\)");
-            String adjID = adjunct.matcher(full).group(1);
-            List<String> adjuncts = new ArrayList<>();
-            Matcher adjSetMatcher = Pattern.compile("in_set\\(var\\((\\d+)\\),var\\("+adjID+"\\)").matcher(full);
-            while (adjSetMatcher.find()) {
-                adjuncts.add(adjSetMatcher.group(1));
-                // TODO create HashMap of adjunctIDs and their predicates
+            m = Pattern.compile("attr\\(var\\("+i+"\\),'ADJUNCT'\\),var\\((\\d+)\\)").matcher(full);
+            if (m.find()) {
+                String adjID = m.group(1);
+                List<String> adjuncts = new ArrayList<>();
+                Matcher adjSetMatcher = Pattern.compile("in_set\\(var\\((\\d+)\\),var\\("+adjID+"\\)").matcher(full);
+                while (adjSetMatcher.find()) {
+                    adjuncts.add(adjSetMatcher.group(1));
+                    // TODO create HashMap of adjunctIDs and their predicates
+                }
             }
-
         }
 
         // Get the root verb and add it to the list of lexical entries.
-        Pattern root = Pattern.compile("attr\\(var\\(0\\),'PRED'\\),semform\\('(\\S+)',\\d+,\\[],\\[]\\)");
-        String rootPred = root.matcher(full).group(1);
-        Verb rootverb = new Verb(subCatFrame,rootPred);
+        Pattern root = Pattern.compile("attr\\(var\\(0\\),'PRED'\\),semform\\('(\\S+)',\\d+,\\[(\\S+)],\\[]\\)");
+        m = root.matcher(full);
+        if(!m.find()) { throw new LexicalParserException(m);}
+        Verb rootverb = new Verb(subCatFrame,m.group(1));
         lexicalEntries.add(rootverb);
 
         return lexicalEntries;

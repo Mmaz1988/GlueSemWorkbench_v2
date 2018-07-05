@@ -15,10 +15,10 @@ import java.util.*;
 
 // Sentence meaning is a set of glue representations (i.e. a set that represents the available premises)
 
-/*This class determines which lexical entry (if any) is constructed for a given word in the sentence
-based on its syntactic structure. (Mainly dependency structure for now)
-*/
-
+/**
+ * This class determines which lexical entry (if any) is constructed for a given word in the sentence
+ * based on its syntactic structure. (Mainly dependency structure for now)
+ */
 public class SentenceMeaning {
     private GrammaticalStructure dependencyStructure;
     private LinkedHashMap<IndexedWord,List<Tuple>> dependencyMap;
@@ -29,7 +29,6 @@ public class SentenceMeaning {
 
         List<LexicalEntry> lexicalEntries = extractFromDependencyParse(parsedSentence);
 
-        //LinearLogicParser parser = new LinearLogicParser(testquant);
         Sequent testseq = new Sequent(lexicalEntries);
 
         System.out.println(testseq.toString());
