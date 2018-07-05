@@ -1,6 +1,5 @@
 package gluePaP.lexicon;
 
-import edu.stanford.nlp.ling.IndexedWord;
 import gluePaP.glue.LexVariableHandler;
 import gluePaP.linearLogic.LLAtom;
 import gluePaP.linearLogic.LLFormula;
@@ -15,8 +14,7 @@ public class Noun extends LexicalEntry {
 
     public LexType lexType;
 
-
-    public Noun(LexType type, String identifier, IndexedWord main) {
+    public Noun(LexType type, String identifier, String main) {
 
         this.identifier = identifier;
 
@@ -31,24 +29,24 @@ public class Noun extends LexicalEntry {
             case N_NNP:
 
                 //this.llFormula = identifier + "_e";
-                this.setLlTerm(new LLAtom(identifier, LLTerm.Type.E, LLAtom.LLType.CONST,true));
+                this.setLlTerm(new LLAtom(identifier, LLTerm.Type.E, LLAtom.LLType.CONST, true));
 
-                this.setSem(new SemAtom(SemAtom.SemSort.CONST,main.value().substring(0,1).toLowerCase(),
+                this.setSem(new SemAtom(SemAtom.SemSort.CONST, main.substring(0, 1).toLowerCase(),
                         SemType.AtomicType.E));
                 break;
 
             case N_NN:
 
-                 /*Linear Logic*/
+                /*Linear Logic*/
 
                 //generating consumer
-                LLAtom agentRes = new LLAtom(identifier, LLTerm.Type.E, LLAtom.LLType.CONST,false);
+                LLAtom agentRes = new LLAtom(identifier, LLTerm.Type.E, LLAtom.LLType.CONST, false);
 
                 //generate semantics
                 LLAtom fsem = new LLAtom(identifier,
-                        LLTerm.Type.T, LLAtom.LLType.CONST,true);
+                        LLTerm.Type.T, LLAtom.LLType.CONST, true);
 
-                this.setLlTerm(new LLFormula(agentRes,fsem,true ));
+                this.setLlTerm(new LLFormula(agentRes, fsem, true));
 
                 /*Semantics*/
 
@@ -58,14 +56,15 @@ public class Noun extends LexicalEntry {
                         SemType.AtomicType.E
                 );
 
-                SemFunction nounSem = new SemFunction(agentVar,new SemPred(main.value(),agentVar));
+                SemFunction nounSem = new SemFunction(agentVar, new SemPred(main, agentVar));
                 this.setSem(nounSem);
 
                 break;
 
 
-
         }
     }
+
+
 }
 

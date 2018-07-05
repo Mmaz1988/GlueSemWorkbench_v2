@@ -248,9 +248,7 @@ public class SentenceMeaning {
 
         if (iw.tag().equals("NNP"))
         {
-            Noun main = new Noun(LexicalEntry.LexType.N_NNP,identifier,iw);
-            //        premises.add(agent.llFormula);
-            //        subCatFrame.put("agent",agent);
+            Noun main = new Noun(LexicalEntry.LexType.N_NNP,identifier,iw.value());
 
             lexEn.put("main",new ArrayList<LexicalEntry>(Arrays.asList(main)));
         }
@@ -275,7 +273,6 @@ public class SentenceMeaning {
                 }
                 else if (t.left.equals("det"))
                 {
-                    // String type = t.left
                     Determiner det = new Determiner(identifier,t.right.value(),role);
 
                     lexEn.put("det",new ArrayList<LexicalEntry>(Arrays.asList(det)));
@@ -287,9 +284,7 @@ public class SentenceMeaning {
         if (iw.tag().equals("NN"))
         {
 
-            Noun main = new Noun(LexicalEntry.LexType.N_NN,identifier,iw);
-            //        premises.add(agent.llFormula);
-            //        subCatFrame.put("agent",agent);
+            Noun main = new Noun(LexicalEntry.LexType.N_NN,identifier,iw.value());
 
             lexEn.put("main",new ArrayList<LexicalEntry>(Arrays.asList(main)));
         }
