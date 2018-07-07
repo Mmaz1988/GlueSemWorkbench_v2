@@ -1,4 +1,4 @@
-package Prover;
+package prover;
 
 public class VariableBindingException extends Exception{
     public VariableBindingException() {

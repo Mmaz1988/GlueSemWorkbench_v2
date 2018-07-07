@@ -1,15 +1,15 @@
-package Prover;
+package prover;
 
-import gluePaP.glue.LexVariableHandler;
-import gluePaP.linearLogic.*;
-import gluePaP.semantics.*;
+import glueSemantics.glue.LexVariableHandler;
+import glueSemantics.linearLogic.*;
+import glueSemantics.semantics.*;
 
 import java.util.*;
 
-import static gluePaP.glue.LexVariableHandler.variableType.SemVar;
-import static gluePaP.glue.LexVariableHandler.variableType.SemVarE;
-import static gluePaP.semantics.SemAtom.SemSort.VAR;
-import static gluePaP.semantics.SemType.AtomicType.T;
+import static glueSemantics.glue.LexVariableHandler.variableType.SemVar;
+import static glueSemantics.glue.LexVariableHandler.variableType.SemVarE;
+import static glueSemantics.semantics.SemAtom.SemSort.VAR;
+import static glueSemantics.semantics.SemType.AtomicType.T;
 
 public class LLProver {
     // For Lev algorithm

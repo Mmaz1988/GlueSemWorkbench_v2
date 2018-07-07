@@ -1,4 +1,4 @@
-package Prover;
+package prover;
 
 public class ProverException extends Exception{
 
