@@ -49,6 +49,11 @@ public class SentenceMeaning {
         System.out.println("Done!");
     }
 
+    /**
+     * Extract lexical entries from a dependency parse as created by the Stanford CoreNLP tools.
+     * @param parsedSentence A GrammaticalStructure object from the CoreNLP dependency parser
+     * @return A list of LexicalEntries
+     */
     public List<LexicalEntry> extractFromDependencyParse(GrammaticalStructure parsedSentence) {
         this.dependencyStructure = parsedSentence;
         LexVariableHandler.resetVars();

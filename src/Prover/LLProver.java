@@ -31,7 +31,7 @@ public class LLProver {
         this.seq = seq;
     }
 
-    /**TODO Check if compilation works properly
+    /**
      * Does a deduction of a given sequent by evaluating the list of premises on its LHS
      * and trying to find a valid proof for its RHS.
      * @return A list of all valid deductions

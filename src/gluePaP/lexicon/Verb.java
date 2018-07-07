@@ -71,7 +71,7 @@ public class Verb extends LexicalEntry {
                 /*Linear Logic*/
 
                 //generating consumer
-                if (Determiner.getterScope() != null)
+                if (Determiner.getScope("subj") != null)
                 {
                     agentRes = new LLAtom(Determiner.getScope("subj"), LLTerm.Type.E, LLAtom.LLType.CONST, false);
                 } else
@@ -79,7 +79,7 @@ public class Verb extends LexicalEntry {
                     agentRes = new LLAtom(agent.identifier, LLTerm.Type.E, LLAtom.LLType.CONST, false);
                 }
 
-                if (Determiner.getterScope() != null)
+                if (Determiner.getScope("obj") != null)
                 {
                     patientRes = new LLAtom(Determiner.getScope("obj"), LLTerm.Type.E, LLAtom.LLType.CONST, false);
                 }

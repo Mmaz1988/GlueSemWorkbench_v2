@@ -5,13 +5,9 @@ import Prover.ProverException;
 import Prover.VariableBindingException;
 import gluePaP.glue.LexVariableHandler;
 import gluePaP.glue.LexicalParserException;
-import gluePaP.lexicon.Determiner;
-import gluePaP.lexicon.LexicalEntry;
-import gluePaP.lexicon.Noun;
-import gluePaP.lexicon.Verb;
+import gluePaP.lexicon.*;
 import gluePaP.linearLogic.Premise;
 import gluePaP.linearLogic.Sequent;
-import gluePaP.parser.ParserInputException;
 
 import javax.swing.*;
 import java.io.File;
@@ -35,7 +31,7 @@ public class FStructureParser {
             f = fc.getSelectedFile();
         }
         else {
-            System.out.println("Something went wrongt");
+            System.out.println("Something went wrong");
 
         }
         Path p = FileSystems.getDefault().getPath(f.getAbsolutePath());
@@ -52,7 +48,7 @@ public class FStructureParser {
     public FStructureParser (Path inputpath) throws VariableBindingException {
         List<LexicalEntry> lexicalEntries = null;
         try {
-            lexicalEntries = parseFStructureFile(inputpath);
+            lexicalEntries = extractFromFStructureFile(inputpath);
         } catch (LexicalParserException e) {
             e.printStackTrace();
         }
@@ -89,7 +85,7 @@ public class FStructureParser {
      * @param filepath the path to the Prolog file containing the f-structure information
      * @return the list of lexical entries created from the f-structure file.
      */
-    public List<LexicalEntry> parseFStructureFile(Path filepath) throws  LexicalParserException, IllegalStateException {
+    public List<LexicalEntry> extractFromFStructureFile(Path filepath) throws  LexicalParserException, IllegalStateException {
         List<String> lines = new ArrayList<>();
         String full = "";
         // A map of lexical entries where each entry has the form <nodeID,nodeFunction>
@@ -122,26 +118,32 @@ public class FStructureParser {
 
         // For each lexical entry add subordinated nodes (PRED, determiners and adjuncts) and create lexical entries
         for (String i : verbalArgs.keySet()) {
-            Pattern pred = Pattern.compile("attr\\(var\\("+i+"\\),'PRED'\\),semform\\('(\\S+)',\\d+,\\[(.+?)?],\\[]\\)\\)");
-            //Pattern pred = Pattern.compile("'PRED'\\),semform\\('(\\S+)',\\d+,");
             Pattern ntype= Pattern.compile("attr\\(var\\("+i+"\\),'NTYPE'\\),var\\((\\d+)\\)");
-            //Get the predicate of this lexical entry
-            m = pred.matcher(full);
-            if(!m.find()) { throw new LexicalParserException(m);}
-            String predicate = m.group(1);
 
             m = ntype.matcher(full);
             if(!m.find()) { throw new LexicalParserException(m);}
             String ntypeID = m.group(1);
+            String nsynID = "";
             m = Pattern.compile("attr\\(var\\("+ntypeID+"\\),'NSYN'\\),'(\\S+)'").matcher(full);
-            if(!m.find()) { throw new LexicalParserException(m); }
-            String nsym = m.group(1);
+            // For proper nouns, the NSYN entry looks different, check this one as well
+            if(!m.find()) {
+                m = Pattern.compile("attr\\(var\\("+ntypeID+"\\),'NSYN'\\),var\\((\\d+)\\)").matcher(full);
+                if(!m.find()) { throw new LexicalParserException(m);}
+                nsynID = m.group(1);
+            }
+
+            String nsyn = m.group(1);
 
             String identifier = LexVariableHandler.returnNewVar(LexVariableHandler.variableType.LLatomE);
 
             // It is a common noun find potential determiners and create the lexical entry
             // Add the appropriate role to the subcatframe (for generating the verb later)
-            if (nsym.equals("common")) {
+            if (nsyn.equals("common")) {
+                //Get the predicate of this lexical entry
+                Pattern pred = Pattern.compile("attr\\(var\\("+i+"\\),'PRED'\\),semform\\('(\\S+)',\\d+,\\[(.+?)?],\\[]\\)\\)");
+                m = pred.matcher(full);
+                if(!m.find()) { throw new LexicalParserException(m);}
+                String predicate = m.group(1);
                 Noun main = new Noun(LexicalEntry.LexType.N_NN,identifier,predicate);
                 lexicalEntries.add(main);
                 switch (verbalArgs.get(i)) {
@@ -174,19 +176,35 @@ public class FStructureParser {
                 }
             }
             // It is a proper noun, create a lexical entry
-            else if (nsym.equals("proper")) {
-                lexicalEntries.add(new Noun(LexicalEntry.LexType.N_NNP,identifier,predicate));
+            else {
+                m = Pattern.compile("eq\\(var\\("+nsynID+"\\),'(\\S+)'\\)\\)").matcher(full);
+                if(!m.find()) { throw new LexicalParserException(m);}
+                nsyn = m.group(1);
+                if (nsyn.equals("proper")) {
+                    m = Pattern.compile("attr\\(var\\("+i+"\\),'PRED'\\),var\\((\\d+)\\)").matcher(full);
+                    if(!m.find()) { throw new LexicalParserException(m);}
+                    Matcher predMatcher = Pattern.compile("eq\\(var\\("+m.group(1)+"\\),semform\\('(\\S+)',\\d+,\\[],\\[]\\)").matcher(full);
+                    if(!predMatcher.find()) { throw new LexicalParserException(m);}
+                    Noun main = new Noun(LexicalEntry.LexType.N_NNP,identifier,predMatcher.group(1));
+                    lexicalEntries.add(main);
+
+                    switch (verbalArgs.get(i)) {
+                        case "SUBJ" : subCatFrame.put("agent",main); break;
+                        case "OBJ"  : subCatFrame.put("patient",main); break;
+                    }
+                }
             }
 
             //Find all adjuncts subordinated to this function
             m = Pattern.compile("attr\\(var\\("+i+"\\),'ADJUNCT'\\),var\\((\\d+)\\)").matcher(full);
             if (m.find()) {
                 String adjID = m.group(1);
-                List<String> adjuncts = new ArrayList<>();
-                Matcher adjSetMatcher = Pattern.compile("in_set\\(var\\((\\d+)\\),var\\("+adjID+"\\)").matcher(full);
-                while (adjSetMatcher.find()) {
-                    adjuncts.add(adjSetMatcher.group(1));
-                    // TODO create HashMap of adjunctIDs and their predicates
+                m = Pattern.compile("in_set\\(var\\((\\d+)\\),var\\("+adjID+"\\)").matcher(full);
+                while (m.find()) {
+                    Matcher modMatcher = Pattern.compile("attr\\(var\\(" + m.group(1) + "\\),'PRED'\\),semform\\('(\\S+)',\\d+,\\[],\\[]\\)").matcher(full);
+                    if(!modMatcher.find()) { throw new LexicalParserException(m);}
+                    lexicalEntries.add(new Modifier(identifier,modMatcher.group(1)));
+
                 }
             }
         }

@@ -1,7 +1,5 @@
 package gluePaP.glue;
 
-// Base class for creating glue semantic representations with a meaning side and a glue side
-
 import Prover.VariableBindingException;
 import edu.stanford.nlp.trees.GrammaticalStructure;
 
@@ -11,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
+// Base class for creating glue semantic representations with a meaning side and a glue side
 public class GrammarMain {
 
     private final List<String> ps;
