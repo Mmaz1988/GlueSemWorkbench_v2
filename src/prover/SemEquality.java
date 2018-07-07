@@ -1,7 +1,6 @@
-package Prover;
+package prover;
 
-import gluePaP.linearLogic.LLAtom;
-import gluePaP.semantics.SemAtom;
+import glueSemantics.semantics.SemAtom;
 
 public class SemEquality {
 

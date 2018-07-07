@@ -1,17 +1,17 @@
-package Prover;
+package prover;
 
-import gluePaP.linearLogic.Premise;
-import gluePaP.linearLogic.Sequent;
-import gluePaP.parser.LinearLogicParser;
-import gluePaP.semantics.*;
+import glueSemantics.linearLogic.Premise;
+import glueSemantics.linearLogic.Sequent;
+import glueSemantics.parser.LinearLogicParser;
+import glueSemantics.semantics.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static gluePaP.semantics.BinaryTerm.SemOperator.AND;
-import static gluePaP.semantics.SemAtom.SemSort.VAR;
-import static gluePaP.semantics.SemQuantEx.SemQuant.EX;
-import static gluePaP.semantics.SemType.AtomicType.*;
+import static glueSemantics.semantics.BinaryTerm.SemOperator.AND;
+import static glueSemantics.semantics.SemAtom.SemSort.VAR;
+import static glueSemantics.semantics.SemQuantEx.SemQuant.EX;
+import static glueSemantics.semantics.SemType.AtomicType.*;
 
 public class ProverMain {
 

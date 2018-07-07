@@ -1,6 +1,6 @@
-package Prover;
+package prover;
 
-import gluePaP.linearLogic.LLAtom;
+import glueSemantics.linearLogic.LLAtom;
 
 public class Equality {
 
