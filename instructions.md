@@ -8,8 +8,11 @@ Then:
 ```
 $ javac -cp ".:/path/to/corenlp/stanford-corenlp-3.8.0.jar" Main.java
 ```
+This should run successfully, produces no output. After this your current directory should have `Main.class`.
 
-To run, the system will need more files from the corenlp directory. So you want to tell the system where to find all these jars: 
+# Execution
+
+To run, the system will need more jar files from the corenlp directory. So you want to tell the system where to find all these jars: 
 ```
 $ java -cp ".:/path/to/corenlp/*" Main
 The Glue Semantics Workbench
