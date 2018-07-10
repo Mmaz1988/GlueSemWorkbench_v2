@@ -21,19 +21,13 @@ import static glueSemantics.semantics.SemAtom.SemSort.VAR;
 import static glueSemantics.semantics.SemType.AtomicType.T;
 
 public class LLProver {
-    // For Lev algorithm
-    private Set<CategoryNode> catGraph = new HashSet<>();
-
     private LinkedList<Premise> skeletons = new LinkedList<>();
     private LinkedList<Premise> modifiers = new LinkedList<>();
     private LinkedList<Premise> agenda = new LinkedList<>();
     private LinkedList<Premise> database = new LinkedList<>();
-    private List<Premise> skeletonTree = new ArrayList<>();
     private List<Premise> solutions = new ArrayList<>();
     private Sequent seq;
-    //private Stack<SemAtom> assumptionVars = new Stack<>();
     private List<SemAtom> assumptionVars = new ArrayList<>();
-    private int steps;
 
 
     public LLProver(Sequent seq) {
@@ -58,8 +52,6 @@ public class LLProver {
         skeletons.clear();
         modifiers.clear();
         database.clear();
-        skeletonTree.clear();
-        steps = 0;
 
         for (Premise p: seq.getLhs()) {
 
@@ -83,7 +75,6 @@ public class LLProver {
                 else
                     modifiers.add(compiled);
                 agenda.add(compiled);
-                //createCategoryGraph();
             } catch (ProverException e) {
                 e.printStackTrace();
             }
@@ -112,16 +103,14 @@ public class LLProver {
                 Premise mod = it.next();
                 if (((LLFormula) mod.getGlueTerm()).getLhs().checkEquivalence(curr_premise.getGlueTerm())) {
                     curr_premise = combinePremises(mod, curr_premise);
-                    //curr_premise.setSemTerm(curr_premise.getSemTerm().betaReduce());
+                    // Remove modifier from modifier list.
                     it.remove();
                 }
-
             }
 
             for (Premise db_premise : database) {
-                //if (db_premise == curr_premise)
-                //   continue;
-                steps++;
+                if (db_premise == curr_premise)
+                    continue;
                 /*
                 Check if the database term is a (complex) formula, if so try to do an
                 implication elimination step with the current term on the skeletons (curr_premise).
@@ -177,125 +166,6 @@ public class LLProver {
         return solutions;
     }
 
-    /**
-     * Helper method for doing the modifier interpolations.
-     * @param fullDerivation
-     * @param m
-     * @return
-     */
-    private Premise interpolateModifiers(Premise fullDerivation, LinkedList<Premise> m) {
-        LinkedList<Premise> modifiers = new LinkedList<>(m);
-        LinkedList<Premise> skelPremises = new LinkedList<>(m);
-            Premise mod = modifiers.removeFirst();
-        Premise p = fullDerivation;
-        while (p.getFunc() != null) {
-            Premise parentFunc = p.getFunc();
-            Premise parentArg = p.getArg();
-            if (((LLFormula) mod.getGlueTerm()).getLhs().checkEquivalence(parentFunc.getGlueTerm())) {
-                //do interpolation
-                // TODO what to do with all later derivations? Recursive helper function?
-                // Combine modifier with respective skeletion premise and go back the derivation tree
-                // changing all the premises accordingly.
-                Premise newParent = combineDisjointID(mod, parentFunc);
-                newParent.setHistory(parentFunc.getFunc(),parentFunc.getArg());
-            }
-            else
-                skelPremises.push(p);
-                p = parentFunc;
-        }
-        if (modifiers.isEmpty())
-            return fullDerivation;
-
-        return interpolateModifiers(fullDerivation, modifiers);
-
-    }
-
-    /*
-    Trying to implement Lev's stuff
-     */
-
-    /**
-     * Creates a category graph from the premises in the agenda. A category graph
-     * contains each glue resource exactly once as a node, as well as combinations of two
-     * resources as a connector node. Resources that can be combined link to the respective connector
-     * node and the connector node links to the resource that is created by combining the two connected
-     * resources.
-     * Ex:
-     *             connector
-     *     left:A --> o  <-- formula:A -o B
-     *                |
-     *                v
-     *          right:B
-     * @throws ProverException
-     */
-    private void createCategoryGraph() throws ProverException{
-        for (Premise p : agenda) {
-            LLTerm category = p.getGlueTerm();
-            if (category instanceof LLAtom)
-                catGraph.add(new CategoryNode(category.toPlainString(),new HashSet<>()));
-            else {
-                while (category instanceof LLFormula) {
-                    LLTerm leftNode = ((LLFormula) category).getLhs();
-                    if (!(leftNode instanceof LLAtom)) {
-                        throw new ProverException("Found uncompiled category while creating category graph");
-                    }
-                    CategoryNode formula = getNode(category.toPlainString());
-                    CategoryNode left = getNode(leftNode.toPlainString());
-                    CategoryNode right = getNode(((LLFormula) category).getRhs().toPlainString());
-                    CategoryNode connector = getNode(leftNode.toPlainString() + "+"
-                            +((LLFormula) category).getRhs().toPlainString());
-                    if (formula == null)
-                        formula = new CategoryNode(category.toPlainString(),new HashSet<>());
-                    if (left == null)
-                        left = new CategoryNode(leftNode.toPlainString(),new HashSet<>());
-                    if (right == null)
-                        right = new CategoryNode(((LLFormula) category).getRhs().toPlainString(),new HashSet<>());
-                    if (connector == null) {
-                        connector = new CategoryNode(leftNode.toPlainString() + "+"
-                                + ((LLFormula) category).getRhs().toPlainString(), new HashSet<>());
-                    }
-                    formula.addLink(connector);
-                    left.addLink(connector);
-                    connector.addLink(right);
-
-                    catGraph.add(formula);
-                    catGraph.add(left);
-                    catGraph.add(connector);
-                    catGraph.add(right);
-
-                    category = ((LLFormula) category).getRhs();
-                }
-            }
-        }
-    }
-
-    private CategoryNode getNode(String nl) {
-        for (CategoryNode node : catGraph) {
-            if (nl.equals(node.toString()))
-                return node;
-        }
-        return null;
-    }
-
-
-    private class CategoryNode {
-        String nodeLabel;
-        Set<CategoryNode> linksTo;
-
-        CategoryNode(String l, Set<CategoryNode> links) {
-            this.nodeLabel = l;
-            this.linksTo = links;
-        }
-
-        private void addLink(CategoryNode c) {
-            linksTo.add(c);
-        }
-
-        @Override
-        public String toString() {
-            return nodeLabel;
-        }
-    }
 
 
     /**
@@ -448,7 +318,6 @@ public class LLProver {
                 // the term is of the form (A -o B), where A is an atomic formula
                 // no conversion step needed on the glue side, but lambda abstraction on
                 // the meaning side is necessary. But only if there has been no conversion?
-                // TODO suspended semantic conversion for now...
                 // ...because it has no use and adds unnecessary complexity to the variable assignments
                 //
                 //p.setSemTerm(this.convertSemantics(p.getSemTerm()));
@@ -458,22 +327,6 @@ public class LLProver {
         return p;
     }
 
-    /*
-    * Recursively converts a semantic term by replacing the variables with newly created ones
-    * */
-    private SemRepresentation convertSemantics(SemRepresentation sem) {
-        if (sem instanceof SemFunction) {
-            // create new variable with the type of the binder of the inner function
-            SemAtom var = new SemAtom(VAR,LexVariableHandler.returnNewVar(SemVar)
-                    ,((SemFunction) sem).getBinder().getType());
-            // apply var
-            SemRepresentation compiled = new FuncApp(sem,var).betaReduce();
-            SemRepresentation inner = convertSemantics(compiled);
-            // return new function with the applied variable as binder
-            return new SemFunction(var,inner);
-        }
-        return sem;
-    }
 
     /**
     * This method does the actual compilation process. It adds created "assumptions" as additional
@@ -609,8 +462,7 @@ public class LLProver {
                 return new Premise(p.getPremiseIDs(),sem,glue);
             }
         }
-        // other cases? A -o b; no reordering required
-        // TODO are these all cases?
+        // A -o b; no reordering required
         return p;
     }
 
@@ -632,7 +484,7 @@ public class LLProver {
 
     /**
      * Checks for duplicate bindings and returns false if a variable is assigned more than one value
-     * @param in
+     * @param in A set of variable bindings
      * @return true if no duplicate bindings were detected, false if otherwise
      */
     private static boolean checkDuplicateBinding(LinkedHashSet<Equality> in) {

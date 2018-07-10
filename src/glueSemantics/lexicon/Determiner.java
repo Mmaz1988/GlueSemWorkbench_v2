@@ -12,6 +12,7 @@ package glueSemantics.lexicon;
 import glueSemantics.synInterface.dependency.LexVariableHandler;
 import glueSemantics.linearLogic.*;
 import glueSemantics.semantics.*;
+import glueSemantics.synInterface.dependency.LexicalParserException;
 
 import java.util.HashMap;
 
@@ -34,8 +35,7 @@ public class Determiner extends LexicalEntry{
     }
 
 
-    public Determiner(String identifier, String detType, String role)
-    {
+    public Determiner(String identifier, String detType, String role) throws LexicalParserException {
         setScope(role);
 
         this.lexType = LexType.DET;
@@ -123,18 +123,7 @@ public class Determiner extends LexicalEntry{
                     semBinder, new BinaryTerm(restrFA,BinaryTerm.SemOperator.AND,scopeFA))));
 
             this.setSem(ex);
-            /*
-            // Test case for a conjunction with two FuncApps
-            FuncApp leftAnd = new FuncApp(varP,varX);
-            FuncApp rightAnd = new FuncApp(varQ,varX);
-            SemFunction and = new SemFunction(varP,new SemFunction(varQ,
-                    new SemQuantEx(EX,varX, new BinaryTerm(leftAnd,AND,rightAnd))));
-            SemFunction sleep = new SemFunction(varY,new SemPred("sleep",varY));
 
-             SemRepresentation applied = new FuncApp(and,sleep).betaReduce();
-
-
-           */
         }
         else if (detType.toLowerCase().equals("every"))
         {
@@ -153,6 +142,9 @@ public class Determiner extends LexicalEntry{
 
             this.setSem(uni);
 
+        }
+        else {
+            throw new LexicalParserException("Unknown determiner: "+detType.toLowerCase());
         }
 
 

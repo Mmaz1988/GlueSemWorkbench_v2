@@ -23,7 +23,6 @@ public abstract class LLTerm {
         E, T,
     }
 
-    private String termId;
     private boolean polarity;
     private Type type;
     public Set<LLTerm> assumptions = new HashSet<>();
@@ -32,24 +31,10 @@ public abstract class LLTerm {
     //Default constructor
     public LLTerm(){ }
 
-/*
-    public LLTerm(LLTerm term) {
-        this.assumptions = term.assumptions;
-        this.discharges = term.discharges;
-        this.termId = term.termId;
-        this.type = term.type;
-        this.polarity = term.polarity;
-
-    }
-*/
-
-    public String getTermId() {
-        return termId;
-    }
 
     public boolean isPolarity() { return polarity; }
 
-    public void setPolarity(boolean pol) { this.polarity = pol; }
+    void setPolarity(boolean pol) { this.polarity = pol; }
 
     public abstract boolean checkEquivalence(LLTerm term);
 

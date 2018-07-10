@@ -12,6 +12,7 @@ package glueSemantics.synInterface.dependency;
 import java.util.*;
 
 public abstract class LexVariableHandler {
+    private static final int MAXINDEX = 5;
 
     public enum variableType{
         LLvar,
@@ -107,8 +108,8 @@ Possibly add more types, e.g. SemVarE, SemVarT etc.
             }
 
             int i = 1;
-            //threshold for trying out new indices; can be set higher?
-            while (i < 3) {
+            //threshold for trying out new indices; can be set higher
+            while (i < MAXINDEX) {
 
                 for (String var : variables) {
 

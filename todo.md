@@ -1,24 +1,25 @@
-# ToDO for gluePaP
+# ToDO for glueSemWB
+
+
+#Pre-release TODO:
+- write README containing basic instructions
+- check compatibility with CoreNLP library and add it to instructions
 
 #Fixes/Bugs
-
-- intransitve verbs not working
-
-- variable names not assigned properly (some duplicates)
 
 
 #Additional functions:
 
-- interface for XLE
+- add more lexicon items:
+    - more modifiers
+    - non-quantifying determiners
+    - etc...
 
-- add modifiers, anaphors, tense/aspect etc.
+- add anaphors, tense/aspect etc.
 
-- modifier/skeleton distinction for more efficient parsing
-    - for modifiers of modifiers Gupta & Lamping's system might not work. Lev might be needed (see below)
+- colored console output
 
 #Structure/modularization
-
-- SentenceMeaning.java: unabhängig von syntaktischem Input machen. Sollte Objekte  (oder einfach Strings) entgegen nehmen anhand derer die resources erstellt werden. Die Objekte/Strings werden dann in Klassen erzeugt die für die jeweilige Schnittstelle (UD, XLE etc) spezifisch sind.
 
 - restructure betaConversion?
 

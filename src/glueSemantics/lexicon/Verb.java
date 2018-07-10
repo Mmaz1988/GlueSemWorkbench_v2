@@ -14,6 +14,7 @@ import glueSemantics.linearLogic.LLAtom;
 import glueSemantics.linearLogic.LLFormula;
 import glueSemantics.linearLogic.LLTerm;
 import glueSemantics.semantics.*;
+import glueSemantics.synInterface.dependency.LexicalParserException;
 
 import java.util.*;
 
@@ -22,7 +23,7 @@ public class Verb extends LexicalEntry {
     LexType lexType;
 
 
-    public Verb(LinkedHashMap<String,LexicalEntry> subCatFrame, String lemma) {
+    public Verb(LinkedHashMap<String,LexicalEntry> subCatFrame, String lemma) throws LexicalParserException {
 
 
 
@@ -127,11 +128,9 @@ public class Verb extends LexicalEntry {
 
                 break;
             }
-            case V_COMP:
+            default:
+                throw new LexicalParserException("Verb type not implemented yet");
 
-
-
-                break;
         }
     }
 

@@ -19,7 +19,6 @@ import java.util.stream.Stream;
 import static glueSemantics.linearLogic.LLFormula.LLOperator.LLIMP;
 
 public class LLFormula extends LLTerm {
-    private String name;
     private LLTerm lhs;
     private LLTerm rhs;
     private LLOperator operator;
@@ -55,7 +54,6 @@ public class LLFormula extends LLTerm {
         this.rhs = rhs;
         this.setPolarity(pol);
         this.operator = LLIMP;
-        this.name = this.toString();
     }
 
     public LLFormula(LLTerm lhs, LLTerm rhs, boolean pol, LLAtom var) {
@@ -63,7 +61,6 @@ public class LLFormula extends LLTerm {
         this.rhs = rhs;
         this.setPolarity(pol);
         this.operator = LLIMP;
-        this.name = this.toString();
         this.variable = var;
 
         if(variable!= null) {
@@ -82,7 +79,6 @@ public class LLFormula extends LLTerm {
         this.rhs = rhs;
         this.setPolarity(pol);
         this.operator = operator;
-        this.name = this.toString();
     }
 
 
@@ -94,7 +90,6 @@ public class LLFormula extends LLTerm {
         this.rhs = rhs;
         this.setPolarity(pol);
         this.operator = operator;
-        this.name = this.toString();
         this.variable = var;
 
         if (variable != null) {
@@ -115,7 +110,6 @@ public class LLFormula extends LLTerm {
             this.rhs = f.getRhs().clone();
             this.setPolarity(f.isPolarity());
             this.operator = f.getOperator();
-            this.name = f.toString();
             if (f.variable != null) {
             this.variable = new LLAtom(f.variable);
                 List<LLAtom> bvl = Stream.concat(findBoundOccurrences(lhs).stream(),
@@ -195,7 +189,6 @@ public class LLFormula extends LLTerm {
 
 
     @Override
-    // TODO properly represent formulas that have assumptions associated with them are not themselves assumptions.
     public String toString() {
         String as = "";
         String dc = "";
@@ -206,8 +199,14 @@ public class LLFormula extends LLTerm {
                 as = this.printAssumptions();
         }
 
-        if (!this.discharges.isEmpty())
-            dc = this.discharges.toString();
+        if (!this.discharges.isEmpty()) {
+            StringBuilder dcTemp = new StringBuilder();
+            for (LLTerm discharge : discharges) {
+                dcTemp.append(",");
+                dcTemp.append(discharge.toPlainString());
+            }
+            dc = "[" + dcTemp.substring(1,dcTemp.length()) + "]";
+        }
 
         return "(" + lhs.toPlainString()
                 + dc + " "
@@ -246,12 +245,10 @@ public class LLFormula extends LLTerm {
                 LinkedHashSet<Equality> right = this.rhs.checkCompatibility(((LLFormula) term).rhs);
 
 
-                //LinkedHashSet<Equality> dummy = Stream.concat(right.stream(), left.stream()).collect(Collectors.toCollection(LinkedHashSet::new));
-                LinkedHashSet<Equality> dummy = new LinkedHashSet<>();
-                dummy.addAll(right);
-                dummy.addAll(left);
-                return dummy;
-                //return Stream.concat(dummy.stream(), Stream.of(operator)).collect(Collectors.toCollection(LinkedHashSet::new));
+                LinkedHashSet<Equality> temp = new LinkedHashSet<>();
+                temp.addAll(right);
+                temp.addAll(left);
+                return temp;
             }
         }
 

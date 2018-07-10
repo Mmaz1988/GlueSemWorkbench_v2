@@ -32,12 +32,6 @@ public class Equality {
     }
 
 
-    @Override
-    public String toString() {
-        return variable.getName() +variable.getTermId() + constant.getName() + variable.getTermId();
-    }
-
-
 
     // equals for this object yields true if within the constant and the variable name and type are equal
     @Override

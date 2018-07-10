@@ -47,22 +47,6 @@ public class SentenceMeaning {
 
         Sequent testseq = new Sequent(lexicalEntries);
 
-        System.out.println(testseq.toString());
-
-        System.out.println("Checking simple prover...");
-        LLProver prover = new LLProver(testseq);
-        List<Premise> result = null;
-        try {
-            result = prover.deduce();
-            System.out.println("Found valid deduction(s): ");
-            for (Premise sol : result) {
-                System.out.println(sol.toString());
-            }
-        } catch (ProverException e) {
-            e.printStackTrace();
-        }
-
-        System.out.println("Done!");
     }
 
     /**
@@ -261,12 +245,10 @@ public class SentenceMeaning {
     // extracts the nominal heads and all modifiers linked to it
     // returns a HashMap containing all lexical entries related to that argument
     private HashMap<String,List<LexicalEntry>>
-    extractArgumentEntries(String role, IndexedWord iw, String identifier)
-    {
+    extractArgumentEntries(String role, IndexedWord iw, String identifier) throws LexicalParserException {
 
         //Method variables
         HashMap<String,List<LexicalEntry>> lexEn = new HashMap<>();
-        boolean isQuantified = false;
 
         if (iw.tag().equals("NNP"))
         {

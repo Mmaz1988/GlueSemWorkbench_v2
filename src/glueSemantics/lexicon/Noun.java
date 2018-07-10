@@ -17,17 +17,17 @@ import glueSemantics.semantics.SemAtom;
 import glueSemantics.semantics.SemFunction;
 import glueSemantics.semantics.SemPred;
 import glueSemantics.semantics.SemType;
+import glueSemantics.synInterface.dependency.LexicalParserException;
 
 public class Noun extends LexicalEntry {
 
 
     public LexType lexType;
 
-    public Noun(LexType type, String identifier, String main) {
+    public Noun(LexType type, String identifier, String main) throws LexicalParserException {
 
         this.identifier = identifier;
 
-        //StringJoiner sj = new StringJoiner(" ");
 
         //f is standard variable for complete f-structure
         //g is standard variable for subject
@@ -37,7 +37,6 @@ public class Noun extends LexicalEntry {
         switch (this.lexType) {
             case N_NNP:
 
-                //this.llFormula = identifier + "_e";
                 this.setLlTerm(new LLAtom(identifier, LLTerm.Type.E, LLAtom.LLType.CONST, true));
 
                 this.setSem(new SemAtom(SemAtom.SemSort.CONST, main.substring(0, 1).toLowerCase(),
@@ -69,6 +68,9 @@ public class Noun extends LexicalEntry {
                 this.setSem(nounSem);
 
                 break;
+
+                default:
+                    throw new LexicalParserException("Noun type not implemented yet");
 
 
         }

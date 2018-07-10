@@ -25,15 +25,14 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Scanner;
 
-/**
- * This software was created by Mark-Matthias Zymla and Moritz Messmer
- */
 
 public class Main {
 
 
     public static void main(String[] args) {
 
+        System.out.println("The Glue Semantics Workbench\n"+
+                            "copyright 2018 Moritz Messmer & Mark-Matthias Zymla\n");
         if (args.length > 0 && args[0].equals("lfg")) {
             try {
                 initiateLFGMode();
@@ -54,6 +53,7 @@ public class Main {
     }
 
     private static void initiateLFGMode() throws VariableBindingException, LexicalParserException {
+            System.out.println("Starting LFG mode...\n");
             File f = null;
             final JFileChooser fc = new JFileChooser();
             fc.setDialogTitle("Choose an f-structure file");
@@ -69,7 +69,9 @@ public class Main {
             Path p;
             if (f != null) {
                 p = FileSystems.getDefault().getPath(f.getAbsolutePath());
-                new FStructureParser(p);
+
+                searchProof(new FStructureParser(p).getLexicalEntries());
+
             }
             else
                 System.out.println("No file selected");
@@ -77,7 +79,7 @@ public class Main {
 
 
     private static void initiateDependencyMode() throws VariableBindingException, LexicalParserException {
-
+        System.out.println("Starting interactive dependency mode...\n");
         Scanner s = new Scanner(System.in);
         String input;
         while (true) {
@@ -85,13 +87,12 @@ public class Main {
             input = s.nextLine();
             if (input.equals("quit"))
                 break;
-            new SentenceMeaning(input);
+            searchProof(new SentenceMeaning(input).getLexicalEntries());
         }
     }
 
     private static void initiateDependencyMode(String sentence) throws LexicalParserException {
         try {
-            System.out.println();
             SentenceMeaning sm = new SentenceMeaning(sentence);
             searchProof(sm.getLexicalEntries());
         }
@@ -119,7 +120,7 @@ public class Main {
             e.printStackTrace();
         }
 
-        System.out.println("Done!");
+        System.out.println("Done!\n");
     }
 
 }
