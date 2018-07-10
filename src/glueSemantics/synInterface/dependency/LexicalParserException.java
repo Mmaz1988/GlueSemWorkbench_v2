@@ -7,14 +7,17 @@
  * If not, please visit http://www.gnu.org/licenses/ for more information.
  */
 
-package prover;
+package glueSemantics.synInterface.dependency;
 
-public class VariableBindingException extends Exception{
-    public VariableBindingException() {
-        super("BindingErroe: duplicate bindings detected! ");
-    }
+import java.util.regex.Matcher;
 
-    public VariableBindingException(String message) {
+public class LexicalParserException extends Exception {
+    public LexicalParserException(String message) {
         super(message);
     }
+
+    public LexicalParserException(Matcher m) {
+        super ("Couldn't find pattern "+ m.pattern().toString());
+    }
+
 }

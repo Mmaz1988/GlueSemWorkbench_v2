@@ -1,6 +1,15 @@
+/*
+ * Copyright 2018 Moritz Messmer and Mark-Matthias Zymla.
+ * This file is part of the Glue Semantics Workbench
+ * The Glue Semantics Workbench is free software and distributed under the conditions of the GNU General Public License,
+ * without any warranty.
+ * You should have received a copy of the GNU General Public License along with the source code.
+ * If not, please visit http://www.gnu.org/licenses/ for more information.
+ */
+
 package glueSemantics.lexicon;
 
-import glueSemantics.glue.LexVariableHandler;
+import glueSemantics.synInterface.dependency.LexVariableHandler;
 import glueSemantics.linearLogic.*;
 import glueSemantics.semantics.*;
 
@@ -12,7 +21,6 @@ public class Determiner extends LexicalEntry{
 
     private static HashMap<String,String> scope;
 
-    //TODO I'd rather have a seperate system in place for this.
     private static void  setScope(String role)
     {
         String var = LexVariableHandler.returnNewVar(LexVariableHandler.variableType.LLatomE);
@@ -25,15 +33,9 @@ public class Determiner extends LexicalEntry{
 
     }
 
-    enum QuantType
-    {
-        ALL,
-        EX
-    }
 
     public Determiner(String identifier, String detType, String role)
     {
-        //Part of determining scope relations; kind of hacky
         setScope(role);
 
         this.lexType = LexType.DET;

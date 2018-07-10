@@ -7,14 +7,24 @@
  * If not, please visit http://www.gnu.org/licenses/ for more information.
  */
 
-package prover;
+package glueSemantics.synInterface.dependency;
 
-public class VariableBindingException extends Exception{
-    public VariableBindingException() {
-        super("BindingErroe: duplicate bindings detected! ");
+import edu.stanford.nlp.ling.IndexedWord;
+
+public class Tuple {
+
+    final IndexedWord right;
+    final String left;
+
+    public Tuple(String left,IndexedWord right){
+        this.left = left;
+        this.right = right;
+
+
     }
 
-    public VariableBindingException(String message) {
-        super(message);
+    @Override
+    public String toString() {
+        return "(" + left + ": " + right.toString() + "--" + right.index() + ")";
     }
 }

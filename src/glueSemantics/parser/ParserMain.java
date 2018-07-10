@@ -1,8 +1,15 @@
+/*
+ * Copyright 2018 Moritz Messmer and Mark-Matthias Zymla.
+ * This file is part of the Glue Semantics Workbench
+ * The Glue Semantics Workbench is free software and distributed under the conditions of the GNU General Public License,
+ * without any warranty.
+ * You should have received a copy of the GNU General Public License along with the source code.
+ * If not, please visit http://www.gnu.org/licenses/ for more information.
+ */
+
 package glueSemantics.parser;
 
-/*
-    Todo: Already add possibility to parse complex formulas including parenthesis e.g. (f -o g) -o h
- */
+
 
 import prover.VariableBindingException;
 import glueSemantics.linearLogic.*;
@@ -19,14 +26,13 @@ public class ParserMain {
     {
         this.Input = input;
 
-        // TODO Handle unwanted exceptions (Number of array arguments)
-        String[] In = Input.split("=>");
-        String[] stringPremises = In[0].split(",");
+
+        String[] in = Input.split("=>");
+        String[] stringPremises = in[0].split(",");
 
 
         if (stringPremises.length != 0)
         {
-            // TODO Create semantic parser
             LinearLogicParser llParser = new LinearLogicParser();
             for (String stringPremise :  stringPremises) {
                 String[] glueRepresentation = stringPremise.split(":");

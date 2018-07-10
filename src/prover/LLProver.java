@@ -1,13 +1,22 @@
+/*
+ * Copyright 2018 Moritz Messmer and Mark-Matthias Zymla.
+ * This file is part of the Glue Semantics Workbench
+ * The Glue Semantics Workbench is free software and distributed under the conditions of the GNU General Public License,
+ * without any warranty.
+ * You should have received a copy of the GNU General Public License along with the source code.
+ * If not, please visit http://www.gnu.org/licenses/ for more information.
+ */
+
 package prover;
 
-import glueSemantics.glue.LexVariableHandler;
+import glueSemantics.synInterface.dependency.LexVariableHandler;
 import glueSemantics.linearLogic.*;
 import glueSemantics.semantics.*;
 
 import java.util.*;
 
-import static glueSemantics.glue.LexVariableHandler.variableType.SemVar;
-import static glueSemantics.glue.LexVariableHandler.variableType.SemVarE;
+import static glueSemantics.synInterface.dependency.LexVariableHandler.variableType.SemVar;
+import static glueSemantics.synInterface.dependency.LexVariableHandler.variableType.SemVarE;
 import static glueSemantics.semantics.SemAtom.SemSort.VAR;
 import static glueSemantics.semantics.SemType.AtomicType.T;
 

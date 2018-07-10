@@ -1,10 +1,19 @@
-package glueSemantics.glue.lfg;
+/*
+ * Copyright 2018 Moritz Messmer and Mark-Matthias Zymla.
+ * This file is part of the Glue Semantics Workbench
+ * The Glue Semantics Workbench is free software and distributed under the conditions of the GNU General Public License,
+ * without any warranty.
+ * You should have received a copy of the GNU General Public License along with the source code.
+ * If not, please visit http://www.gnu.org/licenses/ for more information.
+ */
+
+package glueSemantics.synInterface.lfg;
 
 import prover.LLProver;
 import prover.ProverException;
 import prover.VariableBindingException;
-import glueSemantics.glue.LexVariableHandler;
-import glueSemantics.glue.LexicalParserException;
+import glueSemantics.synInterface.dependency.LexVariableHandler;
+import glueSemantics.synInterface.dependency.LexicalParserException;
 import glueSemantics.lexicon.*;
 import glueSemantics.linearLogic.Premise;
 import glueSemantics.linearLogic.Sequent;
@@ -21,10 +30,16 @@ import java.util.regex.Pattern;
 
 public class FStructureParser {
     private final static String[] functions = {"SUBJ", "OBJ", "OBL"};
+    private List<LexicalEntry> lexicalEntries = new ArrayList<>();
+
+    public List<LexicalEntry> getLexicalEntries() {
+        return lexicalEntries;
+    }
 
 
     public static void main(String[] args) {
-        File f = null;
+        // Uncomment to test f-structure parser
+/*        File f = null;
         final JFileChooser fc = new JFileChooser();
         int returnVal = fc.showOpenDialog(null);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -40,40 +55,14 @@ public class FStructureParser {
             FStructureParser fsp = new FStructureParser(p);
         } catch (VariableBindingException e) {
             e.printStackTrace();
-        }
+        }*/
 
     }
 
 
-    public FStructureParser (Path inputpath) throws VariableBindingException {
-        List<LexicalEntry> lexicalEntries = null;
-        try {
+    public FStructureParser (Path inputpath) throws VariableBindingException, LexicalParserException {
             lexicalEntries = extractFromFStructureFile(inputpath);
-        } catch (LexicalParserException e) {
-            e.printStackTrace();
-        }
-        if (lexicalEntries != null) {
 
-        }
-
-        Sequent testseq = new Sequent(lexicalEntries);
-
-        System.out.println(testseq.toString());
-
-        System.out.println("Checking simple prover...");
-        LLProver prover = new LLProver(testseq);
-        List<Premise> result = null;
-        try {
-            result = prover.deduce();
-            System.out.println("Found valid deduction(s): ");
-            for (Premise sol : result) {
-                System.out.println(sol.toString());
-            }
-        } catch (ProverException e) {
-            e.printStackTrace();
-        }
-
-        System.out.println("Done!");
     }
 
     /**
@@ -218,4 +207,9 @@ public class FStructureParser {
 
         return lexicalEntries;
     }
+
+
+/*    public List<TransferFact> convertToTransferFacts(Path filepath) {
+        return null;
+    }*/
 }
