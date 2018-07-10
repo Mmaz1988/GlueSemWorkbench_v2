@@ -1,11 +1,11 @@
 # ToDO for glueSemWB
 
 
-#Pre-release TODO:
+# Pre-release TODO:
 - write README containing basic instructions
 - check compatibility with CoreNLP library and add it to instructions
 
-#Fixes/Bugs
+# Fixes/Bugs
 
 
 #Additional functions:
@@ -19,7 +19,7 @@
 
 - colored console output
 
-#Structure/modularization
+# Structure/modularization
 
 - restructure betaConversion?
 
