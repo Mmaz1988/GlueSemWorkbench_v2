@@ -61,6 +61,7 @@ public class Main {
                     new FileNameExtensionFilter("Prolog f-structure files", "pl"));
             int returnVal = fc.showOpenDialog(null);
             if (returnVal == JFileChooser.APPROVE_OPTION) {
+                System.out.println("Selected file " + fc.getSelectedFile().getName());
                 f = fc.getSelectedFile();
             } else {
                 System.out.println("No file selected");

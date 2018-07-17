@@ -9,7 +9,7 @@
 
 package prover;
 
-import glueSemantics.semantics.SemAtom;
+import glueSemantics.semantics.lambda.SemAtom;
 
 public class SemEquality {
 

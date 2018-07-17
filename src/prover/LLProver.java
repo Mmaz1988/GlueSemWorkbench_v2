@@ -9,16 +9,19 @@
 
 package prover;
 
+import glueSemantics.semantics.lambda.FuncApp;
+import glueSemantics.semantics.lambda.SemAtom;
+import glueSemantics.semantics.lambda.SemFunction;
+import glueSemantics.semantics.lambda.SemRepresentation;
 import glueSemantics.synInterface.dependency.LexVariableHandler;
 import glueSemantics.linearLogic.*;
-import glueSemantics.semantics.*;
 
 import java.util.*;
 
 import static glueSemantics.synInterface.dependency.LexVariableHandler.variableType.SemVar;
 import static glueSemantics.synInterface.dependency.LexVariableHandler.variableType.SemVarE;
-import static glueSemantics.semantics.SemAtom.SemSort.VAR;
-import static glueSemantics.semantics.SemType.AtomicType.T;
+import static glueSemantics.semantics.lambda.SemAtom.SemSort.VAR;
+import static glueSemantics.semantics.lambda.SemType.AtomicType.T;
 
 public class LLProver {
     private LinkedList<Premise> skeletons = new LinkedList<>();

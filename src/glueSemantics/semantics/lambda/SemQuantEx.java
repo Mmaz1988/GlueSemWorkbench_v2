@@ -7,10 +7,10 @@
  * If not, please visit http://www.gnu.org/licenses/ for more information.
  */
 
-package glueSemantics.semantics;
+package glueSemantics.semantics.lambda;
 
-import static glueSemantics.semantics.SemQuantEx.SemQuant.UNI;
-import static glueSemantics.semantics.SemType.AtomicType.T;
+import static glueSemantics.semantics.lambda.SemQuantEx.SemQuant.UNI;
+import static glueSemantics.semantics.lambda.SemType.AtomicType.T;
 
 public class SemQuantEx extends SemRepresentation{
     private final SemQuant quantifier;

@@ -7,7 +7,7 @@
  * If not, please visit http://www.gnu.org/licenses/ for more information.
  */
 
-package glueSemantics.semantics;
+package glueSemantics.semantics.lambda;
 
 public class FuncApp extends SemRepresentation{
     private final SemRepresentation functor;

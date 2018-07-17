@@ -7,10 +7,10 @@
  * If not, please visit http://www.gnu.org/licenses/ for more information.
  */
 
-package glueSemantics.semantics;
+package glueSemantics.semantics.lambda;
 
 
-import static glueSemantics.semantics.SemType.AtomicType.E;
+import static glueSemantics.semantics.lambda.SemType.AtomicType.E;
 
 public class SemType {
     private SemType left;

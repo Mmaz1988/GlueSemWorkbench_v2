@@ -10,7 +10,7 @@
 package glueSemantics.linearLogic;
 
 import glueSemantics.lexicon.LexicalEntry;
-import glueSemantics.semantics.SemRepresentation;
+import glueSemantics.semantics.lambda.SemRepresentation;
 
 import java.util.HashSet;
 

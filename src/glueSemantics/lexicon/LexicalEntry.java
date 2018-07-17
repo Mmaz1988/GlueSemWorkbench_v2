@@ -10,7 +10,7 @@
 package glueSemantics.lexicon;
 
 import glueSemantics.linearLogic.LLTerm;
-import glueSemantics.semantics.SemRepresentation;
+import glueSemantics.semantics.lambda.SemRepresentation;
 
 public class LexicalEntry {
 

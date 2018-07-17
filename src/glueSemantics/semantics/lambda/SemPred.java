@@ -7,11 +7,11 @@
  * If not, please visit http://www.gnu.org/licenses/ for more information.
  */
 
-package glueSemantics.semantics;
+package glueSemantics.semantics.lambda;
 
 import java.util.ArrayList;
 
-import static glueSemantics.semantics.SemType.AtomicType.T;
+import static glueSemantics.semantics.lambda.SemType.AtomicType.T;
 
 public class SemPred extends SemRepresentation {
 

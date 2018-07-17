@@ -9,9 +9,9 @@
 
 package glueSemantics.lexicon;
 
+import glueSemantics.semantics.lambda.*;
 import glueSemantics.synInterface.dependency.LexVariableHandler;
 import glueSemantics.linearLogic.*;
-import glueSemantics.semantics.*;
 import glueSemantics.synInterface.dependency.LexicalParserException;
 
 import java.util.HashMap;
