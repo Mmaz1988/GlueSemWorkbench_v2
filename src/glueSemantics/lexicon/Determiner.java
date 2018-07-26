@@ -158,6 +158,8 @@ public class Determiner extends LexicalEntry{
     // Setter and Getter
     public static String getScope(String role)
     {
+        if (scope == null)
+            return null;
         return scope.get(role);
     }
 
