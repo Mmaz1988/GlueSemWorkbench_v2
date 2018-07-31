@@ -10,8 +10,9 @@
 package glueSemantics.semantics.lambda;
 
 
+import glueSemantics.semantics.SemanticRepresentation;
 
-public class SemAtom extends SemRepresentation {
+public class SemAtom extends SemanticExpression {
     private final String name;
     //private String value;
     //private AtomicType atomicType;
@@ -47,12 +48,12 @@ public class SemAtom extends SemRepresentation {
 
 
     @Override
-    public SemRepresentation betaReduce() {
+    public SemanticExpression betaReduce() {
         return this;
     }
 
     @Override
-    public SemRepresentation applyTo(SemAtom var, SemRepresentation arg) {
+    public SemanticRepresentation applyTo(SemanticRepresentation var, SemanticRepresentation arg) {
         if (this == var)
             return arg;
         else
@@ -63,7 +64,7 @@ public class SemAtom extends SemRepresentation {
     // formulas so the bindings remain intact. As atoms aren't modified during runtime anyways this
     // is not a problem.
     @Override
-    public SemRepresentation clone() {
+    public SemanticExpression clone() {
         return this;
     }
 

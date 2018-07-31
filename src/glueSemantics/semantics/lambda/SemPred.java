@@ -9,33 +9,35 @@
 
 package glueSemantics.semantics.lambda;
 
+import glueSemantics.semantics.SemanticRepresentation;
+
 import java.util.ArrayList;
 
 import static glueSemantics.semantics.lambda.SemType.AtomicType.T;
 
-public class SemPred extends SemRepresentation {
+public class SemPred extends SemanticExpression {
 
     private final String predForm;
     // Does a stack make sense here? We always want to have the same number of args!
     // Maybe a Hashmap is better
-    private ArrayList<SemRepresentation> argList = new ArrayList<>();
+    private ArrayList<SemanticRepresentation> argList = new ArrayList<>();
 
 
-    public SemPred(String predForm, SemRepresentation arg0) {
+    public SemPred(String predForm, SemanticRepresentation arg0) {
         this.predForm = predForm;
         argList.add(arg0);
         this.setType(T);
     }
 
 
-    public SemPred(String predForm, SemRepresentation arg0, SemRepresentation arg1) {
+    public SemPred(String predForm, SemanticRepresentation arg0, SemanticRepresentation arg1) {
         this.predForm = predForm;
         argList.add(arg0);
         argList.add(arg1);
         this.setType(T);
     }
 
-    public SemPred(String predForm, SemRepresentation arg0, SemRepresentation arg1, SemRepresentation arg2) {
+    public SemPred(String predForm, SemanticRepresentation arg0, SemanticRepresentation arg1, SemanticRepresentation arg2) {
         this.predForm = predForm;
         argList.add(arg0);
         argList.add(arg1);
@@ -43,7 +45,7 @@ public class SemPred extends SemRepresentation {
         this.setType(T);
     }
 
-    public SemPred(String predForm, ArrayList<SemRepresentation> args) {
+    public SemPred(String predForm, ArrayList<SemanticRepresentation> args) {
         this.predForm = predForm;
         this.argList = args;
     }
@@ -78,13 +80,13 @@ public class SemPred extends SemRepresentation {
     }
 
     @Override
-    public SemRepresentation betaReduce() {
+    public SemanticRepresentation betaReduce() {
         return this;
     }
 
     @Override
-    public SemRepresentation applyTo(SemAtom var, SemRepresentation arg) {
-        ArrayList<SemRepresentation> newArgs = new ArrayList<>(argList);
+    public SemanticRepresentation applyTo(SemanticRepresentation var, SemanticRepresentation arg) {
+        ArrayList<SemanticRepresentation> newArgs = new ArrayList<>(argList);
         for (int i = 0; i < newArgs.size(); i++) {
             if (newArgs.get(i) == var) {
                 newArgs.set(i,arg);
@@ -94,7 +96,7 @@ public class SemPred extends SemRepresentation {
     }
 
     @Override
-    public SemRepresentation clone() {
+    public SemanticExpression clone() {
         return new SemPred(this);
     }
 }

@@ -9,13 +9,19 @@
 
 package glueSemantics.semantics.lambda;
 
-public class FuncApp extends SemRepresentation{
-    private final SemRepresentation functor;
-    private final SemRepresentation argument;
+import glueSemantics.semantics.FunctionalApplication;
+import glueSemantics.semantics.MeaningRepresentation;
+import glueSemantics.semantics.SemanticRepresentation;
+import prover.ProverException;
 
-    public FuncApp(SemRepresentation functor, SemRepresentation argument) {
-        this.functor = functor;
-        this.argument = argument;
+public class FuncApp extends SemanticExpression implements FunctionalApplication {
+    private SemanticRepresentation functor;
+    private SemanticRepresentation argument;
+
+    public FuncApp(SemanticRepresentation functor, SemanticRepresentation argument) {
+        //this.functor = functor;
+        //this.argument = argument;
+        this.instantiateFunctionalApp(functor,argument);
     }
 
     public FuncApp(FuncApp fa) {
@@ -23,18 +29,18 @@ public class FuncApp extends SemRepresentation{
         this.argument = fa.argument.clone();
     }
 
-    public SemRepresentation getFunctor() {
+    public SemanticRepresentation getFunctor() {
         return functor;
     }
 
-    public SemRepresentation getArgument() {
+    public SemanticRepresentation getArgument() {
         return argument;
     }
 
 
 
     // Does a full beta reduction of the term including all nested functional applications
-    public SemRepresentation betaReduce() {
+    public SemanticRepresentation betaReduce() throws ProverException {
         if (argument != null)
             return apply(argument);
         return this;
@@ -44,15 +50,15 @@ public class FuncApp extends SemRepresentation{
     Applies the functor to the argument. The functor must be a SemFunc or SemQuantEx and the
     applyTo() function of the functor is called for the actual application step.
     */
-    public SemRepresentation apply(SemRepresentation arg) {
+    public SemanticRepresentation apply(SemanticRepresentation arg) throws ProverException {
         if (this.functor instanceof SemFunction) {
             SemFunction lambda = (SemFunction) this.functor;
             if (lambda.getBinder().getType().equalsType(arg.getType())) {
-                SemRepresentation newBody = lambda.getFuncBody();
+                SemanticRepresentation newBody = lambda.getFuncBody();
                 newBody = newBody.applyTo(lambda.getBinder(), arg);
                 //newBody = newBody.betaReduce();
                 if (arg != this.argument)
-                    return new FuncApp(newBody,this.argument).betaReduce();
+                    return new FuncApp(newBody, this.argument).betaReduce();
                 else
                     return newBody.betaReduce();
             }
@@ -60,17 +66,22 @@ public class FuncApp extends SemRepresentation{
         else if (this.functor instanceof SemQuantEx) {
             SemQuantEx quant = (SemQuantEx) this.functor;
             if (quant.getBinder().getType().equalsType(arg.getType())) {
-                SemRepresentation newBody = quant.getQuantBody();
+                SemanticRepresentation newBody = quant.getQuantBody();
                 newBody = newBody.applyTo(quant.getBinder(), arg);
                 //newBody = newBody.betaReduce();
                 if (arg != this.argument)
-                    return new FuncApp(newBody,this.argument);
+                    return new FuncApp(newBody, this.argument);
                 else
                     return newBody.betaReduce();
             }
         }
         else if (this.functor instanceof FuncApp) {
             return ((FuncApp) this.functor).apply(arg);
+        }
+        else if (this.functor instanceof MeaningRepresentation) {
+            if (arg.equals(this.argument))
+                return this;
+            return new FuncApp(this,arg);
         }
         return this;
     }
@@ -82,20 +93,20 @@ public class FuncApp extends SemRepresentation{
     b) [Lu. LP. P  (Lv.u)] (predicate(v)))
     In the first case we want to substitute P for the argument and then betaReduce.
     In the second case we want to apply the argument of this FuncApp to arg.
-    Both cases can be done sequentially as an unsuccessful application attempt
+    Both cases can be done sequentially, as an unsuccessful application attempt
     simply returns the unsimplified expression.
     */
-    public SemRepresentation applyTo(SemAtom var,SemRepresentation arg) {
-            SemRepresentation appliedFunc = this.functor.applyTo(var, arg);
+    public SemanticRepresentation applyTo(SemanticRepresentation var, SemanticRepresentation arg) throws ProverException {
+            SemanticRepresentation appliedFunc = this.functor.applyTo(var, arg);
             if (appliedFunc instanceof FuncApp)
                 appliedFunc = appliedFunc.betaReduce();
-            SemRepresentation appliedArg = this.argument.applyTo(var, arg);
+            SemanticRepresentation appliedArg = this.argument.applyTo(var, arg);
 
             return new FuncApp(appliedFunc,appliedArg);
     }
 
     @Override
-    public SemRepresentation clone() {
+    public SemanticExpression clone() {
         return new FuncApp(this);
     }
 
@@ -107,5 +118,11 @@ public class FuncApp extends SemRepresentation{
     @Override
     public String toString() {
         return functor + "(" + argument + ")";
+    }
+
+    @Override
+    public void instantiateFunctionalApp(SemanticRepresentation func, SemanticRepresentation arg) {
+        this.functor = func;
+        this.argument = arg;
     }
 }

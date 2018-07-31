@@ -9,15 +9,15 @@
 
 package prover;
 
-import glueSemantics.semantics.lambda.FuncApp;
-import glueSemantics.semantics.lambda.SemAtom;
-import glueSemantics.semantics.lambda.SemFunction;
-import glueSemantics.semantics.lambda.SemRepresentation;
+import glueSemantics.semantics.MeaningRepresentation;
+import glueSemantics.semantics.SemanticRepresentation;
+import glueSemantics.semantics.lambda.*;
 import glueSemantics.synInterface.dependency.LexVariableHandler;
 import glueSemantics.linearLogic.*;
 
 import java.util.*;
 
+import static glueSemantics.semantics.lambda.SemType.AtomicType.TEMP;
 import static glueSemantics.synInterface.dependency.LexVariableHandler.variableType.SemVar;
 import static glueSemantics.synInterface.dependency.LexVariableHandler.variableType.SemVarE;
 import static glueSemantics.semantics.lambda.SemAtom.SemSort.VAR;
@@ -29,13 +29,10 @@ public class LLProver {
     private LinkedList<Premise> agenda = new LinkedList<>();
     private LinkedList<Premise> database = new LinkedList<>();
     private List<Premise> solutions = new ArrayList<>();
-    private Sequent seq;
-    private List<SemAtom> assumptionVars = new ArrayList<>();
+    private Sequent currSeq;
+    private LinkedList<SemAtom> assumptionVars = new LinkedList<>();
 
 
-    public LLProver(Sequent seq) {
-        this.seq = seq;
-    }
 
     /**
      * Does a deduction of a given sequent by evaluating the list of premises on its LHS
@@ -44,7 +41,8 @@ public class LLProver {
      * @throws ProverException If the proof is invalid
      * @throws VariableBindingException If an invalid variable binding is detected
      */
-    public List<Premise> deduce() throws ProverException,VariableBindingException {
+    public List<Premise> deduce(Sequent seq) throws ProverException,VariableBindingException {
+        this.currSeq = seq;
         /*
         Initialize an skeletons stack initially containing all premises from the sequent.
         Premises are popped from the stack into the database and additionally created
@@ -56,7 +54,7 @@ public class LLProver {
         modifiers.clear();
         database.clear();
 
-        for (Premise p: seq.getLhs()) {
+        for (Premise p: currSeq.getLhs()) {
 
             /*
             * Check all premises for nested formulas. Alle nested formulas
@@ -82,15 +80,15 @@ public class LLProver {
                 e.printStackTrace();
             }
         }
-        seq.getLhs().clear();
-        seq.getLhs().addAll(skeletons);
-        seq.getLhs().addAll(modifiers);
-        System.out.println("Agenda: "+ seq.getLhs().toString());
+        currSeq.getLhs().clear();
+        currSeq.getLhs().addAll(skeletons);
+        currSeq.getLhs().addAll(modifiers);
+        System.out.println("Agenda: "+ currSeq.getLhs().toString());
         /*
         Initialize the set containing the IDs of all premises of the sequent.
         This set is used to determine possible goal terms.
         */
-        HashSet<Integer> goalIDs = seq.getMaxIDSet();
+        HashSet<Integer> goalIDs = currSeq.getMaxIDSet();
 
         /*
         The algorithm loops over the skeletons until it is empty or until a premise is created
@@ -274,7 +272,7 @@ public class LLProver {
      * @return the combined premise with the unified ID set
      *
     * */
-    private Premise combineDisjointID(Premise func, Premise arg) {
+    private Premise combineDisjointID(Premise func, Premise arg) throws ProverException {
         HashSet<Integer> combined_IDs = new HashSet<>();
         if (((LLFormula) func.getGlueTerm()).getLhs().checkEquivalence(arg.getGlueTerm())
                 && Collections.disjoint(func.getPremiseIDs(),arg.getPremiseIDs())){
@@ -282,10 +280,8 @@ public class LLProver {
             combined_IDs.addAll(arg.getPremiseIDs());
 
             // Apply and beta-reduce meaning side
-            //FuncApp applied = new FuncApp(new SemFunction((SemFunction) func.getSemTerm()),arg.getSemTerm());
-            FuncApp applied = new FuncApp(func.getSemTerm(),arg.getSemTerm());
-            SemRepresentation reducedSem = applied.betaReduce();
-            //SemRepresentation reducedSem = applied;
+            //FuncApp applied = new FuncApp(func.getSemTerm(),arg.getSemTerm());
+            SemanticRepresentation reducedSem = new FuncApp(func.getSemTerm(),arg.getSemTerm()).betaReduce();
 
             if (((LLFormula) func.getGlueTerm()).getRhs() instanceof  LLAtom) {
                 return new Premise(combined_IDs, reducedSem,
@@ -368,16 +364,16 @@ public class LLProver {
             // nested formula; extract assumption and build new term
             if (f.getLhs() instanceof LLFormula) {
 
-                if (!(p.getSemTerm() instanceof SemFunction))
+                if (!(p.getSemTerm() instanceof SemFunction|| p.getSemTerm() instanceof MeaningRepresentation))
                     throw new ProverException("Meaning side does not match structure of glue side");
 
 
-                SemAtom assumpVar = new SemAtom(VAR, LexVariableHandler.returnNewVar(SemVarE),
-                        ((SemFunction) p.getSemTerm()).getBinder().getType().getLeft());
-                assumptionVars.add(assumpVar);
+                SemAtom assumpVar = new SemAtom(VAR, LexVariableHandler.returnNewVar(SemVarE),new SemType(TEMP));
+                assumptionVars.addLast(assumpVar);
 
-                Premise assumption = convertNested(new Premise(seq.getNewID(), ((LLFormula) f.getLhs()).getLhs()));
+                Premise assumption = convertNested(new Premise(currSeq.getNewID(), ((LLFormula) f.getLhs()).getLhs()));
                 assumption.getGlueTerm().assumptions.add(assumption.getGlueTerm());
+                // TODO add distinction between skel and mod here?
                 skeletons.add(assumption);
                 Premise dependency = new Premise(p.getPremiseIDs(), p.getSemTerm(), new LLFormula(((LLFormula) f.getLhs()).getRhs(),
                         f.getRhs(), f.isPolarity(), f.getVariable()));
@@ -388,9 +384,14 @@ public class LLProver {
             }
             // There might be cases like a -o ((b -o c) -o d) where reordering is necessary before
             // the term can be compiled
-            else if (f.getRhs() instanceof  LLFormula &&
-                    ((LLFormula) f.getRhs()).getLhs() instanceof LLFormula) {
-                p = convertNested(reorder(p));
+            else if (f.isNested()) {
+                // TODO reordering is hacky and should be avoided!
+                Premise temp = new Premise(p.getPremiseIDs(),p.getSemTerm(),new LLFormula((LLFormula) f.getRhs()));
+                temp = convertNested(temp);
+                LLTerm newGlue = new LLFormula(f.getLhs(),temp.getGlueTerm(),temp.getGlueTerm().isPolarity());
+                newGlue.discharges.addAll(p.getGlueTerm().discharges);
+                p = new Premise(p.getPremiseIDs(),temp.getSemTerm(),newGlue);
+                //p = convertNested(reorder(p));
             }
             /*
             simple implication; create new lambda function which binds var (the variable
@@ -399,7 +400,7 @@ public class LLProver {
             term binding the newly created variable.
             */
             SemAtom binderVar = new SemAtom(VAR,LexVariableHandler.returnNewVar(SemVar),T);
-            SemFunction newArg = new SemFunction(assumptionVars.remove(0),binderVar);
+            SemFunction newArg = new SemFunction(assumptionVars.removeLast(),binderVar);
             //((SemFunction) p.getSemTerm()).setArgument(newArg);
             p.setSemTerm(new SemFunction(binderVar,new FuncApp(p.getSemTerm(),newArg)));
             return p;
@@ -448,7 +449,7 @@ public class LLProver {
                 }
                 Premise inner = reorder(new Premise(p.getPremiseIDs(),sem.getFuncBody(),glue.getRhs()));
                 glue = new LLFormula(glue.getLhs(),inner.getGlueTerm(),glue.isPolarity(),glue.getVariable());
-                sem = new SemFunction(sem.getBinder(),inner.getSemTerm());
+                sem = new SemFunction(sem.getBinder(),(SemanticExpression) inner.getSemTerm());
 
                 return new Premise(p.getPremiseIDs(),sem,glue);
             }

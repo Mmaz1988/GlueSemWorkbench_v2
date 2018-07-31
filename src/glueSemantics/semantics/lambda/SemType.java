@@ -11,14 +11,18 @@ package glueSemantics.semantics.lambda;
 
 
 import static glueSemantics.semantics.lambda.SemType.AtomicType.E;
+import static glueSemantics.semantics.lambda.SemType.AtomicType.TEMP;
 
 public class SemType {
     private SemType left;
     private SemType right;
     private AtomicType simple;
 
+    // An enumeration of possible atomic types
+    // TEMP is a special type used for variables introduced
+    // during the compilation process
     public enum AtomicType {
-        E,T
+        E,T,V,I,TEMP
     }
 
     public SemType getLeft() {
@@ -67,9 +71,11 @@ public class SemType {
 
     // Check if both types are matching simple types or if
     // their LHS and RHS match up (recursively).
+    // If one of the variables is TEMP also return true
     public boolean equalsType(SemType t) {
-        if (this.simple != null)
-            return t.simple != null && this.simple.equals(t.simple);
+        if (this.simple != null) {
+            return t.simple != null && (this.simple.equals(t.simple)||this.simple == TEMP||t.simple == TEMP);
+        }
         else
             return (this.left.equalsType(t.left) && this.right.equalsType(t.right));
     }

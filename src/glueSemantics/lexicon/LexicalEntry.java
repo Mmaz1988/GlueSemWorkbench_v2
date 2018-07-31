@@ -10,7 +10,8 @@
 package glueSemantics.lexicon;
 
 import glueSemantics.linearLogic.LLTerm;
-import glueSemantics.semantics.lambda.SemRepresentation;
+import glueSemantics.semantics.SemanticRepresentation;
+import glueSemantics.semantics.lambda.SemanticExpression;
 
 public class LexicalEntry {
 
@@ -24,16 +25,16 @@ public class LexicalEntry {
         this.llTerm = llTerm;
     }
 
-    public SemRepresentation getSem() {
+    public SemanticRepresentation getSem() {
         return sem;
     }
 
-    public void setSem(SemRepresentation sem) {
+    public void setSem(SemanticRepresentation sem) {
         this.sem = sem;
     }
 
     private LLTerm llTerm;
-    private SemRepresentation sem;
+    private SemanticRepresentation sem;
 
     public enum LexType {
 

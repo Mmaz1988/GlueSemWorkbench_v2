@@ -9,11 +9,13 @@
 
 package glueSemantics.semantics.lambda;
 
+import glueSemantics.semantics.SemanticRepresentation;
 
-public abstract class SemRepresentation {
+
+public abstract class SemanticExpression implements SemanticRepresentation {
     private SemType type;
 
-    public SemRepresentation() {
+    public SemanticExpression() {
     }
 
     public SemType getType() {
@@ -28,13 +30,13 @@ public abstract class SemRepresentation {
         this.type = type;
     }
 
-    public abstract SemRepresentation betaReduce();
+    //public abstract SemanticRepresentation betaReduce();
 
-    public abstract SemRepresentation applyTo(SemAtom var, SemRepresentation arg);
+    //public abstract SemanticRepresentation applyTo(SemAtom var, SemanticExpression arg);
 
     // This is not a regular clone() method, it just calls the copy constructor
     // of the respective class.
-    public abstract SemRepresentation clone();
+    public abstract SemanticExpression clone();
 
 
 

@@ -28,7 +28,6 @@ import java.util.Scanner;
 
 public class Main {
 
-
     public static void main(String[] args) {
 
         System.out.println("The Glue Semantics Workbench\n"+
@@ -109,10 +108,10 @@ public class Main {
         System.out.println(testseq.toString());
 
         System.out.println("Searching for valid proofs...");
-        LLProver prover = new LLProver(testseq);
+        LLProver prover = new LLProver();
         List<Premise> result = null;
         try {
-            result = prover.deduce();
+            result = prover.deduce(testseq);
             System.out.println("Found valid deduction(s): ");
             for (Premise sol : result) {
                 System.out.println(sol.toString());

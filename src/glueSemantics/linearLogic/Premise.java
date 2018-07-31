@@ -10,7 +10,8 @@
 package glueSemantics.linearLogic;
 
 import glueSemantics.lexicon.LexicalEntry;
-import glueSemantics.semantics.lambda.SemRepresentation;
+import glueSemantics.semantics.SemanticRepresentation;
+import glueSemantics.semantics.lambda.SemanticExpression;
 
 import java.util.HashSet;
 
@@ -26,7 +27,7 @@ public class Premise {
     private HashSet<Integer> premiseIDs;
     private LLTerm glueTerm;
     private boolean modifier;
-    private SemRepresentation semTerm;
+    private SemanticRepresentation semTerm;
     private Premise func;
     private Premise arg;
 
@@ -42,9 +43,9 @@ public class Premise {
         this.glueTerm = glueTerm;
     }
 
-    public SemRepresentation getSemTerm() { return semTerm; }
+    public SemanticRepresentation getSemTerm() { return semTerm; }
 
-    public void setSemTerm(SemRepresentation semTerm) { this.semTerm = semTerm; }
+    public void setSemTerm(SemanticExpression semTerm) { this.semTerm = semTerm; }
 
 
     public Premise(HashSet<Integer> premiseIDs, LLTerm llterm) {
@@ -58,7 +59,7 @@ public class Premise {
             setModifier(false);
     }
 
-    public Premise(HashSet<Integer> premiseIDs, SemRepresentation semTerm, LLTerm glueTerm) {
+    public Premise(HashSet<Integer> premiseIDs, SemanticRepresentation semTerm, LLTerm glueTerm) {
         this.premiseIDs = premiseIDs;
         this.glueTerm = glueTerm;
         this.semTerm = semTerm;

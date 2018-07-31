@@ -9,16 +9,19 @@
 
 package glueSemantics.semantics.lambda;
 
+import glueSemantics.semantics.SemanticRepresentation;
+import prover.ProverException;
+
 import static glueSemantics.semantics.lambda.BinaryTerm.SemOperator.AND;
 import static glueSemantics.semantics.lambda.BinaryTerm.SemOperator.IMP;
 import static glueSemantics.semantics.lambda.SemType.AtomicType.T;
 
-public class BinaryTerm extends SemRepresentation{
-    private SemRepresentation left;
-    private SemRepresentation right;
+public class BinaryTerm extends SemanticExpression {
+    private SemanticRepresentation left;
+    private SemanticRepresentation right;
     private final SemOperator operator;
 
-    public BinaryTerm(SemRepresentation left, SemOperator operator, SemRepresentation right) {
+    public BinaryTerm(SemanticRepresentation left, SemOperator operator, SemanticRepresentation right) {
         this.left = left;
         this.right = right;
         this.operator = operator;
@@ -30,19 +33,19 @@ public class BinaryTerm extends SemRepresentation{
         this.operator = b.operator;
     }
 
-    public SemRepresentation getLeft() {
+    public SemanticRepresentation getLeft() {
         return left;
     }
 
-    public void setLeft(SemRepresentation left) {
+    public void setLeft(SemanticRepresentation left) {
         this.left = left;
     }
 
-    public SemRepresentation getRight() {
+    public SemanticRepresentation getRight() {
         return right;
     }
 
-    public void setRight(SemRepresentation right) {
+    public void setRight(SemanticRepresentation right) {
         this.right = right;
     }
 
@@ -56,17 +59,17 @@ public class BinaryTerm extends SemRepresentation{
     }
 
     @Override
-    public SemRepresentation betaReduce() {
+    public SemanticRepresentation betaReduce() throws ProverException {
         return new BinaryTerm(left.betaReduce(),operator,right.betaReduce());
     }
 
     @Override
-    public SemRepresentation applyTo(SemAtom var, SemRepresentation arg) {
+    public SemanticRepresentation applyTo(SemanticRepresentation var, SemanticRepresentation arg) throws ProverException {
         return new BinaryTerm(left.applyTo(var,arg),operator,right.applyTo(var,arg));
     }
 
     @Override
-    public SemRepresentation clone() {
+    public SemanticExpression clone() {
         return new BinaryTerm(this);
     }
 

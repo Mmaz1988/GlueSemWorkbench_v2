@@ -11,6 +11,9 @@ package glueSemantics.parser;
 
 
 
+import glueSemantics.lexicon.LexicalEntry;
+import glueSemantics.semantics.MeaningRepresentation;
+import glueSemantics.semantics.SemanticRepresentation;
 import prover.VariableBindingException;
 import glueSemantics.linearLogic.*;
 
@@ -18,33 +21,35 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ParserMain {
-    public String Input;
-    public List<LLTerm> Premises;
-    public LLAtom Goal;
+    private LinearLogicParser llparser = new LinearLogicParser();
+    // TODO add semantic parser here
 
-    public ParserMain(String input)
+    private boolean PARSESEMANTCS;
+
+    public ParserMain()
     {
-        this.Input = input;
+
+        this.PARSESEMANTCS = false;
+
+    }
 
 
-        String[] in = Input.split("=>");
-        String[] stringPremises = in[0].split(",");
-
-
-        if (stringPremises.length != 0)
-        {
-            LinearLogicParser llParser = new LinearLogicParser();
-            for (String stringPremise :  stringPremises) {
-                String[] glueRepresentation = stringPremise.split(":");
-
-                llParser.unparsedPremises.add(glueRepresentation[1]);
-            }
+    public LexicalEntry parseMeaningConstructor(String mc) throws ParserInputException {
+        String[] mcList = mc.split(":");
+        if (mcList.length != 2) {
+            throw new ParserInputException("Error parsing formula '" + mc + "'. " +
+                    "Meaning and glue side need to be separated with a ':'");
         }
-        else
-            {
-            throw new IllegalArgumentException();
+        LexicalEntry entry = new LexicalEntry();
+        LLTerm glue = llparser.parse(mcList[1]);
+        SemanticRepresentation sem = null;
+        if (!PARSESEMANTCS) {
+            sem = new MeaningRepresentation(mcList[0]);
         }
+        entry.setLlTerm(glue);
+        entry.setSem(sem);
 
+        return entry;
     }
 
     public static void main(String[] args) throws VariableBindingException {

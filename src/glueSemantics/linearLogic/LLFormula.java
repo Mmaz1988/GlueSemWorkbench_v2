@@ -256,7 +256,13 @@ public class LLFormula extends LLTerm {
 
 
     public boolean isNested(){
-        return this.getLhs() instanceof LLFormula;
+        if (this.getLhs() instanceof LLFormula)
+            return true;
+        else if (this.getRhs() instanceof LLFormula) {
+            return ((LLFormula) this.getRhs()).isNested();
+        }
+        else
+            return false;
     }
 
 

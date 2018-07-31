@@ -45,12 +45,10 @@ public class SemEquality {
     {
 
 
-        if (!(b instanceof SemEquality))
-        {
+        if (!(b instanceof SemEquality)) {
             return false;
         }
-        if (b == this)
-        {
+        if (b == this) {
             return true;
         }
 
@@ -61,17 +59,6 @@ public class SemEquality {
                 eq.constant.getName().equals(this.constant.getName()) &&
                 eq.constant.getType().equals(this.constant.getType());
 
-        /*
-
-        if (this.variable.getName().equals(((Equality) b).variable.getName()) &&
-                this.variable.getType().equals(((Equality) b).variable.getType()) &&
-                this.constant.getName().equals(((Equality) b).constant.getName()) &&
-                this.constant.getType().equals(((Equality) b).constant.getType()) )
-        {
-            return true;
-        }
-        return false;
-    */
     }
 
 
