@@ -96,7 +96,6 @@ public class LLFormula extends LLTerm {
             List<LLAtom> bvl = new ArrayList<>();
             bvl.addAll(findBoundOccurrences(lhs));
             bvl.addAll(findBoundOccurrences(rhs));
-                    //Stream.concat(findBoundOccurrences(lhs).stream(),findBoundOccurrences(rhs).stream()).collect(Collectors.toList());
             this.boundVariables.put(variable, bvl);
         }
 
@@ -210,7 +209,7 @@ public class LLFormula extends LLTerm {
 
         return "(" + lhs.toPlainString()
                 + dc + " "
-                + "\u22B8" + " " + rhs.toPlainString() + ")"
+                + "\u22B8" + " " + rhs.toString() + ")"
                 + as;
     }
 

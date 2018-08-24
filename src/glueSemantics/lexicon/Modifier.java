@@ -9,11 +9,11 @@
 
 package glueSemantics.lexicon;
 
+import glueSemantics.semantics.lambda.*;
 import glueSemantics.synInterface.dependency.LexVariableHandler;
 import glueSemantics.linearLogic.LLAtom;
 import glueSemantics.linearLogic.LLFormula;
 import glueSemantics.linearLogic.LLTerm;
-import glueSemantics.semantics.*;
 
 public class Modifier extends LexicalEntry {
     public LexType lexType;

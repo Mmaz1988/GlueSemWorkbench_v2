@@ -9,16 +9,19 @@
 
 package prover;
 
+import glueSemantics.semantics.lambda.FuncApp;
+import glueSemantics.semantics.lambda.SemAtom;
+import glueSemantics.semantics.lambda.SemFunction;
+import glueSemantics.semantics.lambda.SemRepresentation;
 import glueSemantics.synInterface.dependency.LexVariableHandler;
 import glueSemantics.linearLogic.*;
-import glueSemantics.semantics.*;
 
 import java.util.*;
 
 import static glueSemantics.synInterface.dependency.LexVariableHandler.variableType.SemVar;
 import static glueSemantics.synInterface.dependency.LexVariableHandler.variableType.SemVarE;
-import static glueSemantics.semantics.SemAtom.SemSort.VAR;
-import static glueSemantics.semantics.SemType.AtomicType.T;
+import static glueSemantics.semantics.lambda.SemAtom.SemSort.VAR;
+import static glueSemantics.semantics.lambda.SemType.AtomicType.T;
 
 public class LLProver {
     private LinkedList<Premise> skeletons = new LinkedList<>();
@@ -310,8 +313,7 @@ public class LLProver {
             LLFormula f = (LLFormula) p.getGlueTerm();
 
 
-            if (f.getLhs() instanceof LLFormula /*
-                    ((LLFormula) f.getLhs()).getOperator() instanceof LLImplication*/) {
+            if (f.getLhs() instanceof LLFormula) {
                 return convertNested(p);
             }
             else {
@@ -378,21 +380,10 @@ public class LLProver {
                 assumption.getGlueTerm().assumptions.add(assumption.getGlueTerm());
                 skeletons.add(assumption);
                 Premise dependency = new Premise(p.getPremiseIDs(), p.getSemTerm(), new LLFormula(((LLFormula) f.getLhs()).getRhs(),
-                        f.getOperator(), f.getRhs(), f.isPolarity(), f.getVariable()));
+                        f.getRhs(), f.isPolarity(), f.getVariable()));
                 dependency.getGlueTerm().discharges.add(assumption.getGlueTerm());
                 dependency = convertNested(dependency);
-                /*
-                If reordering is required (see function below), reorder the dependency, by
-                temporarily removing the newly created lambda term on the meaning side
-                and reapplying it after the reordering process.
 
-                if (((LLFormula) dependency.getGlueTerm()).getRhs() instanceof LLFormula) {
-                    SemRepresentation inner = ((SemFunction) dependency.getSemTerm()).getFuncBody();
-                    Premise reordered = reorder(new Premise(p.getPremiseIDs(),inner,dependency.getGlueTerm()));
-                    dependency = new Premise(p.getPremiseIDs(),
-                            new SemFunction(((SemFunction) dependency.getSemTerm()).getBinder(),reordered.getSemTerm()),reordered.getGlueTerm());
-                }
-                */
                 return dependency;
             }
             // There might be cases like a -o ((b -o c) -o d) where reordering is necessary before

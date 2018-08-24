@@ -97,7 +97,7 @@ public class SentenceMeaning {
                 System.out.println( t.right.toString() + " This is a modifier");
             }
             //All types of complements
-            else if (t.left.contains("comp"))
+            else if (t.left.contains("comp") && !t.left.contains("compound"))
             {
                 rootArity++;
                 System.out.println( t.right.toString() + " This is a complement");
@@ -152,6 +152,10 @@ public class SentenceMeaning {
                 it.remove();
                 rootArity++;
                 System.out.println( t.right.toString() + " This is an object");
+            }
+            else {
+                throw new LexicalParserException("Unknown grammatical function: \'"+ t.left + "\' for lexical entry \""
+                        + t.right.value() +"\"");
             }
         }
         /* Verb is generated last based on the structure of the sentence
@@ -281,6 +285,10 @@ public class SentenceMeaning {
 
                     lexEn.put("det",new ArrayList<LexicalEntry>(Arrays.asList(det)));
 
+                }
+                else {
+                    throw new LexicalParserException("Unknown grammatical function: \""+ t.left + "\" for lexical entry \""
+                            + "\"" + t.right.value() +"\"");
                 }
             }
         }

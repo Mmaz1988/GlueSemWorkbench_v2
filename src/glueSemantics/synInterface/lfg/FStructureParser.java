@@ -156,8 +156,11 @@ public class FStructureParser {
                             break;
                         // Specifier is a determiner
                         case "DET":
-                            throw new LexicalParserException("Unknown lexical item: DET");
-
+                            m2 =
+                                    Pattern.compile("attr\\(var\\(" + m.group(2) + "\\),'PRED'\\),semform\\('(\\S+)',\\d+,\\[],\\[]\\)").matcher(full);
+                            if(!m2.find()) { throw new LexicalParserException(m);}
+                            lexicalEntries.add(new Determiner(identifier, m2.group(1), verbalArgs.get(i).toLowerCase()));
+                            break;
                             // Specifier is a number determiner
                         case "NUMBER":
                             throw new LexicalParserException("Unknown lexical item: NUMBER");

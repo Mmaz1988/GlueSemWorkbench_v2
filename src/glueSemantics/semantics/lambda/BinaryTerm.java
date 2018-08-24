@@ -7,11 +7,11 @@
  * If not, please visit http://www.gnu.org/licenses/ for more information.
  */
 
-package glueSemantics.semantics;
+package glueSemantics.semantics.lambda;
 
-import static glueSemantics.semantics.BinaryTerm.SemOperator.AND;
-import static glueSemantics.semantics.BinaryTerm.SemOperator.IMP;
-import static glueSemantics.semantics.SemType.AtomicType.T;
+import static glueSemantics.semantics.lambda.BinaryTerm.SemOperator.AND;
+import static glueSemantics.semantics.lambda.BinaryTerm.SemOperator.IMP;
+import static glueSemantics.semantics.lambda.SemType.AtomicType.T;
 
 public class BinaryTerm extends SemRepresentation{
     private SemRepresentation left;

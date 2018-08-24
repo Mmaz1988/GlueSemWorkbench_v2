@@ -36,23 +36,19 @@ public class Main {
         if (args.length > 0 && args[0].equals("lfg")) {
             try {
                 initiateLFGMode();
-            } catch (VariableBindingException | LexicalParserException e) {
+            } catch (VariableBindingException | LexicalParserException | ProverException e) {
                 e.printStackTrace();
             }
         }
         else {
-            try {
                 initiateDependencyMode();
-            } catch (VariableBindingException | LexicalParserException e) {
-                e.printStackTrace();
-            }
 
         }
 
 
     }
 
-    private static void initiateLFGMode() throws VariableBindingException, LexicalParserException {
+    private static void initiateLFGMode() throws VariableBindingException, LexicalParserException, ProverException {
             System.out.println("Starting LFG mode...\n");
             File f = null;
             final JFileChooser fc = new JFileChooser();
@@ -61,6 +57,7 @@ public class Main {
                     new FileNameExtensionFilter("Prolog f-structure files", "pl"));
             int returnVal = fc.showOpenDialog(null);
             if (returnVal == JFileChooser.APPROVE_OPTION) {
+                System.out.println("Selected file " + fc.getSelectedFile().getName());
                 f = fc.getSelectedFile();
             } else {
                 System.out.println("No file selected");
@@ -78,31 +75,42 @@ public class Main {
     }
 
 
-    private static void initiateDependencyMode() throws VariableBindingException, LexicalParserException {
+    private static void initiateDependencyMode()  {
         System.out.println("Starting interactive dependency mode...\n");
         Scanner s = new Scanner(System.in);
         String input;
         while (true) {
-            System.out.println("Enter sentence to be analyzed or enter 'quit' to exit the program.");
-            input = s.nextLine();
-            if (input.equals("quit"))
-                break;
-            searchProof(new SentenceMeaning(input).getLexicalEntries());
+            try {
+                System.out.println("Enter sentence to be analyzed or enter 'quit' to exit the program.");
+                input = s.nextLine();
+                if (input.equals("quit"))
+                    break;
+                searchProof(new SentenceMeaning(input).getLexicalEntries());
+            }
+            catch (VariableBindingException | LexicalParserException | ProverException e) {
+                e.printStackTrace();
+                try {
+                    Thread.sleep(1000);
+                }
+                catch (InterruptedException ie) {
+                    ie.printStackTrace();
+                }
+            }
         }
     }
 
-    private static void initiateDependencyMode(String sentence) throws LexicalParserException {
+    private static void initiateDependencyMode(String sentence)  {
         try {
             SentenceMeaning sm = new SentenceMeaning(sentence);
             searchProof(sm.getLexicalEntries());
         }
-        catch (VariableBindingException e) {
+        catch (VariableBindingException | LexicalParserException | ProverException e) {
             e.printStackTrace();
         }
 
     }
 
-    private static void searchProof(List<LexicalEntry> lexicalEntries) throws VariableBindingException {
+    private static void searchProof(List<LexicalEntry> lexicalEntries) throws VariableBindingException, ProverException {
         Sequent testseq = new Sequent(lexicalEntries);
 
         System.out.println(testseq.toString());
@@ -110,15 +118,11 @@ public class Main {
         System.out.println("Searching for valid proofs...");
         LLProver prover = new LLProver(testseq);
         List<Premise> result = null;
-        try {
             result = prover.deduce();
             System.out.println("Found valid deduction(s): ");
             for (Premise sol : result) {
                 System.out.println(sol.toString());
             }
-        } catch (ProverException e) {
-            e.printStackTrace();
-        }
 
         System.out.println("Done!\n");
     }

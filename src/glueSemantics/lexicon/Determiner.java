@@ -9,9 +9,9 @@
 
 package glueSemantics.lexicon;
 
+import glueSemantics.semantics.lambda.*;
 import glueSemantics.synInterface.dependency.LexVariableHandler;
 import glueSemantics.linearLogic.*;
-import glueSemantics.semantics.*;
 import glueSemantics.synInterface.dependency.LexicalParserException;
 
 import java.util.HashMap;
@@ -158,6 +158,8 @@ public class Determiner extends LexicalEntry{
     // Setter and Getter
     public static String getScope(String role)
     {
+        if (scope == null)
+            return null;
         return scope.get(role);
     }
 
