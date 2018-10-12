@@ -265,6 +265,12 @@ public class LLFormula extends LLTerm {
             return false;
     }
 
+    public boolean isModifier() {
+        if (getLhs().checkEquivalence(getRhs()))
+            return true;
+        return false;
+    }
+
 
 
 

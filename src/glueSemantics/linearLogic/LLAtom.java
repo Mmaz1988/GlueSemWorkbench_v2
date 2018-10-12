@@ -153,5 +153,8 @@ public class LLAtom extends LLTerm {
         return new LLAtom(this   );
     }
 
-
+    @Override
+    public boolean isModifier() {
+        return false;
+    }
 }

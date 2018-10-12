@@ -52,6 +52,8 @@ public abstract class LLTerm {
         return super.toString();
     }
 
+    public abstract boolean isModifier();
+
     // This is not a regular clone() method, it just calls the copy constructor
     // of the respective class.
     public abstract LLTerm clone();

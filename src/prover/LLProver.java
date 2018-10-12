@@ -63,10 +63,6 @@ public class LLProver {
             * as new premises with new IDs. Assumptions are premises that contain themselves
             * in their set of assumptions, but in the course of the derivation they may carry
             * additional assumptions (when they combine with other assumptions).
-            * NOTE: due to the design of the conversion algorithm, a given term's discharge is always
-            * contained in that term's set of assumptions. This shouldn't be a problem, however, as
-            * terms with discharges are by design always formulas and can therefore not be arguments.
-            * Their assumptions are thus not relevant in the derivation process.
             */
 
             try {
@@ -127,13 +123,16 @@ public class LLProver {
                         if (new_premise.getPremiseIDs().equals(goalIDs)) {
                             solutions.add(new_premise);
                         } else {
-                            skeletons.push(new_premise);
+                            if (new_premise.isModifier())
+                                modifiers.add(new_premise);
+                            else
+                                skeletons.push(new_premise);
                         }
                         continue;
                     }
                 }
                 /*
-                Check if the current term on the skeletons is a (complex) formula. If so, do the same procedure
+                Check if the current term on the skeletons list is a (complex) formula. If so, do the same procedure
                 as above, but reverse (apply db_premise to curr_premise).
                  */
                 if (curr_premise.getGlueTerm() instanceof LLFormula) {
@@ -146,7 +145,10 @@ public class LLProver {
                         if (new_premise.getPremiseIDs().equals(goalIDs)) {
                             solutions.add(new_premise);
                         } else {
-                            skeletons.push(new_premise);
+                            if (new_premise.isModifier())
+                                modifiers.add(new_premise);
+                            else
+                                skeletons.push(new_premise);
                         }
                     }
                 }
@@ -313,12 +315,6 @@ public class LLProver {
                 return convertNested(p);
             }
             else {
-                // the term is of the form (A -o B), where A is an atomic formula
-                // no conversion step needed on the glue side, but lambda abstraction on
-                // the meaning side is necessary. But only if there has been no conversion?
-                // ...because it has no use and adds unnecessary complexity to the variable assignments
-                //
-                //p.setSemTerm(this.convertSemantics(p.getSemTerm()));
                 return p;
             }
         }
@@ -382,10 +378,12 @@ public class LLProver {
 
                 return dependency;
             }
-            // There might be cases like a -o ((b -o c) -o d) where reordering is necessary before
-            // the term can be compiled
-            else if (f.isNested()) {
-                // TODO reordering is hacky and should be avoided!
+            /*
+            There might be cases like a -o ((b -o c) -o d) where reordering is necessary before
+            the term can be compiled. In these cases it is only necessary if the LHS of the whole
+            term is NOT a modifier type
+            */
+            else if (f.isNested() && !f.getRhs().isModifier()) {
                 Premise temp = new Premise(p.getPremiseIDs(),p.getSemTerm(),new LLFormula((LLFormula) f.getRhs()));
                 temp = convertNested(temp);
                 LLTerm newGlue = new LLFormula(f.getLhs(),temp.getGlueTerm(),temp.getGlueTerm().isPolarity());

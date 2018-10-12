@@ -117,6 +117,7 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
 
     @Override
     public String toString() {
+        //if WorkbenchMain
         return functor + "(" + argument + ")";
     }
 

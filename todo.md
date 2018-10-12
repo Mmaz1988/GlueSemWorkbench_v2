@@ -1,5 +1,7 @@
 # ToDO for glueSemWB
 
+- Test lexical entry parser (with a file)
+- Test modifier treatment
 
 #Pre-release TODO:
 - write README containing basic instructions
@@ -17,7 +19,6 @@
 
 - add anaphors, tense/aspect etc.
 
-- colored console output
 
 #Structure/modularization
 
@@ -26,6 +27,11 @@
 - Make scope handling an extra class, instead of a static field in Determiner class
 
 - why are we using streams for bound variables (e.g in the constructor of LLFormula)
+
+# Modifiers
+According to Gupta & Lamping the form S -o M is sufficient when doing compilations (except
+for pronouns which we don't treat anyways).
+
 
 # Implementing Lev's (2007) system:
 - create category graph (done) including indices

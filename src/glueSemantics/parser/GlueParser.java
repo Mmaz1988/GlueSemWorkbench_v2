@@ -20,13 +20,13 @@ import glueSemantics.linearLogic.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ParserMain {
+public class GlueParser {
     private LinearLogicParser llparser = new LinearLogicParser();
     // TODO add semantic parser here
 
     private boolean PARSESEMANTCS;
 
-    public ParserMain()
+    public GlueParser()
     {
 
         this.PARSESEMANTCS = false;
@@ -38,7 +38,7 @@ public class ParserMain {
         String[] mcList = mc.split(":");
         if (mcList.length != 2) {
             throw new ParserInputException("Error parsing formula '" + mc + "'. " +
-                    "Meaning and glue side need to be separated with a ':'");
+                    "Meaning side and glue side need to be separated with a ':'");
         }
         LexicalEntry entry = new LexicalEntry();
         LLTerm glue = llparser.parse(mcList[1]);

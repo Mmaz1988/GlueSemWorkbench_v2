@@ -37,29 +37,6 @@ public class FStructureParser {
     }
 
 
-    public static void main(String[] args) {
-        // Uncomment to test f-structure parser
-/*        File f = null;
-        final JFileChooser fc = new JFileChooser();
-        int returnVal = fc.showOpenDialog(null);
-        if (returnVal == JFileChooser.APPROVE_OPTION) {
-            f = fc.getSelectedFile();
-        }
-        else {
-            System.out.println("Something went wrong");
-
-        }
-        Path p = FileSystems.getDefault().getPath(f.getAbsolutePath());
-
-        try {
-            FStructureParser fsp = new FStructureParser(p);
-        } catch (VariableBindingException e) {
-            e.printStackTrace();
-        }*/
-
-    }
-
-
     public FStructureParser (Path inputpath) throws VariableBindingException, LexicalParserException {
             lexicalEntries = extractFromFStructureFile(inputpath);
 

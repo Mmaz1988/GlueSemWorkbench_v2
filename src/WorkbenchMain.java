@@ -10,6 +10,9 @@
 import glueSemantics.lexicon.LexicalEntry;
 import glueSemantics.linearLogic.Premise;
 import glueSemantics.linearLogic.Sequent;
+import glueSemantics.parser.GlueParser;
+import glueSemantics.parser.LinearLogicParser;
+import glueSemantics.parser.ParserInputException;
 import glueSemantics.synInterface.dependency.LexicalParserException;
 import glueSemantics.synInterface.dependency.SentenceMeaning;
 import glueSemantics.synInterface.lfg.FStructureParser;
@@ -20,13 +23,18 @@ import prover.VariableBindingException;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 
-public class Main {
+public class WorkbenchMain {
+    // Initialize with default settings
+    Settings settings;
 
     public static void main(String[] args) {
 
@@ -39,7 +47,7 @@ public class Main {
                 e.printStackTrace();
             }
         }
-        else {
+        else if (args.length > 0 && args[0].equals("dp")){
             try {
                 initiateDependencyMode();
             } catch (VariableBindingException | LexicalParserException e) {
@@ -47,11 +55,19 @@ public class Main {
             }
 
         }
+        else {
+            try {
+                initiateManualMode();
+            }
+            catch (VariableBindingException | LexicalParserException e) {
+                e.printStackTrace();
+            }
+        }
 
 
     }
 
-    private static void initiateLFGMode() throws VariableBindingException, LexicalParserException {
+    public static void initiateLFGMode() throws VariableBindingException, LexicalParserException {
             System.out.println("Starting LFG mode...\n");
             File f = null;
             final JFileChooser fc = new JFileChooser();
@@ -78,7 +94,7 @@ public class Main {
     }
 
 
-    private static void initiateDependencyMode() throws VariableBindingException, LexicalParserException {
+    public static void initiateDependencyMode() throws VariableBindingException, LexicalParserException {
         System.out.println("Starting interactive dependency mode...\n");
         Scanner s = new Scanner(System.in);
         String input;
@@ -89,6 +105,51 @@ public class Main {
                 break;
             searchProof(new SentenceMeaning(input).getLexicalEntries());
         }
+    }
+
+    public static void initiateManualMode() throws LexicalParserException, VariableBindingException {
+        System.out.println("Starting manual entry mode...\n");
+        File f = null;
+        final JFileChooser fc = new JFileChooser();
+        fc.setDialogTitle("Choose a file containing lexical entries");
+        fc.addChoosableFileFilter(
+                new FileNameExtensionFilter("Text files", "txt"));
+        int returnVal = fc.showOpenDialog(null);
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            System.out.println("Selected file " + fc.getSelectedFile().getName());
+            f = fc.getSelectedFile();
+        } else {
+            System.out.println("No file selected");
+        }
+        Path p;
+        if (f != null) {
+            p = FileSystems.getDefault().getPath(f.getAbsolutePath());
+            GlueParser glueParser = new GlueParser();
+            List<String> lines = null;
+            List<LexicalEntry> lexicalEntries = new ArrayList<>();
+
+
+            try {
+                lines = Files.readAllLines(p);
+            } catch (IOException e) {
+                throw new LexicalParserException("Error while trying to open file '"
+                + p + "'");
+            }
+            for (String line: lines) {
+                LexicalEntry le = null;
+                try {
+                    le = glueParser.parseMeaningConstructor(line);
+                } catch (ParserInputException e) {
+                    System.out.println("Warning! Couldn't parse line " + lines.indexOf(line)
+                            + " of the input file, skipping...");
+                }
+                if (le != null)
+                    lexicalEntries.add(le);
+            }
+            searchProof(lexicalEntries);
+        }
+        else
+            System.out.println("No file selected");
     }
 
     private static void initiateDependencyMode(String sentence) throws LexicalParserException {

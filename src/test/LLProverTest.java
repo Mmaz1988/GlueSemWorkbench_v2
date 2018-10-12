@@ -7,15 +7,21 @@
  * If not, please visit http://www.gnu.org/licenses/ for more information.
  */
 
-package prover;
+package test;
 
 import glueSemantics.lexicon.LexicalEntry;
+import glueSemantics.linearLogic.Premise;
 import glueSemantics.linearLogic.Sequent;
 import glueSemantics.parser.ParserInputException;
-import glueSemantics.parser.ParserMain;
+import glueSemantics.parser.GlueParser;
 import org.junit.jupiter.api.Test;
+import prover.LLProver;
+import prover.ProverException;
+import prover.VariableBindingException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -26,9 +32,12 @@ class LLProverTest {
             "/P./Q./x.every(x,P(x),Q(x)) : ((g_e -o g_t) -o AX_t.(h_e -o X_t) -o X_t)",
             "/y.sleep(y) : (h_e -o f_t)"
     };
-    private ParserMain parser = new ParserMain();
+    private GlueParser parser = new GlueParser();
     private Sequent seq;
     private LLProver lp = new LLProver();
+
+    //private final SemanticRepresentation sem1;
+    //private Premise solution1 = new Premise();
 
 
     LLProverTest() {
@@ -46,14 +55,15 @@ class LLProverTest {
     @Test
     void deduce() {
         try {
-            lp.deduce(seq);
+            List<Premise> solutions = lp.deduce(seq);
+            assertEquals(solutions.size(),1);
+            assertEquals(solutions.get(0).getSemTerm().toString(),"/P./Q./x.every(x,P(x),Q(x)) (λy_t./y.sleep(y) (y))(λx_t./x.dog(x) (x))");
+            assertEquals(solutions.get(0).getGlueTerm().toString(),"f");
+            assertEquals(solutions.get(0).getPremiseIDs(),new HashSet<>(Arrays.asList(0,1,2,3,4)));
         }
         catch (VariableBindingException | ProverException e) {
             e.printStackTrace();
         }
     }
 
-    @Test
-    void convert() {
-    }
 }

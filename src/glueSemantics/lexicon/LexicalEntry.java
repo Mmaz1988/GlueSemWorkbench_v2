@@ -16,6 +16,8 @@ import glueSemantics.semantics.lambda.SemanticExpression;
 public class LexicalEntry {
 
     String identifier;
+    private LLTerm llTerm;
+    private SemanticRepresentation sem;
 
     public LLTerm getLlTerm() {
         return llTerm;
@@ -32,9 +34,6 @@ public class LexicalEntry {
     public void setSem(SemanticRepresentation sem) {
         this.sem = sem;
     }
-
-    private LLTerm llTerm;
-    private SemanticRepresentation sem;
 
     public enum LexType {
 

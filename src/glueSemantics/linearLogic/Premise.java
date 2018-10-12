@@ -26,7 +26,6 @@ public class Premise {
 
     private HashSet<Integer> premiseIDs;
     private LLTerm glueTerm;
-    private boolean modifier;
     private SemanticRepresentation semTerm;
     private Premise func;
     private Premise arg;
@@ -52,22 +51,12 @@ public class Premise {
         this.premiseIDs = premiseIDs;
         this.glueTerm = llterm;
         this.glueTerm.setPolarity(true);
-        if (glueTerm instanceof LLFormula &&
-                (((LLFormula) glueTerm).getLhs().checkEquivalence(((LLFormula) glueTerm).getRhs())))
-            setModifier(true);
-        else
-            setModifier(false);
     }
 
     public Premise(HashSet<Integer> premiseIDs, SemanticRepresentation semTerm, LLTerm glueTerm) {
         this.premiseIDs = premiseIDs;
         this.glueTerm = glueTerm;
         this.semTerm = semTerm;
-        if (glueTerm instanceof LLFormula &&
-                (((LLFormula) glueTerm).getLhs().checkEquivalence(((LLFormula) glueTerm).getRhs())))
-            setModifier(true);
-        else
-            setModifier(false);
     }
 
     //For work with Lexicon
@@ -75,11 +64,6 @@ public class Premise {
         this.premiseIDs = premiseIDs;
         this.glueTerm = lexEn.getLlTerm();
         this.semTerm = lexEn.getSem();
-        if (glueTerm instanceof LLFormula &&
-                (((LLFormula) glueTerm).getLhs().checkEquivalence(((LLFormula) glueTerm).getRhs())))
-            setModifier(true);
-        else
-            setModifier(false);
     }
 
 
@@ -109,10 +93,7 @@ public class Premise {
     }
 
     public boolean isModifier() {
-        return modifier;
+        return glueTerm.isModifier();
     }
 
-    public void setModifier(boolean modifier) {
-        this.modifier = modifier;
-    }
 }
