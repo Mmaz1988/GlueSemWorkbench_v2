@@ -73,6 +73,11 @@ public class Premise {
         return glueTerm + " : " + semTerm +  premiseIDs;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        boolean result = this.premiseIDs.equals(((Premise) obj).premiseIDs);
+        return result;
+    }
 
     /**
      * Keeps track of all parents of a premise and is used to record a derivation history.

@@ -9,14 +9,58 @@
 
 package test;
 
+import glueSemantics.lexicon.LexicalEntry;
+import glueSemantics.parser.GlueParser;
+import glueSemantics.parser.ParserInputException;
 import org.junit.jupiter.api.Test;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.LinkedList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class WorkbenchMainTest {
 
+    private List<String> loadTestFormulas(String path) {
+        List<String> lines = new LinkedList<>();
+        try {
+            lines = Files.readAllLines(Paths.get(path));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return lines;
+    }
+
     @Test
+    /**
+     * General testing method for manual mode. Loads and tests different kinds of files
+     */
     void initiateManualMode() {
+        List<String> lines = new LinkedList<>();
+        List<LexicalEntry> lexicalEntries = new LinkedList<>();
+        GlueParser parser = new GlueParser();
+
+        // Test bad formulas file
+        String bad_formulas = "C:\\Users\\User\\IdeaProjects\\glueSemWorkbench\\src\\test\\bad_formulas.txt";
+        lines = loadTestFormulas(bad_formulas);
+        try {
+            LexicalEntry f1 = parser.parseMeaningConstructor(lines.get(0));
+            assertEquals("/x.dog(x)",f1.getSem().toString());
+            // Test glue side
+
+            List<String> finalLines = lines;
+            assertThrows(ParserInputException.class,() -> {parser.parseMeaningConstructor(finalLines.get(1));});
+        } catch (ParserInputException e) {
+            e.printStackTrace();
+        }
+
+
+        String intrans_quant = "C:\\Users\\User\\IdeaProjects\\glueSemWorkbench\\src\\test\\bad_formulas.txt";
         // Test intransitive with quantifier
 
 

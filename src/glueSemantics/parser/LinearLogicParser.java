@@ -56,7 +56,7 @@ public class LinearLogicParser {
             return parseTerm(unparsedInput, true);
         }
         catch (StringIndexOutOfBoundsException se) {
-            throw new ParserInputException("ParserError: Unexpected end of input term");
+            throw new ParserInputException(String.format("ParserError: Linear logic '%s' term seems to be malformed",unparsedInput));
         }
     }
 

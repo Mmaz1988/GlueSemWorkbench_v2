@@ -19,47 +19,51 @@ import prover.LLProver;
 import prover.ProverException;
 import prover.VariableBindingException;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class LLProverTest {
-    private String[] input1 = {
-            "/x.dog(x) : (g_e -o g_t)",
-            "/P./Q./x.every(x,P(x),Q(x)) : ((g_e -o g_t) -o AX_t.(h_e -o X_t) -o X_t)",
-            "/y.sleep(y) : (h_e -o f_t)"
-    };
     private GlueParser parser = new GlueParser();
-    private Sequent seq;
     private LLProver lp = new LLProver();
 
-    //private final SemanticRepresentation sem1;
-    //private Premise solution1 = new Premise();
 
-
-    LLProverTest() {
-        List<LexicalEntry> lexEntries = new ArrayList<>();
-        for (String f : input1) {
+    private Sequent loadAndParseTestFormulas(String path) {
+        List<String> lines = new LinkedList<>();
+        List<LexicalEntry> lexicalEntries = new LinkedList<>();
+        try {
+            lines = Files.readAllLines(Paths.get(path));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        for (String line : lines) {
             try {
-                lexEntries.add(parser.parseMeaningConstructor(f));
+                lexicalEntries.add(parser.parseMeaningConstructor(line));
             } catch (ParserInputException e) {
                 e.printStackTrace();
             }
         }
-        this.seq = new Sequent(lexEntries);
+
+        return new Sequent(lexicalEntries);
     }
 
     @Test
     void deduce() {
         try {
-            List<Premise> solutions = lp.deduce(seq);
+            // Test intransitive sentence with quantifier
+            Sequent intransQuant = loadAndParseTestFormulas("C:\\Users\\User\\IdeaProjects\\glueSemWorkbench\\src\\test\\intrans_quant.txt");
+            List<Premise> solutions = lp.deduce(intransQuant);
             assertEquals(solutions.size(),1);
-            assertEquals(solutions.get(0).getSemTerm().toString(),"/P./Q./x.every(x,P(x),Q(x)) (λy_t./y.sleep(y) (y))(λx_t./x.dog(x) (x))");
-            assertEquals(solutions.get(0).getGlueTerm().toString(),"f");
-            assertEquals(solutions.get(0).getPremiseIDs(),new HashSet<>(Arrays.asList(0,1,2,3,4)));
+            assertEquals("/P./Q./x.every(x,P(x),Q(x))(λy_t./y.sleep(y)(y))(λx_t./x.dog(x)(x))",solutions.get(0).getSemTerm().toString());
+            assertEquals("f",solutions.get(0).getGlueTerm().toString());
+            assertEquals(new HashSet<>(Arrays.asList(0,1,2,3,4)),solutions.get(0).getPremiseIDs());
+
+            Sequent adjIntransQuant = loadAndParseTestFormulas("C:\\Users\\User\\IdeaProjects\\glueSemWorkbench\\src\\test\\intrans_quant_adj.txt");
+            solutions = lp.deduce(adjIntransQuant);
+
         }
         catch (VariableBindingException | ProverException e) {
             e.printStackTrace();

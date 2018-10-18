@@ -28,6 +28,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -63,8 +64,6 @@ public class WorkbenchMain {
                 e.printStackTrace();
             }
         }
-
-
     }
 
     public static void initiateLFGMode() throws VariableBindingException, LexicalParserException {
@@ -124,32 +123,38 @@ public class WorkbenchMain {
         Path p;
         if (f != null) {
             p = FileSystems.getDefault().getPath(f.getAbsolutePath());
-            GlueParser glueParser = new GlueParser();
             List<String> lines = null;
-            List<LexicalEntry> lexicalEntries = new ArrayList<>();
-
 
             try {
                 lines = Files.readAllLines(p);
             } catch (IOException e) {
                 throw new LexicalParserException("Error while trying to open file '"
-                + p + "'");
+                        + p + "'");
             }
-            for (String line: lines) {
-                LexicalEntry le = null;
-                try {
-                    le = glueParser.parseMeaningConstructor(line);
-                } catch (ParserInputException e) {
-                    System.out.println("Warning! Couldn't parse line " + lines.indexOf(line)
-                            + " of the input file, skipping...");
-                }
-                if (le != null)
-                    lexicalEntries.add(le);
-            }
-            searchProof(lexicalEntries);
+
+            initiateManualMode(lines);
         }
         else
             System.out.println("No file selected");
+    }
+
+    public static void initiateManualMode(List<String> formulas) throws LexicalParserException, VariableBindingException {
+        List<LexicalEntry> lexicalEntries = new LinkedList<>();
+        GlueParser parser = new GlueParser();
+        for (String s : formulas) {
+            try {
+                lexicalEntries.add(parser.parseMeaningConstructor(s));
+            } catch (ParserInputException e) {
+                System.out.println(String.format("Error: glue parser could not parse line %d of input file. Skipping this line.",formulas.indexOf(s)));
+            }
+        }
+        if (lexicalEntries.isEmpty()) {
+            System.out.println("No lexical entries found.");
+        }
+        else {
+            System.out.println(String.format("Found %d lexical entries.",lexicalEntries.size()));
+            searchProof(lexicalEntries);
+        }
     }
 
     private static void initiateDependencyMode(String sentence) throws LexicalParserException {
@@ -173,7 +178,7 @@ public class WorkbenchMain {
         List<Premise> result = null;
         try {
             result = prover.deduce(testseq);
-            System.out.println("Found valid deduction(s): ");
+            System.out.println("Found the following deduction(s): ");
             for (Premise sol : result) {
                 System.out.println(sol.toString());
             }

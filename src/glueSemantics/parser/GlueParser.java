@@ -22,15 +22,13 @@ import java.util.List;
 
 public class GlueParser {
     private LinearLogicParser llparser = new LinearLogicParser();
+    public static final MeaningRepresentation emptyMeaning = new MeaningRepresentation("<empty>");
     // TODO add semantic parser here
 
     private boolean PARSESEMANTCS;
 
-    public GlueParser()
-    {
-
+    public GlueParser() {
         this.PARSESEMANTCS = false;
-
     }
 
 
@@ -44,7 +42,7 @@ public class GlueParser {
         LLTerm glue = llparser.parse(mcList[1]);
         SemanticRepresentation sem = null;
         if (!PARSESEMANTCS) {
-            sem = new MeaningRepresentation(mcList[0]);
+            sem = new MeaningRepresentation(mcList[0].trim());
         }
         entry.setLlTerm(glue);
         entry.setSem(sem);
