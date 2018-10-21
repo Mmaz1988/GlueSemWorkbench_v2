@@ -12,18 +12,28 @@ package test;
 import glueSemantics.lexicon.LexicalEntry;
 import glueSemantics.parser.GlueParser;
 import glueSemantics.parser.ParserInputException;
+import glueSemantics.synInterface.dependency.LexicalParserException;
+import glueSemantics.synInterface.lfg.FStructureParser;
+import main.WorkbenchMain;
 import org.junit.jupiter.api.Test;
+import prover.VariableBindingException;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 
+import static main.WorkbenchMain.searchProof;
 import static org.junit.jupiter.api.Assertions.*;
 
 class WorkbenchMainTest {
+    private GlueParser parser = new GlueParser();
+
+
 
     private List<String> loadTestFormulas(String path) {
         List<String> lines = new LinkedList<>();
@@ -40,10 +50,9 @@ class WorkbenchMainTest {
     /**
      * General testing method for manual mode. Loads and tests different kinds of files
      */
-    void initiateManualMode() {
+    void testManualMode() {
         List<String> lines = new LinkedList<>();
         List<LexicalEntry> lexicalEntries = new LinkedList<>();
-        GlueParser parser = new GlueParser();
 
         // Test bad formulas file
         String bad_formulas = "C:\\Users\\User\\IdeaProjects\\glueSemWorkbench\\src\\test\\bad_formulas.txt";
@@ -62,7 +71,29 @@ class WorkbenchMainTest {
 
         String intrans_quant = "C:\\Users\\User\\IdeaProjects\\glueSemWorkbench\\src\\test\\bad_formulas.txt";
         // Test intransitive with quantifier
+    }
 
 
+    @Test
+    void testDependencyMode() {
+        try {
+            WorkbenchMain.initiateDependencyMode("Every man owns a black dog");
+        } catch (LexicalParserException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    void testLFGMode() {
+        Path p = Paths.get("C:\\Users\\User\\IdeaProjects\\glueSemWorkbench\\src\\test\\every_black_dog_barks_webXLE.pl");
+        try {
+            searchProof(new FStructureParser(p).getLexicalEntries());
+
+            p = Paths.get("C:\\Users\\User\\IdeaProjects\\glueSemWorkbench\\src\\test\\john_cries_webXLE.pl");
+            searchProof(new FStructureParser(p).getLexicalEntries());
+
+        } catch (VariableBindingException | LexicalParserException e) {
+            e.printStackTrace();
+        }
     }
 }

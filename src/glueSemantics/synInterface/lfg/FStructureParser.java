@@ -146,22 +146,30 @@ public class FStructureParser {
             }
             // It is a proper noun, create a lexical entry
             else {
+                String predicate = "<null>";
                 m = Pattern.compile("eq\\(var\\("+nsynID+"\\),'(\\S+)'\\)\\)").matcher(full);
-                if(!m.find()) { throw new LexicalParserException(m);}
-                nsyn = m.group(1);
-                if (nsyn.equals("proper")) {
-                    m = Pattern.compile("attr\\(var\\("+i+"\\),'PRED'\\),var\\((\\d+)\\)").matcher(full);
+                if(!m.find()) {
+                    m = Pattern.compile("attr\\(var\\("+i+"\\),'PRED'\\),semform\\('(\\S+)',\\d+,\\[],\\[]\\)").matcher(full);
                     if(!m.find()) { throw new LexicalParserException(m);}
-                    Matcher predMatcher = Pattern.compile("eq\\(var\\("+m.group(1)+"\\),semform\\('(\\S+)',\\d+,\\[],\\[]\\)").matcher(full);
-                    if(!predMatcher.find()) { throw new LexicalParserException(m);}
-                    Noun main = new Noun(LexicalEntry.LexType.N_NNP,identifier,predMatcher.group(1));
-                    lexicalEntries.add(main);
-
-                    switch (verbalArgs.get(i)) {
-                        case "SUBJ" : subCatFrame.put("agent",main); break;
-                        case "OBJ"  : subCatFrame.put("patient",main); break;
+                    predicate = m.group(1);
+                } else {
+                    nsyn = m.group(1);
+                    if (nsyn.equals("proper")) {
+                        m = Pattern.compile("attr\\(var\\("+i+"\\),'PRED'\\),var\\((\\d+)\\)").matcher(full);
+                        if(!m.find()) { throw new LexicalParserException(m);}
+                        Matcher predMatcher = Pattern.compile("eq\\(var\\("+m.group(1)+"\\),semform\\('(\\S+)',\\d+,\\[],\\[]\\)").matcher(full);
+                        if(!predMatcher.find()) { throw new LexicalParserException(m);}
+                        predicate = predMatcher.group(1);
                     }
                 }
+                Noun main = new Noun(LexicalEntry.LexType.N_NNP,identifier,predicate.trim().substring(0,1));
+                lexicalEntries.add(main);
+
+                switch (verbalArgs.get(i)) {
+                    case "SUBJ" : subCatFrame.put("agent",main); break;
+                    case "OBJ"  : subCatFrame.put("patient",main); break;
+                }
+
             }
 
             //Find all adjuncts subordinated to this function

@@ -1,4 +1,4 @@
-/*
+package main;/*
  * Copyright 2018 Moritz Messmer and Mark-Matthias Zymla.
  * This file is part of the Glue Semantics Workbench
  * The Glue Semantics Workbench is free software and distributed under the conditions of the GNU General Public License,
@@ -11,7 +11,6 @@ import glueSemantics.lexicon.LexicalEntry;
 import glueSemantics.linearLogic.Premise;
 import glueSemantics.linearLogic.Sequent;
 import glueSemantics.parser.GlueParser;
-import glueSemantics.parser.LinearLogicParser;
 import glueSemantics.parser.ParserInputException;
 import glueSemantics.synInterface.dependency.LexicalParserException;
 import glueSemantics.synInterface.dependency.SentenceMeaning;
@@ -27,7 +26,6 @@ import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
@@ -35,26 +33,48 @@ import java.util.Scanner;
 
 public class WorkbenchMain {
     // Initialize with default settings
-    Settings settings;
+    public static Settings settings = new Settings();
 
     public static void main(String[] args) {
-
+        settings = new Settings();
         System.out.println("The Glue Semantics Workbench\n"+
                             "copyright 2018 Moritz Messmer & Mark-Matthias Zymla\n");
-        if (args.length > 0 && args[0].equals("lfg")) {
+
+        // Check program arguments for prover settings
+        for (String arg : args) {
+            switch (arg) {
+                case ("-prolog"):
+                    settings.setSemanticOutputStyle(Settings.PROLOG);
+                    break;
+                case ("-noreduce"):
+                    settings.setBetaReduce(false);
+                    break;
+            }
+        }
+
+        String betaReduce = "on", outputMode = "plain";
+        if (!settings.isBetaReduce())
+            betaReduce = "off";
+
+        if (settings.getSemanticOutputStyle() == 1)
+            outputMode = "prolog";
+
+        System.out.println(String.format("Current settings: automatic beta reduction: %s\t\toutput mode: %s", betaReduce, outputMode));
+
+        // Check program parameters for a mode setting
+        if (args.length > 0 && args[0].equals("-lfg")) {
             try {
                 initiateLFGMode();
             } catch (VariableBindingException | LexicalParserException e) {
                 e.printStackTrace();
             }
         }
-        else if (args.length > 0 && args[0].equals("dp")){
+        else if (args.length > 0 && args[0].equals("-dp")){
             try {
                 initiateDependencyMode();
             } catch (VariableBindingException | LexicalParserException e) {
                 e.printStackTrace();
             }
-
         }
         else {
             try {
@@ -157,7 +177,7 @@ public class WorkbenchMain {
         }
     }
 
-    private static void initiateDependencyMode(String sentence) throws LexicalParserException {
+    public static void initiateDependencyMode(String sentence) throws LexicalParserException {
         try {
             SentenceMeaning sm = new SentenceMeaning(sentence);
             searchProof(sm.getLexicalEntries());
@@ -168,13 +188,13 @@ public class WorkbenchMain {
 
     }
 
-    private static void searchProof(List<LexicalEntry> lexicalEntries) throws VariableBindingException {
+    public static void searchProof(List<LexicalEntry> lexicalEntries) throws VariableBindingException {
+        LLProver prover = new LLProver(settings);
         Sequent testseq = new Sequent(lexicalEntries);
 
         System.out.println(testseq.toString());
 
         System.out.println("Searching for valid proofs...");
-        LLProver prover = new LLProver();
         List<Premise> result = null;
         try {
             result = prover.deduce(testseq);

@@ -14,6 +14,7 @@ import glueSemantics.semantics.SemanticRepresentation;
 import glueSemantics.semantics.lambda.*;
 import glueSemantics.synInterface.dependency.LexVariableHandler;
 import glueSemantics.linearLogic.*;
+import main.Settings;
 
 import java.util.*;
 
@@ -24,11 +25,21 @@ import static glueSemantics.semantics.lambda.SemAtom.SemSort.VAR;
 import static glueSemantics.semantics.lambda.SemType.AtomicType.T;
 
 public class LLProver {
-    private LinkedList<Premise> skeletons = new LinkedList<>();
-    private LinkedList<Premise> modifiers = new LinkedList<>();
-    private LinkedList<Premise> agenda = new LinkedList<>();
-    private LinkedList<Premise> database = new LinkedList<>();
-    private List<Premise> solutions = new ArrayList<>();
+    public static Settings getSettings() {
+        return settings;
+    }
+
+    public static void setSettings(Settings settings) {
+        LLProver.settings = settings;
+    }
+
+    private static Settings settings;
+
+    private LinkedList<Premise> skeletons;
+    private LinkedList<Premise> modifiers;
+    private LinkedList<Premise> agenda;
+    private LinkedList<Premise> database;
+    private LinkedList<Premise> solutions;
     /*
     Initialize the set containing the IDs of all premises of the sequent.
     This set is used to determine possible goal terms.
@@ -37,7 +48,14 @@ public class LLProver {
     private Sequent currSeq;
     private LinkedList<SemAtom> assumptionVars = new LinkedList<>();
 
-
+    public LLProver(Settings settings) {
+        setSettings(settings);
+        this.skeletons = new LinkedList<>();
+        this.modifiers = new LinkedList<>();
+        this.agenda = new LinkedList<>();
+        this.database = new LinkedList<>();
+        this.solutions = new LinkedList<>();
+    }
 
     /**
      * Does a deduction of a given sequent by evaluating the list of premises on its LHS
@@ -92,13 +110,14 @@ public class LLProver {
         The algorithm loops over the skeletons until it is empty or until a premise is created
         that contains all indexes of the sequent's premises and is therefore the goal.
         */
-        while (!skeletons.isEmpty()) {
-            Premise currentPremise = skeletons.pop();
+        while (!skeletons.isEmpty() && solutions.isEmpty()) {
+            while (!skeletons.isEmpty()) {
+                Premise currentPremise = skeletons.pop();
 
-            // Check all database entries for possible combinations
-            checkDatabase(currentPremise, false);
+                // Check all database entries for possible combinations
+                checkDatabase(currentPremise);
 
-            // Check if one or more modifier are applicable to the premise and apply them right away
+                // Check if one or more modifier are applicable to the premise and apply them right away
 /*            Iterator<Premise> it = modifiers.iterator();
             while (it.hasNext()) {
                 Premise mod = it.next();
@@ -109,21 +128,21 @@ public class LLProver {
                 }
             }*/
 
-            // After all combination checks are made, add the current premise to the database
-            database.addFirst(currentPremise);
-
+                // After all combination checks are made, add the current premise to the database
+                database.addFirst(currentPremise);
+            }
+            ListIterator<Premise> modIterator = modifiers.listIterator();
+            // TODO other stop condition for the loop: ID set is full for one premise?
+            /*while(modIterator.hasNext()) {
+                if (checkDatabase(modIterator.next()))
+                    modIterator.remove();
+            }*/
+            for (Premise modifier : modifiers) {
+                checkDatabase(modifier);
+            }
         }
 
-        // TODO other stop condition for the loop: ID set is full for one premise?
-        while (!modifiers.isEmpty()) {
-            Premise currentPremise = modifiers.getFirst();
 
-            // Check all database entries for possible combinations. If no combinations could be made remove
-            // the premise. The premise is also removed if the result of the combination is already in the
-            // database
-            if (!checkDatabase(currentPremise, true))
-                modifiers.remove(currentPremise);
-        }
 
         /*
         All premises of the skeletons were added to the database. If there are
@@ -144,12 +163,11 @@ public class LLProver {
      * If modified is set to true (e.g. after all skeletons have been added to the database), this method
      * always adds new premises to the modifiers list, so because that list contains all modified premises.
      * @param currentPremise
-     * @param modified
      * @throws VariableBindingException
      * @throws ProverException
      */
-    private boolean checkDatabase(Premise currentPremise, boolean modified) throws VariableBindingException, ProverException {
-        Premise newPremise = null;
+    private boolean checkDatabase(Premise currentPremise) throws VariableBindingException, ProverException {
+        boolean hasCombined = false;
         for (Premise dbPremise : database) {
             if (dbPremise == currentPremise)
                 continue;
@@ -160,18 +178,19 @@ public class LLProver {
                 */
             if (dbPremise.getGlueTerm() instanceof LLFormula) {
 
-                newPremise = this.combinePremises(dbPremise, currentPremise);
+                Premise newPremise = this.combinePremises(dbPremise, currentPremise);
                 if (newPremise != null) {
+                    hasCombined = true;
                     newPremise.setHistory(dbPremise, currentPremise);
                     System.out.println("Combining premises " + currentPremise + " and " + dbPremise);
                     System.out.println("--> " + newPremise);
                     if (newPremise.getPremiseIDs().equals(goalIDs)) {
                         solutions.add(newPremise);
                     }
-                    if (newPremise.isModifier() || modified) {
-                        if (modifiers.contains(newPremise)|| solutions.contains(newPremise))
+                    if (newPremise.isModifier()) {
+                        /*if (modifiers.contains(newPremise)|| solutions.contains(newPremise))
                             modifiers.remove(currentPremise);
-                        else
+                        else*/
                             modifiers.add(newPremise);
                     }
                     else
@@ -184,8 +203,9 @@ public class LLProver {
                 as above, but reverse (apply dbPremise to currentPremise).
                  */
             if (currentPremise.getGlueTerm() instanceof LLFormula) {
-                newPremise = this.combinePremises(currentPremise, dbPremise);
+                Premise newPremise = this.combinePremises(currentPremise, dbPremise);
                 if (newPremise != null) {
+                    hasCombined = true;
                     newPremise.setHistory(currentPremise, dbPremise);
                     System.out.println("Combining premises " + currentPremise + " and " + dbPremise);
                     System.out.println("-->" + newPremise);
@@ -193,10 +213,10 @@ public class LLProver {
                     if (newPremise.getPremiseIDs().equals(goalIDs)) {
                         solutions.add(newPremise);
                     }
-                    if (newPremise.isModifier() || modified) {
-                        if (modifiers.contains(newPremise)|| solutions.contains(newPremise))
+                    if (newPremise.isModifier()) {
+                        /*if (modifiers.contains(newPremise)|| solutions.contains(newPremise))
                             modifiers.remove(currentPremise);
-                        else
+                        else*/
                             modifiers.add(newPremise);
                     }
                     else
@@ -204,7 +224,7 @@ public class LLProver {
                 }
             }
         }
-        return newPremise != null;
+        return hasCombined;
     }
 
 
@@ -321,7 +341,11 @@ public class LLProver {
 
             // Apply and beta-reduce meaning side
             //FuncApp applied = new FuncApp(func.getSemTerm(),arg.getSemTerm());
-            SemanticRepresentation reducedSem = new FuncApp(func.getSemTerm(),arg.getSemTerm()).betaReduce();
+            SemanticRepresentation reducedSem;
+            if (getSettings().isBetaReduce())
+                reducedSem = new FuncApp(func.getSemTerm(),arg.getSemTerm()).betaReduce();
+            else
+                reducedSem = new FuncApp(func.getSemTerm(),arg.getSemTerm());
 
             if (((LLFormula) func.getGlueTerm()).getRhs() instanceof  LLAtom) {
                 return new Premise(combined_IDs, reducedSem,
@@ -332,6 +356,10 @@ public class LLProver {
         return null;
     }
 
+
+    private void interpolateModifier() throws ProverException {
+
+    }
 
 
     /**
@@ -536,6 +564,5 @@ public class LLProver {
         }
         return false;
     }
-
 
 }

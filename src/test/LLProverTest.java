@@ -14,6 +14,7 @@ import glueSemantics.linearLogic.Premise;
 import glueSemantics.linearLogic.Sequent;
 import glueSemantics.parser.ParserInputException;
 import glueSemantics.parser.GlueParser;
+import main.Settings;
 import org.junit.jupiter.api.Test;
 import prover.LLProver;
 import prover.ProverException;
@@ -28,7 +29,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class LLProverTest {
     private GlueParser parser = new GlueParser();
-    private LLProver lp = new LLProver();
 
 
     private Sequent loadAndParseTestFormulas(String path) {
@@ -51,23 +51,76 @@ class LLProverTest {
     }
 
     @Test
-    void deduce() {
+    void testProlog() {
+        LLProver lp = new LLProver(new Settings(false,Settings.PROLOG));
+        // Test transitive sentence with quantifiers
+        System.out.println("\nTesting sentence with transitive verb and quantifiers in Prolog mode:");
+        Sequent transQuantPl = loadAndParseTestFormulas("C:\\Users\\User\\IdeaProjects\\glueSemWorkbench\\src\\test\\trans_quant_prolog.txt");
+        List<Premise> transPlSolutions = null;
         try {
+            transPlSolutions = lp.deduce(transQuantPl);
+        } catch (ProverException e) {
+            e.printStackTrace();
+        } catch (VariableBindingException e) {
+            e.printStackTrace();
+        }
+        assertEquals(2,transPlSolutions.size());
+        System.out.println("Found the following deduction(s): ");
+        for (Premise sol : transPlSolutions) {
+            System.out.println(sol.toString());
+        }
+
+    }
+
+    @Test
+    void testPlain() {
+        try {
+            LLProver lp = new LLProver(new Settings());
+
             // Test intransitive sentence with quantifier
+            System.out.println("\nTesting sentence with intransitive verband quantifier:");
             Sequent intransQuant = loadAndParseTestFormulas("C:\\Users\\User\\IdeaProjects\\glueSemWorkbench\\src\\test\\intrans_quant.txt");
             List<Premise> solutions = lp.deduce(intransQuant);
-            assertEquals(solutions.size(),1);
+            assertEquals(1,solutions.size());
             assertEquals("/P./Q./x.every(x,P(x),Q(x))(λy_t./y.sleep(y)(y))(λx_t./x.dog(x)(x))",solutions.get(0).getSemTerm().toString());
             assertEquals("f",solutions.get(0).getGlueTerm().toString());
             assertEquals(new HashSet<>(Arrays.asList(0,1,2,3,4)),solutions.get(0).getPremiseIDs());
 
+            System.out.println("Found the following deduction(s): ");
+            for (Premise sol : solutions) {
+                System.out.println(sol.toString());
+            }
+
+            // Test transitive sentence with quantifiers
+            System.out.println("\nTesting sentence with transitive verb and quantifiers:");
+            Sequent transQuant = loadAndParseTestFormulas("C:\\Users\\User\\IdeaProjects\\glueSemWorkbench\\src\\test\\trans_quant.txt");
+            List<Premise> transSolutions = lp.deduce(transQuant);
+            assertEquals(2,transSolutions.size());
+            //assertEquals(new HashSet<>(Arrays.asList(0,1,2,3,4)),solutions.get(0).getPremiseIDs());
+            System.out.println("Found the following deduction(s): ");
+            for (Premise sol : transSolutions) {
+                System.out.println(sol.toString());
+            }
+
+            // Test intransitve sentence with quantifier and adjective
+            System.out.println("\nTesting sentence with intransitive verb, quantifier and adjective:");
             Sequent adjIntransQuant = loadAndParseTestFormulas("C:\\Users\\User\\IdeaProjects\\glueSemWorkbench\\src\\test\\intrans_quant_adj.txt");
-            solutions = lp.deduce(adjIntransQuant);
+            List<Premise> adjIntransSolutions = lp.deduce(adjIntransQuant);
+            assertEquals(1,adjIntransSolutions.size());
+            System.out.println("Found the following deduction(s): ");
+            for (Premise sol : adjIntransSolutions) {
+                System.out.println(sol.toString());
+            }
 
         }
         catch (VariableBindingException | ProverException e) {
             e.printStackTrace();
         }
+    }
+
+    @Test
+    void testDependency() {
+
     }
 
 }

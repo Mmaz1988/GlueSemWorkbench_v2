@@ -11,6 +11,10 @@ package glueSemantics.semantics.lambda;
 
 
 import glueSemantics.semantics.SemanticRepresentation;
+import main.Settings;
+import prover.LLProver;
+
+import static glueSemantics.semantics.lambda.SemAtom.SemSort.VAR;
 
 public class SemAtom extends SemanticExpression {
     private final String name;
@@ -78,7 +82,10 @@ public class SemAtom extends SemanticExpression {
 
     @Override
     public String toString() {
-        return name;
+        if (LLProver.getSettings().getSemanticOutputStyle() == Settings.PROLOG && this.getSort() == VAR)
+            return name.toUpperCase();
+        else
+            return name;
     }
 
     public String toStringTyped() {

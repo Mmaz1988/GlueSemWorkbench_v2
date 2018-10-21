@@ -1,7 +1,6 @@
 # ToDO for glueSemWB
 
-- Test lexical entry parser (with a file)
-- Test modifier treatment
+- Change scope handling from Determiner class to Verb class or somewhere it makes sense...
 
 #Pre-release TODO:
 - write README containing basic instructions

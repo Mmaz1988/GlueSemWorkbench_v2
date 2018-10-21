@@ -27,8 +27,8 @@ public class Premise {
     private HashSet<Integer> premiseIDs;
     private LLTerm glueTerm;
     private SemanticRepresentation semTerm;
-    private Premise func;
-    private Premise arg;
+    private Object func;
+    private Object arg;
 
     public HashSet<Integer> getPremiseIDs() {
         return premiseIDs;
@@ -84,16 +84,16 @@ public class Premise {
      * @param func
      * @param arg
      */
-    public void setHistory(Premise func, Premise arg) {
+    public void setHistory(Object func, Object arg) {
         this.func = func;
         this.arg = arg;
     }
 
-    public Premise getFunc(){
+    public Object getFunc(){
         return this.func;
     }
 
-    public Premise getArg() {
+    public Object getArg() {
         return this.arg;
     }
 

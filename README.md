@@ -7,6 +7,7 @@ dependency parses and Prolog f-structure files created by the Xerox linguistic e
  (http://ling.uni-konstanz.de/pages/xle/doc/xle_toc.html). The linear logic prover is based on Mark Hepple's
  chart prover with ideas from Gupta & Lamping (2008). The lexicon module provides some basic classes for creating
  glue premises for verbs, nouns, determiners and adjectives and other modifiers.
+ Lexical entries may also be entered manually by using the default manual-entry mode (see below).
 
 
 # Distribution
@@ -16,9 +17,23 @@ We recommend distributing them as part of the JAR file or adding a note on how t
 parser along with any distribution.
 
 # Usage
-When running the program (from a JAR file for example) it initiates the interactive dependency parser mode by default.
-If it should be run in LFG mode, in which it reads a Prolog f-structure file created by XLE, add "lfg" as a program argument.
-
+When running the program (from a JAR file for example) it initiates the manual entry mode by default, prompting the user
+to open a text file containing glue formulas. Check the "glue formula syntax" section for more information on how to
+enter formulas.
+For running the program in interactive dependency mode, add "-dp" as a program argument.
+For running it in LFG mode, in which it reads a Prolog f-structure file created by XLE, add "-lfg" as a program argument.
+## Glue formula syntax
+Glue formulas can be entered manually into a plain text file (".txt") to be read in by the default mode.
+Each formula needs to be in a separate line.
+Each formula must contain a semantic side and a glue side separated by a colon (whitespaces around the colon are optional).
+The semantic side of a formula may have any form and may contain any (unicode) character except ":"
+The glue side of a formula must be a valid implicationa linear logic formula, with each implication put in parantheses.
+LL atoms must be single letters: lower-case letters (a-z) will be recognized as LL constants, while upper-case letters will be recognized as LL
+variables. LL atoms can (and should) be suffixed with an underscore and a letter denoting their type ("e" or "t").
+Linear implication operators are written as "-o", LL quantifiers (especially the "universal quantifier") are not necessary
+for the introduction of LL variables.
+## Additional parameters
+For disabling automatic betareduction in dependency and LFG mode, add the parameter
 # Licensing
 The Glue Semantics Workbench
 Copyright 2018 Moritz Messmer and Mark-Matthias Zymla.
@@ -30,5 +45,5 @@ If not, please visit http://www.gnu.org/licenses/ for more information.
 
 # Contact
 For more information please contact
-moritz.messmer@uni-konstanz.de      or
+moritzmessmer@gmail.com      or
 mark-matthias.zymla@uni-konstanz.de
