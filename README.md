@@ -48,7 +48,6 @@ For using Blackburn & Bos-style Prolog as output format, add the parameter _-pro
 
 # Troubleshooting
 - When loading the dependency mode, a message states "Could not initialize dependency parser".
-- 
 
 This usually means that the Stanford CoreNLP JAR file could not be found.
 It needs to be in the same directory as the glueSemWorkbench JAR file. The JAR file can be optained [here](https://stanfordnlp.github.io/CoreNLP/history.html)
