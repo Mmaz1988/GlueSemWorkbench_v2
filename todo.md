@@ -1,10 +1,5 @@
-# ToDO for glueSemWB
+# ToDo for glueSemWB
 
-- Change scope handling from Determiner class to Verb class or somewhere it makes sense...
-    not working yet, need to take Determiner as scope variables
-#Pre-release TODO:
-- write README containing basic instructions
-- check compatibility with CoreNLP library and add it to instructions
 
 #Fixes/Bugs
 
@@ -20,15 +15,7 @@
 
 #Structure/modularization
 
-- restructure betaConversion?
-
-- Make scope handling an extra class, instead of a static field in Determiner class
-
 - why are we using streams for bound variables (e.g in the constructor of LLFormula)
-
-# Modifiers
-According to Gupta & Lamping the form S -o M is sufficient when doing compilations (except
-for pronouns which we don't treat anyways).
 
 
 # Implementing Lev's (2007) system:
