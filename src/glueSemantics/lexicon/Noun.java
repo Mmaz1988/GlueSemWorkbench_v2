@@ -24,6 +24,7 @@ public class Noun extends LexicalEntry {
 
     public LexType lexType;
 
+
     public Noun(LexType type, String identifier, String main) throws LexicalParserException {
 
         this.identifier = identifier;

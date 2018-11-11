@@ -14,8 +14,10 @@ import glueSemantics.parser.GlueParser;
 import glueSemantics.parser.ParserInputException;
 import glueSemantics.synInterface.dependency.LexicalParserException;
 import glueSemantics.synInterface.lfg.FStructureParser;
+import main.Settings;
 import main.WorkbenchMain;
 import org.junit.jupiter.api.Test;
+import prover.LLProver;
 import prover.VariableBindingException;
 
 import java.io.File;
@@ -78,6 +80,7 @@ class WorkbenchMainTest {
     void testDependencyMode() {
         try {
             WorkbenchMain.initiateDependencyMode("Every man owns a black dog");
+            WorkbenchMain.initiateDependencyMode("John owns a big black dog.");
         } catch (LexicalParserException e) {
             e.printStackTrace();
         }
@@ -87,10 +90,11 @@ class WorkbenchMainTest {
     void testLFGMode() {
         Path p = Paths.get("C:\\Users\\User\\IdeaProjects\\glueSemWorkbench\\src\\test\\every_black_dog_barks_webXLE.pl");
         try {
-            searchProof(new FStructureParser(p).getLexicalEntries());
+            LLProver prover = new LLProver(new Settings());
+            searchProof(prover, new FStructureParser(p).getLexicalEntries());
 
             p = Paths.get("C:\\Users\\User\\IdeaProjects\\glueSemWorkbench\\src\\test\\john_cries_webXLE.pl");
-            searchProof(new FStructureParser(p).getLexicalEntries());
+            searchProof(prover, new FStructureParser(p).getLexicalEntries());
 
         } catch (VariableBindingException | LexicalParserException e) {
             e.printStackTrace();

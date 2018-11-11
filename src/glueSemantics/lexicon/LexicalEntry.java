@@ -38,6 +38,7 @@ public class LexicalEntry {
     public enum LexType {
 
         //Verbs
+        V_NULL,
         V_INTR,
         V_TRANS,
         V_DTRAN,

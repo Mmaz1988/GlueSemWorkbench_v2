@@ -34,33 +34,30 @@ public class Determiner extends LexicalEntry{
 
     }
 
-
-    public Determiner(String identifier, String detType, String role) throws LexicalParserException {
-        setScope(role);
-
+    public Determiner(SubcatFrame subcatFrame, String detType, String role) throws LexicalParserException {
         this.lexType = LexType.DET;
-        this.identifier = identifier;
+        this.identifier = subcatFrame.getScopeVar(role);
 
         String var = LexVariableHandler.returnNewVar(LexVariableHandler.variableType.LLvar);
 
         //Restrictor
 
-        LLAtom subjsem = new LLAtom(identifier, LLTerm.Type.E, LLAtom.LLType.CONST,true);
+        LLAtom subjsem = new LLAtom(subcatFrame.getRole(role).identifier, LLTerm.Type.E, LLAtom.LLType.CONST,true);
 
-        LLAtom restr = new LLAtom(identifier, LLTerm.Type.T, LLAtom.LLType.CONST,false);
+        LLAtom restr = new LLAtom(subcatFrame.getRole(role).identifier, LLTerm.Type.T, LLAtom.LLType.CONST,false);
         //LexVariableHandler.addUsedVariable(LexVariableHandler.variableType.LLatomT,identifier);
 
         LLFormula restrSem = new LLFormula(subjsem,restr,false);
 
         //Scope
-        LLAtom scopeConst = new LLAtom(scope.get(role), LLTerm.Type.E, LLAtom.LLType.CONST,false);
+        LLAtom scopeConst = new LLAtom(identifier, LLTerm.Type.E, LLAtom.LLType.CONST,false);
 
         //Identifier for the semantics of the whole things
         String detVar = LexVariableHandler.returnNewVar(LexVariableHandler.variableType.LLvar);
 
         // for the resource that is consumed
         LLAtom scopeSem = new LLAtom(detVar,
-                        LLTerm.Type.T, LLAtom.LLType.VAR,false);
+                LLTerm.Type.T, LLAtom.LLType.VAR,false);
 
         LLFormula scope = new LLFormula(scopeConst,scopeSem,false);
 
@@ -82,7 +79,7 @@ public class Determiner extends LexicalEntry{
         LLAtom binder = new LLAtom(var, LLTerm.Type.T, LLAtom.LLType.VAR);
 
         //Parts of the antecedent
-       LLAtom argsem = new LLAtom(identifier, LLTerm.Type.E, LLAtom.LLType.CONST,true);
+        LLAtom argsem = new LLAtom(identifier, LLTerm.Type.E, LLAtom.LLType.CONST,true);
         LLAtom left = new LLAtom(var, LLTerm.Type.T, LLAtom.LLType.VAR,false);
 
         //consequent of the det
@@ -94,7 +91,7 @@ public class Determiner extends LexicalEntry{
         //wrapping in consequent
         LLFormula det = new LLFormula(ant,right,true, binder);
 
-       // this.llTerm = det;
+        // this.llTerm = det;
 
 
         /*Semantics*/
@@ -147,9 +144,8 @@ public class Determiner extends LexicalEntry{
             throw new LexicalParserException("Unknown determiner: "+detType.toLowerCase());
         }
 
-
-        /*Semantics*/
     }
+
 
     public static HashMap getterScope()
     {

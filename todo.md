@@ -1,7 +1,7 @@
 # ToDO for glueSemWB
 
 - Change scope handling from Determiner class to Verb class or somewhere it makes sense...
-
+    not working yet, need to take Determiner as scope variables
 #Pre-release TODO:
 - write README containing basic instructions
 - check compatibility with CoreNLP library and add it to instructions

@@ -190,6 +190,10 @@ public class WorkbenchMain {
 
     public static void searchProof(List<LexicalEntry> lexicalEntries) throws VariableBindingException {
         LLProver prover = new LLProver(settings);
+        searchProof(prover,lexicalEntries);
+    }
+
+    public static void searchProof(LLProver prover, List<LexicalEntry> lexicalEntries) throws VariableBindingException {
         Sequent testseq = new Sequent(lexicalEntries);
 
         System.out.println(testseq.toString());
