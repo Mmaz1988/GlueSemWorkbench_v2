@@ -7,17 +7,20 @@
  * If not, please visit http://www.gnu.org/licenses/ for more information.
  */
 
-package glueSemantics.semantics;
+package glueSemantics.semantics.lambda;
 
-import static glueSemantics.semantics.SemQuantEx.SemQuant.UNI;
-import static glueSemantics.semantics.SemType.AtomicType.T;
+import glueSemantics.semantics.SemanticRepresentation;
+import prover.ProverException;
 
-public class SemQuantEx extends SemRepresentation{
+import static glueSemantics.semantics.lambda.SemQuantEx.SemQuant.UNI;
+import static glueSemantics.semantics.lambda.SemType.AtomicType.T;
+
+public class SemQuantEx extends SemanticExpression {
     private final SemQuant quantifier;
     private final SemAtom binder;
-    private final SemRepresentation quantBody;
+    private final SemanticRepresentation quantBody;
 
-    public SemQuantEx(SemQuant quantifier, SemAtom binder, SemRepresentation quantBody) {
+    public SemQuantEx(SemQuant quantifier, SemAtom binder, SemanticRepresentation quantBody) {
         this.quantifier = quantifier;
         this.binder = binder;
         this.quantBody = quantBody;
@@ -37,7 +40,7 @@ public class SemQuantEx extends SemRepresentation{
         return binder;
     }
 
-    public SemRepresentation getQuantBody() {
+    public SemanticRepresentation getQuantBody() {
         return quantBody;
     }
 
@@ -47,17 +50,17 @@ public class SemQuantEx extends SemRepresentation{
     }
 
     @Override
-    public SemRepresentation betaReduce() {
+    public SemanticRepresentation betaReduce() throws ProverException {
         return new SemQuantEx(quantifier, binder, quantBody.betaReduce());
     }
 
     @Override
-    public SemRepresentation applyTo(SemAtom var, SemRepresentation arg) {
+    public SemanticRepresentation applyTo(SemanticRepresentation var, SemanticRepresentation arg) throws ProverException {
         return new SemQuantEx(quantifier, binder, quantBody.applyTo(var,arg));
     }
 
     @Override
-    public SemRepresentation clone() {
+    public SemanticExpression clone() {
         return new SemQuantEx(this);
     }
 

@@ -9,11 +9,14 @@
 
 package glueSemantics.lexicon;
 
+import glueSemantics.semantics.lambda.SemAtom;
+import glueSemantics.semantics.lambda.SemFunction;
+import glueSemantics.semantics.lambda.SemPred;
+import glueSemantics.semantics.lambda.SemType;
 import glueSemantics.synInterface.dependency.LexVariableHandler;
 import glueSemantics.linearLogic.LLAtom;
 import glueSemantics.linearLogic.LLFormula;
 import glueSemantics.linearLogic.LLTerm;
-import glueSemantics.semantics.*;
 import glueSemantics.synInterface.dependency.LexicalParserException;
 
 import java.util.*;
@@ -21,47 +24,34 @@ import java.util.*;
 public class Verb extends LexicalEntry {
 
     LexType lexType;
+    private SubcatFrame subcatFrame;
 
-
-    public Verb(LinkedHashMap<String,LexicalEntry> subCatFrame, String lemma) throws LexicalParserException {
-
-
-
-    this.lexType = lexTypeFromSubCat(subCatFrame);
+    public Verb(SubcatFrame subcatFrame, String lemma) throws LexicalParserException {
+        this.lexType = subcatFrame.getLextype();
 
         //f is standard variable for complete f-structure
         //g is standard variable for subject
         //h is standard variable for object
-
         switch (this.getLexType()) {
             case V_INTR:
                 //Parentheses necessary for variable scope!
-                {
-                LexicalEntry agent = subCatFrame.get("agent");
+            {
+                LexicalEntry agent = subcatFrame.getRole("agent");
 
                 /*Linear Logic*/
-                LLAtom agentRes;
-                if (Determiner.getterScope() != null)
-                {
-                    agentRes = new LLAtom(Determiner.getScope("subj"), LLTerm.Type.E, LLAtom.LLType.CONST, false);
-                } else
-                {
-                    agentRes = new LLAtom(agent.identifier, LLTerm.Type.E, LLAtom.LLType.CONST, false);
-                }
+                LLAtom agentRes = new LLAtom(subcatFrame.getScopeVar("agent"), LLTerm.Type.E, LLAtom.LLType.CONST, false);
 
                 LLAtom fsem = new LLAtom(LexVariableHandler.returnNewVar(LexVariableHandler.variableType.LLatomT),
                         LLTerm.Type.T, LLAtom.LLType.CONST,true);
 
-                 this.setLlTerm(new LLFormula(agentRes,fsem,true ));
-
+                this.setLlTerm(new LLFormula(agentRes,fsem,true ));
 
                 /*Semantics*/
-
                 SemAtom agentVar = new SemAtom(SemAtom.SemSort.VAR,
                         //binding variable
                         LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVarE),
                         SemType.AtomicType.E
-                        );
+                );
 
                 SemFunction verbSem = new SemFunction(agentVar,new SemPred(lemma,agentVar));
 
@@ -73,29 +63,15 @@ public class Verb extends LexicalEntry {
             case V_TRANS: {
 
 
-                LexicalEntry agent = subCatFrame.get("agent");
-                LexicalEntry patient = subCatFrame.get("patient");
-                LLAtom agentRes;
-                LLAtom patientRes;
+                LexicalEntry agent = subcatFrame.getRole("agent");
+                LexicalEntry patient = subcatFrame.getRole("patient");
 
                 /*Linear Logic*/
 
                 //generating consumer
-                if (Determiner.getScope("subj") != null)
-                {
-                    agentRes = new LLAtom(Determiner.getScope("subj"), LLTerm.Type.E, LLAtom.LLType.CONST, false);
-                } else
-                {
-                    agentRes = new LLAtom(agent.identifier, LLTerm.Type.E, LLAtom.LLType.CONST, false);
-                }
+                LLAtom agentRes = new LLAtom(subcatFrame.getScopeVar("agent"), LLTerm.Type.E, LLAtom.LLType.CONST, false);
+                LLAtom patientRes = new LLAtom(subcatFrame.getScopeVar("patient"), LLTerm.Type.E, LLAtom.LLType.CONST, false);
 
-                if (Determiner.getScope("obj") != null)
-                {
-                    patientRes = new LLAtom(Determiner.getScope("obj"), LLTerm.Type.E, LLAtom.LLType.CONST, false);
-                }
-                else {
-                    patientRes = new LLAtom(patient.identifier, LLTerm.Type.E, LLAtom.LLType.CONST, false);
-                }
                 //generate semantics
                 LLAtom fsem = new LLAtom(LexVariableHandler.returnNewVar(LexVariableHandler.variableType.LLatomT),
                         LLTerm.Type.T, LLAtom.LLType.CONST, true);
@@ -106,7 +82,6 @@ public class Verb extends LexicalEntry {
 
 
                 /*Semantics*/
-
                 SemAtom agentVar = new SemAtom(SemAtom.SemSort.VAR,
                         //binding variable
                         LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVarE),
@@ -121,8 +96,8 @@ public class Verb extends LexicalEntry {
 
 
                 SemFunction verbSem = new SemFunction(agentVar,
-                                            new SemFunction(patientVar,
-                                                    new SemPred(lemma,agentVar,patientVar)));
+                        new SemFunction(patientVar,
+                                new SemPred(lemma,agentVar,patientVar)));
 
                 this.setSem(verbSem);
 

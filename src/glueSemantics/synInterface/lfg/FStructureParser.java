@@ -9,24 +9,19 @@
 
 package glueSemantics.synInterface.lfg;
 
-import prover.LLProver;
-import prover.ProverException;
 import prover.VariableBindingException;
 import glueSemantics.synInterface.dependency.LexVariableHandler;
 import glueSemantics.synInterface.dependency.LexicalParserException;
 import glueSemantics.lexicon.*;
-import glueSemantics.linearLogic.Premise;
-import glueSemantics.linearLogic.Sequent;
 
-import javax.swing.*;
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static glueSemantics.synInterface.dependency.LexVariableHandler.variableType.LLatomE;
 
 public class FStructureParser {
     private final static String[] functions = {"SUBJ", "OBJ", "OBL"};
@@ -34,29 +29,6 @@ public class FStructureParser {
 
     public List<LexicalEntry> getLexicalEntries() {
         return lexicalEntries;
-    }
-
-
-    public static void main(String[] args) {
-        // Uncomment to test f-structure parser
-/*        File f = null;
-        final JFileChooser fc = new JFileChooser();
-        int returnVal = fc.showOpenDialog(null);
-        if (returnVal == JFileChooser.APPROVE_OPTION) {
-            f = fc.getSelectedFile();
-        }
-        else {
-            System.out.println("Something went wrong");
-
-        }
-        Path p = FileSystems.getDefault().getPath(f.getAbsolutePath());
-
-        try {
-            FStructureParser fsp = new FStructureParser(p);
-        } catch (VariableBindingException e) {
-            e.printStackTrace();
-        }*/
-
     }
 
 
@@ -77,11 +49,11 @@ public class FStructureParser {
     public List<LexicalEntry> extractFromFStructureFile(Path filepath) throws  LexicalParserException, IllegalStateException {
         List<String> lines = new ArrayList<>();
         String full = "";
+        SubcatFrame subcatFrame = new SubcatFrame();
         // A map of lexical entries where each entry has the form <nodeID,nodeFunction>
         HashMap<String,String> verbalArgs = new HashMap<>();
         List<LexicalEntry> lexicalEntries = new ArrayList<>();
         //SubCatFrame produced from syntactic input; is used to derive meaning constructors
-        LinkedHashMap<String,LexicalEntry> subCatFrame = new LinkedHashMap<>();
 
         try {
             lines = Files.readAllLines(filepath);
@@ -123,7 +95,7 @@ public class FStructureParser {
 
             String nsyn = m.group(1);
 
-            String identifier = LexVariableHandler.returnNewVar(LexVariableHandler.variableType.LLatomE);
+            String identifier = LexVariableHandler.returnNewVar(LLatomE);
 
             // It is a common noun find potential determiners and create the lexical entry
             // Add the appropriate role to the subcatframe (for generating the verb later)
@@ -135,10 +107,6 @@ public class FStructureParser {
                 String predicate = m.group(1);
                 Noun main = new Noun(LexicalEntry.LexType.N_NN,identifier,predicate);
                 lexicalEntries.add(main);
-                switch (verbalArgs.get(i)) {
-                    case "SUBJ" : subCatFrame.put("agent",main); break;
-                    case "OBJ"  : subCatFrame.put("patient",main); break;
-                }
 
                 m = Pattern.compile("attr\\(var\\("+i+"\\),'SPEC'\\),var\\((\\d+)\\)").matcher(full);
                 // Found a SPEC feature, proceed to extract determiners/quantifiers
@@ -152,12 +120,27 @@ public class FStructureParser {
                             Matcher m2 =
                                     Pattern.compile("attr\\(var\\(" + m.group(2) + "\\),'PRED'\\),semform\\('(\\S+)',\\d+,\\[],\\[]\\)").matcher(full);
                             if(!m2.find()) { throw new LexicalParserException(m);}
-                            lexicalEntries.add(new Determiner(identifier, m2.group(1), verbalArgs.get(i).toLowerCase()));
+                            // Create a new identifier String that is mapped as the scopeVar for the respective role and
+                            // afterwards becomes the identifier of the quantifier.
+                            String quantIdentifier = LexVariableHandler.returnNewVar(LLatomE);
+
+                            // Map grammatical function to role
+                            String role = "<unknown>";
+                            switch (verbalArgs.get(i)) {
+                                case "SUBJ" :  role = "agent"; break;
+                                case "OBJ"  : role = "patient"; break;
+                            }
+                            subcatFrame.initializeQuantifiedRole(role, main, quantIdentifier);
+                            LexicalEntry quant = new Determiner(subcatFrame,m2.group(1),role);
+                            lexicalEntries.add(quant);
                             break;
                         // Specifier is a determiner
                         case "DET":
-                            throw new LexicalParserException("Unknown lexical item: DET");
-
+                            m2 =
+                                    Pattern.compile("attr\\(var\\(" + m.group(2) + "\\),'PRED'\\),semform\\('(\\S+)',\\d+,\\[],\\[]\\)").matcher(full);
+                            if(!m2.find()) { throw new LexicalParserException(m);}
+                            lexicalEntries.add(new Determiner(subcatFrame, m2.group(1), verbalArgs.get(i).toLowerCase()));
+                            break;
                             // Specifier is a number determiner
                         case "NUMBER":
                             throw new LexicalParserException("Unknown lexical item: NUMBER");
@@ -166,22 +149,30 @@ public class FStructureParser {
             }
             // It is a proper noun, create a lexical entry
             else {
+                String predicate = "<null>";
                 m = Pattern.compile("eq\\(var\\("+nsynID+"\\),'(\\S+)'\\)\\)").matcher(full);
-                if(!m.find()) { throw new LexicalParserException(m);}
-                nsyn = m.group(1);
-                if (nsyn.equals("proper")) {
-                    m = Pattern.compile("attr\\(var\\("+i+"\\),'PRED'\\),var\\((\\d+)\\)").matcher(full);
+                if(!m.find()) {
+                    m = Pattern.compile("attr\\(var\\("+i+"\\),'PRED'\\),semform\\('(\\S+)',\\d+,\\[],\\[]\\)").matcher(full);
                     if(!m.find()) { throw new LexicalParserException(m);}
-                    Matcher predMatcher = Pattern.compile("eq\\(var\\("+m.group(1)+"\\),semform\\('(\\S+)',\\d+,\\[],\\[]\\)").matcher(full);
-                    if(!predMatcher.find()) { throw new LexicalParserException(m);}
-                    Noun main = new Noun(LexicalEntry.LexType.N_NNP,identifier,predMatcher.group(1));
-                    lexicalEntries.add(main);
-
-                    switch (verbalArgs.get(i)) {
-                        case "SUBJ" : subCatFrame.put("agent",main); break;
-                        case "OBJ"  : subCatFrame.put("patient",main); break;
+                    predicate = m.group(1);
+                } else {
+                    nsyn = m.group(1);
+                    if (nsyn.equals("proper")) {
+                        m = Pattern.compile("attr\\(var\\("+i+"\\),'PRED'\\),var\\((\\d+)\\)").matcher(full);
+                        if(!m.find()) { throw new LexicalParserException(m);}
+                        Matcher predMatcher = Pattern.compile("eq\\(var\\("+m.group(1)+"\\),semform\\('(\\S+)',\\d+,\\[],\\[]\\)").matcher(full);
+                        if(!predMatcher.find()) { throw new LexicalParserException(m);}
+                        predicate = predMatcher.group(1);
                     }
                 }
+                Noun main = new Noun(LexicalEntry.LexType.N_NNP,identifier,predicate.trim().substring(0,1));
+                lexicalEntries.add(main);
+
+                switch (verbalArgs.get(i)) {
+                    case "SUBJ" : subcatFrame.initializeRole("agent",main); break;
+                    case "OBJ"  : subcatFrame.initializeRole("patient",main); break;
+                }
+
             }
 
             //Find all adjuncts subordinated to this function
@@ -202,7 +193,7 @@ public class FStructureParser {
         Pattern root = Pattern.compile("attr\\(var\\(0\\),'PRED'\\),semform\\('(\\S+)',\\d+,\\[(\\S+)],\\[]\\)");
         m = root.matcher(full);
         if(!m.find()) { throw new LexicalParserException(m);}
-        Verb rootverb = new Verb(subCatFrame,m.group(1));
+        Verb rootverb = new Verb(subcatFrame,m.group(1));
         lexicalEntries.add(rootverb);
 
         return lexicalEntries;

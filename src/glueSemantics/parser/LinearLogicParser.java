@@ -56,7 +56,7 @@ public class LinearLogicParser {
             return parseTerm(unparsedInput, true);
         }
         catch (StringIndexOutOfBoundsException se) {
-            throw new ParserInputException("ParserError: Unexpected end of input term");
+            throw new ParserInputException(String.format("ParserError: Linear logic '%s' term seems to be malformed",unparsedInput));
         }
     }
 
@@ -75,7 +75,7 @@ public class LinearLogicParser {
             pos++;
         }
         // get current character and increment the position counter
-        int c = (int) unparsedInput.charAt(pos);
+        char c = unparsedInput.charAt(pos);
         //char test = (char) c;
         pos++;
 
@@ -112,7 +112,7 @@ public class LinearLogicParser {
             try {
                 if(unparsedInput.charAt(pos) == '_') {
                     pos++;
-                    if (unparsedInput.charAt(pos ) == 'e') {
+                    if (unparsedInput.charAt(pos) == 'e') {
                         pos++;
                         return new LLAtom( "" + (char) c,
                                 LLTerm.Type.E, LLAtom.LLType.VAR, polarity);
@@ -141,6 +141,7 @@ public class LinearLogicParser {
                 pos++;
             }
             if(unparsedInput.charAt(pos) == '-' && unparsedInput.charAt(pos+1) == 'o') {
+                pos += 2;
                 LLTerm right = parseTerm(unparsedInput, polarity);
                 pos++;
                 return new LLFormula(left,right,polarity);
@@ -164,7 +165,7 @@ public class LinearLogicParser {
                 throw new ParserInputException(pos);
             pos++;
             LLTerm left = parseTerm(unparsedInput, !polarity);
-
+            pos+=3;
             LLTerm right = parseTerm(unparsedInput, polarity);
             pos++;
             return new LLFormula(left,right, polarity,(LLAtom) var);
@@ -172,7 +173,7 @@ public class LinearLogicParser {
         }
 
         else {
-            throw new ParserInputException("ParserError: Unknown character in formula");
+            throw new ParserInputException("ParserError: Unknown character at position " + pos +": '" + unparsedInput.charAt(pos) + "'.");
         }
     }
 

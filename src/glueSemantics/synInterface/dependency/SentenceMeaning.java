@@ -21,6 +21,8 @@ import glueSemantics.linearLogic.Sequent;
 
 import java.util.*;
 
+import static glueSemantics.synInterface.dependency.LexVariableHandler.variableType.LLatomE;
+
 // Sentence meaning is a set of glue representations (i.e. a set that represents the available premises)
 
 /**
@@ -75,7 +77,8 @@ public class SentenceMeaning {
         IndexedWord root = returnRoot();
 
         //SubCatFrame produced from syntactic input; is used to derive meaning constructors
-        LinkedHashMap<String,LexicalEntry> subCatFrame = new LinkedHashMap<>();
+
+        SubcatFrame subcatFrame = new SubcatFrame();
 
         // Collection of LLFormulas for generating premises
         List<LexicalEntry> lexicalEntries = new ArrayList<>();
@@ -97,7 +100,7 @@ public class SentenceMeaning {
                 System.out.println( t.right.toString() + " This is a modifier");
             }
             //All types of complements
-            else if (t.left.contains("comp"))
+            else if (t.left.contains("comp") && !t.left.contains("compound"))
             {
                 rootArity++;
                 System.out.println( t.right.toString() + " This is a complement");
@@ -108,15 +111,13 @@ public class SentenceMeaning {
 
 
                 HashMap<String,List<LexicalEntry>> subj =
-                        extractArgumentEntries("subj",
+                        extractArgumentEntries(subcatFrame,"agent",
                                 t.right,
-                                LexVariableHandler.returnNewVar(LexVariableHandler.variableType.LLatomE));
+                                LexVariableHandler.returnNewVar(LLatomE));
                 List<LexicalEntry> main = subj.get("main");
-                subCatFrame.put("agent",main.get(0));
 
                 lexicalEntries.add(main.get(0));
                 subj.remove("main");
-
 
                 //Adds modifiers of the subject
                 if (!subj.keySet().isEmpty()) {
@@ -132,12 +133,10 @@ public class SentenceMeaning {
             //Processes object -- Same problem as subject
             else if (t.left.contains("obj"))
             {
-                HashMap<String,List<LexicalEntry>> obj = extractArgumentEntries("obj",t.right,
-                        LexVariableHandler.returnNewVar(LexVariableHandler.variableType.LLatomE));
+                HashMap<String,List<LexicalEntry>> obj = extractArgumentEntries(subcatFrame,"patient",t.right,
+                        LexVariableHandler.returnNewVar(LLatomE));
 
                 List<LexicalEntry> main = (List<LexicalEntry>) obj.get("main");
-
-                subCatFrame.put("patient",main.get(0));
 
                 lexicalEntries.add(main.get(0));
                 obj.remove("main");
@@ -153,18 +152,20 @@ public class SentenceMeaning {
                 rootArity++;
                 System.out.println( t.right.toString() + " This is an object");
             }
+            else {
+                throw new LexicalParserException("Unknown grammatical function: \'"+ t.left + "\' for lexical entry \""
+                        + t.right.value() +"\"");
+            }
         }
+
         /* Verb is generated last based on the structure of the sentence
         The verb is generated when all its dependencies have been processed
         */
-
         Verb rootverb;
 
-        if (dependencyMap.get(root).isEmpty())
-        {
-            rootverb = new Verb(subCatFrame,root.value());
+        if (dependencyMap.get(root).isEmpty()) {
+            rootverb = new Verb(subcatFrame,root.value());
             lexicalEntries.add(rootverb);
-
 
         }
 
@@ -245,50 +246,43 @@ public class SentenceMeaning {
     // extracts the nominal heads and all modifiers linked to it
     // returns a HashMap containing all lexical entries related to that argument
     private HashMap<String,List<LexicalEntry>>
-    extractArgumentEntries(String role, IndexedWord iw, String identifier) throws LexicalParserException {
+    extractArgumentEntries(SubcatFrame subcatFrame, String role, IndexedWord iw, String identifier) throws LexicalParserException {
 
         //Method variables
         HashMap<String,List<LexicalEntry>> lexEn = new HashMap<>();
 
-        if (iw.tag().equals("NNP"))
-        {
-            Noun main = new Noun(LexicalEntry.LexType.N_NNP,identifier,iw.value());
+        if (iw.tag().equals("NN")) {
+            Noun main = new Noun(LexicalEntry.LexType.N_NN, identifier, iw.value());
+            subcatFrame.initializeQuantifiedRole(role, main, LexVariableHandler.returnNewVar(LLatomE));
 
-            lexEn.put("main",new ArrayList<LexicalEntry>(Arrays.asList(main)));
-        }
+            lexEn.put("main", new ArrayList<LexicalEntry>(Arrays.asList(main)));
 
-        if (dependencyMap.get(iw) != null)
-        {
-            for (Tuple t : dependencyMap.get(iw))
-            {
+            if (dependencyMap.get(iw) != null) {
+                for (Tuple t : dependencyMap.get(iw)) {
 
-                if (t.left.equals("amod"))
-                {
-                    if (!lexEn.containsKey("mod"))
-                    {
-                        List<LexicalEntry> modifiers = new ArrayList<>();
-                        modifiers.add(new Modifier(identifier,t.right.value()));
-                        lexEn.put("mod",modifiers);
+                    if (t.left.equals("amod")) {
+                        if (!lexEn.containsKey("mod")) {
+                            List<LexicalEntry> modifiers = new ArrayList<>();
+                            modifiers.add(new Modifier(identifier, t.right.value()));
+                            lexEn.put("mod", modifiers);
+                        } else {
+                            lexEn.get("mod").add(new Modifier(identifier, t.right.value()));
+                        }
+                    } else if (t.left.equals("det")) {
+                        Determiner det = new Determiner(subcatFrame, t.right.value(), role);
+
+                        lexEn.put("det", new ArrayList<LexicalEntry>(Arrays.asList(det)));
+
+                    } else {
+                        throw new LexicalParserException("Unknown grammatical function: \"" + t.left + "\" for lexical entry \""
+                                + "\"" + t.right.value() + "\"");
                     }
-                    else
-                    {
-                        lexEn.get("mod").add(new Modifier(identifier,t.right.value()));
-                    }
-                }
-                else if (t.left.equals("det"))
-                {
-                    Determiner det = new Determiner(identifier,t.right.value(),role);
-
-                    lexEn.put("det",new ArrayList<LexicalEntry>(Arrays.asList(det)));
-
                 }
             }
-        }
+        } else if (iw.tag().equals("NNP")) {
 
-        if (iw.tag().equals("NN"))
-        {
-
-            Noun main = new Noun(LexicalEntry.LexType.N_NN,identifier,iw.value());
+            Noun main = new Noun(LexicalEntry.LexType.N_NNP,identifier,iw.value());
+            subcatFrame.initializeRole(role,main);
 
             lexEn.put("main",new ArrayList<LexicalEntry>(Arrays.asList(main)));
         }

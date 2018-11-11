@@ -1,12 +1,6 @@
-# ToDO for glueSemWB
+# ToDo for glueSemWB
 
-
-# Pre-release TODO:
-- write README containing basic instructions
-- check compatibility with CoreNLP library and add it to instructions
-
-# Fixes/Bugs
-
+#Fixes/Bugs
 
 #Additional functions:
 
@@ -17,15 +11,11 @@
 
 - add anaphors, tense/aspect etc.
 
-- colored console output
 
 # Structure/modularization
 
-- restructure betaConversion?
-
-- Make scope handling an extra class, instead of a static field in Determiner class
-
 - why are we using streams for bound variables (e.g in the constructor of LLFormula)
+
 
 # Implementing Lev's (2007) system:
 - create category graph (done) including indices

@@ -9,29 +9,52 @@
 
 package prover;
 
+import glueSemantics.semantics.MeaningRepresentation;
+import glueSemantics.semantics.SemanticRepresentation;
+import glueSemantics.semantics.lambda.*;
 import glueSemantics.synInterface.dependency.LexVariableHandler;
 import glueSemantics.linearLogic.*;
-import glueSemantics.semantics.*;
+import main.Settings;
 
 import java.util.*;
 
+import static glueSemantics.semantics.lambda.SemType.AtomicType.TEMP;
 import static glueSemantics.synInterface.dependency.LexVariableHandler.variableType.SemVar;
 import static glueSemantics.synInterface.dependency.LexVariableHandler.variableType.SemVarE;
-import static glueSemantics.semantics.SemAtom.SemSort.VAR;
-import static glueSemantics.semantics.SemType.AtomicType.T;
+import static glueSemantics.semantics.lambda.SemAtom.SemSort.VAR;
+import static glueSemantics.semantics.lambda.SemType.AtomicType.T;
 
 public class LLProver {
-    private LinkedList<Premise> skeletons = new LinkedList<>();
-    private LinkedList<Premise> modifiers = new LinkedList<>();
-    private LinkedList<Premise> agenda = new LinkedList<>();
-    private LinkedList<Premise> database = new LinkedList<>();
-    private List<Premise> solutions = new ArrayList<>();
-    private Sequent seq;
-    private List<SemAtom> assumptionVars = new ArrayList<>();
+    public static Settings getSettings() {
+        return settings;
+    }
 
+    public static void setSettings(Settings settings) {
+        LLProver.settings = settings;
+    }
 
-    public LLProver(Sequent seq) {
-        this.seq = seq;
+    private static Settings settings;
+
+    private LinkedList<Premise> skeletons;
+    private LinkedList<Premise> modifiers;
+    private LinkedList<Premise> agenda;
+    private LinkedList<Premise> database;
+    private LinkedList<Premise> solutions;
+    /*
+    Initialize the set containing the IDs of all premises of the sequent.
+    This set is used to determine possible goal terms.
+    */
+    private HashSet<Integer> goalIDs;
+    private Sequent currSeq;
+    private LinkedList<SemAtom> assumptionVars = new LinkedList<>();
+
+    public LLProver(Settings settings) {
+        setSettings(settings);
+        this.skeletons = new LinkedList<>();
+        this.modifiers = new LinkedList<>();
+        this.agenda = new LinkedList<>();
+        this.database = new LinkedList<>();
+        this.solutions = new LinkedList<>();
     }
 
     /**
@@ -41,7 +64,8 @@ public class LLProver {
      * @throws ProverException If the proof is invalid
      * @throws VariableBindingException If an invalid variable binding is detected
      */
-    public List<Premise> deduce() throws ProverException,VariableBindingException {
+    public List<Premise> deduce(Sequent seq) throws ProverException,VariableBindingException {
+        this.currSeq = seq;
         /*
         Initialize an skeletons stack initially containing all premises from the sequent.
         Premises are popped from the stack into the database and additionally created
@@ -52,8 +76,9 @@ public class LLProver {
         skeletons.clear();
         modifiers.clear();
         database.clear();
+        solutions.clear();
 
-        for (Premise p: seq.getLhs()) {
+        for (Premise p: currSeq.getLhs()) {
 
             /*
             * Check all premises for nested formulas. Alle nested formulas
@@ -62,10 +87,6 @@ public class LLProver {
             * as new premises with new IDs. Assumptions are premises that contain themselves
             * in their set of assumptions, but in the course of the derivation they may carry
             * additional assumptions (when they combine with other assumptions).
-            * NOTE: due to the design of the conversion algorithm, a given term's discharge is always
-            * contained in that term's set of assumptions. This shouldn't be a problem, however, as
-            * terms with discharges are by design always formulas and can therefore not be arguments.
-            * Their assumptions are thus not relevant in the derivation process.
             */
 
             try {
@@ -79,91 +100,131 @@ public class LLProver {
                 e.printStackTrace();
             }
         }
-        seq.getLhs().clear();
-        seq.getLhs().addAll(skeletons);
-        seq.getLhs().addAll(modifiers);
-        System.out.println("Agenda: "+ seq.getLhs().toString());
-        /*
-        Initialize the set containing the IDs of all premises of the sequent.
-        This set is used to determine possible goal terms.
-        */
-        HashSet<Integer> goalIDs = seq.getMaxIDSet();
+        currSeq.getLhs().clear();
+        currSeq.getLhs().addAll(skeletons);
+        currSeq.getLhs().addAll(modifiers);
+        goalIDs = currSeq.getMaxIDSet();
+        System.out.println("Agenda: "+ currSeq.getLhs().toString());
 
         /*
         The algorithm loops over the skeletons until it is empty or until a premise is created
         that contains all indexes of the sequent's premises and is therefore the goal.
         */
-        while (!(skeletons.size() == 0)) {
-            Premise curr_premise = skeletons.pop();
-            // add premise to database
+        while (!skeletons.isEmpty() && solutions.isEmpty()) {
+            while (!skeletons.isEmpty()) {
+                Premise currentPremise = skeletons.pop();
 
-            // Check if one or more modifier are applicable to the premise and apply them right away
-            Iterator<Premise> it = modifiers.iterator();
+                // Check all database entries for possible combinations
+                checkDatabase(currentPremise);
+
+                // Check if one or more modifier are applicable to the premise and apply them right away
+/*            Iterator<Premise> it = modifiers.iterator();
             while (it.hasNext()) {
                 Premise mod = it.next();
-                if (((LLFormula) mod.getGlueTerm()).getLhs().checkEquivalence(curr_premise.getGlueTerm())) {
-                    curr_premise = combinePremises(mod, curr_premise);
+                if (((LLFormula) mod.getGlueTerm()).getLhs().checkEquivalence(currentPremise.getGlueTerm())) {
+                    currentPremise = combinePremises(mod, currentPremise);
                     // Remove modifier from modifier list.
                     it.remove();
                 }
+            }*/
+
+                // After all combination checks are made, add the current premise to the database
+                database.addFirst(currentPremise);
             }
-
-            for (Premise db_premise : database) {
-                if (db_premise == curr_premise)
-                    continue;
-                /*
-                Check if the database term is a (complex) formula, if so try to do an
-                implication elimination step with the current term on the skeletons (curr_premise).
-                If successful add the newly created Premise to the database.
-                */
-                if (db_premise.getGlueTerm() instanceof LLFormula) {
-
-                    Premise new_premise = this.combinePremises(db_premise, curr_premise);
-                    if (new_premise != null) {
-                        new_premise.setHistory(db_premise, curr_premise);
-                        System.out.println("Combining premises " + curr_premise + " and " + db_premise);
-                        System.out.println("--> " + new_premise);
-                        if (new_premise.getPremiseIDs().equals(goalIDs)) {
-                            solutions.add(new_premise);
-                        } else {
-                            skeletons.push(new_premise);
-                        }
-                        continue;
-                    }
-                }
-                /*
-                Check if the current term on the skeletons is a (complex) formula. If so, do the same procedure
-                as above, but reverse (apply db_premise to curr_premise).
-                 */
-                if (curr_premise.getGlueTerm() instanceof LLFormula) {
-                    Premise new_premise = this.combinePremises(curr_premise, db_premise);
-                    if (new_premise != null) {
-                        new_premise.setHistory(curr_premise, db_premise);
-                        System.out.println("Combining premises " + curr_premise + " and " + db_premise);
-                        System.out.println("-->" + new_premise);
-
-                        if (new_premise.getPremiseIDs().equals(goalIDs)) {
-                            solutions.add(new_premise);
-                        } else {
-                            skeletons.push(new_premise);
-                        }
-                    }
-                }
+            ListIterator<Premise> modIterator = modifiers.listIterator();
+            // TODO other stop condition for the loop: ID set is full for one premise?
+            /*while(modIterator.hasNext()) {
+                if (checkDatabase(modIterator.next()))
+                    modIterator.remove();
+            }*/
+            for (Premise modifier : modifiers) {
+                checkDatabase(modifier);
             }
-            // After all combination checks are made, add the current premise to the database
-            database.addFirst(curr_premise);
-
         }
+
+
 
         /*
         All premises of the skeletons were added to the database. If there are
         no possible solutions now, return a ProverException, otherwise return
         the set of solutions.
         */
-        if (solutions.isEmpty())
-            throw new ProverException("No valid proof found for premises");
+        if (solutions.isEmpty()) {
+            //throw new ProverException("No valid proof found for premises");
+            System.out.println("Found no valid full derivation, only partial derivations were found.");
+        }
 
         return solutions;
+    }
+
+
+    /**
+     * Checks the database for possible combinations with currentPremise, both as functor and as argument.
+     * If modified is set to true (e.g. after all skeletons have been added to the database), this method
+     * always adds new premises to the modifiers list, so because that list contains all modified premises.
+     * @param currentPremise
+     * @throws VariableBindingException
+     * @throws ProverException
+     */
+    private boolean checkDatabase(Premise currentPremise) throws VariableBindingException, ProverException {
+        boolean hasCombined = false;
+        for (Premise dbPremise : database) {
+            if (dbPremise == currentPremise)
+                continue;
+                /*
+                Check if the database term is a (complex) formula, if so try to do an
+                implication elimination step with the current term on the skeletons (currentPremise).
+                If successful add the newly created Premise to the database.
+                */
+            if (dbPremise.getGlueTerm() instanceof LLFormula) {
+
+                Premise newPremise = this.combinePremises(dbPremise, currentPremise);
+                if (newPremise != null) {
+                    hasCombined = true;
+                    newPremise.setHistory(dbPremise, currentPremise);
+                    System.out.println("Combining premises " + currentPremise + " and " + dbPremise);
+                    System.out.println("--> " + newPremise);
+                    if (newPremise.getPremiseIDs().equals(goalIDs)) {
+                        solutions.add(newPremise);
+                    }
+                    if (newPremise.isModifier()) {
+                        /*if (modifiers.contains(newPremise)|| solutions.contains(newPremise))
+                            modifiers.remove(currentPremise);
+                        else*/
+                            modifiers.add(newPremise);
+                    }
+                    else
+                        skeletons.push(newPremise);
+                    continue;
+                }
+            }
+                /*
+                Check if the current term on the skeletons list is a (complex) formula. If so, do the same procedure
+                as above, but reverse (apply dbPremise to currentPremise).
+                 */
+            if (currentPremise.getGlueTerm() instanceof LLFormula) {
+                Premise newPremise = this.combinePremises(currentPremise, dbPremise);
+                if (newPremise != null) {
+                    hasCombined = true;
+                    newPremise.setHistory(currentPremise, dbPremise);
+                    System.out.println("Combining premises " + currentPremise + " and " + dbPremise);
+                    System.out.println("-->" + newPremise);
+
+                    if (newPremise.getPremiseIDs().equals(goalIDs)) {
+                        solutions.add(newPremise);
+                    }
+                    if (newPremise.isModifier()) {
+                        /*if (modifiers.contains(newPremise)|| solutions.contains(newPremise))
+                            modifiers.remove(currentPremise);
+                        else*/
+                            modifiers.add(newPremise);
+                    }
+                    else
+                        skeletons.push(newPremise);
+                }
+            }
+        }
+        return hasCombined;
     }
 
 
@@ -271,7 +332,7 @@ public class LLProver {
      * @return the combined premise with the unified ID set
      *
     * */
-    private Premise combineDisjointID(Premise func, Premise arg) {
+    private Premise combineDisjointID(Premise func, Premise arg) throws ProverException {
         HashSet<Integer> combined_IDs = new HashSet<>();
         if (((LLFormula) func.getGlueTerm()).getLhs().checkEquivalence(arg.getGlueTerm())
                 && Collections.disjoint(func.getPremiseIDs(),arg.getPremiseIDs())){
@@ -279,10 +340,12 @@ public class LLProver {
             combined_IDs.addAll(arg.getPremiseIDs());
 
             // Apply and beta-reduce meaning side
-            //FuncApp applied = new FuncApp(new SemFunction((SemFunction) func.getSemTerm()),arg.getSemTerm());
-            FuncApp applied = new FuncApp(func.getSemTerm(),arg.getSemTerm());
-            SemRepresentation reducedSem = applied.betaReduce();
-            //SemRepresentation reducedSem = applied;
+            //FuncApp applied = new FuncApp(func.getSemTerm(),arg.getSemTerm());
+            SemanticRepresentation reducedSem;
+            if (getSettings().isBetaReduce())
+                reducedSem = new FuncApp(func.getSemTerm(),arg.getSemTerm()).betaReduce();
+            else
+                reducedSem = new FuncApp(func.getSemTerm(),arg.getSemTerm());
 
             if (((LLFormula) func.getGlueTerm()).getRhs() instanceof  LLAtom) {
                 return new Premise(combined_IDs, reducedSem,
@@ -293,6 +356,10 @@ public class LLProver {
         return null;
     }
 
+
+    private void interpolateModifier() throws ProverException {
+
+    }
 
 
     /**
@@ -310,17 +377,10 @@ public class LLProver {
             LLFormula f = (LLFormula) p.getGlueTerm();
 
 
-            if (f.getLhs() instanceof LLFormula /*
-                    ((LLFormula) f.getLhs()).getOperator() instanceof LLImplication*/) {
+            if (f.getLhs() instanceof LLFormula) {
                 return convertNested(p);
             }
             else {
-                // the term is of the form (A -o B), where A is an atomic formula
-                // no conversion step needed on the glue side, but lambda abstraction on
-                // the meaning side is necessary. But only if there has been no conversion?
-                // ...because it has no use and adds unnecessary complexity to the variable assignments
-                //
-                //p.setSemTerm(this.convertSemantics(p.getSemTerm()));
                 return p;
             }
         }
@@ -366,40 +426,36 @@ public class LLProver {
             // nested formula; extract assumption and build new term
             if (f.getLhs() instanceof LLFormula) {
 
-                if (!(p.getSemTerm() instanceof SemFunction))
+                if (!(p.getSemTerm() instanceof SemFunction|| p.getSemTerm() instanceof MeaningRepresentation))
                     throw new ProverException("Meaning side does not match structure of glue side");
 
 
-                SemAtom assumpVar = new SemAtom(VAR, LexVariableHandler.returnNewVar(SemVarE),
-                        ((SemFunction) p.getSemTerm()).getBinder().getType().getLeft());
-                assumptionVars.add(assumpVar);
+                SemAtom assumpVar = new SemAtom(VAR, LexVariableHandler.returnNewVar(SemVarE),new SemType(TEMP));
+                assumptionVars.addLast(assumpVar);
 
-                Premise assumption = convertNested(new Premise(seq.getNewID(), ((LLFormula) f.getLhs()).getLhs()));
+                Premise assumption = convertNested(new Premise(currSeq.getNewID(), ((LLFormula) f.getLhs()).getLhs()));
                 assumption.getGlueTerm().assumptions.add(assumption.getGlueTerm());
+                // TODO add distinction between skel and mod here?
                 skeletons.add(assumption);
                 Premise dependency = new Premise(p.getPremiseIDs(), p.getSemTerm(), new LLFormula(((LLFormula) f.getLhs()).getRhs(),
-                        f.getOperator(), f.getRhs(), f.isPolarity(), f.getVariable()));
+                        f.getRhs(), f.isPolarity(), f.getVariable()));
                 dependency.getGlueTerm().discharges.add(assumption.getGlueTerm());
                 dependency = convertNested(dependency);
-                /*
-                If reordering is required (see function below), reorder the dependency, by
-                temporarily removing the newly created lambda term on the meaning side
-                and reapplying it after the reordering process.
 
-                if (((LLFormula) dependency.getGlueTerm()).getRhs() instanceof LLFormula) {
-                    SemRepresentation inner = ((SemFunction) dependency.getSemTerm()).getFuncBody();
-                    Premise reordered = reorder(new Premise(p.getPremiseIDs(),inner,dependency.getGlueTerm()));
-                    dependency = new Premise(p.getPremiseIDs(),
-                            new SemFunction(((SemFunction) dependency.getSemTerm()).getBinder(),reordered.getSemTerm()),reordered.getGlueTerm());
-                }
-                */
                 return dependency;
             }
-            // There might be cases like a -o ((b -o c) -o d) where reordering is necessary before
-            // the term can be compiled
-            else if (f.getRhs() instanceof  LLFormula &&
-                    ((LLFormula) f.getRhs()).getLhs() instanceof LLFormula) {
-                p = convertNested(reorder(p));
+            /*
+            There might be cases like a -o ((b -o c) -o d) where reordering is necessary before
+            the term can be compiled. In these cases it is only necessary if the LHS of the whole
+            term is NOT a modifier type
+            */
+            else if (f.isNested() && !f.getRhs().isModifier()) {
+                Premise temp = new Premise(p.getPremiseIDs(),p.getSemTerm(),new LLFormula((LLFormula) f.getRhs()));
+                temp = convertNested(temp);
+                LLTerm newGlue = new LLFormula(f.getLhs(),temp.getGlueTerm(),temp.getGlueTerm().isPolarity());
+                newGlue.discharges.addAll(p.getGlueTerm().discharges);
+                p = new Premise(p.getPremiseIDs(),temp.getSemTerm(),newGlue);
+                //p = convertNested(reorder(p));
             }
             /*
             simple implication; create new lambda function which binds var (the variable
@@ -408,7 +464,7 @@ public class LLProver {
             term binding the newly created variable.
             */
             SemAtom binderVar = new SemAtom(VAR,LexVariableHandler.returnNewVar(SemVar),T);
-            SemFunction newArg = new SemFunction(assumptionVars.remove(0),binderVar);
+            SemFunction newArg = new SemFunction(assumptionVars.removeLast(),binderVar);
             //((SemFunction) p.getSemTerm()).setArgument(newArg);
             p.setSemTerm(new SemFunction(binderVar,new FuncApp(p.getSemTerm(),newArg)));
             return p;
@@ -457,7 +513,7 @@ public class LLProver {
                 }
                 Premise inner = reorder(new Premise(p.getPremiseIDs(),sem.getFuncBody(),glue.getRhs()));
                 glue = new LLFormula(glue.getLhs(),inner.getGlueTerm(),glue.isPolarity(),glue.getVariable());
-                sem = new SemFunction(sem.getBinder(),inner.getSemTerm());
+                sem = new SemFunction(sem.getBinder(),(SemanticExpression) inner.getSemTerm());
 
                 return new Premise(p.getPremiseIDs(),sem,glue);
             }
@@ -508,6 +564,5 @@ public class LLProver {
         }
         return false;
     }
-
 
 }

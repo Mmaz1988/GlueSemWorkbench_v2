@@ -10,7 +10,8 @@
 package glueSemantics.linearLogic;
 
 import glueSemantics.lexicon.LexicalEntry;
-import glueSemantics.semantics.SemRepresentation;
+import glueSemantics.semantics.SemanticRepresentation;
+import glueSemantics.semantics.lambda.SemanticExpression;
 
 import java.util.HashSet;
 
@@ -25,10 +26,9 @@ public class Premise {
 
     private HashSet<Integer> premiseIDs;
     private LLTerm glueTerm;
-    private boolean modifier;
-    private SemRepresentation semTerm;
-    private Premise func;
-    private Premise arg;
+    private SemanticRepresentation semTerm;
+    private Object func;
+    private Object arg;
 
     public HashSet<Integer> getPremiseIDs() {
         return premiseIDs;
@@ -42,31 +42,21 @@ public class Premise {
         this.glueTerm = glueTerm;
     }
 
-    public SemRepresentation getSemTerm() { return semTerm; }
+    public SemanticRepresentation getSemTerm() { return semTerm; }
 
-    public void setSemTerm(SemRepresentation semTerm) { this.semTerm = semTerm; }
+    public void setSemTerm(SemanticExpression semTerm) { this.semTerm = semTerm; }
 
 
     public Premise(HashSet<Integer> premiseIDs, LLTerm llterm) {
         this.premiseIDs = premiseIDs;
         this.glueTerm = llterm;
         this.glueTerm.setPolarity(true);
-        if (glueTerm instanceof LLFormula &&
-                (((LLFormula) glueTerm).getLhs().checkEquivalence(((LLFormula) glueTerm).getRhs())))
-            setModifier(true);
-        else
-            setModifier(false);
     }
 
-    public Premise(HashSet<Integer> premiseIDs, SemRepresentation semTerm, LLTerm glueTerm) {
+    public Premise(HashSet<Integer> premiseIDs, SemanticRepresentation semTerm, LLTerm glueTerm) {
         this.premiseIDs = premiseIDs;
         this.glueTerm = glueTerm;
         this.semTerm = semTerm;
-        if (glueTerm instanceof LLFormula &&
-                (((LLFormula) glueTerm).getLhs().checkEquivalence(((LLFormula) glueTerm).getRhs())))
-            setModifier(true);
-        else
-            setModifier(false);
     }
 
     //For work with Lexicon
@@ -74,11 +64,6 @@ public class Premise {
         this.premiseIDs = premiseIDs;
         this.glueTerm = lexEn.getLlTerm();
         this.semTerm = lexEn.getSem();
-        if (glueTerm instanceof LLFormula &&
-                (((LLFormula) glueTerm).getLhs().checkEquivalence(((LLFormula) glueTerm).getRhs())))
-            setModifier(true);
-        else
-            setModifier(false);
     }
 
 
@@ -88,30 +73,32 @@ public class Premise {
         return glueTerm + " : " + semTerm +  premiseIDs;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        boolean result = this.premiseIDs.equals(((Premise) obj).premiseIDs);
+        return result;
+    }
 
     /**
      * Keeps track of all parents of a premise and is used to record a derivation history.
      * @param func
      * @param arg
      */
-    public void setHistory(Premise func, Premise arg) {
+    public void setHistory(Object func, Object arg) {
         this.func = func;
         this.arg = arg;
     }
 
-    public Premise getFunc(){
+    public Object getFunc(){
         return this.func;
     }
 
-    public Premise getArg() {
+    public Object getArg() {
         return this.arg;
     }
 
     public boolean isModifier() {
-        return modifier;
+        return glueTerm.isModifier();
     }
 
-    public void setModifier(boolean modifier) {
-        this.modifier = modifier;
-    }
 }

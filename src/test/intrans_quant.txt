@@ -1,0 +1,3 @@
+/x.dog(x) : (g_e -o g_t)
+/P./Q./x.every(x,P(x),Q(x)) : ((g_e -o g_t) -o AX_t.(h_e -o X_t) -o X_t)
+/y.sleep(y) : (h_e -o f_t)

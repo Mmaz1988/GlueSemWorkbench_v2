@@ -13,16 +13,17 @@ import glueSemantics.synInterface.dependency.LexVariableHandler;
 import glueSemantics.linearLogic.LLAtom;
 import glueSemantics.linearLogic.LLFormula;
 import glueSemantics.linearLogic.LLTerm;
-import glueSemantics.semantics.SemAtom;
-import glueSemantics.semantics.SemFunction;
-import glueSemantics.semantics.SemPred;
-import glueSemantics.semantics.SemType;
+import glueSemantics.semantics.lambda.SemAtom;
+import glueSemantics.semantics.lambda.SemFunction;
+import glueSemantics.semantics.lambda.SemPred;
+import glueSemantics.semantics.lambda.SemType;
 import glueSemantics.synInterface.dependency.LexicalParserException;
 
 public class Noun extends LexicalEntry {
 
 
     public LexType lexType;
+
 
     public Noun(LexType type, String identifier, String main) throws LexicalParserException {
 

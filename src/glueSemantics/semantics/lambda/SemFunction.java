@@ -7,26 +7,34 @@
  * If not, please visit http://www.gnu.org/licenses/ for more information.
  */
 
-package glueSemantics.semantics;
+package glueSemantics.semantics.lambda;
 
-public class SemFunction extends SemRepresentation {
+import glueSemantics.semantics.FunctionalAbstraction;
+import glueSemantics.semantics.FunctionalApplication;
+import glueSemantics.semantics.SemanticRepresentation;
+import prover.LLProver;
+import prover.ProverException;
+
+import static main.Settings.PROLOG;
+
+public class SemFunction extends SemanticExpression implements FunctionalAbstraction {
 
     // Operator: lambda, quantifiers. What about connectives?
     private final char operator = '\u03BB';
-    private final SemAtom binder;
+    private SemAtom binder;
     // Is this necessary or do we only have one list on the SemPred?
     //private List<SemAtom> boundVars;
     // The body of the function, a nested SemFunction or Predicate
-    private final SemRepresentation funcBody;
+    private SemanticRepresentation funcBody;
     // Optional field that is used when doing lambda application and possibly when
     // doing glue derivations in general
 
 
-    public SemFunction(SemAtom binder, SemRepresentation funcBody) {
-        this.binder = binder;
-        this.funcBody = funcBody;
+    public SemFunction(SemAtom binder, SemanticRepresentation funcBody) {
+        //this.binder = binder;
+        //this.funcBody = funcBody;
+        this.instantiateFunctionalAbstraction(binder,funcBody);
         this.setType(new SemType(binder.getType(),funcBody.getType()));
-
     }
 
     public SemFunction(SemFunction f) {
@@ -35,7 +43,13 @@ public class SemFunction extends SemRepresentation {
         this.setType(f.getType());
     }
 
-    public SemRepresentation getFuncBody() {
+    @Override
+    public void instantiateFunctionalAbstraction(SemAtom binder, SemanticRepresentation body) {
+        this.binder = binder;
+        this.funcBody = body;
+    }
+
+    public SemanticRepresentation getFuncBody() {
         return funcBody;
     }
 
@@ -45,21 +59,24 @@ public class SemFunction extends SemRepresentation {
 
     @Override
     public String toString() {
+        if(LLProver.getSettings().getSemanticOutputStyle() == PROLOG)
+            return String.format("lam(%s,%s)",binder.toString(),funcBody.toString());
+        else
             return operator + binder.toStringTyped() + "." + funcBody.toString();
     }
 
 
     @Override
-    public SemRepresentation betaReduce() {
+    public SemanticRepresentation betaReduce() throws ProverException {
         return new SemFunction(this.binder,funcBody.betaReduce());
     }
 
-    public SemRepresentation applyTo(SemAtom var, SemRepresentation arg) {
+    public SemanticRepresentation applyTo(SemanticRepresentation var, SemanticRepresentation arg) throws ProverException {
         return new SemFunction(this.binder,this.funcBody.applyTo(var, arg));
     }
 
     @Override
-    public SemRepresentation clone() {
+    public SemanticExpression clone() {
         return new SemFunction(this);
     }
 

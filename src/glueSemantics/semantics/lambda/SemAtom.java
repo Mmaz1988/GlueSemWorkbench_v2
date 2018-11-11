@@ -7,11 +7,16 @@
  * If not, please visit http://www.gnu.org/licenses/ for more information.
  */
 
-package glueSemantics.semantics;
+package glueSemantics.semantics.lambda;
 
 
+import glueSemantics.semantics.SemanticRepresentation;
+import main.Settings;
+import prover.LLProver;
 
-public class SemAtom extends SemRepresentation {
+import static glueSemantics.semantics.lambda.SemAtom.SemSort.VAR;
+
+public class SemAtom extends SemanticExpression {
     private final String name;
     //private String value;
     //private AtomicType atomicType;
@@ -47,12 +52,12 @@ public class SemAtom extends SemRepresentation {
 
 
     @Override
-    public SemRepresentation betaReduce() {
+    public SemanticExpression betaReduce() {
         return this;
     }
 
     @Override
-    public SemRepresentation applyTo(SemAtom var, SemRepresentation arg) {
+    public SemanticRepresentation applyTo(SemanticRepresentation var, SemanticRepresentation arg) {
         if (this == var)
             return arg;
         else
@@ -63,7 +68,7 @@ public class SemAtom extends SemRepresentation {
     // formulas so the bindings remain intact. As atoms aren't modified during runtime anyways this
     // is not a problem.
     @Override
-    public SemRepresentation clone() {
+    public SemanticExpression clone() {
         return this;
     }
 
@@ -77,7 +82,10 @@ public class SemAtom extends SemRepresentation {
 
     @Override
     public String toString() {
-        return name;
+        if (LLProver.getSettings().getSemanticOutputStyle() == Settings.PROLOG && this.getSort() == VAR)
+            return name.toUpperCase();
+        else
+            return name;
     }
 
     public String toStringTyped() {
