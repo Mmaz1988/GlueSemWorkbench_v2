@@ -122,7 +122,13 @@ public class WorkbenchMain {
             input = s.nextLine();
             if (input.equals("quit"))
                 break;
-            searchProof(new SentenceMeaning(input).getLexicalEntries());
+            try {
+                searchProof(new SentenceMeaning(input).getLexicalEntries());
+            }
+            catch (NoClassDefFoundError e) {
+                System.out.println("Could not initialize dependency parser. Please refer to the README for more information");
+                return;
+            }
         }
     }
 

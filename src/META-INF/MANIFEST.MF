@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Class-Path: junit-jupiter-api-5.0.0.jar apiguardian-api-1.0.0.jar open
+ test4j-1.0.0.jar junit-platform-commons-1.0.0.jar xom.jar jollyday.ja
+ r protobuf.jar ejml-0.23.jar joda-time.jar slf4j-api.jar javax.json.j
+ ar slf4j-simple.jar ejml-0.23-src.zip xom-1.2.10-src.jar joda-time-2.
+ 9-sources.jar jollyday-0.4.9-sources.jar stanford-corenlp-3.9.1.jar j
+ avax.json-api-1.0-sources.jar stanford-corenlp-3.9.1-models.jar stanf
+ ord-corenlp-3.9.1-javadoc.jar stanford-corenlp-3.9.1-sources.jar
+Main-Class: main.WorkbenchMain
+

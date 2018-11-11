@@ -73,6 +73,19 @@ class WorkbenchMainTest {
 
         String intrans_quant = "C:\\Users\\User\\IdeaProjects\\glueSemWorkbench\\src\\test\\bad_formulas.txt";
         // Test intransitive with quantifier
+
+        String intrans_quant_adj = "C:\\Users\\User\\IdeaProjects\\glueSemWorkbench\\src\\test\\intrans_quant_adj.txt";
+        lines = loadTestFormulas(bad_formulas);
+        try {
+            LexicalEntry f1 = parser.parseMeaningConstructor(lines.get(0));
+            assertEquals("/x.dog(x)",f1.getSem().toString());
+            // Test glue side
+
+            List<String> finalLines = lines;
+            assertThrows(ParserInputException.class,() -> {parser.parseMeaningConstructor(finalLines.get(1));});
+        } catch (ParserInputException e) {
+            e.printStackTrace();
+        }
     }
 
 
