@@ -46,8 +46,9 @@ for the introduction of LL variables.
 For disabling automatic betareduction in dependency and LFG mode, add the parameter _-noreduce_
 For using Blackburn & Bos-style Prolog as output format, add the parameter _-prolog_
 
-# Trpubleshooting
+# Troubleshooting
 - When loading the dependency mode, a message states "Could not initialize dependency parser".
+- 
 
 This usually means that the Stanford CoreNLP JAR file could not be found.
 It needs to be in the same directory as the glueSemWorkbench JAR file. The JAR file can be optained [here](https://stanfordnlp.github.io/CoreNLP/history.html)
