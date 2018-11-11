@@ -1,6 +1,5 @@
 # ToDo for glueSemWB
 
-
 #Fixes/Bugs
 
 #Additional functions:
@@ -13,7 +12,7 @@
 - add anaphors, tense/aspect etc.
 
 
-#Structure/modularization
+# Structure/modularization
 
 - why are we using streams for bound variables (e.g in the constructor of LLFormula)
 
