@@ -25,11 +25,18 @@ The respective JAR file needs to be either compiled as part of the glueSemWorkbe
 the same directory as the glueSemWB JAR.
 
 # Usage
-When running the program (from a JAR file for example) it initiates the manual entry mode by default, prompting the user
+You will need a Java runtime environment (version 8 or higher) to run the program, which can be downloaded [here](https://www.oracle.com/technetwork/java/javase/downloads/jre8-downloads-2133155.html).
+To run the Workbench in a terminal window (Terminal for Unix systems or Powershell/cmd for Windows) enter
+   java -jar glueSemanticsWorkbench.jar [parameters]
+When running the program without parameters it initiates the manual entry mode by default, prompting the user
 to open a text file containing glue formulas. Check the "glue formula syntax" section for more information on how to
 enter formulas.
-For running the program in interactive dependency mode, add _-dp_ as a program argument.
-For running it in LFG mode, in which it reads a Prolog f-structure file created by XLE, add _-lfg_ as a program argument.
+- For running the program in interactive dependency mode, add _-dp_ as a program argument.
+- For running it in LFG mode, in which it reads a Prolog f-structure file created by XLE, add _-lfg_ as a program argument.
+
+## Additional parameters
+- For disabling automatic betareduction in dependency and LFG mode, add the parameter _-noreduce_
+- For using Blackburn & Bos-style Prolog as output format, add the parameter _-prolog_
 
 ## Glue formula syntax
 Glue formulas can be entered manually into a plain text file (".txt") to be read in by the default mode.
@@ -41,10 +48,6 @@ LL atoms must be single letters: lower-case letters (a-z) will be recognized as 
 variables. LL atoms can (and should) be suffixed with an underscore and a letter denoting their type ("e" or "t").
 Linear implication operators are written as "-o", LL quantifiers (especially the "universal quantifier") are not necessary
 for the introduction of LL variables.
-
-## Additional parameters
-For disabling automatic betareduction in dependency and LFG mode, add the parameter _-noreduce_
-For using Blackburn & Bos-style Prolog as output format, add the parameter _-prolog_
 
 # Troubleshooting
 - When loading the dependency mode, a message states "Could not initialize dependency parser".
