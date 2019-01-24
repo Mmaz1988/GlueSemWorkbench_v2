@@ -23,6 +23,9 @@ import glueSemantics.semantics.SemanticRepresentation;
 import prover.LLProver;
 import prover.ProverException;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import static main.Settings.PLAIN;
 import static main.Settings.PROLOG;
 
@@ -83,20 +86,59 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
                 //newBody = newBody.betaReduce();
                 if (arg != this.argument)
                     return new FuncApp(newBody, this.argument);
+                    //return new FuncApp(newBody,arg);
                 else
                     return newBody.betaReduce();
             }
         }
         else if (this.functor instanceof FuncApp) {
             return ((FuncApp) this.functor).apply(arg);
+           // return this;
         }
         else if (this.functor instanceof MeaningRepresentation) {
+
             if (arg.equals(this.argument))
                 return this;
             return new FuncApp(this,arg);
+         //   return new MeaningRepresentation(String.format("app(%s,%s)",functor.toString(),arg.toString()));
         }
         return this;
     }
+
+
+  /*
+    public SemanticRepresentation checkBinder(SemanticRepresentation arg)
+    {
+
+        Set<String> possibleVariables = new HashSet<>();
+
+        SemanticRepresentation functor = this;
+
+        if (arg instanceof FuncApp)
+        {
+            while (functor instanceof FuncApp)
+            {
+                if (((FuncApp) functor).argument instanceof SemAtom)
+                {
+                    possibleVariables.add(SemAtom);
+                }
+
+
+                if (!(((FuncApp) functor).functor instanceof FuncApp))
+                {
+                    break;
+                }
+
+                functor = ((FuncApp) functor).functor;
+            }
+
+
+        } else if (arg instanceof SemPred)
+        {
+
+        }
+    }
+    */
 
     /*
     This method is only called when this object is the body of a SemFunc

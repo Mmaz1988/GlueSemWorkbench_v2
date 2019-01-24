@@ -57,6 +57,10 @@ public class WorkbenchMain {
                 case ("-noreduce"):
                     settings.setBetaReduce(false);
                     break;
+                case ("-debugging"):
+                    settings.setDebugging(true);
+                    break;
+
             }
         }
 
@@ -225,6 +229,10 @@ public class WorkbenchMain {
         }
 
         System.out.println("Done!\n");
+        if (settings.isDebugging()) {
+            System.out.println("Debugging report:");
+            System.out.println(prover.db.toString());
+        }
     }
 
 }

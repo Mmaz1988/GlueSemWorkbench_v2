@@ -121,7 +121,7 @@ Possibly add more types, e.g. SemVarE, SemVarT etc.
 
                 for (String var : variables) {
 
-                    String varPrime = var + String.join("", Collections.nCopies(i, "'"));
+                    String varPrime = var + i;
                     if (!usedVariables.get(varType).
                             contains(varPrime)) {
                         usedVariables.get(varType).add(varPrime);

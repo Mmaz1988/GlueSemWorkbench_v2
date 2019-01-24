@@ -32,15 +32,18 @@ public class Settings {
 
     private boolean betaReduce;
     private int semanticOutputStyle;
+    private boolean debugging;
 
     public Settings() {
         this.betaReduce = true;
         this.semanticOutputStyle = PLAIN;
+        this.debugging = false;
     }
 
     public Settings (boolean betaReduce, int semanticOutputStyle) {
         this.betaReduce = betaReduce;
         this.semanticOutputStyle = semanticOutputStyle;
+        this.debugging = false;
     }
 
     public boolean isBetaReduce() {
@@ -57,5 +60,13 @@ public class Settings {
 
     public void setSemanticOutputStyle(int semanticOutputStyle) {
         this.semanticOutputStyle = semanticOutputStyle;
+    }
+
+    public boolean isDebugging() {
+        return debugging;
+    }
+
+    public void setDebugging(boolean debugging) {
+        this.debugging = debugging;
     }
 }

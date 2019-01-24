@@ -15,6 +15,7 @@ import glueSemantics.semantics.lambda.*;
 import glueSemantics.synInterface.dependency.LexVariableHandler;
 import glueSemantics.linearLogic.*;
 import main.Settings;
+import test.Debugging;
 
 import java.util.*;
 
@@ -48,6 +49,8 @@ public class LLProver {
     private Sequent currSeq;
     private LinkedList<SemAtom> assumptionVars = new LinkedList<>();
 
+    public Debugging db = new Debugging();
+
     public LLProver(Settings settings) {
         setSettings(settings);
         this.skeletons = new LinkedList<>();
@@ -78,6 +81,8 @@ public class LLProver {
         database.clear();
         solutions.clear();
 
+        long startTime = System.nanoTime();
+
         for (Premise p: currSeq.getLhs()) {
 
             /*
@@ -104,7 +109,17 @@ public class LLProver {
         currSeq.getLhs().addAll(skeletons);
         currSeq.getLhs().addAll(modifiers);
         goalIDs = currSeq.getMaxIDSet();
-        System.out.println("Agenda: "+ currSeq.getLhs().toString());
+        //System.out.println("Agenda: "+ currSeq.getLhs().toString());
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("Agenda:");
+        sb.append(System.lineSeparator());
+        for (Premise p : currSeq.getLhs())
+        {
+            sb.append(p);
+            sb.append(System.lineSeparator());
+        }
+        System.out.println(sb.toString());
 
         /*
         The algorithm loops over the skeletons until it is empty or until a premise is created
@@ -154,6 +169,10 @@ public class LLProver {
             System.out.println("Found no valid full derivation, only partial derivations were found.");
         }
 
+        long endTime = System.nanoTime();
+
+        db.computationTime = endTime - startTime;
+
         return solutions;
     }
 
@@ -168,7 +187,11 @@ public class LLProver {
      */
     private boolean checkDatabase(Premise currentPremise) throws VariableBindingException, ProverException {
         boolean hasCombined = false;
+
+
+
         for (Premise dbPremise : database) {
+            db.allIterations++;
             if (dbPremise == currentPremise)
                 continue;
                 /*
@@ -224,6 +247,11 @@ public class LLProver {
                 }
             }
         }
+
+
+
+
+
         return hasCombined;
     }
 
@@ -290,6 +318,7 @@ public class LLProver {
             combined.getGlueTerm().assumptions.addAll(arg.getGlueTerm().assumptions);
             combined.getGlueTerm().assumptions.addAll(func.getGlueTerm().assumptions);
 
+            db.combinations++;
             return combined;
         }
         /*
@@ -313,6 +342,7 @@ public class LLProver {
                 combined.getGlueTerm().assumptions.addAll(func.getGlueTerm().assumptions);
                 combined.getGlueTerm().assumptions.removeAll(func.getGlueTerm().discharges);
 
+                db.combinations++;
                 return combined;
             }
         }
@@ -343,7 +373,11 @@ public class LLProver {
             //FuncApp applied = new FuncApp(func.getSemTerm(),arg.getSemTerm());
             SemanticRepresentation reducedSem;
             if (getSettings().isBetaReduce())
+            {
+                System.out.println("Beta reduced: " + func.getSemTerm().toString() +", " +arg.getSemTerm().toString());
                 reducedSem = new FuncApp(func.getSemTerm(),arg.getSemTerm()).betaReduce();
+                System.out.println("To:" + reducedSem.toString());
+            }
             else
                 reducedSem = new FuncApp(func.getSemTerm(),arg.getSemTerm());
 
@@ -420,25 +454,28 @@ public class LLProver {
      * @return The converted premise
     * */
     private Premise convertNested(Premise p) throws ProverException {
+        db.compilations++;
         if (p.getGlueTerm() instanceof LLFormula) {
             LLFormula f = (LLFormula) p.getGlueTerm();
 
             // nested formula; extract assumption and build new term
             if (f.getLhs() instanceof LLFormula) {
 
-                if (!(p.getSemTerm() instanceof SemFunction|| p.getSemTerm() instanceof MeaningRepresentation))
+                if (!(p.getSemTerm() instanceof SemFunction || p.getSemTerm() instanceof MeaningRepresentation))
                     throw new ProverException("Meaning side does not match structure of glue side");
 
 
                 SemAtom assumpVar = new SemAtom(VAR, LexVariableHandler.returnNewVar(SemVarE),new SemType(TEMP));
                 assumptionVars.addLast(assumpVar);
 
-                Premise assumption = convertNested(new Premise(currSeq.getNewID(), ((LLFormula) f.getLhs()).getLhs()));
+               Premise assumption = convertNested(new Premise(currSeq.getNewID(), ((LLFormula) f.getLhs()).getLhs()));
+              //  Premise assumption = convertNested(new Premise(currSeq.getNewID(), returnLeftMostFormula(f)));
                 assumption.getGlueTerm().assumptions.add(assumption.getGlueTerm());
                 // TODO add distinction between skel and mod here?
                 skeletons.add(assumption);
                 Premise dependency = new Premise(p.getPremiseIDs(), p.getSemTerm(), new LLFormula(((LLFormula) f.getLhs()).getRhs(),
                         f.getRhs(), f.isPolarity(), f.getVariable()));
+               // Premise dependency = new Premise(p.getPremiseIDs(), p.getSemTerm(), returnNewLeftMostFormula(f));
                 dependency.getGlueTerm().discharges.add(assumption.getGlueTerm());
                 dependency = convertNested(dependency);
 
@@ -563,6 +600,41 @@ public class LLProver {
             }
         }
         return false;
+    }
+
+
+    public LLTerm returnLeftMostFormula(LLFormula f)
+    {
+
+       LLTerm t;
+
+        if (f.getLhs() != null) {
+            t = f.getLhs();
+            if (t instanceof LLFormula) {
+                return returnLeftMostFormula( (LLFormula) t);
+            } else
+            {
+                return t;
+            }
+        }
+
+        return f;
+    }
+
+    public LLFormula returnNewLeftMostFormula(LLFormula f) {
+
+
+        LLFormula g = (LLFormula) f.getLhs();
+
+        if ( g.getLhs() instanceof LLAtom)
+        {
+            LLFormula ng = new LLFormula(g.getRhs(),f.getRhs(),f.isPolarity(),f.getVariable());
+            ng.getRhs().discharges.addAll(g.discharges);
+            return ng;
+        }
+
+        return new LLFormula(returnNewLeftMostFormula(g),f.getRhs(),f.isPolarity(),f.getVariable());
+
     }
 
 }
