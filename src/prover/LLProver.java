@@ -487,6 +487,13 @@ public class LLProver {
             term is NOT a modifier type
             */
             else if (f.isNested() && !f.getRhs().isModifier()) {
+ /*
+                while (f.getLhs() instanceof LLAtom)
+                {
+
+                }
+
+   */
                 Premise temp = new Premise(p.getPremiseIDs(),p.getSemTerm(),new LLFormula((LLFormula) f.getRhs()));
                 temp = convertNested(temp);
                 LLTerm newGlue = new LLFormula(f.getLhs(),temp.getGlueTerm(),temp.getGlueTerm().isPolarity());
@@ -503,7 +510,49 @@ public class LLProver {
             SemAtom binderVar = new SemAtom(VAR,LexVariableHandler.returnNewVar(SemVar),T);
             SemFunction newArg = new SemFunction(assumptionVars.removeLast(),binderVar);
             //((SemFunction) p.getSemTerm()).setArgument(newArg);
-            p.setSemTerm(new SemFunction(binderVar,new FuncApp(p.getSemTerm(),newArg)));
+
+
+            //Original version:
+             p.setSemTerm(new SemFunction(binderVar,new FuncApp(p.getSemTerm(),newArg)));
+
+
+            //Test new version of compiled semantic side
+
+            /*
+            SemanticExpression copy =  (SemanticExpression) p.getSemTerm().clone();
+
+
+            if (copy.isCompiled()) {
+                while (copy.isCompiled()) {
+                    copy = (SemanticExpression)((SemFunction) copy).getFuncBody();
+                }
+
+                p.setSemTerm(new SemFunction(binderVar, new));
+
+                ((SemanticExpression) p.getSemTerm()).setCompiled(true);
+
+
+            }
+
+
+
+
+
+             if (! (p.getSemTerm() instanceof MeaningRepresentation) && ((SemanticExpression) p.getSemTerm()).isCompiled()) {
+                 changeSemanticBody((SemanticExpression) p.getSemTerm(), newArg);
+                 p.setSemTerm(new SemFunction(binderVar, p.getSemTerm()));
+
+                 ((SemanticExpression) p.getSemTerm()).setCompiled(true);
+             }
+             else
+                 {
+                     p.setSemTerm(new SemFunction(binderVar,new FuncApp(p.getSemTerm(),newArg)));
+                     ((SemanticExpression) p.getSemTerm()).setCompiled(true);
+                 }
+
+*/
+        //Test area end
+
             return p;
         }
         // only an atomic glue term which will become an assumption;
@@ -634,6 +683,43 @@ public class LLProver {
         }
 
         return new LLFormula(returnNewLeftMostFormula(g),f.getRhs(),f.isPolarity(),f.getVariable());
+
+    }
+
+    //Test area
+
+    public SemanticRepresentation getSemanticBody(SemanticExpression p) {
+
+        SemanticExpression copy = p.clone();
+
+        if (copy.isCompiled()) {
+            while (copy.isCompiled()) {
+                //In this version meaning side and semantic side are not parallel
+                copy = (SemanticExpression) ((SemFunction) copy).getFuncBody();
+
+                //new try
+
+            }
+        }
+        return  ((FuncApp) copy).getFunctor();
+      //  return copy;
+    }
+
+
+    public void changeSemanticBody(SemanticExpression p, SemFunction newArg)
+    {
+        if (p.isCompiled()){
+            if ( ((SemanticExpression) ((SemFunction) p).getFuncBody()).isCompiled())
+            {
+             SemanticExpression s = (SemanticExpression) ((SemFunction) p).getFuncBody();
+                changeSemanticBody(s, newArg);
+            } else
+            {
+                FuncApp q = (FuncApp) ((SemFunction) p).getFuncBody();
+
+                ((FuncApp) q).setFunctor(new FuncApp(getSemanticBody(p),newArg));
+            }
+        }
 
     }
 

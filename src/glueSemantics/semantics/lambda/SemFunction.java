@@ -30,6 +30,8 @@ public class SemFunction extends SemanticExpression implements FunctionalAbstrac
     // Operator: lambda, quantifiers. What about connectives?
     private final char operator = '\u03BB';
     private SemAtom binder;
+
+
     // Is this necessary or do we only have one list on the SemPred?
     //private List<SemAtom> boundVars;
     // The body of the function, a nested SemFunction or Predicate
@@ -49,6 +51,7 @@ public class SemFunction extends SemanticExpression implements FunctionalAbstrac
         this.binder = f.binder;
         this.funcBody = f.funcBody.clone();
         this.setType(f.getType());
+        this.compiled = f.compiled;
     }
 
     @Override
@@ -59,6 +62,10 @@ public class SemFunction extends SemanticExpression implements FunctionalAbstrac
 
     public SemanticRepresentation getFuncBody() {
         return funcBody;
+    }
+
+    public void setFuncBody(SemanticRepresentation funcBody) {
+        this.funcBody = funcBody;
     }
 
     public SemAtom getBinder() {

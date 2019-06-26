@@ -30,6 +30,7 @@ import static main.Settings.PLAIN;
 import static main.Settings.PROLOG;
 
 public class FuncApp extends SemanticExpression implements FunctionalApplication {
+
     private SemanticRepresentation functor;
     private SemanticRepresentation argument;
 
@@ -42,6 +43,9 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
     public FuncApp(FuncApp fa) {
         this.functor = fa.functor.clone();
         this.argument = fa.argument.clone();
+
+        //Test version
+        //this.compiled = fa.compiled;
     }
 
     public SemanticRepresentation getFunctor() {
@@ -92,8 +96,8 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
             }
         }
         else if (this.functor instanceof FuncApp) {
-            return ((FuncApp) this.functor).apply(arg);
-           // return this;
+           return ((FuncApp) this.functor).apply(arg);
+          //  return this;
         }
         else if (this.functor instanceof MeaningRepresentation) {
 
@@ -182,5 +186,10 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
     public void instantiateFunctionalApp(SemanticRepresentation func, SemanticRepresentation arg) {
         this.functor = func;
         this.argument = arg;
+    }
+
+
+    public void setFunctor(SemanticRepresentation functor) {
+        this.functor = functor;
     }
 }
