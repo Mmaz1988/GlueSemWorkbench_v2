@@ -464,9 +464,14 @@ public class LLProver {
                 if (!(p.getSemTerm() instanceof SemFunction || p.getSemTerm() instanceof MeaningRepresentation))
                     throw new ProverException("Meaning side does not match structure of glue side");
 
-
+                //Old version
                 SemAtom assumpVar = new SemAtom(VAR, LexVariableHandler.returnNewVar(SemVarE),new SemType(TEMP));
                 assumptionVars.addLast(assumpVar);
+
+                //New version
+                //SemAtom assumpVar = new SemAtom(VAR, LexVariableHandler.returnNewVar(SemVarE),new SemType(TEMP));
+                //assumptionVars.addLast(assumpVar);
+
 
                Premise assumption = convertNested(new Premise(currSeq.getNewID(), ((LLFormula) f.getLhs()).getLhs()));
               //  Premise assumption = convertNested(new Premise(currSeq.getNewID(), returnLeftMostFormula(f)));
