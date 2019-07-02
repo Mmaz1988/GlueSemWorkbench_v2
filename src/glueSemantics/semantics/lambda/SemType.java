@@ -30,7 +30,7 @@ public class SemType {
     // TEMP is a special type used for variables introduced
     // during the compilation process
     public enum AtomicType {
-        E,T,V,I,TEMP
+        E,T,V,I,S,TEMP
     }
 
     public SemType getLeft() {
@@ -70,11 +70,25 @@ public class SemType {
         if (left != null)
             return "<" + left.toString() + "," + right.toString() + ">";
         else {
+
+            switch (simple) {
+                case E:
+                    return "e";
+                case S:
+                    return "s";
+                case T:
+                    return "t";
+            }
+            /*
             if (simple == E)
                 return "e";
             else
                 return "t";
+
         }
+     */
+        }
+        return null;
     }
 
     // Check if both types are matching simple types or if

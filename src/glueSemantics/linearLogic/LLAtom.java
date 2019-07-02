@@ -17,6 +17,7 @@
 
 package glueSemantics.linearLogic;
 
+import glueSemantics.semantics.lambda.SemType;
 import prover.Equality;
 
 import java.util.*;
@@ -32,7 +33,7 @@ public class LLAtom extends LLTerm {
 
 
     private String name;
-    public LLType lltype;
+    public SemType lltype;
 
 
 
@@ -147,11 +148,11 @@ public class LLAtom extends LLTerm {
     }
 
     // Getter and setter LLType
-    public LLType getLLtype() {
+    public SemType getLLtype() {
         return lltype;
     }
 
-    public void setLLtype(LLType lltype) {
+    public void setLLtype(SemType lltype) {
         this.lltype = lltype;
     }
 

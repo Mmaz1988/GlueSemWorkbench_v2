@@ -15,6 +15,7 @@ import glueSemantics.linearLogic.*;
 import glueSemantics.synInterface.dependency.LexicalParserException;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class Determiner extends LexicalEntry{
     public LexicalEntry.LexType lexType;
@@ -141,7 +142,23 @@ public class Determiner extends LexicalEntry{
 
         }
         else {
-            throw new LexicalParserException("Unknown determiner: "+detType.toLowerCase());
+            //binder variable
+            SemAtom semBinder = new SemAtom(SemAtom.SemSort.VAR,
+                    LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVarE),
+                    SemType.AtomicType.E);
+
+            FuncApp restrFA = new FuncApp(p,semBinder);
+            FuncApp scopeFA = new FuncApp(q,semBinder);
+            SemFunction ex = new SemFunction(p,new SemFunction(q, new SemQuantEx(SemQuantEx.SemQuant.EX,
+                    semBinder, new BinaryTerm(restrFA,BinaryTerm.SemOperator.AND,scopeFA))));
+
+            this.setSem(ex);
+
+            System.out.println("Unknown determiner handled as \"some\"");
+
+         //   throw new LexicalParserException("Unknown determiner: "+detType.toLowerCase());
+
+
         }
 
     }
