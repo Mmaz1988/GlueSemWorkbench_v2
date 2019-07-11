@@ -46,7 +46,7 @@ public class Noun extends LexicalEntry {
         switch (this.lexType) {
             case N_NNP:
 
-                this.setLlTerm(new LLAtom(identifier, LLTerm.Type.E, LLAtom.LLType.CONST, true));
+                this.setLlTerm(new LLAtom(identifier, new SemType(SemType.AtomicType.E), LLAtom.LLType.CONST, true));
 
                 this.setSem(new SemAtom(SemAtom.SemSort.CONST, main.substring(0, 1).toLowerCase(),
                         SemType.AtomicType.E));
@@ -57,11 +57,11 @@ public class Noun extends LexicalEntry {
                 /*Linear Logic*/
 
                 //generating consumer
-                LLAtom agentRes = new LLAtom(identifier, LLTerm.Type.E, LLAtom.LLType.CONST, false);
+                LLAtom agentRes = new LLAtom(identifier, new SemType(SemType.AtomicType.E), LLAtom.LLType.CONST, false);
 
                 //generate semantics
                 LLAtom fsem = new LLAtom(identifier,
-                        LLTerm.Type.T, LLAtom.LLType.CONST, true);
+                        new SemType(SemType.AtomicType.T), LLAtom.LLType.CONST, true);
 
                 this.setLlTerm(new LLFormula(agentRes, fsem, true));
 

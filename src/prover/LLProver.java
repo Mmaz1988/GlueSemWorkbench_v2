@@ -465,7 +465,7 @@ public class LLProver {
                     throw new ProverException("Meaning side does not match structure of glue side");
 
                 //Old version
-                SemAtom assumpVar = new SemAtom(VAR, LexVariableHandler.returnNewVar(SemVarE),new SemType(TEMP));
+                SemAtom assumpVar = new SemAtom(VAR, LexVariableHandler.returnNewVar(SemVarE),new SemType(((LLFormula) f.getLhs()).getLhs().getType()));
                 assumptionVars.addLast(assumpVar);
 
                 //New version
@@ -478,10 +478,29 @@ public class LLProver {
                 assumption.getGlueTerm().assumptions.add(assumption.getGlueTerm());
                 // TODO add distinction between skel and mod here?
                 skeletons.add(assumption);
+
+
+
+                SemType newtype = new SemType(((LLFormula) f.getLhs()).getRhs().getType());
+
+                SemAtom binderVar = new SemAtom(VAR,LexVariableHandler.returnNewVar(SemVar),newtype);
+                SemFunction newArg = new SemFunction(assumptionVars.removeLast(),binderVar);
+                //((SemFunction) p.getSemTerm()).setArgument(newArg);
+
+
+                //Original version:
+                p.setSemTerm(new SemFunction(binderVar,new FuncApp(p.getSemTerm(),newArg)));
+
+
                 Premise dependency = new Premise(p.getPremiseIDs(), p.getSemTerm(), new LLFormula(((LLFormula) f.getLhs()).getRhs(),
                         f.getRhs(), f.isPolarity(), f.getVariable()));
-               // Premise dependency = new Premise(p.getPremiseIDs(), p.getSemTerm(), returnNewLeftMostFormula(f));
+
+                // Premise dependency = new Premise(p.getPremiseIDs(), p.getSemTerm(), returnNewLeftMostFormula(f));
+                dependency.getGlueTerm().setDischarges(p.getGlueTerm().getDischarges());
                 dependency.getGlueTerm().discharges.add(assumption.getGlueTerm());
+
+
+
                 dependency = convertNested(dependency);
 
                 return dependency;
@@ -512,14 +531,19 @@ public class LLProver {
             term as argument to the current meaning term and wrap everything in a new lambda
             term binding the newly created variable.
             */
-            SemAtom binderVar = new SemAtom(VAR,LexVariableHandler.returnNewVar(SemVar),T);
+
+
+/*
+            SemType newtype = new SemType(f.getLhs().getType());
+
+            SemAtom binderVar = new SemAtom(VAR,LexVariableHandler.returnNewVar(SemVar),newtype);
             SemFunction newArg = new SemFunction(assumptionVars.removeLast(),binderVar);
             //((SemFunction) p.getSemTerm()).setArgument(newArg);
 
 
             //Original version:
              p.setSemTerm(new SemFunction(binderVar,new FuncApp(p.getSemTerm(),newArg)));
-
+*/
 
             //Test new version of compiled semantic side
 

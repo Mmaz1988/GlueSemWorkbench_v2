@@ -35,10 +35,10 @@ public class Modifier extends LexicalEntry {
         /*Linear Logic*/
 
         //generating consumer
-        LLAtom var = new LLAtom(identifier, LLTerm.Type.E, LLAtom.LLType.CONST,false);
+        LLAtom var = new LLAtom(identifier, new SemType(SemType.AtomicType.E), LLAtom.LLType.CONST,false);
 
         //generate semantics
-        LLAtom rest = new LLAtom(identifier, LLTerm.Type.T, LLAtom.LLType.CONST,true);
+        LLAtom rest = new LLAtom(identifier, new SemType(SemType.AtomicType.T), LLAtom.LLType.CONST,true);
         this.setLlTerm(new LLFormula(new LLFormula(var,rest,false ),new LLFormula(var,rest,true ),true));
 
         /*Semantics*/

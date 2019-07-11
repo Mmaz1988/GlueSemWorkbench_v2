@@ -33,12 +33,13 @@ public class LLAtom extends LLTerm {
 
 
     private String name;
-    public SemType lltype;
+    public LLType lltype;
+   // public SemType semType;
 
 
 
 
-    public LLAtom(String name, Type type, LLType lltype, boolean pol) {
+    public LLAtom(String name, SemType type, LLType lltype, boolean pol) {
         this.name = name;
         this.setType(type);
         this.setPolarity(pol);
@@ -46,7 +47,7 @@ public class LLAtom extends LLTerm {
     }
 
     //binder variables are not polarized -- they can occur in positive and negative formulas
-    public LLAtom(String name, Type type, LLType lltype) {
+    public LLAtom(String name, SemType type, LLType lltype) {
         this.name = name;
         this.setType(type);
         this.setLLtype(lltype);
@@ -148,11 +149,11 @@ public class LLAtom extends LLTerm {
     }
 
     // Getter and setter LLType
-    public SemType getLLtype() {
+    public LLType getLLtype() {
         return lltype;
     }
 
-    public void setLLtype(SemType lltype) {
+    public void setLLtype(LLType lltype) {
         this.lltype = lltype;
     }
 

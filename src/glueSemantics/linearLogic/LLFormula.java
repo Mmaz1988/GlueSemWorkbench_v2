@@ -9,6 +9,7 @@
 
 package glueSemantics.linearLogic;
 
+import glueSemantics.semantics.lambda.SemType;
 import prover.Equality;
 
 import java.util.*;
@@ -24,6 +25,7 @@ public class LLFormula extends LLTerm {
     private LLOperator operator;
 
     private LLAtom variable;
+  //  private SemType semType;
 
     private HashMap<LLAtom,List<LLAtom>> boundVariables = new HashMap<>();
 
@@ -31,27 +33,11 @@ public class LLFormula extends LLTerm {
         LLIMP
     }
 
-
-    public LLTerm getLhs() {
-        return lhs;
-    }
-
-    public LLTerm getRhs() {
-        return rhs;
-    }
-
-
-    public LLAtom getVariable() {
-        return variable;
-    }
-
-
-    public LLOperator getOperator() { return operator; }
-
     //Constructor for formulas without variables and with a linear implication as operator
     public LLFormula(LLTerm lhs, LLTerm rhs, boolean pol) {
         this.lhs = lhs;
         this.rhs = rhs;
+        this.setType(new SemType(lhs.getType(),rhs.getType()));
         this.setPolarity(pol);
         this.operator = LLIMP;
     }
@@ -59,6 +45,7 @@ public class LLFormula extends LLTerm {
     public LLFormula(LLTerm lhs, LLTerm rhs, boolean pol, LLAtom var) {
         this.lhs = lhs;
         this.rhs = rhs;
+        this.setType(new SemType(lhs.getType(),rhs.getType()));
         this.setPolarity(pol);
         this.operator = LLIMP;
         this.variable = var;
@@ -77,6 +64,7 @@ public class LLFormula extends LLTerm {
     public LLFormula(LLTerm lhs, LLOperator operator,LLTerm rhs, boolean pol) {
         this.lhs = lhs;
         this.rhs = rhs;
+        this.setType(new SemType(lhs.getType(),rhs.getType()));
         this.setPolarity(pol);
         this.operator = operator;
     }
@@ -88,6 +76,7 @@ public class LLFormula extends LLTerm {
                      LLAtom var) {
         this.lhs = lhs;
         this.rhs = rhs;
+        this.setType(new SemType(lhs.getType(),rhs.getType()));
         this.setPolarity(pol);
         this.operator = operator;
         this.variable = var;
@@ -107,6 +96,7 @@ public class LLFormula extends LLTerm {
             this.discharges = new HashSet<>(f.discharges);
             this.lhs = f.getLhs().clone();
             this.rhs = f.getRhs().clone();
+            this.setType(f.getType().clone());
             this.setPolarity(f.isPolarity());
             this.operator = f.getOperator();
             if (f.variable != null) {
@@ -115,6 +105,8 @@ public class LLFormula extends LLTerm {
                         findBoundOccurrences(rhs).stream()).collect(Collectors.toList());
                 this.boundVariables.put(variable, bvl);
             }
+
+
 
         }
 
@@ -282,5 +274,22 @@ public class LLFormula extends LLTerm {
             this.boundVariables.put(variable, bvl);
 
 
+            }
+
+    public LLTerm getLhs() {
+        return lhs;
     }
+
+    public LLTerm getRhs() {
+        return rhs;
+    }
+
+
+    public LLAtom getVariable() {
+        return variable;
+    }
+
+
+    public LLOperator getOperator() { return operator; }
+
 }

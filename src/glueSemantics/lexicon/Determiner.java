@@ -43,28 +43,27 @@ public class Determiner extends LexicalEntry{
 
         //Restrictor
 
-        LLAtom subjsem = new LLAtom(subcatFrame.getRole(role).identifier, LLTerm.Type.E, LLAtom.LLType.CONST,true);
+        LLAtom subjsem = new LLAtom(subcatFrame.getRole(role).identifier, new SemType(SemType.AtomicType.E), LLAtom.LLType.CONST,true);
 
-        LLAtom restr = new LLAtom(subcatFrame.getRole(role).identifier, LLTerm.Type.T, LLAtom.LLType.CONST,false);
+        LLAtom restr = new LLAtom(subcatFrame.getRole(role).identifier, new SemType(SemType.AtomicType.T), LLAtom.LLType.CONST,false);
         //LexVariableHandler.addUsedVariable(LexVariableHandler.variableType.LLatomT,identifier);
 
         LLFormula restrSem = new LLFormula(subjsem,restr,false);
 
         //Scope
-        LLAtom scopeConst = new LLAtom(identifier, LLTerm.Type.E, LLAtom.LLType.CONST,false);
+        LLAtom scopeConst = new LLAtom(identifier, new SemType(SemType.AtomicType.E), LLAtom.LLType.CONST,false);
 
         //Identifier for the semantics of the whole things
         String detVar = LexVariableHandler.returnNewVar(LexVariableHandler.variableType.LLvar);
 
         // for the resource that is consumed
         LLAtom scopeSem = new LLAtom(detVar,
-                LLTerm.Type.T, LLAtom.LLType.VAR,false);
+                new SemType(SemType.AtomicType.T), LLAtom.LLType.VAR,false);
 
         LLFormula scope = new LLFormula(scopeConst,scopeSem,false);
 
         // for the resulting resource
-        LLAtom detRes = new LLAtom(detVar,
-                LLTerm.Type.T, LLAtom.LLType.VAR,true);
+        LLAtom detRes = new LLAtom(detVar, new SemType(SemType.AtomicType.T), LLAtom.LLType.VAR,true);
 
 
         LLFormula scopeComplete = new LLFormula(scope,detRes,true,detRes);
@@ -77,14 +76,14 @@ public class Determiner extends LexicalEntry{
         /*Linear Logic*/
 
         //binding variable of the quantifier
-        LLAtom binder = new LLAtom(var, LLTerm.Type.T, LLAtom.LLType.VAR);
+        LLAtom binder = new LLAtom(var,new SemType(SemType.AtomicType.T), LLAtom.LLType.VAR);
 
         //Parts of the antecedent
-        LLAtom argsem = new LLAtom(identifier, LLTerm.Type.E, LLAtom.LLType.CONST,true);
-        LLAtom left = new LLAtom(var, LLTerm.Type.T, LLAtom.LLType.VAR,false);
+        LLAtom argsem = new LLAtom(identifier, new SemType(SemType.AtomicType.E), LLAtom.LLType.CONST,true);
+        LLAtom left = new LLAtom(var, new SemType(SemType.AtomicType.T), LLAtom.LLType.VAR,false);
 
         //consequent of the det
-        LLAtom right = new LLAtom(var, LLTerm.Type.T, LLAtom.LLType.VAR,true);
+        LLAtom right = new LLAtom(var, new SemType(SemType.AtomicType.T), LLAtom.LLType.VAR,true);
 
         //antecedent
         LLFormula ant = new LLFormula(argsem,left,false);

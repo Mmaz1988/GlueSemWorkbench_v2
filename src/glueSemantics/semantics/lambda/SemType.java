@@ -54,6 +54,18 @@ public class SemType {
         this.left = null;
         this.right = null;
     }
+    //For cloning types
+   public SemType(SemType complex)
+    {
+        if (complex.simple == null) {
+            this.left = complex.left.clone();
+            this.right = complex.right.clone();
+        }
+        else
+        {
+            this.simple = complex.simple;
+        }
+    }
 
     public SemType(SemType left, SemType right) {
         this.left = left;
@@ -89,6 +101,28 @@ public class SemType {
      */
         }
         return null;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+
+      if (this.toString().equals(o.toString()))
+      {
+          return true;
+      }
+      return false;
+    }
+
+
+    @Override
+    public SemType clone() {
+
+        if (this.simple==null)
+        {
+          return new SemType(this.left.clone(),this.right.clone());
+        }
+        else return new SemType(this.simple);
+
     }
 
     // Check if both types are matching simple types or if

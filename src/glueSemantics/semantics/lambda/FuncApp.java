@@ -72,7 +72,7 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
     public SemanticRepresentation apply(SemanticRepresentation arg) throws ProverException {
         if (this.functor instanceof SemFunction) {
             SemFunction lambda = (SemFunction) this.functor;
-            if (lambda.getBinder().getType().equalsType(arg.getType())) {
+            if (lambda.getBinder().getType().equals(arg.getType())) {
                 SemanticRepresentation newBody = lambda.getFuncBody();
                 newBody = newBody.applyTo(lambda.getBinder(), arg);
                 //newBody = newBody.betaReduce();
@@ -84,7 +84,7 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
         }
         else if (this.functor instanceof SemQuantEx) {
             SemQuantEx quant = (SemQuantEx) this.functor;
-            if (quant.getBinder().getType().equalsType(arg.getType())) {
+            if (quant.getBinder().getType().equals(arg.getType())) {
                 SemanticRepresentation newBody = quant.getQuantBody();
                 newBody = newBody.applyTo(quant.getBinder(), arg);
                 //newBody = newBody.betaReduce();
@@ -96,6 +96,10 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
             }
         }
         else if (this.functor instanceof FuncApp) {
+            //Old version did weird stuff for meaning representations
+        //    return new FuncApp(this.functor,arg);
+            //old version
+            //TODO this line makes no sense at all, but is required to work.
            return ((FuncApp) this.functor).apply(arg);
           //  return this;
         }

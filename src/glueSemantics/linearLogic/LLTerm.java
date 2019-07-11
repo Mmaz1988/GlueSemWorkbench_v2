@@ -18,6 +18,7 @@
 package glueSemantics.linearLogic;
 
 
+import glueSemantics.semantics.lambda.SemType;
 import prover.Equality;
 
 import java.util.ArrayList;
@@ -32,8 +33,10 @@ public abstract class LLTerm {
     }
 
     private boolean polarity;
-    private Type type;
+    private SemType semType;
     public Set<LLTerm> assumptions = new HashSet<>();
+
+
     public Set<LLTerm> discharges = new HashSet<>();
 
     //Default constructor
@@ -48,12 +51,12 @@ public abstract class LLTerm {
 
     public abstract LinkedHashSet<Equality> checkCompatibility(LLTerm term);
 
-    public Type getType(){
-        return this.type;
+    public SemType getType(){
+        return this.semType;
     }
 
-    public void setType(Type type) {
-        this.type = type;
+    public void setType(SemType type) {
+        this.semType = type;
     }
 
     public String toPlainString() {
@@ -79,5 +82,13 @@ public abstract class LLTerm {
         return sb.toString();
     }
 
+
+    public Set<LLTerm> getDischarges() {
+        return discharges;
+    }
+
+    public void setDischarges(Set<LLTerm> discharges) {
+        this.discharges = discharges;
+    }
 
 }

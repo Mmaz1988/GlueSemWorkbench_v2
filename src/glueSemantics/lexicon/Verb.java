@@ -39,10 +39,10 @@ public class Verb extends LexicalEntry {
                 LexicalEntry agent = subcatFrame.getRole("agent");
 
                 /*Linear Logic*/
-                LLAtom agentRes = new LLAtom(subcatFrame.getScopeVar("agent"), LLTerm.Type.E, LLAtom.LLType.CONST, false);
+                LLAtom agentRes = new LLAtom(subcatFrame.getScopeVar("agent"), new SemType(SemType.AtomicType.E), LLAtom.LLType.CONST, false);
 
                 LLAtom fsem = new LLAtom(LexVariableHandler.returnNewVar(LexVariableHandler.variableType.LLatomT),
-                        LLTerm.Type.T, LLAtom.LLType.CONST,true);
+                       new SemType(SemType.AtomicType.T), LLAtom.LLType.CONST,true);
 
                 this.setLlTerm(new LLFormula(agentRes,fsem,true ));
 
@@ -69,12 +69,12 @@ public class Verb extends LexicalEntry {
                 /*Linear Logic*/
 
                 //generating consumer
-                LLAtom agentRes = new LLAtom(subcatFrame.getScopeVar("agent"), LLTerm.Type.E, LLAtom.LLType.CONST, false);
-                LLAtom patientRes = new LLAtom(subcatFrame.getScopeVar("patient"), LLTerm.Type.E, LLAtom.LLType.CONST, false);
+                LLAtom agentRes = new LLAtom(subcatFrame.getScopeVar("agent"), new SemType(SemType.AtomicType.E), LLAtom.LLType.CONST, false);
+                LLAtom patientRes = new LLAtom(subcatFrame.getScopeVar("patient"), new SemType(SemType.AtomicType.E), LLAtom.LLType.CONST, false);
 
                 //generate semantics
                 LLAtom fsem = new LLAtom(LexVariableHandler.returnNewVar(LexVariableHandler.variableType.LLatomT),
-                        LLTerm.Type.T, LLAtom.LLType.CONST, true);
+                        new SemType(SemType.AtomicType.T), LLAtom.LLType.CONST, true);
 
                 LLFormula firstArg = new LLFormula(patientRes, fsem, true);
 
