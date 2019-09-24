@@ -40,7 +40,7 @@ public class SemQuantEx extends SemanticExpression {
         this.quantifier = s.quantifier;
         this.binder = s.binder;
         this.quantBody = s.quantBody.clone();
-        this.compiled = s.compiled;
+        this.setCompiled(s.isCompiled());
     }
 
     public enum SemQuant {

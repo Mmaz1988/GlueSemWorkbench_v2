@@ -36,6 +36,9 @@ public class LLProver {
 
     private static Settings settings;
 
+    private SemanticRepresentation currentSemantics;
+    private SemanticRepresentation dummySemantics;
+
     private LinkedList<Premise> skeletons;
     private LinkedList<Premise> modifiers;
     private LinkedList<Premise> agenda;
@@ -48,6 +51,9 @@ public class LLProver {
     private HashSet<Integer> goalIDs;
     private Sequent currSeq;
     private LinkedList<SemAtom> assumptionVars = new LinkedList<>();
+    private LinkedList<SemAtom> binderVars = new LinkedList<>();
+    private int counter = 0;
+    private int argcounter = 0;
 
     public Debugging db = new Debugging();
 
@@ -412,7 +418,21 @@ public class LLProver {
 
 
             if (f.getLhs() instanceof LLFormula) {
-                return convertNested(p);
+                currentSemantics = p.getSemTerm().clone();
+                dummySemantics = new MeaningRepresentation("dum_var");
+
+                Premise compiled = convertNested(p);
+                compiled.setSemTerm((SemanticExpression) replaceDummy(compiled.getSemTerm()));
+
+                dummySemantics = currentSemantics;
+                binderVars = new LinkedList<>();
+                assumptionVars = new LinkedList<>();
+
+
+
+
+
+                return convertNested(compiled);
             }
             else {
                 return p;
@@ -455,6 +475,9 @@ public class LLProver {
     * */
     private Premise convertNested(Premise p) throws ProverException {
         db.compilations++;
+
+
+
         if (p.getGlueTerm() instanceof LLFormula) {
             LLFormula f = (LLFormula) p.getGlueTerm();
 
@@ -464,9 +487,19 @@ public class LLProver {
                 if (!(p.getSemTerm() instanceof SemFunction || p.getSemTerm() instanceof MeaningRepresentation))
                     throw new ProverException("Meaning side does not match structure of glue side");
 
+
+                SemType newtype = new SemType(((LLFormula) f.getLhs()).getRhs().getType());
                 //Old version
+
+                SemAtom binderVar = new SemAtom(VAR,LexVariableHandler.returnNewVar(SemVar),newtype);
+                binderVars.addLast(binderVar);
+
+                //This is the variable that gets cut off the main formula
                 SemAtom assumpVar = new SemAtom(VAR, LexVariableHandler.returnNewVar(SemVarE),new SemType(((LLFormula) f.getLhs()).getLhs().getType()));
                 assumptionVars.addLast(assumpVar);
+
+                counter = assumptionVars.size() - 1;
+
 
                 //New version
                 //SemAtom assumpVar = new SemAtom(VAR, LexVariableHandler.returnNewVar(SemVarE),new SemType(TEMP));
@@ -479,29 +512,50 @@ public class LLProver {
                 // TODO add distinction between skel and mod here?
                 skeletons.add(assumption);
 
-
-
-                SemType newtype = new SemType(((LLFormula) f.getLhs()).getRhs().getType());
-
-                SemAtom binderVar = new SemAtom(VAR,LexVariableHandler.returnNewVar(SemVar),newtype);
-                SemFunction newArg = new SemFunction(assumptionVars.removeLast(),binderVar);
                 //((SemFunction) p.getSemTerm()).setArgument(newArg);
 
 
                 //Original version:
-                p.setSemTerm(new SemFunction(binderVar,new FuncApp(p.getSemTerm(),newArg)));
-
 
                 Premise dependency = new Premise(p.getPremiseIDs(), p.getSemTerm(), new LLFormula(((LLFormula) f.getLhs()).getRhs(),
                         f.getRhs(), f.isPolarity(), f.getVariable()));
 
-                // Premise dependency = new Premise(p.getPremiseIDs(), p.getSemTerm(), returnNewLeftMostFormula(f));
+
                 dependency.getGlueTerm().setDischarges(p.getGlueTerm().getDischarges());
                 dependency.getGlueTerm().discharges.add(assumption.getGlueTerm());
 
 
-
+                //Reiterate to collect all necessary variables
                 dependency = convertNested(dependency);
+
+
+                //This guarantees that the first argument of the compiled formula turns out to be the first argument of the
+                //original semantics
+
+                SemAtom argbv = binderVars.get(counter);
+                SemAtom bv = binderVars.get(counter);
+
+                SemFunction newArg = new SemFunction(assumptionVars.get(assumptionVars.size()-1-counter),argbv,true);
+
+                currentSemantics = new FuncApp(currentSemantics, newArg);
+
+                SemAtom binder = binderVars.get(binderVars.size()-1-counter);
+                dummySemantics = new SemFunction(binder,dummySemantics);
+
+                counter = counter - 1;
+
+                dependency.setSemTerm((SemanticExpression) dummySemantics);
+
+
+                // dependency.setSemTerm(new SemFunction(bv, new FuncApp(dependency.getSemTerm(), newArg)));
+
+
+
+
+                // Premise dependency = new Premise(p.getPremiseIDs(), p.getSemTerm(), returnNewLeftMostFormula(f));
+
+
+
 
                 return dependency;
             }
@@ -518,11 +572,15 @@ public class LLProver {
                 }
 
    */
+                argcounter = argcounter + 1;
                 Premise temp = new Premise(p.getPremiseIDs(),p.getSemTerm(),new LLFormula((LLFormula) f.getRhs()));
                 temp = convertNested(temp);
                 LLTerm newGlue = new LLFormula(f.getLhs(),temp.getGlueTerm(),temp.getGlueTerm().isPolarity());
                 newGlue.discharges.addAll(p.getGlueTerm().discharges);
                 p = new Premise(p.getPremiseIDs(),temp.getSemTerm(),newGlue);
+
+                argcounter -= 1;
+
                 //p = convertNested(reorder(p));
             }
             /*
@@ -587,7 +645,7 @@ public class LLProver {
         // only an atomic glue term which will become an assumption;
         // return it and add the new variable as meaning side
         else {
-            p.setSemTerm(assumptionVars.get(assumptionVars.size()-1));
+            p.setSemTerm(assumptionVars.getLast());
             return p;
         }
     }
@@ -681,75 +739,25 @@ public class LLProver {
     }
 
 
-    public LLTerm returnLeftMostFormula(LLFormula f)
-    {
-
-       LLTerm t;
-
-        if (f.getLhs() != null) {
-            t = f.getLhs();
-            if (t instanceof LLFormula) {
-                return returnLeftMostFormula( (LLFormula) t);
-            } else
-            {
-                return t;
-            }
-        }
-
-        return f;
-    }
-
-    public LLFormula returnNewLeftMostFormula(LLFormula f) {
-
-
-        LLFormula g = (LLFormula) f.getLhs();
-
-        if ( g.getLhs() instanceof LLAtom)
-        {
-            LLFormula ng = new LLFormula(g.getRhs(),f.getRhs(),f.isPolarity(),f.getVariable());
-            ng.getRhs().discharges.addAll(g.discharges);
-            return ng;
-        }
-
-        return new LLFormula(returnNewLeftMostFormula(g),f.getRhs(),f.isPolarity(),f.getVariable());
-
-    }
 
     //Test area
 
-    public SemanticRepresentation getSemanticBody(SemanticExpression p) {
-
-        SemanticExpression copy = p.clone();
-
-        if (copy.isCompiled()) {
-            while (copy.isCompiled()) {
-                //In this version meaning side and semantic side are not parallel
-                copy = (SemanticExpression) ((SemFunction) copy).getFuncBody();
-
-                //new try
-
-            }
-        }
-        return  ((FuncApp) copy).getFunctor();
-      //  return copy;
-    }
 
 
-    public void changeSemanticBody(SemanticExpression p, SemFunction newArg)
+    public SemanticRepresentation replaceDummy(SemanticRepresentation sem)
     {
-        if (p.isCompiled()){
-            if ( ((SemanticExpression) ((SemFunction) p).getFuncBody()).isCompiled())
-            {
-             SemanticExpression s = (SemanticExpression) ((SemFunction) p).getFuncBody();
-                changeSemanticBody(s, newArg);
-            } else
-            {
-                FuncApp q = (FuncApp) ((SemFunction) p).getFuncBody();
 
-                ((FuncApp) q).setFunctor(new FuncApp(getSemanticBody(p),newArg));
-            }
+        if (sem instanceof MeaningRepresentation && sem.toString().equals("dum_var"))
+        {
+            sem = currentSemantics;
+            return sem;
+        } else
+        {
+       //     if (sem instanceof SemFunction)
+       //    {
+                return new SemFunction(((SemFunction) sem).getBinder(),replaceDummy(((SemFunction) sem).getFuncBody()),true);
+      //      }
         }
-
     }
 
 }

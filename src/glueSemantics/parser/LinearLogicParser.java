@@ -160,6 +160,9 @@ public class LinearLogicParser {
                 pos++;
             }
             if(unparsedInput.charAt(pos) == '-' && unparsedInput.charAt(pos+1) == 'o') {
+                while(unparsedInput.charAt(pos) == ' ') {
+                    pos++;
+                }
                 pos += 2;
                 LLTerm right = parseTerm(unparsedInput, polarity);
                 pos++;

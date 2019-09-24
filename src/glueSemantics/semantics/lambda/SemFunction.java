@@ -47,11 +47,19 @@ public class SemFunction extends SemanticExpression implements FunctionalAbstrac
         this.setType(new SemType(binder.getType(),funcBody.getType()));
     }
 
+    public SemFunction(SemAtom binder, SemanticRepresentation funcBody, Boolean compiled) {
+        //this.binder = binder;
+        //this.funcBody = funcBody;
+        this.instantiateFunctionalAbstraction(binder,funcBody);
+        this.setType(new SemType(binder.getType(),funcBody.getType()));
+        this.setCompiled(compiled);
+    }
+
     public SemFunction(SemFunction f) {
         this.binder = f.binder;
         this.funcBody = f.funcBody.clone();
         this.setType(f.getType());
-        this.compiled = f.compiled;
+        this.setCompiled(f.isCompiled());
     }
 
     @Override
@@ -87,7 +95,7 @@ public class SemFunction extends SemanticExpression implements FunctionalAbstrac
     }
 
     public SemanticRepresentation applyTo(SemanticRepresentation var, SemanticRepresentation arg) throws ProverException {
-        return new SemFunction(this.binder,this.funcBody.applyTo(var, arg));
+        return new SemFunction(this.binder,this.funcBody.applyTo(var, arg),this.isCompiled());
     }
 
     @Override

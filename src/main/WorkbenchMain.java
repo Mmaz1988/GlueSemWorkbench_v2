@@ -20,6 +20,7 @@ import glueSemantics.linearLogic.Premise;
 import glueSemantics.linearLogic.Sequent;
 import glueSemantics.parser.GlueParser;
 import glueSemantics.parser.ParserInputException;
+import glueSemantics.semantics.lambda.SemanticExpression;
 import glueSemantics.synInterface.dependency.LexicalParserException;
 import glueSemantics.synInterface.dependency.SentenceMeaning;
 import glueSemantics.synInterface.lfg.FStructureParser;
@@ -222,6 +223,7 @@ public class WorkbenchMain {
             result = prover.deduce(testseq);
             System.out.println("Found the following deduction(s): ");
             for (Premise sol : result) {
+                sol.setSemTerm((SemanticExpression) sol.getSemTerm().betaReduce());
                 System.out.println(sol.toString());
             }
         } catch (ProverException e) {

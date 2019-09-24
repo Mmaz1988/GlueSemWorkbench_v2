@@ -19,9 +19,11 @@ package glueSemantics.linearLogic;
 
 import glueSemantics.lexicon.LexicalEntry;
 import glueSemantics.semantics.SemanticRepresentation;
+import glueSemantics.semantics.lambda.SemAtom;
 import glueSemantics.semantics.lambda.SemanticExpression;
 
 import java.util.HashSet;
+import java.util.LinkedList;
 
 public class Premise {
     //Definitions for colored console output
@@ -35,6 +37,8 @@ public class Premise {
     private HashSet<Integer> premiseIDs;
     private LLTerm glueTerm;
     private SemanticRepresentation semTerm;
+
+    private SemanticRepresentation originalSemTerm;
     private Object func;
     private Object arg;
 
@@ -54,6 +58,8 @@ public class Premise {
 
     public void setSemTerm(SemanticExpression semTerm) { this.semTerm = semTerm; }
 
+    private LinkedList<SemAtom> assumptionVars = new LinkedList<>();
+    private LinkedList<SemAtom> binderVars = new LinkedList<>();
 
     public Premise(HashSet<Integer> premiseIDs, LLTerm llterm) {
         this.premiseIDs = premiseIDs;
@@ -65,6 +71,14 @@ public class Premise {
         this.premiseIDs = premiseIDs;
         this.glueTerm = glueTerm;
         this.semTerm = semTerm;
+        this.originalSemTerm = semTerm.clone();
+    }
+
+    public Premise(HashSet<Integer> premiseIDs, SemanticRepresentation semTerm, SemanticRepresentation originalSemTerm, LLTerm glueTerm) {
+        this.premiseIDs = premiseIDs;
+        this.glueTerm = glueTerm;
+        this.semTerm = semTerm;
+        this.originalSemTerm = originalSemTerm;
     }
 
     //For work with Lexicon
@@ -72,6 +86,7 @@ public class Premise {
         this.premiseIDs = premiseIDs;
         this.glueTerm = lexEn.getLlTerm();
         this.semTerm = lexEn.getSem();
+        this.originalSemTerm = semTerm.clone();
     }
 
 
@@ -107,6 +122,30 @@ public class Premise {
 
     public boolean isModifier() {
         return glueTerm.isModifier();
+    }
+
+    public SemanticRepresentation getOriginalSemTerm() {
+        return originalSemTerm;
+    }
+
+    public void setOriginalSemTerm(SemanticRepresentation originalSemTerm) {
+        this.originalSemTerm = originalSemTerm;
+    }
+
+    public LinkedList<SemAtom> getAssumptionVars() {
+        return assumptionVars;
+    }
+
+    public void setAssumptionVars(LinkedList<SemAtom> assumptionVars) {
+        this.assumptionVars = assumptionVars;
+    }
+
+    public LinkedList<SemAtom> getBinderVars() {
+        return binderVars;
+    }
+
+    public void setBinderVars(LinkedList<SemAtom> binderVars) {
+        this.binderVars = binderVars;
     }
 
 }

@@ -17,6 +17,7 @@
 
 package glueSemantics.semantics.lambda;
 
+import edu.stanford.nlp.parser.lexparser.FrenchUnknownWordModel;
 import glueSemantics.semantics.FunctionalApplication;
 import glueSemantics.semantics.MeaningRepresentation;
 import glueSemantics.semantics.SemanticRepresentation;
@@ -43,6 +44,7 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
     public FuncApp(FuncApp fa) {
         this.functor = fa.functor.clone();
         this.argument = fa.argument.clone();
+        this.setType(fa.getType());
 
         //Test version
         //this.compiled = fa.compiled;
@@ -60,6 +62,11 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
 
     // Does a full beta reduction of the term including all nested functional applications
     public SemanticRepresentation betaReduce() throws ProverException {
+
+        //Recursive beta reduction from inside out.
+        if (this.functor instanceof FuncApp)
+            this.functor = this.functor.betaReduce();
+
         if (argument != null)
             return apply(argument);
         return this;
@@ -72,14 +79,22 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
     public SemanticRepresentation apply(SemanticRepresentation arg) throws ProverException {
         if (this.functor instanceof SemFunction) {
             SemFunction lambda = (SemFunction) this.functor;
+
+            //For end beta reduction
+            if (arg instanceof FuncApp)
+                    arg = arg.betaReduce();
+
             if (lambda.getBinder().getType().equals(arg.getType())) {
                 SemanticRepresentation newBody = lambda.getFuncBody();
                 newBody = newBody.applyTo(lambda.getBinder(), arg);
-                //newBody = newBody.betaReduce();
+         //       newBody = newBody.betaReduce();
                 if (arg != this.argument)
                     return new FuncApp(newBody, this.argument).betaReduce();
                 else
-                    return newBody.betaReduce();
+                    if (newBody instanceof SemFunction && ((SemFunction) newBody).isCompiled())
+                        return newBody;
+                    else return  newBody.betaReduce();
+
             }
         }
         else if (this.functor instanceof SemQuantEx) {
@@ -100,7 +115,10 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
         //    return new FuncApp(this.functor,arg);
             //old version
             //TODO this line makes no sense at all, but is required to work.
-           return ((FuncApp) this.functor).apply(arg);
+            return ((FuncApp) this.functor).apply(arg);
+
+
+
           //  return this;
         }
         else if (this.functor instanceof MeaningRepresentation) {
@@ -160,8 +178,8 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
     */
     public SemanticRepresentation applyTo(SemanticRepresentation var, SemanticRepresentation arg) throws ProverException {
             SemanticRepresentation appliedFunc = this.functor.applyTo(var, arg);
-            if (appliedFunc instanceof FuncApp)
-                appliedFunc = appliedFunc.betaReduce();
+         //   if (appliedFunc instanceof FuncApp)
+         //       appliedFunc = appliedFunc.betaReduce();
             SemanticRepresentation appliedArg = this.argument.applyTo(var, arg);
 
             return new FuncApp(appliedFunc,appliedArg);
@@ -182,7 +200,7 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
         if (LLProver.getSettings().getSemanticOutputStyle() == PROLOG)
             return String.format("app(%s,%s)",functor.toString(),argument.toString());
         else
-            return functor + "(" + argument + ")";
+            return "[" + functor + "]" + "(" + argument + ")";
 
     }
 
@@ -190,6 +208,7 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
     public void instantiateFunctionalApp(SemanticRepresentation func, SemanticRepresentation arg) {
         this.functor = func;
         this.argument = arg;
+        this.setType(func.getType());
     }
 
 

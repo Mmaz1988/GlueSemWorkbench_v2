@@ -41,7 +41,7 @@ public class BinaryTerm extends SemanticExpression {
         this.left = b.left;
         this.right = b.right;
         this.operator = b.operator;
-        this.compiled = b.compiled;
+        this.setCompiled(b.isCompiled());
     }
 
     public SemanticRepresentation getLeft() {
