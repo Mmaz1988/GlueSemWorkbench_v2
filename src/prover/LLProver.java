@@ -856,4 +856,21 @@ public class LLProver {
         }
     }
 
+
+    public LinkedList<Premise> getDatabase() {
+        return database;
+    }
+
+    public void setDatabase(LinkedList<Premise> database) {
+        this.database = database;
+    }
+
+    public LinkedList<Premise> getModifiers() {
+        return modifiers;
+    }
+
+    public void setModifiers(LinkedList<Premise> modifiers) {
+        this.modifiers = modifiers;
+    }
+
 }

@@ -30,11 +30,14 @@ import prover.VariableBindingException;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
@@ -43,6 +46,8 @@ import java.util.Scanner;
 public class WorkbenchMain {
     // Initialize with default settings
     public static Settings settings = new Settings();
+    public static List<String> solutions = new ArrayList<>();
+    public static List<String> partial = new ArrayList<>();
 
     public static void main(String[] args) {
         settings = new Settings();
@@ -61,6 +66,8 @@ public class WorkbenchMain {
                 case ("-debugging"):
                     settings.setDebugging(true);
                     break;
+                case ("-p"):
+                    settings.setPartial(true);
 
             }
         }
@@ -85,6 +92,79 @@ public class WorkbenchMain {
         else if (args.length > 0 && args[0].equals("-dp")){
             try {
                 initiateDependencyMode();
+            } catch (VariableBindingException | LexicalParserException e) {
+                e.printStackTrace();
+            }
+        }
+
+        else if (args.length > 0 && args[0].equals("-i")){
+            try {
+
+                File inFile = new File(args[1]);
+
+                    if (inFile.exists())
+                    {
+                        List<String> lines = null;
+                        try {
+                            lines = Files.readAllLines(inFile.toPath());
+                        } catch (IOException e) {
+                            throw new LexicalParserException("Error while trying to open file '"
+                                    + inFile + "'");
+                        }
+
+                        initiateManualMode(lines);
+
+                        if (args[2].equals("-o")){
+                            try{
+                                File outFile = new File(args[3]);
+
+                                if (outFile.exists())
+                                {
+                                    outFile.delete();
+                                    outFile.createNewFile();
+                                }
+                                else
+                                {
+                                    outFile.createNewFile();
+                                }
+
+                                if (outFile.exists()) {
+                                    BufferedWriter w = new BufferedWriter(new FileWriter(outFile,true));
+                                    for (String solution : solutions) {
+                                        w.append(solution);
+                                        w.append(System.lineSeparator());
+                                    }
+
+                                    if (settings.isPartial())
+                                    {
+                                        w.append("The following partial solutions were found:");
+                                        w.append(System.lineSeparator());
+
+                                        for (String partialSol : partial) {
+                                            w.append(partialSol);
+                                            w.append(System.lineSeparator());
+                                        }
+
+                                    }
+
+                                w.close();
+                                }
+
+                                System.out.println("Wrote solutions to " + outFile.toString());
+
+
+                            } catch(Exception e)
+                            {
+                                System.out.println("Error while generating output file. Maybe no valid path was given.");
+                            }
+
+
+
+                        }
+
+                    }
+
+
             } catch (VariableBindingException | LexicalParserException e) {
                 e.printStackTrace();
             }
@@ -221,11 +301,34 @@ public class WorkbenchMain {
         List<Premise> result = null;
         try {
             result = prover.deduce(testseq);
+
+
             System.out.println("Found the following deduction(s): ");
             for (Premise sol : result) {
+                solutions.add(sol.toString());
                 sol.setSemTerm((SemanticExpression) sol.getSemTerm().betaReduce());
                 System.out.println(sol.toString());
             }
+
+            if (settings.isPartial()) {
+                for (Premise part : prover.getDatabase())
+                {
+                    if (part.getPremiseIDs().size() > 1)
+                    {
+                        partial.add(part.toString());
+                    }
+                }
+
+                for (Premise part : prover.getModifiers())
+                {
+                    if (part.getPremiseIDs().size() > 1)
+                    {
+                        partial.add(part.toString());
+                    }
+                }
+            }
+
+
         } catch (ProverException e) {
             e.printStackTrace();
         }

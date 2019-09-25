@@ -33,17 +33,20 @@ public class Settings {
     private boolean betaReduce;
     private int semanticOutputStyle;
     private boolean debugging;
+    private boolean partial;
 
     public Settings() {
         this.betaReduce = true;
         this.semanticOutputStyle = PLAIN;
         this.debugging = false;
+        this.partial = false;
     }
 
     public Settings (boolean betaReduce, int semanticOutputStyle) {
         this.betaReduce = betaReduce;
         this.semanticOutputStyle = semanticOutputStyle;
         this.debugging = false;
+        this.partial = false;
     }
 
     public boolean isBetaReduce() {
@@ -69,4 +72,13 @@ public class Settings {
     public void setDebugging(boolean debugging) {
         this.debugging = debugging;
     }
+
+    public boolean isPartial() {
+        return partial;
+    }
+
+    public void setPartial(boolean partial) {
+        this.partial = partial;
+    }
+
 }
