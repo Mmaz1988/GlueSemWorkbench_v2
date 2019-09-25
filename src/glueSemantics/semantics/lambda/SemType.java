@@ -135,4 +135,14 @@ public class SemType {
         else
             return (this.left.equalsType(t.left) && this.right.equalsType(t.right));
     }
+
+    public AtomicType getSimple() {
+        return simple;
+    }
+
+    public void setSimple(AtomicType simple) {
+        this.simple = simple;
+    }
+
 }
+

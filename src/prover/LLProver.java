@@ -50,8 +50,15 @@ public class LLProver {
     */
     private HashSet<Integer> goalIDs;
     private Sequent currSeq;
-    private LinkedList<SemAtom> assumptionVars = new LinkedList<>();
-    private LinkedList<SemAtom> binderVars = new LinkedList<>();
+   // private LinkedList<SemAtom> assumptionVars = new LinkedList<>();
+
+    private LinkedHashMap<Integer,LinkedList<SemAtom>> assumptionVars = new LinkedHashMap<>();
+
+   // private LinkedList<SemAtom> binderVars = new LinkedList<>();
+
+    private LinkedHashMap<Integer,LinkedList<SemAtom>> binderVars = new LinkedHashMap<>();
+
+
     private int counter = 0;
     private int argcounter = 0;
 
@@ -422,11 +429,11 @@ public class LLProver {
                 dummySemantics = new MeaningRepresentation("dum_var");
 
                 Premise compiled = convertNested(p);
-                compiled.setSemTerm((SemanticExpression) replaceDummy(compiled.getSemTerm()));
+              compiled.setSemTerm((SemanticExpression) replaceDummy(compiled.getSemTerm()));
 
                 dummySemantics = currentSemantics;
-                binderVars = new LinkedList<>();
-                assumptionVars = new LinkedList<>();
+                binderVars = new LinkedHashMap<>();
+                assumptionVars = new LinkedHashMap<>();
 
 
 
@@ -489,16 +496,37 @@ public class LLProver {
 
 
                 SemType newtype = new SemType(((LLFormula) f.getLhs()).getRhs().getType());
+
+                Boolean complex = false;
+
+                if (((LLFormula) f.getLhs()).getRhs().getType().getSimple() == null)
+                {
+                    complex = true;
+                }
                 //Old version
 
                 SemAtom binderVar = new SemAtom(VAR,LexVariableHandler.returnNewVar(SemVar),newtype);
-                binderVars.addLast(binderVar);
+
+                if (binderVars.keySet().contains(argcounter))
+                {
+                    binderVars.get(argcounter).addLast(binderVar);
+                } else
+                {
+                    binderVars.put(argcounter,new LinkedList<>(Arrays.asList(binderVar)));
+                }
 
                 //This is the variable that gets cut off the main formula
                 SemAtom assumpVar = new SemAtom(VAR, LexVariableHandler.returnNewVar(SemVarE),new SemType(((LLFormula) f.getLhs()).getLhs().getType()));
-                assumptionVars.addLast(assumpVar);
 
-                counter = assumptionVars.size() - 1;
+                if (assumptionVars.keySet().contains(argcounter))
+                {
+                    assumptionVars.get(argcounter).addLast(assumpVar);
+                } else
+                {
+                    assumptionVars.put(argcounter,new LinkedList<>(Arrays.asList(assumpVar)));
+                }
+
+                counter = counter + 1;
 
 
                 //New version
@@ -532,20 +560,78 @@ public class LLProver {
                 //This guarantees that the first argument of the compiled formula turns out to be the first argument of the
                 //original semantics
 
-                SemAtom argbv = binderVars.get(counter);
-                SemAtom bv = binderVars.get(counter);
+             //   SemAtom argbv = binderVars.get(argcounter).get(counter);
 
-                SemFunction newArg = new SemFunction(assumptionVars.get(assumptionVars.size()-1-counter),argbv,true);
+                Integer j = binderVars.keySet().size()-argcounter-1;
+               SemAtom bv = binderVars.get(j).get(binderVars.get(argcounter).size() - counter);
+                SemAtom binder = binderVars.get(argcounter).get(binderVars.get(argcounter).size() - counter);
 
-                currentSemantics = new FuncApp(currentSemantics, newArg);
 
-                SemAtom binder = binderVars.get(binderVars.size()-1-counter);
-                dummySemantics = new SemFunction(binder,dummySemantics);
+               Integer index = assumptionVars.keySet().size()-argcounter-1;
 
+
+                //SemFunction newArg = new SemFunction(assumptionVars.get(argcounter).remove(assumptionVars.get(argcounter).size()-counter),binder,true);
+
+            //    SemFunction newArg = new SemFunction(assumptionVars.get(index).remove(assumptionVars.get(index).size()-counter),bv,true);
+
+                if (complex) {
+
+                    SemFunction newArg = new SemFunction(assumptionVars.get(index).remove(assumptionVars.get(index).size()-counter),bv,true);
+
+                    SemFunction newArg2 = new SemFunction(((SemFunction) dummySemantics).getBinder(),
+                            new SemFunction(((SemFunction)((FuncApp) currentSemantics).getArgument()).getBinder(),((SemFunction) dummySemantics).getBinder()));
+                       //     ((SemFunction)((FuncApp) currentSemantics).getArgument().get);
+                    FuncApp newFA = new FuncApp(newArg2,newArg);
+                    SemanticRepresentation newBody = ((FuncApp) currentSemantics).getFunctor();
+                    currentSemantics = new FuncApp(newBody,newFA);
+
+
+                    dummySemantics = new SemFunction(binder, ((SemFunction) dummySemantics).getFuncBody());
+                 //   currentSemantics = new SemFunction(binder,currentSemantics);
+
+               //     currentSemantics = new SemFunction(binder, currentSemantics);
+                 //   currentSemantics = new FuncApp(currentSemantics, newArg);
+
+                }
+                else
+                    {
+                        SemFunction newArg = new SemFunction(assumptionVars.get(index).remove(assumptionVars.get(index).size()-counter),bv,true);
+                        currentSemantics = new FuncApp(currentSemantics, newArg);
+                        dummySemantics = new SemFunction(binder, dummySemantics);
+                //        currentSemantics = new SemFunction(binder, currentSemantics);
+                    }
+
+
+
+
+                /*
+
+                if ( !complex) {
+                    currentSemantics = new SemFunction(binder, currentSemantics);
+                    currentSemantics = new FuncApp(currentSemantics, newArg);
+
+                } else
+                {
+
+
+                }
+                */
+
+                /*
+                if (!complex) {
+                    currentSemantics = new FuncApp(currentSemantics, newArg);
+                    dummySemantics = new SemFunction(binder, dummySemantics);
+                } else
+                {
+                    dummySemantics = new SemFunction(binder,new FuncApp(dummySemantics,newArg));
+                    //dummySemantics = new FuncApp(dummySemantics,newArg);
+                    // dummySemantics = new SemFunction(binder,dummySemantics);
+                }
+*/
                 counter = counter - 1;
 
                 dependency.setSemTerm((SemanticExpression) dummySemantics);
-
+                //dependency.setSemTerm((SemanticExpression) currentSemantics);
 
                 // dependency.setSemTerm(new SemFunction(bv, new FuncApp(dependency.getSemTerm(), newArg)));
 
@@ -571,7 +657,7 @@ public class LLProver {
 
                 }
 
-   */
+   */           counter = 0;
                 argcounter = argcounter + 1;
                 Premise temp = new Premise(p.getPremiseIDs(),p.getSemTerm(),new LLFormula((LLFormula) f.getRhs()));
                 temp = convertNested(temp);
@@ -579,7 +665,8 @@ public class LLProver {
                 newGlue.discharges.addAll(p.getGlueTerm().discharges);
                 p = new Premise(p.getPremiseIDs(),temp.getSemTerm(),newGlue);
 
-                argcounter -= 1;
+                argcounter = argcounter - 1;
+                counter = binderVars.get(argcounter).size();
 
                 //p = convertNested(reorder(p));
             }
@@ -645,7 +732,8 @@ public class LLProver {
         // only an atomic glue term which will become an assumption;
         // return it and add the new variable as meaning side
         else {
-            p.setSemTerm(assumptionVars.getLast());
+           // Integer index = assumptionVars.keySet().size()-argcounter-1;
+            p.setSemTerm(assumptionVars.get(argcounter).getLast());
             return p;
         }
     }
@@ -753,10 +841,18 @@ public class LLProver {
             return sem;
         } else
         {
-       //     if (sem instanceof SemFunction)
-       //    {
+          if (sem instanceof SemFunction)
+           {
                 return new SemFunction(((SemFunction) sem).getBinder(),replaceDummy(((SemFunction) sem).getFuncBody()),true);
-      //      }
+            }
+
+            if (sem instanceof FuncApp)
+            {
+               return new FuncApp(replaceDummy(((FuncApp) sem).getFunctor()),((FuncApp) sem).getArgument());
+
+          }
+
+          return null;
         }
     }
 

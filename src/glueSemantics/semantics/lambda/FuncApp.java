@@ -44,7 +44,6 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
     public FuncApp(FuncApp fa) {
         this.functor = fa.functor.clone();
         this.argument = fa.argument.clone();
-        this.setType(fa.getType());
 
         //Test version
         //this.compiled = fa.compiled;
@@ -62,10 +61,8 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
 
     // Does a full beta reduction of the term including all nested functional applications
     public SemanticRepresentation betaReduce() throws ProverException {
-
-        //Recursive beta reduction from inside out.
         if (this.functor instanceof FuncApp)
-            this.functor = this.functor.betaReduce();
+            this.functor = functor.betaReduce();
 
         if (argument != null)
             return apply(argument);
@@ -77,20 +74,24 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
     applyTo() function of the functor is called for the actual application step.
     */
     public SemanticRepresentation apply(SemanticRepresentation arg) throws ProverException {
+
+        if (arg instanceof FuncApp) {
+            arg = arg.betaReduce();
+            this.argument = arg;
+        }
+
         if (this.functor instanceof SemFunction) {
             SemFunction lambda = (SemFunction) this.functor;
 
             //For end beta reduction
-            if (arg instanceof FuncApp)
-                    arg = arg.betaReduce();
 
             if (lambda.getBinder().getType().equals(arg.getType())) {
                 SemanticRepresentation newBody = lambda.getFuncBody();
                 newBody = newBody.applyTo(lambda.getBinder(), arg);
          //       newBody = newBody.betaReduce();
-                if (arg != this.argument)
-                    return new FuncApp(newBody, this.argument).betaReduce();
-                else
+          //      if (arg != this.argument)
+         //           return new FuncApp(newBody, this.argument).betaReduce();
+          //      else
                     if (newBody instanceof SemFunction && ((SemFunction) newBody).isCompiled())
                         return newBody;
                     else return  newBody.betaReduce();
@@ -126,6 +127,7 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
             if (arg.equals(this.argument))
                 return this;
             return new FuncApp(this,arg);
+
          //   return new MeaningRepresentation(String.format("app(%s,%s)",functor.toString(),arg.toString()));
         }
         return this;
