@@ -1,0 +1,4 @@
+john : g_e 
+sleep : (g_e -o (g_s -o g_t))
+peter : a_e
+
