@@ -1,0 +1,7 @@
+a : ((g_e -o (g_s -o g_t)) -o AX_t.(b_e -o (d_v -o X_t)) -o (d_v -o X_t))
+impv : ((i_s -o (j_s -o h_t)) -o AX_t.(d_v -o X_t) -o (d_s -o X_t))
+prog : (i_s -o (j_s -o h_t))
+past : AX_t.(d_s -o X_t) -o (k_s -o X_t)
+girl : (g_e -o (g_s -o g_t))
+kiss :(a_e -o (b_e -o (d_v -o f_t)))
+john : a_e 

@@ -60,7 +60,8 @@ public class LLProver {
 
 
     private int counter = 0;
-    private int argcounter = 0;
+    //private HashMap<Integer,Integer> counter = new HashMap<>();
+    private Integer argcounter = 0;
 
     public Debugging db = new Debugging();
 
@@ -325,13 +326,14 @@ public class LLProver {
 
             /* create new set of assumptions which can be modified independently from
             the set of assumptions of arg and func and add all assumptions to it */
-            if (combined == null)
-                throw new ProverException("Meaning side does not match structure of glue side");
-            combined.getGlueTerm().assumptions = new HashSet<>();
-            combined.getGlueTerm().assumptions.addAll(arg.getGlueTerm().assumptions);
-            combined.getGlueTerm().assumptions.addAll(func.getGlueTerm().assumptions);
-
-            db.combinations++;
+       //     if (combined == null)
+       //         throw new ProverException("Meaning side does not match structure of glue side");
+            if (combined != null) {
+                combined.getGlueTerm().assumptions = new HashSet<>();
+                combined.getGlueTerm().assumptions.addAll(arg.getGlueTerm().assumptions);
+                combined.getGlueTerm().assumptions.addAll(func.getGlueTerm().assumptions);
+                db.combinations++;
+            }
             return combined;
         }
         /*
@@ -480,6 +482,62 @@ public class LLProver {
      * @param p The nested premise to be converted
      * @return The converted premise
     * */
+
+
+    private Premise convertNested2(Premise p, Integer argcounter) throws ProverException{
+        if (p.getGlueTerm() instanceof  LLFormula)
+        {
+            LLFormula f = (LLFormula) p.getGlueTerm();
+
+            if (f.getLhs() instanceof LLFormula) {
+                LLFormula left = (LLFormula) f.getLhs();
+
+                if (left.getLhs() instanceof LLAtom){
+
+                    SemType newtype = new SemType(((LLFormula) f.getLhs()).getRhs().getType());
+
+
+                    SemAtom binderVar = new SemAtom(VAR,LexVariableHandler.returnNewVar(SemVar),newtype);
+
+                    if (binderVars.keySet().contains(argcounter))
+                    {
+                        binderVars.get(argcounter).addLast(binderVar);
+                    } else
+                    {
+                        binderVars.put(argcounter,new LinkedList<>(Arrays.asList(binderVar)));
+                    }
+
+                    //This is the variable that gets cut off the main formula
+                    SemAtom assumpVar = new SemAtom(VAR, LexVariableHandler.returnNewVar(SemVarE),new SemType(((LLFormula) left).getLhs().getType()));
+
+                    if (assumptionVars.keySet().contains(argcounter))
+                    {
+                        assumptionVars.get(argcounter).addLast(assumpVar);
+                    } else
+                    {
+                        assumptionVars.put(argcounter,new LinkedList<>(Arrays.asList(assumpVar)));
+                    }
+
+
+
+
+                    counter = counter + 1;
+
+
+                }else
+                    {
+                        //Results in higher order semantics?
+                        //TODO what to do here?
+                    }
+
+            }
+
+        }
+        return null;
+
+    }
+
+
     private Premise convertNested(Premise p) throws ProverException {
         db.compilations++;
 
@@ -528,6 +586,19 @@ public class LLProver {
 
                 counter = counter + 1;
 
+                /*
+                try {
+
+                    if (counter.keySet().contains(argcounter)) {
+                        counter.get(argcounter)
+                    } else {
+                        counter.put(argcounter, 0);
+                    }
+                } catch(Exception e)
+                {
+                    System.out.println("Error while handling arguments.");
+                }
+*/
 
                 //New version
                 //SemAtom assumpVar = new SemAtom(VAR, LexVariableHandler.returnNewVar(SemVarE),new SemType(TEMP));
@@ -576,7 +647,7 @@ public class LLProver {
 
                 if (complex) {
 
-                    SemFunction newArg = new SemFunction(assumptionVars.get(index).remove(assumptionVars.get(index).size()-counter),bv,true);
+                    SemFunction newArg = new SemFunction(assumptionVars.get(index).get(assumptionVars.get(index).size()-counter),bv,true);
 
                     SemFunction newArg2 = new SemFunction(((SemFunction) dummySemantics).getBinder(),
                             new SemFunction(((SemFunction)((FuncApp) currentSemantics).getArgument()).getBinder(),((SemFunction) dummySemantics).getBinder()));
@@ -595,7 +666,7 @@ public class LLProver {
                 }
                 else
                     {
-                        SemFunction newArg = new SemFunction(assumptionVars.get(index).remove(assumptionVars.get(index).size()-counter),bv,true);
+                        SemFunction newArg = new SemFunction(assumptionVars.get(index).get(assumptionVars.get(index).size()-counter),bv,true);
                         currentSemantics = new FuncApp(currentSemantics, newArg);
                         dummySemantics = new SemFunction(binder, dummySemantics);
                 //        currentSemantics = new SemFunction(binder, currentSemantics);
@@ -657,7 +728,7 @@ public class LLProver {
 
                 }
 
-   */           counter = 0;
+   */
                 argcounter = argcounter + 1;
                 Premise temp = new Premise(p.getPremiseIDs(),p.getSemTerm(),new LLFormula((LLFormula) f.getRhs()));
                 temp = convertNested(temp);
@@ -665,6 +736,7 @@ public class LLProver {
                 newGlue.discharges.addAll(p.getGlueTerm().discharges);
                 p = new Premise(p.getPremiseIDs(),temp.getSemTerm(),newGlue);
 
+                //counter.get(argcounter) = binderVars.get(argcounter).size();
                 argcounter = argcounter - 1;
                 counter = binderVars.get(argcounter).size();
 

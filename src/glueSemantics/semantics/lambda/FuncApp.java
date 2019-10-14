@@ -113,10 +113,12 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
         }
         else if (this.functor instanceof FuncApp) {
             //Old version did weird stuff for meaning representations
-        //    return new FuncApp(this.functor,arg);
+       //    return new FuncApp(this,arg);
+
+            return this;
             //old version
             //TODO this line makes no sense at all, but is required to work.
-            return ((FuncApp) this.functor).apply(arg);
+          //  return ((FuncApp) this.functor).apply(arg);
 
 
 

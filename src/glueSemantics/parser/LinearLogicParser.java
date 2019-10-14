@@ -94,23 +94,33 @@ public class LinearLogicParser {
             try {
                 if(unparsedInput.charAt(pos) == '_') {
                     pos++;
-                    if (unparsedInput.charAt(pos ) == 'e') {
-                        pos++;
-                        return new LLAtom( "" + (char) c,
-                                new SemType(SemType.AtomicType.E), LLAtom.LLType.CONST, polarity);
-                    }
-                    else if (unparsedInput.charAt(pos) == 't') {
-                        pos++;
-                        return new LLAtom("" + (char) c,
-                                new SemType(SemType.AtomicType.T), LLAtom.LLType.CONST, polarity);
-                    }
-                    else if (unparsedInput.charAt(pos) == 's') {
-                        pos++;
-                        return new LLAtom("" + (char) c,
-                                new SemType(SemType.AtomicType.S), LLAtom.LLType.CONST, polarity);
+
+                    if ( SemType.typeStrings.contains(String.valueOf(unparsedInput.charAt(pos)))) {
+                        if (unparsedInput.charAt(pos) == 'e') {
+                            pos++;
+                            return new LLAtom("" + (char) c,
+                                    new SemType(SemType.AtomicType.E), LLAtom.LLType.CONST, polarity);
+                        } else if (unparsedInput.charAt(pos) == 't') {
+                            pos++;
+                            return new LLAtom("" + (char) c,
+                                    new SemType(SemType.AtomicType.T), LLAtom.LLType.CONST, polarity);
+                        } else if (unparsedInput.charAt(pos) == 's') {
+                            pos++;
+                            return new LLAtom("" + (char) c,
+                                    new SemType(SemType.AtomicType.S), LLAtom.LLType.CONST, polarity);
+
+                        } else if (unparsedInput.charAt(pos) == 'i') {
+                            pos++;
+                            return new LLAtom("" + (char) c,
+                                    new SemType(SemType.AtomicType.I), LLAtom.LLType.CONST, polarity);
+                        } else if (unparsedInput.charAt(pos) == 'v') {
+                            pos++;
+                            return new LLAtom("" + (char) c,
+                                    new SemType(SemType.AtomicType.V), LLAtom.LLType.CONST, polarity);
+                        }
                     }
                     else
-                        throw new ParserInputException(pos,"Type identifier expected (e or t)");
+                        throw new ParserInputException(pos,"Type identifier expected (e,s,v,t or t)");
                 }
             } catch (StringIndexOutOfBoundsException e) {
                 return new LLAtom(""+(char) c, new SemType(SemType.AtomicType.E), LLAtom.LLType.CONST,polarity);

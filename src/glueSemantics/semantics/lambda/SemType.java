@@ -18,6 +18,10 @@
 package glueSemantics.semantics.lambda;
 
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 import static glueSemantics.semantics.lambda.SemType.AtomicType.E;
 import static glueSemantics.semantics.lambda.SemType.AtomicType.TEMP;
 
@@ -25,6 +29,7 @@ public class SemType {
     private SemType left;
     private SemType right;
     private AtomicType simple;
+    public static Set<String> typeStrings = new HashSet<String>(Arrays.asList("e","t","v","i","s","temp"));
 
     // An enumeration of possible atomic types
     // TEMP is a special type used for variables introduced
@@ -90,6 +95,10 @@ public class SemType {
                     return "s";
                 case T:
                     return "t";
+                case I:
+                    return "i";
+                case V:
+                    return "v";
             }
             /*
             if (simple == E)
