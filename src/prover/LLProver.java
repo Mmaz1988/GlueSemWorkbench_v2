@@ -25,14 +25,9 @@ import static glueSemantics.synInterface.dependency.LexVariableHandler.variableT
 import static glueSemantics.semantics.lambda.SemAtom.SemSort.VAR;
 import static glueSemantics.semantics.lambda.SemType.AtomicType.T;
 
+@Deprecated
 public class LLProver {
-    public static Settings getSettings() {
-        return settings;
-    }
 
-    public static void setSettings(Settings settings) {
-        LLProver.settings = settings;
-    }
 
     private static Settings settings;
 
@@ -377,6 +372,7 @@ public class LLProver {
      * @return the combined premise with the unified ID set
      *
     * */
+
     private Premise combineDisjointID(Premise func, Premise arg) throws ProverException {
         HashSet<Integer> combined_IDs = new HashSet<>();
         if (((LLFormula) func.getGlueTerm()).getLhs().checkEquivalence(arg.getGlueTerm())
@@ -386,15 +382,7 @@ public class LLProver {
 
             // Apply and beta-reduce meaning side
             //FuncApp applied = new FuncApp(func.getSemTerm(),arg.getSemTerm());
-            SemanticRepresentation reducedSem;
-            if (getSettings().isBetaReduce())
-            {
-                System.out.println("Beta reduced: " + func.getSemTerm().toString() +", " +arg.getSemTerm().toString());
-                reducedSem = new FuncApp(func.getSemTerm(),arg.getSemTerm()).betaReduce();
-                System.out.println("To:" + reducedSem.toString());
-            }
-            else
-                reducedSem = new FuncApp(func.getSemTerm(),arg.getSemTerm());
+            SemanticRepresentation reducedSem = LLProver2.combine(func,arg);
 
             if (((LLFormula) func.getGlueTerm()).getRhs() instanceof  LLAtom) {
                 return new Premise(combined_IDs, reducedSem,
@@ -944,5 +932,15 @@ public class LLProver {
     public void setModifiers(LinkedList<Premise> modifiers) {
         this.modifiers = modifiers;
     }
+
+    public static Settings getSettings() {
+        return settings;
+    }
+
+    public static void setSettings(Settings settings) {
+        LLProver.settings = settings;
+    }
+
+
 
 }

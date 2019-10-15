@@ -21,10 +21,7 @@ package glueSemantics.linearLogic;
 import glueSemantics.semantics.lambda.SemType;
 import prover.Equality;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 public abstract class LLTerm {
 
@@ -36,8 +33,12 @@ public abstract class LLTerm {
     private SemType semType;
     public Set<LLTerm> assumptions = new HashSet<>();
 
+    public Set<Premise> assumptions2 = new HashSet<>();
 
     public Set<LLTerm> discharges = new HashSet<>();
+
+    public LinkedList<Premise> orderedDischarges = new LinkedList<>();
+
 
     //Default constructor
     public LLTerm(){ }
@@ -54,6 +55,9 @@ public abstract class LLTerm {
     public SemType getType(){
         return this.semType;
     }
+
+    public abstract String category();
+
 
     public void setType(SemType type) {
         this.semType = type;
@@ -91,4 +95,21 @@ public abstract class LLTerm {
         this.discharges = discharges;
     }
 
+
+    public LinkedList<Premise> getOrderedDischarges() {
+        return orderedDischarges;
+    }
+
+    public void setOrderedDischarges(LinkedList<Premise> orderedDischarges) {
+        this.orderedDischarges = orderedDischarges;
+    }
+
+
+    public Set<Premise> getAssumptions2() {
+        return assumptions2;
+    }
+
+    public void setAssumptions2(Set<Premise> assumptions2) {
+        this.assumptions2 = assumptions2;
+    }
 }

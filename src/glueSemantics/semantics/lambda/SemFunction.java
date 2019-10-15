@@ -21,6 +21,7 @@ import glueSemantics.semantics.FunctionalAbstraction;
 import glueSemantics.semantics.FunctionalApplication;
 import glueSemantics.semantics.SemanticRepresentation;
 import prover.LLProver;
+import prover.LLProver2;
 import prover.ProverException;
 
 import static main.Settings.PROLOG;
@@ -82,7 +83,7 @@ public class SemFunction extends SemanticExpression implements FunctionalAbstrac
 
     @Override
     public String toString() {
-        if(LLProver.getSettings().getSemanticOutputStyle() == PROLOG)
+        if(LLProver2.getSettings().getSemanticOutputStyle() == PROLOG)
             return String.format("lam(%s,%s)",binder.toString(),funcBody.toString());
         else
             return operator + binder.toStringTyped() + "." + funcBody.toString();

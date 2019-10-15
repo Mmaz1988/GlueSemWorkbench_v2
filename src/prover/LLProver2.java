@@ -6,6 +6,7 @@ import glueSemantics.semantics.lambda.*;
 import glueSemantics.synInterface.dependency.LexVariableHandler;
 import main.Settings;
 import sun.tools.tree.PreIncExpression;
+import test.Debugging;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -16,126 +17,137 @@ public class LLProver2 {
     private static Settings settings;
 
 
-    //   private LinkedList<Premise> skeletons;
-    //   private LinkedList<Premise> modifiers;
+
     private Sequent currentSequent;
-    private HashMap<Integer, List<Premise>> category = new HashMap();
 
     private HashMap<String,List<Premise>> atomicChart = new HashMap<>();
     private HashMap<String,List<Premise>> nonAtomicChart = new HashMap<>();
 
     private LinkedList<Premise> agenda;
-    private LinkedList<Premise> database;
     private LinkedList<Premise> solutions =new LinkedList<>();
 
     private HashSet<Integer> goalIDs = new HashSet<>();
+
+    public Debugging db = new Debugging();
 
 
     /**
      * LLProver version 2.0
      * Implements Lev's rather than Hepple's algorithm. Avoids need for accidental binding.
-     * @param seq A sequent of premises
      * @param settings
-     * @throws VariableBindingException
-     * @throws ProverException
      */
-    public LLProver2(Sequent seq, Settings settings) throws VariableBindingException, ProverException {
+    public LLProver2(Settings settings) {
         setSettings(settings);
-        this.currentSequent = seq;
+    }
 
 
-        LinkedList<Premise> agenda = new LinkedList<>();
+     public void deduce(Sequent seq) throws ProverException,VariableBindingException
+        { LinkedList<Premise> agenda = new LinkedList<>();
 
-        for (Premise p : seq.getLhs()) {
-            agenda.addAll(convert(p));
+            this.currentSequent = seq;
 
-        }
+            long startTime = System.nanoTime();
 
-        this.agenda = agenda;
-
-        for (Premise p : this.agenda)
-        {
-            if (p.getPremiseIDs().size() == 1)
-            {
-                goalIDs.addAll(p.getPremiseIDs());
+            for (Premise p : currentSequent.getLhs()) {
+                agenda.addAll(convert(p));
             }
-        }
 
+            StringBuilder sb = new StringBuilder();
+            sb.append("Agenda:");
+            sb.append(System.lineSeparator());
+            for (Premise p : agenda)
+            {
+                sb.append(p);
+                sb.append(System.lineSeparator());
+            }
+            System.out.println(sb.toString());
 
+            this.agenda = agenda;
 
-        Boolean combinationsPossible = true;
+            for (Premise p : this.agenda)
+            {
+                if (p.getPremiseIDs().size() == 1)
+                {
+                    goalIDs.addAll(p.getPremiseIDs());
+                }
+            }
 
-        while (!agenda.isEmpty() && combinationsPossible) {
-            ListIterator<Premise> iter = agenda.listIterator();
+            Boolean combinationsPossible = true;
 
-            Premise combined = null;
+            while (!agenda.isEmpty() && combinationsPossible) {
+                ListIterator<Premise> iter = agenda.listIterator();
 
-            while (iter.hasNext()) {
+                Premise combined = null;
 
-                Premise p = iter.next();
-                iter.remove();
+                while (iter.hasNext()) {
 
-                if (p.getGlueTerm() instanceof LLAtom) {
+                    Premise p = iter.next();
+                    iter.remove();
+                    db.allIterations++;
 
-                    if (nonAtomicChart.keySet().contains(p.getGlueTerm().category())) {
-                        for (Premise q : nonAtomicChart.get(p.getGlueTerm().category())) {
-                            combined = combinePremises(q, p);
-                            if (combined != null) {
-                                iter.add(combined);
+                    if (p.getGlueTerm() instanceof LLAtom) {
+
+                        if (nonAtomicChart.keySet().contains(p.getGlueTerm().category())) {
+                            for (Premise q : nonAtomicChart.get(p.getGlueTerm().category())) {
+                                combined = combinePremises(q, p);
+                                if (combined != null) {
+                                    db.combinations++;
+                                    iter.add(combined);
+                                }
                             }
+
+                        } else {
+                            for (String key : nonAtomicChart.keySet()) {
+                                if (isVar(key)) {
+                                    for (Premise q : nonAtomicChart.get(key)) {
+                                        combined = combinePremises(q, p);
+                                        if (combined != null) {
+                                            db.combinations++;
+                                            iter.add(combined);
+                                        }
+                                    }
+                                }
+                            }
+
                         }
 
-                    } else {
-                        for (String key : nonAtomicChart.keySet()) {
-                            if (isVar(key)) {
-                                for (Premise q : nonAtomicChart.get(key)) {
-                                    combined = combinePremises(q, p);
+                    } else if (p.getGlueTerm() instanceof LLFormula) {
+
+                        if (((LLAtom) ((LLFormula) p.getGlueTerm()).getLhs()).getLLtype().equals(LLAtom.LLType.VAR)) {
+                            for (String key : atomicChart.keySet()) {
+
+                                for (Premise q : atomicChart.get(key)) {
+                                    combined = combinePremises(p, q);
                                     if (combined != null) {
                                         iter.add(combined);
+                                        db.combinations++;
+                                    }
+                                }
+                            }
+                        } else {
+                            if (atomicChart.keySet().contains(((LLFormula) p.getGlueTerm()).getLhs().category())) {
+                                for (Premise q : atomicChart.get(((LLFormula) p.getGlueTerm()).getLhs().category())) {
+                                    combined = combinePremises(p, q);
+                                    if (combined != null) {
+                                        iter.add(combined);
+                                        db.combinations++;
                                     }
                                 }
                             }
                         }
 
                     }
-
-                } else if (p.getGlueTerm() instanceof LLFormula) {
-
-                    if (((LLAtom) ((LLFormula) p.getGlueTerm()).getLhs()).getLLtype().equals(LLAtom.LLType.VAR)) {
-                        for (String key : atomicChart.keySet()) {
-
-                            for (Premise q : atomicChart.get(key)) {
-                                combined = combinePremises(p, q);
-                                if (combined != null) {
-                                    iter.add(combined);
-                                }
-                            }
-                        }
-                    } else {
-                        if (atomicChart.keySet().contains(((LLFormula) p.getGlueTerm()).getLhs().category())) {
-                            for (Premise q : atomicChart.get(((LLFormula) p.getGlueTerm()).getLhs().category())) {
-                                combined = combinePremises(p, q);
-                                if (combined != null) {
-                                    iter.add(combined);
-                                }
-                            }
-                        }
-                    }
-
+                    updateSolutions(p);
+                    adjustChart(p);
                 }
-
-
-
-                updateSolutions(p);
-
-                adjustChart(p);
-
             }
+
+            long endTime = System.nanoTime();
+
+            db.computationTime = endTime - startTime;
+
+
         }
-
-        System.out.println("Test finished;");
-
-    }
 
 
 
@@ -178,6 +190,7 @@ public class LLProver2 {
 
                 // Apply and beta-reduce meaning side
                 //FuncApp applied = new FuncApp(func.getSemTerm(),arg.getSemTerm());
+                /*
                 SemanticRepresentation reducedSem;
                 if (getSettings().isBetaReduce()) {
                     System.out.println("Beta reduced: " + func.getSemTerm().toString() + ", " + argument.getSemTerm().toString());
@@ -185,6 +198,9 @@ public class LLProver2 {
                     System.out.println("To:" + reducedSem.toString());
                 } else
                     reducedSem = new FuncApp(func.getSemTerm(), argument.getSemTerm());
+
+                */
+                SemanticRepresentation reducedSem = combine(func,argument);
 
                 /*
                 if (((LLFormula) func.getGlueTerm()).getRhs() instanceof LLAtom) {
@@ -213,6 +229,7 @@ public class LLProver2 {
 
                        Premise argumentClone = new Premise(argument.getPremiseIDs(),temp,argument.getGlueTerm().clone());
 
+                    /*
                     SemanticRepresentation reducedSem;
                     if (getSettings().isBetaReduce()) {
                         System.out.println("Beta reduced: " + func.getSemTerm().toString() + ", " + argumentClone.getSemTerm().toString());
@@ -220,6 +237,9 @@ public class LLProver2 {
                         System.out.println("To:" + reducedSem.toString());
                     } else
                         reducedSem = new FuncApp(func.getSemTerm(), argumentClone.getSemTerm());
+                    */
+
+                    SemanticRepresentation reducedSem = combine(func,argumentClone);
 
                     combined = new Premise(combined_IDs, reducedSem, ((LLFormula) func.getGlueTerm()).getRhs());
 
@@ -240,6 +260,20 @@ public class LLProver2 {
 
     }
 
+    public static SemanticRepresentation combine(Premise func, Premise argument) throws ProverException
+    {
+        SemanticRepresentation reducedSem;
+        if (getSettings().isBetaReduce()) {
+            System.out.println("Beta reduced: " + func.getSemTerm().toString() + ", " + argument.getSemTerm().toString());
+            reducedSem = new FuncApp(func.getSemTerm(), argument.getSemTerm()).betaReduce();
+            System.out.println("To:" + reducedSem.toString());
+        } else
+            reducedSem = new FuncApp(func.getSemTerm(), argument.getSemTerm());
+
+        return reducedSem;
+
+    }
+
     public Boolean checkDischarges(Premise functor, Premise argument) {
 
         for (Premise t : ((LLFormula) functor.getGlueTerm()).getLhs().getOrderedDischarges()) {
@@ -248,28 +282,6 @@ public class LLProver2 {
         }
     }
         return true;
-    }
-
-
-    public void adjustCategory(Premise p) {
-        if (p.getGlueTerm() instanceof LLFormula) {
-            if (category.keySet().contains(0)) {
-                category.get(0).add(p);
-            } else {
-                List<Premise> premises = new ArrayList<>();
-                premises.add(p);
-                category.put(0, premises);
-            }
-        } else if (p.getGlueTerm() instanceof LLAtom) {
-            if (category.keySet().contains(1)) {
-                category.get(1).add(p);
-            } else {
-                List<Premise> premises = new ArrayList<>();
-                premises.add(p);
-                category.put(1, premises);
-
-            }
-        }
     }
 
     public void adjustChart(Premise p) {
@@ -296,20 +308,20 @@ public class LLProver2 {
         }
     }
 
-
-
     public LinkedList<Premise> convert(Premise p)
     {
         LinkedList<Premise> compiled = new LinkedList<>();
 
         if (p.getGlueTerm() instanceof LLFormula)
         {
+
             LLFormula f = (LLFormula) p.getGlueTerm();
             LLTerm l = ((LLFormula) p.getGlueTerm()).getLhs();
 
 
             if (l instanceof LLFormula)
             {
+                db.compilations++;
                 //Compile out stuff
                 LLFormula compiledGlue = new LLFormula( ((LLFormula) l).getRhs(),f.getRhs(),f.isPolarity(),f.getVariable());
                 compiledGlue.getLhs().orderedDischarges.addAll(l.getOrderedDischarges());
@@ -439,5 +451,14 @@ public class LLProver2 {
         {
             solutions.add(p);
         }
+    }
+
+    //Getter and Setter
+    public LinkedList<Premise> getSolutions() {
+        return solutions;
+    }
+
+    public void setSolutions(LinkedList<Premise> solutions) {
+        this.solutions = solutions;
     }
 }

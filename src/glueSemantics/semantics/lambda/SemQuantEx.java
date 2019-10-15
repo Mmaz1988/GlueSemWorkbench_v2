@@ -19,6 +19,7 @@ package glueSemantics.semantics.lambda;
 
 import glueSemantics.semantics.SemanticRepresentation;
 import prover.LLProver;
+import prover.LLProver2;
 import prover.ProverException;
 
 import static glueSemantics.semantics.lambda.SemQuantEx.SemQuant.UNI;
@@ -79,12 +80,12 @@ public class SemQuantEx extends SemanticExpression {
     public String toString() {
         if (quantifier == UNI)
 
-            if(LLProver.getSettings().getSemanticOutputStyle() == PROLOG)
+            if(LLProver2.getSettings().getSemanticOutputStyle() == PROLOG)
                 return String.format("all(%s,%s)",binder.toString(),quantBody.toString());
             else
                 return String.valueOf('\u2200') + binder + "[" + quantBody + "]";
         else
-        if(LLProver.getSettings().getSemanticOutputStyle() == PROLOG)
+        if(LLProver2.getSettings().getSemanticOutputStyle() == PROLOG)
             return String.format("some(%s,%s)",binder.toString(),quantBody.toString());
         else
             return String.valueOf('\u2203') + binder + "[" + quantBody + "]";

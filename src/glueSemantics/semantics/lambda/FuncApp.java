@@ -22,6 +22,7 @@ import glueSemantics.semantics.FunctionalApplication;
 import glueSemantics.semantics.MeaningRepresentation;
 import glueSemantics.semantics.SemanticRepresentation;
 import prover.LLProver;
+import prover.LLProver2;
 import prover.ProverException;
 
 import java.util.HashSet;
@@ -201,7 +202,7 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
 
     @Override
     public String toString() {
-        if (LLProver.getSettings().getSemanticOutputStyle() == PROLOG)
+        if (LLProver2.getSettings().getSemanticOutputStyle() == PROLOG)
             return String.format("app(%s,%s)",functor.toString(),argument.toString());
         else
             return "[" + functor + "]" + "(" + argument + ")";

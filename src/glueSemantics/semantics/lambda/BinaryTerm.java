@@ -19,6 +19,7 @@ package glueSemantics.semantics.lambda;
 
 import glueSemantics.semantics.SemanticRepresentation;
 import prover.LLProver;
+import prover.LLProver2;
 import prover.ProverException;
 
 import static glueSemantics.semantics.lambda.BinaryTerm.SemOperator.AND;
@@ -91,17 +92,17 @@ public class BinaryTerm extends SemanticExpression {
     @Override
     public String toString() {
         if (operator == AND)
-            if(LLProver.getSettings().getSemanticOutputStyle() == PROLOG)
+            if(LLProver2.getSettings().getSemanticOutputStyle() == PROLOG)
                 return String.format("and(%s,%s)",left.toString(),right.toString());
             else
                 return left + " " + String.valueOf('\u2227') + " " + right;
         else if (operator == IMP)
-            if(LLProver.getSettings().getSemanticOutputStyle() == PROLOG)
+            if(LLProver2.getSettings().getSemanticOutputStyle() == PROLOG)
                 return String.format("imp(%s,%s)",left.toString(),right.toString());
             else
                 return left + " " + String.valueOf('\u2192') + " " + right;
         else
-        if(LLProver.getSettings().getSemanticOutputStyle() == PROLOG)
+        if(LLProver2.getSettings().getSemanticOutputStyle() == PROLOG)
             return String.format("or(%s,%s)",left.toString(),right.toString());
         else
             return left + " " + String.valueOf('\u2228') + " " + right;

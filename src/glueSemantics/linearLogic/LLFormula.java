@@ -93,7 +93,9 @@ public class LLFormula extends LLTerm {
         public LLFormula(LLFormula f)
         {
             this.assumptions = new HashSet<>(f.assumptions);
+            this.assumptions2 = new HashSet<>(f.assumptions2);
             this.discharges = new HashSet<>(f.discharges);
+            this.orderedDischarges = new LinkedList<>(f.orderedDischarges);
             this.lhs = f.getLhs().clone();
             this.rhs = f.getRhs().clone();
             this.setType(f.getType().clone());
@@ -207,7 +209,13 @@ public class LLFormula extends LLTerm {
 
     public String toPlainString() {
         return "(" + lhs.toPlainString() + " " + "\u22B8" + " "  + rhs.toPlainString() + ")";
-    }
+        }
+
+        @Override
+        public String category(){
+        return lhs.category() + "\u22B8" + rhs.category();
+        }
+
 
     @Override
     public LLTerm clone() {

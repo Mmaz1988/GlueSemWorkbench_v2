@@ -57,6 +57,10 @@ public class LLAtom extends LLTerm {
     public LLAtom(LLAtom term) {
         this.assumptions = new HashSet<>(term.assumptions);
         this.discharges = new HashSet<>(term.discharges);
+
+        this.orderedDischarges = new LinkedList<>(term.orderedDischarges);
+        this.assumptions2 = new HashSet<>(term.assumptions2);
+
         this.name = term.getName();
         this.setType(term.getType());
         this.setPolarity(term.isPolarity());
@@ -94,6 +98,11 @@ public class LLAtom extends LLTerm {
         }
         return false;
 
+    }
+
+    @Override
+    public String category() {
+        return this.name + "_" + getType();
     }
 
     @Override

@@ -25,6 +25,7 @@ import glueSemantics.synInterface.dependency.LexicalParserException;
 import glueSemantics.synInterface.dependency.SentenceMeaning;
 import glueSemantics.synInterface.lfg.FStructureParser;
 import prover.LLProver;
+import prover.LLProver2;
 import prover.ProverException;
 import prover.VariableBindingException;
 
@@ -287,20 +288,39 @@ public class WorkbenchMain {
 
     }
 
+    /*
     public static void searchProof(List<LexicalEntry> lexicalEntries) throws VariableBindingException {
+
         LLProver prover = new LLProver(settings);
+
         searchProof(prover,lexicalEntries);
     }
+    */
 
-    public static void searchProof(LLProver prover, List<LexicalEntry> lexicalEntries) throws VariableBindingException {
-        Sequent testseq = new Sequent(lexicalEntries);
+    public static void searchProof(List<LexicalEntry> lexicalEntries) throws VariableBindingException {
 
-        System.out.println(testseq.toString());
+        LLProver2 prover = new LLProver2(settings);
 
-        System.out.println("Searching for valid proofs...");
         List<Premise> result = null;
         try {
-            result = prover.deduce(testseq);
+
+
+
+            System.out.println("Searching for valid proofs...");
+
+            Sequent testseq = new Sequent(lexicalEntries);
+
+            System.out.println("Sequent:" + testseq.toString());
+
+            prover.deduce(testseq);
+
+
+
+            result = prover.getSolutions();
+
+
+
+
 
 
             System.out.println("Found the following deduction(s): ");
@@ -310,6 +330,7 @@ public class WorkbenchMain {
                 System.out.println(sol.toString());
             }
 
+            /*
             if (settings.isPartial()) {
                 for (Premise part : prover.getDatabase())
                 {
@@ -328,16 +349,19 @@ public class WorkbenchMain {
                 }
             }
 
+            */
+
+            System.out.println("Done!\n");
+            if (settings.isDebugging()) {
+                System.out.println("Debugging report:");
+                System.out.println(prover.db.toString());
+            }
 
         } catch (ProverException e) {
             e.printStackTrace();
         }
 
-        System.out.println("Done!\n");
-        if (settings.isDebugging()) {
-            System.out.println("Debugging report:");
-            System.out.println(prover.db.toString());
-        }
+
     }
 
 }
