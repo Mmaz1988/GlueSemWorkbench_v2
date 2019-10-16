@@ -62,7 +62,7 @@ public class SemPred extends SemanticExpression {
         this.predForm = p.predForm;
         this.argList = new ArrayList<>(p.argList);
         this.setType(T);
-        this.setCompiled(p.isCompiled());
+
     }
 
     @Override

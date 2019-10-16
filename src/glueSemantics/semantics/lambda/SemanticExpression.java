@@ -23,8 +23,6 @@ import glueSemantics.semantics.SemanticRepresentation;
 public abstract class SemanticExpression implements SemanticRepresentation {
     private SemType type;
 
-    private boolean compiled = false;
-
     public SemanticExpression() {
     }
 
@@ -47,15 +45,6 @@ public abstract class SemanticExpression implements SemanticRepresentation {
     // This is not a regular clone() method, it just calls the copy constructor
     // of the respective class.
     public abstract SemanticExpression clone();
-
-    public boolean isCompiled() {
-        return compiled;
-    }
-
-    public void setCompiled(boolean compiled) {
-        this.compiled = compiled;
-    }
-
 
 
 }

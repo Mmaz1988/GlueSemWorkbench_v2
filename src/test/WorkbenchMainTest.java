@@ -22,15 +22,11 @@ import glueSemantics.parser.GlueParser;
 import glueSemantics.parser.ParserInputException;
 import glueSemantics.synInterface.dependency.LexicalParserException;
 import glueSemantics.synInterface.lfg.FStructureParser;
-import main.Settings;
 import main.WorkbenchMain;
 import org.junit.jupiter.api.Test;
-import prover.LLProver;
 import prover.VariableBindingException;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;

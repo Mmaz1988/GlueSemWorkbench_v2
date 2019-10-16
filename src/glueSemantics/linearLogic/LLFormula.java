@@ -92,9 +92,9 @@ public class LLFormula extends LLTerm {
 
         public LLFormula(LLFormula f)
         {
-            this.assumptions = new HashSet<>(f.assumptions);
+          //  this.assumptions = new HashSet<>(f.assumptions);
             this.assumptions2 = new HashSet<>(f.assumptions2);
-            this.discharges = new HashSet<>(f.discharges);
+         //   this.discharges = new HashSet<>(f.discharges);
             this.orderedDischarges = new LinkedList<>(f.orderedDischarges);
             this.lhs = f.getLhs().clone();
             this.rhs = f.getRhs().clone();
@@ -111,10 +111,6 @@ public class LLFormula extends LLTerm {
 
 
         }
-
-
-
-
     /*
     Represents the binder relation between the quantifier
     and the variables in the scope of the quantifier
@@ -181,8 +177,10 @@ public class LLFormula extends LLTerm {
     }
 
 
+
     @Override
     public String toString() {
+        /*
         String as = "";
         String dc = "";
         if (!(this.assumptions.isEmpty())) {
@@ -201,10 +199,10 @@ public class LLFormula extends LLTerm {
             dc = "[" + dcTemp.substring(1,dcTemp.length()) + "]";
         }
 
+*/
         return "(" + lhs.toPlainString()
-                + dc + " "
-                + "\u22B8" + " " + rhs.toString() + ")"
-                + as;
+                + " "
+                + "\u22B8" + " " + rhs.toString() + ")";
     }
 
     public String toPlainString() {

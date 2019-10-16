@@ -24,7 +24,6 @@ import glueSemantics.semantics.lambda.SemanticExpression;
 import glueSemantics.synInterface.dependency.LexicalParserException;
 import glueSemantics.synInterface.dependency.SentenceMeaning;
 import glueSemantics.synInterface.lfg.FStructureParser;
-import prover.LLProver;
 import prover.LLProver2;
 import prover.ProverException;
 import prover.VariableBindingException;
@@ -158,14 +157,8 @@ public class WorkbenchMain {
                             {
                                 System.out.println("Error while generating output file. Maybe no valid path was given.");
                             }
-
-
-
                         }
-
                     }
-
-
             } catch (VariableBindingException | LexicalParserException e) {
                 e.printStackTrace();
             }
@@ -301,10 +294,8 @@ public class WorkbenchMain {
 
         LLProver2 prover = new LLProver2(settings);
 
-        List<Premise> result = null;
+        List<Premise> result;
         try {
-
-
 
             System.out.println("Searching for valid proofs...");
 

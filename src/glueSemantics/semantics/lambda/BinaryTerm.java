@@ -18,7 +18,6 @@
 package glueSemantics.semantics.lambda;
 
 import glueSemantics.semantics.SemanticRepresentation;
-import prover.LLProver;
 import prover.LLProver2;
 import prover.ProverException;
 
@@ -42,7 +41,6 @@ public class BinaryTerm extends SemanticExpression {
         this.left = b.left;
         this.right = b.right;
         this.operator = b.operator;
-        this.setCompiled(b.isCompiled());
     }
 
     public SemanticRepresentation getLeft() {

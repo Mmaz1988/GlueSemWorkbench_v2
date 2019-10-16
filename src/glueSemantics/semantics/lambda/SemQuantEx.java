@@ -18,7 +18,6 @@
 package glueSemantics.semantics.lambda;
 
 import glueSemantics.semantics.SemanticRepresentation;
-import prover.LLProver;
 import prover.LLProver2;
 import prover.ProverException;
 
@@ -41,7 +40,6 @@ public class SemQuantEx extends SemanticExpression {
         this.quantifier = s.quantifier;
         this.binder = s.binder;
         this.quantBody = s.quantBody.clone();
-        this.setCompiled(s.isCompiled());
     }
 
     public enum SemQuant {

@@ -17,14 +17,11 @@
 
 package glueSemantics.synInterface.dependency;
 
-import prover.LLProver;
-import prover.ProverException;
 import prover.VariableBindingException;
 import edu.stanford.nlp.ling.IndexedWord;
 import edu.stanford.nlp.trees.GrammaticalStructure;
 import edu.stanford.nlp.trees.TypedDependency;
 import glueSemantics.lexicon.*;
-import glueSemantics.linearLogic.Premise;
 import glueSemantics.linearLogic.Sequent;
 
 import java.util.*;

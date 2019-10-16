@@ -17,18 +17,12 @@
 
 package glueSemantics.semantics.lambda;
 
-import edu.stanford.nlp.parser.lexparser.FrenchUnknownWordModel;
 import glueSemantics.semantics.FunctionalApplication;
 import glueSemantics.semantics.MeaningRepresentation;
 import glueSemantics.semantics.SemanticRepresentation;
-import prover.LLProver;
 import prover.LLProver2;
 import prover.ProverException;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import static main.Settings.PLAIN;
 import static main.Settings.PROLOG;
 
 public class FuncApp extends SemanticExpression implements FunctionalApplication {
@@ -93,7 +87,7 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
           //      if (arg != this.argument)
          //           return new FuncApp(newBody, this.argument).betaReduce();
           //      else
-                    if (newBody instanceof SemFunction && ((SemFunction) newBody).isCompiled())
+                    if (newBody instanceof SemFunction)
                         return newBody;
                     else return  newBody.betaReduce();
 

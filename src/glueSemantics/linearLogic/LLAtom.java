@@ -55,8 +55,8 @@ public class LLAtom extends LLTerm {
 
 
     public LLAtom(LLAtom term) {
-        this.assumptions = new HashSet<>(term.assumptions);
-        this.discharges = new HashSet<>(term.discharges);
+    //    this.assumptions = new HashSet<>(term.assumptions);
+   //     this.discharges = new HashSet<>(term.discharges);
 
         this.orderedDischarges = new LinkedList<>(term.orderedDischarges);
         this.assumptions2 = new HashSet<>(term.assumptions2);
@@ -71,15 +71,21 @@ public class LLAtom extends LLTerm {
 
     @Override
     public String toString() {
-        if (this.assumptions.isEmpty())
-            return this.toPlainString();
+        /*TODO update method
+        if (this.assumptions2.isEmpty())
+
         else {
             if (this.assumptions.size() == 1 && this.assumptions.contains(this) && this.discharges.isEmpty())
                 return "{" + name + "}";
             else
                 return name + this.printAssumptions();
         }
+        */
+
+        return this.toPlainString();
+
     }
+
 
     public String toPlainString() {
         return name;

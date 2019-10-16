@@ -31,14 +31,13 @@ public abstract class LLTerm {
 
     private boolean polarity;
     private SemType semType;
-    public Set<LLTerm> assumptions = new HashSet<>();
+    //public Set<LLTerm> assumptions = new HashSet<>();
 
     public Set<Premise> assumptions2 = new HashSet<>();
 
-    public Set<LLTerm> discharges = new HashSet<>();
+    //public Set<LLTerm> discharges = new HashSet<>();
 
     public LinkedList<Premise> orderedDischarges = new LinkedList<>();
-
 
     //Default constructor
     public LLTerm(){ }
@@ -73,6 +72,8 @@ public abstract class LLTerm {
     // of the respective class.
     public abstract LLTerm clone();
 
+
+ /*TODO update this method
     String printAssumptions() {
         StringBuilder sb = new StringBuilder();
         ArrayList<LLTerm> as = new ArrayList<>(assumptions);
@@ -85,8 +86,9 @@ public abstract class LLTerm {
         sb.append("}");
         return sb.toString();
     }
+*/
 
-
+ /*
     public Set<LLTerm> getDischarges() {
         return discharges;
     }
@@ -94,7 +96,7 @@ public abstract class LLTerm {
     public void setDischarges(Set<LLTerm> discharges) {
         this.discharges = discharges;
     }
-
+*/
 
     public LinkedList<Premise> getOrderedDischarges() {
         return orderedDischarges;

@@ -20,7 +20,6 @@ package glueSemantics.semantics.lambda;
 
 import glueSemantics.semantics.SemanticRepresentation;
 import main.Settings;
-import prover.LLProver;
 import prover.LLProver2;
 
 import static glueSemantics.semantics.lambda.SemAtom.SemSort.VAR;
@@ -52,7 +51,6 @@ public class SemAtom extends SemanticExpression {
         this.name = a.name;
         this.sort = a.sort;
         this.setType(a.getType());
-        this.setCompiled(a.isCompiled());
     }
 
 
