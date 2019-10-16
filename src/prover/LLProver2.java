@@ -5,6 +5,7 @@ import glueSemantics.semantics.SemanticRepresentation;
 import glueSemantics.semantics.lambda.*;
 import glueSemantics.synInterface.dependency.LexVariableHandler;
 import main.Settings;
+import main.WorkbenchMain;
 import sun.tools.tree.PreIncExpression;
 import test.Debugging;
 
@@ -28,7 +29,7 @@ public class LLProver2 {
 
     private HashSet<Integer> goalIDs = new HashSet<>();
 
-    public Debugging db = new Debugging();
+    public Debugging db;
 
 
     /**
@@ -43,6 +44,9 @@ public class LLProver2 {
 
      public void deduce(Sequent seq) throws ProverException,VariableBindingException
         { LinkedList<Premise> agenda = new LinkedList<>();
+
+
+            this.db = new Debugging();
 
             this.currentSequent = seq;
 
@@ -187,31 +191,9 @@ public class LLProver2 {
 
             if (((LLFormula) func.getGlueTerm()).getLhs().getOrderedDischarges().isEmpty()) {
 
-
-                // Apply and beta-reduce meaning side
-                //FuncApp applied = new FuncApp(func.getSemTerm(),arg.getSemTerm());
-                /*
-                SemanticRepresentation reducedSem;
-                if (getSettings().isBetaReduce()) {
-                    System.out.println("Beta reduced: " + func.getSemTerm().toString() + ", " + argument.getSemTerm().toString());
-                    reducedSem = new FuncApp(func.getSemTerm(), argument.getSemTerm()).betaReduce();
-                    System.out.println("To:" + reducedSem.toString());
-                } else
-                    reducedSem = new FuncApp(func.getSemTerm(), argument.getSemTerm());
-
-                */
                 SemanticRepresentation reducedSem = combine(func,argument);
 
-                /*
-                if (((LLFormula) func.getGlueTerm()).getRhs() instanceof LLAtom) {
-                    combined = new Premise(combined_IDs, reducedSem,
-                            new LLAtom((LLAtom) ((LLFormula) func.getGlueTerm()).getRhs()));
-                }
-                */
                 combined = new Premise(combined_IDs, reducedSem, ((LLFormula) func.getGlueTerm()).getRhs());
-
-
-
 
         }
          else {
@@ -228,16 +210,6 @@ public class LLProver2 {
                        }
 
                        Premise argumentClone = new Premise(argument.getPremiseIDs(),temp,argument.getGlueTerm().clone());
-
-                    /*
-                    SemanticRepresentation reducedSem;
-                    if (getSettings().isBetaReduce()) {
-                        System.out.println("Beta reduced: " + func.getSemTerm().toString() + ", " + argumentClone.getSemTerm().toString());
-                        reducedSem = new FuncApp(func.getSemTerm(), argumentClone.getSemTerm()).betaReduce();
-                        System.out.println("To:" + reducedSem.toString());
-                    } else
-                        reducedSem = new FuncApp(func.getSemTerm(), argumentClone.getSemTerm());
-                    */
 
                     SemanticRepresentation reducedSem = combine(func,argumentClone);
 
