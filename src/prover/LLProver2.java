@@ -2,11 +2,12 @@ package prover;
 
 import glueSemantics.linearLogic.*;
 import glueSemantics.semantics.SemanticRepresentation;
-import glueSemantics.semantics.lambda.*;
+import glueSemantics.semantics.lambda.FuncApp;
+import glueSemantics.semantics.lambda.SemAtom;
+import glueSemantics.semantics.lambda.SemFunction;
+import glueSemantics.semantics.lambda.SemType;
 import glueSemantics.synInterface.dependency.LexVariableHandler;
 import main.Settings;
-import main.WorkbenchMain;
-import sun.tools.tree.PreIncExpression;
 import test.Debugging;
 
 import java.util.*;
@@ -76,9 +77,9 @@ public class LLProver2 {
                 }
             }
 
-            Boolean combinationsPossible = true;
 
-            while (!agenda.isEmpty() && combinationsPossible) {
+
+            while (!agenda.isEmpty()) {
                 ListIterator<Premise> iter = agenda.listIterator();
 
                 Premise combined = null;
@@ -100,7 +101,8 @@ public class LLProver2 {
                                 }
                             }
 
-                        } else {
+                        }
+
                             for (String key : nonAtomicChart.keySet()) {
                                 if (isVar(key)) {
                                     for (Premise q : nonAtomicChart.get(key)) {
@@ -113,7 +115,8 @@ public class LLProver2 {
                                 }
                             }
 
-                        }
+
+
 
                     } else if (p.getGlueTerm() instanceof LLFormula) {
 
