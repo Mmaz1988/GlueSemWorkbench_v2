@@ -1,0 +1,2 @@
+person : (((a_e -o b_t) -o c_e) -o d_e)
+the : ((a_e -o b_t) -o c_e)

@@ -1,0 +1,4 @@
+everygoblin : AX.(g_e -o X_t) -o X_t
+seemed : (p_t -o s_t)
+pinch : (m_e -o (g_e -o p_t))
+Merry : m_e 

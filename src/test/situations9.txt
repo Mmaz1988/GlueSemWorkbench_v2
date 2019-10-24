@@ -1,0 +1,4 @@
+gonzo : g_e
+promised : (g_e -o ((g_e -o t_t) -o p_t)) 
+try : (g_e -o ((g_e -o s_t) -o t_t)) 
+smile : (g_e -o s_t) 

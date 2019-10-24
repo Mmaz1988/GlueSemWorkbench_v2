@@ -1,0 +1,4 @@
+everygoblin : AX.(g_e -o X_t) -o X_t
+tried : (m_e -o ((m_e -o p_t) -o t_t))
+pinch : (g_e -o (m_e -o p_t))
+Merry : m_e 

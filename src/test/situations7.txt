@@ -1,0 +1,5 @@
+everyperson : AX_t.(a_e -o (d_s -o X_t)) -o (d_s -o X_t)
+somebody : AY_t.(b_e -o (d_s -o Y_t)) -o (d_s -o Y_t)
+love : (a_e -o (b_e -o (d_s -o h_t)))
+think : ((d_s -o h_t) -o (g_e -o (t_s -o f_t)))
+john : g_e 

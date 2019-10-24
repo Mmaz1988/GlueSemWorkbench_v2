@@ -1,0 +1,5 @@
+# This is a comment 
+everygoblin : AX.(15_e -o X_t) -o X_t
+tried : (merry_e -o ((merry_e -o p_t) -o t_t))
+pinch : (15_e -o (merry_e -o p_t))
+merry : merry_e 

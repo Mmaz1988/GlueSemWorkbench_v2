@@ -1,0 +1,3 @@
+everyperson : AX_t.(a_e -o (d_s -o X_t)) -o (d_s -o X_t))
+somebody : AX_t.(b_e -o (d_s -o X_t)) -o (d_s -o X_t))
+love : (a_e -o (b_e -o (d_s -o h_t)))
