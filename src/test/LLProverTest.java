@@ -98,7 +98,7 @@ class LLProverTest {
             lp.deduce(intransQuant);
             List<Premise> solutions = lp.getSolutions();
             assertEquals(1,solutions.size());
-            assertEquals("/P./Q./x.every(x,P(x),Q(x))(λy_t./y.sleep(y)(y))(λx_t./x.dog(x)(x))",solutions.get(0).getSemTerm().toString());
+            assertEquals("[[/P./Q./x.every(x,P(x),Q(x))](λy_t./y.sleep(y)(y))](λx_t./x.dog(x)(x))",solutions.get(0).getSemTerm().toString());
             assertEquals("f",solutions.get(0).getGlueTerm().toString());
             assertEquals(new HashSet<>(Arrays.asList(0,1,2,3,4)),solutions.get(0).getPremiseIDs());
 

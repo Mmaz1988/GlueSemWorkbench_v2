@@ -42,7 +42,12 @@ public class LinearLogicParser {
         for (String unparsedPremise : unparsedPremises) {
 
             try {
-                premises.add(parse(unparsedPremise));
+
+                LLTerm p = parse(unparsedPremise);
+                //If p is null the line is commente
+                if (p != null) {
+                    premises.add(p);
+                }
             } catch (ParserInputException pe) {
                 System.out.println(pe.getMessage());
             }
@@ -85,37 +90,56 @@ public class LinearLogicParser {
         }
         // get current character and increment the position counter
         char c = unparsedInput.charAt(pos);
+
+        //comment out only at beginning of line.
+        if (c == 45)
+        {
+            return null;
+        }
+
         //char test = (char) c;
         pos++;
 
         // character is a lower case letter
-        if(c >= 97 && c <= 122){
+        if(c >= 97 && c <= 122 || c >= 48 && c <= 57){
+
+            StringBuilder sb = new StringBuilder();
+
+            //or sequence of letters
+            while ((c >= 97 && c <= 122) || (c >= 48 && c <= 57))
+            {
+                sb.append(c);
+                c = unparsedInput.charAt(pos);
+                pos++;
+            }
+
+            String glueIdentifier = sb.toString();
             // check for a type identifier
             try {
-                if(unparsedInput.charAt(pos) == '_') {
-                    pos++;
+                if(c == '_') {
+                   // pos++;
 
                     if ( SemType.typeStrings.contains(String.valueOf(unparsedInput.charAt(pos)))) {
                         if (unparsedInput.charAt(pos) == 'e') {
                             pos++;
-                            return new LLAtom("" + (char) c,
+                            return new LLAtom(glueIdentifier,
                                     new SemType(SemType.AtomicType.E), LLAtom.LLType.CONST, polarity);
                         } else if (unparsedInput.charAt(pos) == 't') {
                             pos++;
-                            return new LLAtom("" + (char) c,
+                            return new LLAtom(glueIdentifier,
                                     new SemType(SemType.AtomicType.T), LLAtom.LLType.CONST, polarity);
                         } else if (unparsedInput.charAt(pos) == 's') {
                             pos++;
-                            return new LLAtom("" + (char) c,
+                            return new LLAtom(glueIdentifier,
                                     new SemType(SemType.AtomicType.S), LLAtom.LLType.CONST, polarity);
 
                         } else if (unparsedInput.charAt(pos) == 'i') {
                             pos++;
-                            return new LLAtom("" + (char) c,
+                            return new LLAtom(glueIdentifier,
                                     new SemType(SemType.AtomicType.I), LLAtom.LLType.CONST, polarity);
                         } else if (unparsedInput.charAt(pos) == 'v') {
                             pos++;
-                            return new LLAtom("" + (char) c,
+                            return new LLAtom(glueIdentifier,
                                     new SemType(SemType.AtomicType.V), LLAtom.LLType.CONST, polarity);
                         }
                     }
@@ -203,6 +227,9 @@ public class LinearLogicParser {
             return new LLFormula(left,right, polarity,(LLAtom) var);
 
         }
+
+
+
 
         else {
             throw new ParserInputException("ParserError: Unknown character at position " + pos +": '" + unparsedInput.charAt(pos) + "'.");
