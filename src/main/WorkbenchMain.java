@@ -68,7 +68,9 @@ public class WorkbenchMain {
                     break;
                 case ("-p"):
                     settings.setPartial(true);
-
+                    break;
+                case ("-go"):
+                    settings.setGlueOnly(true);
             }
         }
 

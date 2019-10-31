@@ -28,6 +28,9 @@ public class LLProver2 {
     private LinkedList<Premise> agenda;
     private LinkedList<Premise> solutions =new LinkedList<>();
 
+    private LinkedList<Premise> skeletons = new LinkedList<>();
+    private LinkedList<Premise> modifiers = new LinkedList<>();
+
     private HashSet<Integer> goalIDs = new HashSet<>();
 
     public Debugging db;
@@ -54,7 +57,7 @@ public class LLProver2 {
             long startTime = System.nanoTime();
 
             for (Premise p : currentSequent.getLhs()) {
-                agenda.addAll(convert(p));
+                    agenda.addAll(convert(p));
             }
 
             StringBuilder sb = new StringBuilder();
@@ -90,18 +93,19 @@ public class LLProver2 {
                     iter.remove();
                     db.allIterations++;
 
-                    if (p.getGlueTerm() instanceof LLAtom) {
 
-                        if (nonAtomicChart.keySet().contains(p.getGlueTerm().category())) {
-                            for (Premise q : nonAtomicChart.get(p.getGlueTerm().category())) {
-                                combined = combinePremises(q, p);
-                                if (combined != null) {
-                                    db.combinations++;
-                                    iter.add(combined);
+                        if (p.getGlueTerm() instanceof LLAtom) {
+
+                            if (nonAtomicChart.keySet().contains(p.getGlueTerm().category())) {
+                                for (Premise q : nonAtomicChart.get(p.getGlueTerm().category())) {
+                                    combined = combinePremises(q, p);
+                                    if (combined != null) {
+                                        db.combinations++;
+                                        iter.add(combined);
+                                    }
                                 }
-                            }
 
-                        }
+                            }
 
                             for (String key : nonAtomicChart.keySet()) {
                                 if (isVar(key)) {
@@ -116,37 +120,36 @@ public class LLProver2 {
                             }
 
 
+                        } else if (p.getGlueTerm() instanceof LLFormula) {
 
+                            if (((LLAtom) ((LLFormula) p.getGlueTerm()).getLhs()).getLLtype().equals(LLAtom.LLType.VAR)) {
+                                for (String key : atomicChart.keySet()) {
 
-                    } else if (p.getGlueTerm() instanceof LLFormula) {
-
-                        if (((LLAtom) ((LLFormula) p.getGlueTerm()).getLhs()).getLLtype().equals(LLAtom.LLType.VAR)) {
-                            for (String key : atomicChart.keySet()) {
-
-                                for (Premise q : atomicChart.get(key)) {
-                                    combined = combinePremises(p, q);
-                                    if (combined != null) {
-                                        iter.add(combined);
-                                        db.combinations++;
+                                    for (Premise q : atomicChart.get(key)) {
+                                        combined = combinePremises(p, q);
+                                        if (combined != null) {
+                                            iter.add(combined);
+                                            db.combinations++;
+                                        }
+                                    }
+                                }
+                            } else {
+                                if (atomicChart.keySet().contains(((LLFormula) p.getGlueTerm()).getLhs().category())) {
+                                    for (Premise q : atomicChart.get(((LLFormula) p.getGlueTerm()).getLhs().category())) {
+                                        combined = combinePremises(p, q);
+                                        if (combined != null) {
+                                            iter.add(combined);
+                                            db.combinations++;
+                                        }
                                     }
                                 }
                             }
-                        } else {
-                            if (atomicChart.keySet().contains(((LLFormula) p.getGlueTerm()).getLhs().category())) {
-                                for (Premise q : atomicChart.get(((LLFormula) p.getGlueTerm()).getLhs().category())) {
-                                    combined = combinePremises(p, q);
-                                    if (combined != null) {
-                                        iter.add(combined);
-                                        db.combinations++;
-                                    }
-                                }
-                            }
+
                         }
-
+                        updateSolutions(p);
+                        adjustChart(p);
                     }
-                    updateSolutions(p);
-                    adjustChart(p);
-                }
+
             }
 
             long endTime = System.nanoTime();
@@ -230,6 +233,24 @@ public class LLProver2 {
 
         }
 
+        if (combined != null)
+        {
+            String f = "";
+            String a = "";
+            if (getSettings().isGlueOnly())
+            {
+                f = functor.getGlueTerm().toPlainString();
+                a = argument.getGlueTerm().toPlainString();
+            }
+            else
+            {
+                f = functor.toString();
+                a = argument.toString();
+            }
+
+            System.out.println("Combining " + f + " and " + a);
+            System.out.println("to: " + combined.toString());
+        }
 
         return combined;
 
@@ -239,9 +260,9 @@ public class LLProver2 {
     {
         SemanticRepresentation reducedSem;
         if (getSettings().isBetaReduce()) {
-            System.out.println("Beta reduced: " + func.getSemTerm().toString() + ", " + argument.getSemTerm().toString());
+        //    System.out.println("Beta reduced: " + func.getSemTerm().toString() + ", " + argument.getSemTerm().toString());
             reducedSem = new FuncApp(func.getSemTerm(), argument.getSemTerm()).betaReduce();
-            System.out.println("To:" + reducedSem.toString());
+        //    System.out.println("To:" + reducedSem.toString());
         } else
             reducedSem = new FuncApp(func.getSemTerm(), argument.getSemTerm());
 

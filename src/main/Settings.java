@@ -34,12 +34,14 @@ public class Settings {
     private int semanticOutputStyle;
     private boolean debugging;
     private boolean partial;
+    private boolean glueOnly;
 
     public Settings() {
         this.betaReduce = true;
         this.semanticOutputStyle = PLAIN;
         this.debugging = false;
         this.partial = false;
+        this.glueOnly = false;
     }
 
     public Settings (boolean betaReduce, int semanticOutputStyle) {
@@ -47,6 +49,7 @@ public class Settings {
         this.semanticOutputStyle = semanticOutputStyle;
         this.debugging = false;
         this.partial = false;
+        this.glueOnly = false;
     }
 
     public boolean isBetaReduce() {
@@ -79,6 +82,14 @@ public class Settings {
 
     public void setPartial(boolean partial) {
         this.partial = partial;
+    }
+
+    public boolean isGlueOnly() {
+        return glueOnly;
+    }
+
+    public void setGlueOnly(boolean glueOnly) {
+        this.glueOnly = glueOnly;
     }
 
 }

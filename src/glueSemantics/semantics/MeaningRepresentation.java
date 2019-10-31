@@ -18,7 +18,6 @@
 package glueSemantics.semantics;
 
 import glueSemantics.semantics.lambda.SemType;
-import prover.ProverException;
 
 /**
  * A MeaningRepresentation is a generic semantic representation without any asociation
@@ -26,6 +25,8 @@ import prover.ProverException;
  * theory. This class is used to have simple string representations of formulae on the semantic
  * side of a premise.
  */
+
+//TODO make to string plain if no Settings are available
 public class MeaningRepresentation implements SemanticRepresentation{
     private final String formula;
     private SemType type;

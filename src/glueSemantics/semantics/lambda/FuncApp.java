@@ -23,6 +23,9 @@ import glueSemantics.semantics.SemanticRepresentation;
 import prover.LLProver2;
 import prover.ProverException;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static main.Settings.PROLOG;
 
 public class FuncApp extends SemanticExpression implements FunctionalApplication {
@@ -33,9 +36,13 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
     public FuncApp(SemanticRepresentation functor, SemanticRepresentation argument) {
         //this.functor = functor;
         //this.argument = argument;
-        this.instantiateFunctionalApp(functor,argument);
-    }
 
+        //Version for pointwise functional application
+
+
+        this.instantiateFunctionalApp(functor, argument);
+
+    }
     public FuncApp(FuncApp fa) {
         this.functor = fa.functor.clone();
         this.argument = fa.argument.clone();
@@ -58,6 +65,31 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
     public SemanticRepresentation betaReduce() throws ProverException {
         if (this.functor instanceof FuncApp)
             this.functor = functor.betaReduce();
+
+        if (functor instanceof SemSet)
+        {
+            List<SemanticRepresentation> newSet = new ArrayList<>();
+            for (SemanticRepresentation m : ((SemSet) functor).getMembers())
+            {
+                FuncApp newFA = new FuncApp(m,argument);
+                newSet.add(newFA);
+            }
+
+            SemSet out = new SemSet(newSet,newSet.get(0).getType());
+            return out.betaReduce();
+
+        } else if (argument instanceof SemSet)
+        {
+            List<SemanticRepresentation> newSet = new ArrayList<>();
+            for (SemanticRepresentation m : ((SemSet) argument).getMembers())
+            {
+                FuncApp newFA = new FuncApp(functor,m);
+                newSet.add(newFA);
+            }
+            SemSet out = new SemSet(newSet,newSet.get(0).getType());
+            return out.betaReduce();
+        }
+
 
         if (argument != null)
             return apply(argument);
