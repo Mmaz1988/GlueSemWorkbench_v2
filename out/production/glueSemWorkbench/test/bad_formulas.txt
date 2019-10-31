@@ -1,4 +1,0 @@
-/x.dog(x) : (g_e -o g_t)
-this is a bad line
-/x.dog(x) : bad ll formula
-/x.student(x) : (g_e -o -o)

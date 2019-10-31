@@ -254,6 +254,7 @@ public class WorkbenchMain {
     public static void initiateManualMode(List<String> formulas) throws LexicalParserException, VariableBindingException {
         List<LexicalEntry> lexicalEntries = new LinkedList<>();
         GlueParser parser = new GlueParser();
+
         for (String s : formulas) {
             try {
                 lexicalEntries.add(parser.parseMeaningConstructor(s));

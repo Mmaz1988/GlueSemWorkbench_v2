@@ -1,5 +1,0 @@
-/u.dog(u) : (g_e -o g_t)
-/v.bone(v) : (h_e -o h_t)
-/P./Q./z.every(z,P(z),Q(z)) : ((g_e -o g_t) -o AX_t.(i_e -o X_t) -o X_t)
-/R./S./z.a(z,P(z),Q(z)) : ((h_e -o h_t) -o AY_t.(j_e -o Y_t) -o Y_t)
-/x./y.eat(y) : (i_e -o (j_e -o f_t))
