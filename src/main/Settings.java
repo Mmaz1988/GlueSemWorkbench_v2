@@ -35,6 +35,7 @@ public class Settings {
     private boolean debugging;
     private boolean partial;
     private boolean glueOnly;
+    private boolean multipleEntries;
 
     public Settings() {
         this.betaReduce = true;
@@ -90,6 +91,14 @@ public class Settings {
 
     public void setGlueOnly(boolean glueOnly) {
         this.glueOnly = glueOnly;
+    }
+
+    public boolean isMultipleEntries() {
+        return multipleEntries;
+    }
+
+    public void setMultipleEntries(boolean multipleEntries) {
+        this.multipleEntries = multipleEntries;
     }
 
 }

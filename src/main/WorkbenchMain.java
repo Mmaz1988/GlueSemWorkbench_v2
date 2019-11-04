@@ -20,7 +20,6 @@ import glueSemantics.linearLogic.Premise;
 import glueSemantics.linearLogic.Sequent;
 import glueSemantics.parser.GlueParser;
 import glueSemantics.parser.ParserInputException;
-import glueSemantics.semantics.lambda.SemanticExpression;
 import glueSemantics.synInterface.dependency.LexicalParserException;
 import glueSemantics.synInterface.dependency.SentenceMeaning;
 import glueSemantics.synInterface.lfg.FStructureParser;
@@ -37,16 +36,15 @@ import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class WorkbenchMain {
     // Initialize with default settings
     public static Settings settings = new Settings();
-    public static List<String> solutions = new ArrayList<>();
+    public static LinkedHashMap<Integer, List<String>> solutions = new LinkedHashMap<>();
     public static List<String> partial = new ArrayList<>();
 
     public static void main(String[] args) {
@@ -132,9 +130,13 @@ public class WorkbenchMain {
 
                                 if (outFile.exists()) {
                                     BufferedWriter w = new BufferedWriter(new FileWriter(outFile,true));
-                                    for (String solution : solutions) {
-                                        w.append(solution);
-                                        w.append(System.lineSeparator());
+
+                                    for (Integer key : solutions.keySet()) {
+
+                                        for (String solution : solutions.get(key)) {
+                                            w.append(solution);
+                                            w.append(System.lineSeparator());
+                                        }
                                     }
 
                                     if (settings.isPartial())
@@ -194,7 +196,8 @@ public class WorkbenchMain {
             if (f != null) {
                 p = FileSystems.getDefault().getPath(f.getAbsolutePath());
 
-                searchProof(new FStructureParser(p).getLexicalEntries());
+                //TODO adapt for multiple entry sets
+                searchProof(0,new FStructureParser(p).getLexicalEntries());
 
             }
             else
@@ -212,7 +215,8 @@ public class WorkbenchMain {
             if (input.equals("quit"))
                 break;
             try {
-                searchProof(new SentenceMeaning(input).getLexicalEntries());
+                //TODO adapt to deal with potential of multiple entrysets
+                searchProof(0,new SentenceMeaning(input).getLexicalEntries());
             }
             catch (NoClassDefFoundError e) {
                 System.out.println("Could not initialize dependency parser. Please refer to the README for more information");
@@ -254,29 +258,83 @@ public class WorkbenchMain {
     }
 
     public static void initiateManualMode(List<String> formulas) throws LexicalParserException, VariableBindingException {
-        List<LexicalEntry> lexicalEntries = new LinkedList<>();
+         LinkedHashMap<Integer,List<LexicalEntry>> lexicalEntries = new LinkedHashMap<>();
         GlueParser parser = new GlueParser();
+        Integer sets = 0;
+        Pattern wrapperStart = Pattern.compile("\\t*\\{\\t*");
+        Pattern wrapperEnd = Pattern.compile("\\t*\\}\\t*");
+
+        for (int i = 0; i < formulas.size(); i++) {
+            Matcher startMatcher = wrapperStart.matcher(formulas.get(i));
+
+            if (startMatcher.matches()) {
+                List<LexicalEntry> currentLexicalEntries = new LinkedList<>();
+                i++;
+                Boolean newEntry = true;
+                while (newEntry) {
+                    Matcher endMatcher = wrapperEnd.matcher(formulas.get(i));
+
+                    if (endMatcher.matches()) {
+                        newEntry = false;
+                        lexicalEntries.put(sets, currentLexicalEntries);
+                        sets++;
+                        break;
+                    }
+
+                    try {
+                        currentLexicalEntries.add(parser.parseMeaningConstructor(formulas.get(i)));
+                    } catch (ParserInputException e) {
+                        System.out.println(String.format("Error: " +
+                                "glue parser could not parse line %d of input file. " +
+                                "Skipping this line.", formulas.indexOf(formulas.get(i))));
+                    }
+                    i++;
+                }
+
+
+            }
+        }
+
+        List<LexicalEntry> singleSet = new ArrayList<>();
+        if (lexicalEntries.keySet().isEmpty()) {
 
         for (String s : formulas) {
             try {
-                lexicalEntries.add(parser.parseMeaningConstructor(s));
+                singleSet.add(parser.parseMeaningConstructor(s));
             } catch (ParserInputException e) {
                 System.out.println(String.format("Error: glue parser could not parse line %d of input file. Skipping this line.",formulas.indexOf(s)));
             }
         }
-        if (lexicalEntries.isEmpty()) {
+        if (singleSet.isEmpty()) {
             System.out.println("No lexical entries found.");
         }
         else {
-            System.out.println(String.format("Found %d lexical entries.",lexicalEntries.size()));
-            searchProof(lexicalEntries);
-        }
-    }
+            System.out.println(String.format("Found %d lexical entries.",singleSet.size()));
+            searchProof(0,singleSet);
+            }
+
+              } else {
+                //TODO fix output to accomodate for multiple entries
+                System.out.println(String.format("Found %d lexical entries.", lexicalEntries.size()));
+
+               for (Integer key : lexicalEntries.keySet()) {
+
+                   searchProof(key,lexicalEntries.get(key));
+               }
+            }
+
+            }
+
+
+
+
+
 
     public static void initiateDependencyMode(String sentence) throws LexicalParserException {
         try {
             SentenceMeaning sm = new SentenceMeaning(sentence);
-            searchProof(sm.getLexicalEntries());
+            //TODO adapt to possibility of multiple entry sets
+            searchProof(0,sm.getLexicalEntries());
         }
         catch (VariableBindingException e) {
             e.printStackTrace();
@@ -293,7 +351,7 @@ public class WorkbenchMain {
     }
     */
 
-    public static void searchProof(List<LexicalEntry> lexicalEntries) throws VariableBindingException {
+    public static void searchProof(Integer key, List<LexicalEntry> lexicalEntries) throws VariableBindingException {
 
         LLProver2 prover = new LLProver2(settings);
 
@@ -309,19 +367,23 @@ public class WorkbenchMain {
             prover.deduce(testseq);
 
 
-
             result = prover.getSolutions();
-
-
-
-
 
 
             System.out.println("Found the following deduction(s): ");
             for (Premise sol : result) {
-                solutions.add(sol.toString());
-                sol.setSemTerm((SemanticExpression) sol.getSemTerm().betaReduce());
-                System.out.println(sol.toString());
+
+                if (solutions.keySet().contains(key))
+                {
+                    solutions.get(key).add(sol.toString());
+                }
+                else
+                {
+                    solutions.put(key,new ArrayList<>(Arrays.asList(sol.toString())));
+                }
+
+        //        sol.setSemTerm((SemanticExpression) sol.getSemTerm().betaReduce());
+                System.out.println(key + ": " + sol.toString());
             }
 
             /*

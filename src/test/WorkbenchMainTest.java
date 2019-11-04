@@ -108,10 +108,10 @@ class WorkbenchMainTest {
         Path p = Paths.get("C:\\Users\\User\\IdeaProjects\\glueSemWorkbench\\src\\test\\every_black_dog_barks_webXLE.pl");
         try {
           //  LLProver prover = new LLProver(new Settings());
-            searchProof(new FStructureParser(p).getLexicalEntries());
+            searchProof(0,new FStructureParser(p).getLexicalEntries());
 
             p = Paths.get("C:\\Users\\User\\IdeaProjects\\glueSemWorkbench\\src\\test\\john_cries_webXLE.pl");
-            searchProof(new FStructureParser(p).getLexicalEntries());
+            searchProof(0,new FStructureParser(p).getLexicalEntries());
 
         } catch (VariableBindingException | LexicalParserException e) {
             e.printStackTrace();

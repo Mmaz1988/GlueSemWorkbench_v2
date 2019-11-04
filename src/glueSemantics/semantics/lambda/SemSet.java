@@ -35,8 +35,7 @@ public class SemSet extends SemanticExpression {
         }
         return true;
     }
-
-
+    
     public void addMember(SemanticRepresentation member)
     {
         if (member.getType().equals(getType()))
