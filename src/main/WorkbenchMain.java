@@ -325,11 +325,6 @@ public class WorkbenchMain {
 
             }
 
-
-
-
-
-
     public static void initiateDependencyMode(String sentence) throws LexicalParserException {
         try {
             SentenceMeaning sm = new SentenceMeaning(sentence);
