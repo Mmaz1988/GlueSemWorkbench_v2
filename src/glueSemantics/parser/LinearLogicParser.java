@@ -27,7 +27,7 @@ import java.util.List;
 public class LinearLogicParser {
 
     public List<LLTerm> premises;
-    public List<LLAtom> linearLogicVariables; 
+
 
     // Handles the position in the recursive function parse(string)
     private int pos;
@@ -219,17 +219,28 @@ public class LinearLogicParser {
             var = parseTerm(unparsedInput,polarity);
             if (!(var instanceof LLAtom && ((LLAtom) var).getLLtype() == LLAtom.LLType.VAR))
                 throw new ParserInputException(pos);
+
+            /*
             pos++;
             LLTerm left = parseTerm(unparsedInput, !polarity);
+            left.setVariable((LLAtom) var);
             pos+=3;
             LLTerm right = parseTerm(unparsedInput, polarity);
+            right.setVariable((LLAtom) var);
             pos++;
-            return new LLFormula(left,right, polarity,(LLAtom) var);
+             */
+            pos++;
+            LLTerm scope = parseTerm(unparsedInput,polarity);
+            scope.setVariable((LLAtom) var);
+
+            if (scope instanceof LLFormula)
+            {
+                ((LLFormula) scope).updateBoundVariables();
+            }
+
+            return scope;
 
         }
-
-
-
 
         else {
             throw new ParserInputException("ParserError: Unknown character at position " + pos +": '" + unparsedInput.charAt(pos) + "'.");

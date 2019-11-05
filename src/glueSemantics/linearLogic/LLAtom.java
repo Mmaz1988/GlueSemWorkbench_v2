@@ -37,9 +37,14 @@ public class LLAtom extends LLTerm {
    // public SemType semType;
 
 
-
-
     public LLAtom(String name, SemType type, LLType lltype, boolean pol) {
+        this.name = name;
+        this.setType(type);
+        this.setPolarity(pol);
+        this.setLLtype(lltype);
+    }
+
+    public LLAtom(String name, SemType type, boolean pol) {
         this.name = name;
         this.setType(type);
         this.setPolarity(pol);

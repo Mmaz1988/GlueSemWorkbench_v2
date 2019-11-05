@@ -199,7 +199,15 @@ public class LLProver2 {
 
                 SemanticRepresentation reducedSem = combine(func,argument);
 
-                combined = new Premise(combined_IDs, reducedSem, ((LLFormula) func.getGlueTerm()).getRhs());
+                LLTerm newTerm = ((LLFormula) func.getGlueTerm()).getRhs();
+                if (func.getGlueTerm().getVariable() != null) {
+                    newTerm.setVariable(func.getGlueTerm().getVariable());
+                    if (newTerm instanceof LLFormula) {
+                        ((LLFormula) newTerm).updateBoundVariables();
+                    }
+                }
+
+                combined = new Premise(combined_IDs, reducedSem, newTerm);
 
         }
          else {
@@ -219,7 +227,15 @@ public class LLProver2 {
 
                     SemanticRepresentation reducedSem = combine(func,argumentClone);
 
-                    combined = new Premise(combined_IDs, reducedSem, ((LLFormula) func.getGlueTerm()).getRhs());
+                    LLTerm newTerm = ((LLFormula) func.getGlueTerm()).getRhs();
+                    if (func.getGlueTerm().getVariable() != null) {
+                        newTerm.setVariable(func.getGlueTerm().getVariable());
+                        if (newTerm instanceof LLFormula) {
+                            ((LLFormula) newTerm).updateBoundVariables();
+                        }
+                    }
+
+                    combined = new Premise(combined_IDs, reducedSem,  newTerm);
 
                 }
 
@@ -369,7 +385,7 @@ public class LLProver2 {
                 }
 
                 LLFormula newLogic =new LLFormula(f.getLhs(),tempList.getFirst().getGlueTerm(),
-                        tempList.getFirst().getGlueTerm().isPolarity());
+                        tempList.getFirst().getGlueTerm().isPolarity(),f.getVariable());
 
                 p.setGlueTerm(newLogic);
 

@@ -61,6 +61,17 @@ public class LLFormula extends LLTerm {
     }
 
 
+    public void updateBoundVariables()
+    {
+        if(getVariable()!= null) {
+            //List<LLAtom> bvl = Stream.concat(findBoundOccurrences(lhs).stream(),findBoundOccurrences(rhs).stream()).collect(Collectors.toList());
+            List<LLAtom> bvl = new ArrayList<>();
+            bvl.addAll(findBoundOccurrences(lhs));
+            bvl.addAll(findBoundOccurrences(rhs));
+            this.boundVariables.put(getVariable(), bvl);
+        }
+    }
+
     //Constructor for formulas without variables
     public LLFormula(LLTerm lhs, LLOperator operator,LLTerm rhs, boolean pol) {
         this.lhs = lhs;
