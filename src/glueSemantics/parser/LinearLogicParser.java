@@ -157,24 +157,46 @@ public class LinearLogicParser {
         reserved characters: 'A' for universal quantifier
         */
         else if (c >= 66 && c <= 90){
+
+            StringBuilder sb = new StringBuilder();
+
+            //or sequence of letters
+            while ((c >= 66 && c <= 90) || (c >= 48 && c <= 57))
+            {
+                sb.append(c);
+                c = unparsedInput.charAt(pos);
+                pos++;
+            }
+
+            String glueIdentifier = sb.toString();
+
             try {
-                if(unparsedInput.charAt(pos) == '_') {
-                    pos++;
+                if(c == '_') {
+                   // pos++;
                     if (unparsedInput.charAt(pos) == 'e') {
                         pos++;
-                        return new LLAtom( "" + (char) c,
+                        return new LLAtom( glueIdentifier,
                                 new SemType(SemType.AtomicType.E), LLAtom.LLType.VAR, polarity);
                     }
                     else if (unparsedInput.charAt(pos) == 't') {
                         pos++;
-                        return new LLAtom( "" + (char) c,
+                        return new LLAtom( glueIdentifier,
                                 new SemType(SemType.AtomicType.T), LLAtom.LLType.VAR, polarity);
                     }
                     else if (unparsedInput.charAt(pos) == 's') {
                         pos++;
-                        return new LLAtom( "" + (char) c,
+                        return new LLAtom( glueIdentifier,
                                 new SemType(SemType.AtomicType.S), LLAtom.LLType.VAR, polarity);
                     }
+                    else if (unparsedInput.charAt(pos) == 'i') {
+                    pos++;
+                    return new LLAtom(glueIdentifier,
+                            new SemType(SemType.AtomicType.I), LLAtom.LLType.CONST, polarity);
+                } else if (unparsedInput.charAt(pos) == 'v') {
+                    pos++;
+                    return new LLAtom(glueIdentifier,
+                            new SemType(SemType.AtomicType.V), LLAtom.LLType.CONST, polarity);
+                }
                     else
                         throw new ParserInputException(pos,"Type identifier expected (e or t)");
                 }
