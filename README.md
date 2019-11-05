@@ -25,7 +25,7 @@ The respective JAR file needs to be either compiled as part of the glueSemWorkbe
 the same directory as the glueSemWB JAR.
 
 # Usage
-You will need a Java runtime environment (version 8 or higher) to run the program, which can be downloaded [here](https://www.oracle.com/technetwork/java/javase/downloads/jre8-downloads-2133155.html).
+You will need a Java runtime environment (version 8 or higher) to run the program. We recommend to use OpenJDK which can be downloaded at [OpenJDK](https://jdk.java.net/13/).
 To run the Workbench in a terminal window (Terminal for Unix systems or Powershell/cmd for Windows) enter
    java -jar glueSemanticsWorkbench.jar [parameters]
 When running the program without parameters it initiates the manual entry mode by default, prompting the user
