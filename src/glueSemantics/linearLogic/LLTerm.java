@@ -22,6 +22,8 @@ import glueSemantics.semantics.lambda.SemType;
 import prover.Equality;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public abstract class LLTerm {
 
@@ -39,9 +41,16 @@ public abstract class LLTerm {
 
     public LinkedList<Premise> orderedDischarges = new LinkedList<>();
 
+    private LLAtom variable;
+
     //Default constructor
     public LLTerm(){ }
 
+
+    public LLTerm(LLAtom var)
+    {
+        this.variable = var;
+    }
 
     public boolean isPolarity() { return polarity; }
 
@@ -98,6 +107,39 @@ public abstract class LLTerm {
     }
 */
 
+    /*
+   Represents the binder relation between the quantifier
+   and the variables in the scope of the quantifier
+   */
+    public List<LLAtom> findBoundOccurrences(LLTerm term){
+
+
+        // Variables that are equivalent are bound by the quantifier
+        if (term instanceof LLAtom) {
+            if (((LLAtom) term).getLLtype() == LLAtom.LLType.VAR){
+
+                if (getVariable().checkEquivalence(term))
+                {
+                    List <LLAtom> var = new ArrayList<>();
+                    var.add((LLAtom) term);
+                    return var;
+                }
+            }
+
+            //Recursive call to find embedded instances of variables
+        } else if ( term instanceof LLFormula)
+        {
+            List <LLAtom> right = findBoundOccurrences(((LLFormula) term).getLhs());
+            List <LLAtom> left = findBoundOccurrences(((LLFormula) term).getRhs());
+
+            return Stream.concat(right.stream(), left.stream()).collect(Collectors.toList());
+        }
+        List<LLAtom> emptyList = Collections.emptyList();
+        return emptyList;
+    }
+
+
+
     public LinkedList<Premise> getOrderedDischarges() {
         return orderedDischarges;
     }
@@ -113,5 +155,13 @@ public abstract class LLTerm {
 
     public void setAssumptions2(Set<Premise> assumptions2) {
         this.assumptions2 = assumptions2;
+    }
+
+    public LLAtom getVariable() {
+        return variable;
+    }
+
+    public void setVariable(LLAtom variable) {
+        this.variable = variable;
     }
 }

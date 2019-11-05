@@ -26,8 +26,8 @@ import java.util.List;
 
 public class LinearLogicParser {
 
-    public List<String> unparsedPremises;
     public List<LLTerm> premises;
+    public List<LLAtom> linearLogicVariables; 
 
     // Handles the position in the recursive function parse(string)
     private int pos;

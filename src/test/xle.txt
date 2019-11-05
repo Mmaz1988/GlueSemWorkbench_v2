@@ -1,5 +1,5 @@
 {
-a : A11_t.(1_e -o 1_t) -o ((4_e -o 11_t) -o 11_t)
+a : AX_t.(1_e -o 1_t) -o ((4_e -o X_t) -o X_t)
 man : (1_e -o 1_t)
 yawn : (4_e -o 0_t)
 }

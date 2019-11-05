@@ -24,7 +24,7 @@ public class LLFormula extends LLTerm {
     private LLTerm rhs;
     private LLOperator operator;
 
-    private LLAtom variable;
+
   //  private SemType semType;
 
     private HashMap<LLAtom,List<LLAtom>> boundVariables = new HashMap<>();
@@ -43,19 +43,20 @@ public class LLFormula extends LLTerm {
     }
 
     public LLFormula(LLTerm lhs, LLTerm rhs, boolean pol, LLAtom var) {
+        super(var);
         this.lhs = lhs;
         this.rhs = rhs;
         this.setType(new SemType(lhs.getType(),rhs.getType()));
         this.setPolarity(pol);
         this.operator = LLIMP;
-        this.variable = var;
+        //setVariable(var);
 
-        if(variable!= null) {
+        if(getVariable()!= null) {
             //List<LLAtom> bvl = Stream.concat(findBoundOccurrences(lhs).stream(),findBoundOccurrences(rhs).stream()).collect(Collectors.toList());
             List<LLAtom> bvl = new ArrayList<>();
             bvl.addAll(findBoundOccurrences(lhs));
             bvl.addAll(findBoundOccurrences(rhs));
-            this.boundVariables.put(variable, bvl);
+            this.boundVariables.put(getVariable(), bvl);
         }
     }
 
@@ -69,29 +70,29 @@ public class LLFormula extends LLTerm {
         this.operator = operator;
     }
 
-
-
     //Constructor for formulas with variables
     public LLFormula(LLTerm lhs, LLOperator operator, LLTerm rhs, boolean pol,
                      LLAtom var) {
+        super(var);
         this.lhs = lhs;
         this.rhs = rhs;
         this.setType(new SemType(lhs.getType(),rhs.getType()));
         this.setPolarity(pol);
         this.operator = operator;
-        this.variable = var;
 
-        if (variable != null) {
+
+        if (getVariable() != null) {
             List<LLAtom> bvl = new ArrayList<>();
             bvl.addAll(findBoundOccurrences(lhs));
             bvl.addAll(findBoundOccurrences(rhs));
-            this.boundVariables.put(variable, bvl);
+            this.boundVariables.put(getVariable(), bvl);
         }
 
     }
 
         public LLFormula(LLFormula f)
         {
+
           //  this.assumptions = new HashSet<>(f.assumptions);
             this.assumptions2 = new HashSet<>(f.assumptions2);
          //   this.discharges = new HashSet<>(f.discharges);
@@ -101,11 +102,11 @@ public class LLFormula extends LLTerm {
             this.setType(f.getType().clone());
             this.setPolarity(f.isPolarity());
             this.operator = f.getOperator();
-            if (f.variable != null) {
-            this.variable = new LLAtom(f.variable);
+            if (f.getVariable() != null) {
+            this.setVariable(new LLAtom(f.getVariable()));
                 List<LLAtom> bvl = Stream.concat(findBoundOccurrences(lhs).stream(),
                         findBoundOccurrences(rhs).stream()).collect(Collectors.toList());
-                this.boundVariables.put(variable, bvl);
+                this.boundVariables.put(getVariable(), bvl);
             }
 
 
@@ -122,7 +123,7 @@ public class LLFormula extends LLTerm {
         if (term instanceof LLAtom) {
             if (((LLAtom) term).getLLtype() == LLAtom.LLType.VAR){
 
-                if (this.variable.checkEquivalence(term))
+                if (getVariable().checkEquivalence(term))
                 {
                     List <LLAtom> var = new ArrayList<>();
                     var.add((LLAtom) term);
@@ -166,7 +167,7 @@ public class LLFormula extends LLTerm {
     {
         if (this.isInstance(eq.getVariable()))
         {
-            for (LLAtom var : boundVariables.get(this.variable))
+            for (LLAtom var : boundVariables.get(getVariable()))
             {
                 var.setName(eq.getConstant().getName());
                 var.setLLtype(LLAtom.LLType.CONST);
@@ -270,7 +271,7 @@ public class LLFormula extends LLTerm {
     }
 
 
-
+/*
 
     public void setVarbinding(LLFormula formula) {
         this.variable = new LLAtom(formula.variable);
@@ -281,6 +282,7 @@ public class LLFormula extends LLTerm {
 
 
             }
+ */
 
     public LLTerm getLhs() {
         return lhs;
@@ -291,9 +293,7 @@ public class LLFormula extends LLTerm {
     }
 
 
-    public LLAtom getVariable() {
-        return variable;
-    }
+
 
 
     public LLOperator getOperator() { return operator; }
