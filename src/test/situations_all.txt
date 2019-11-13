@@ -1,0 +1,43 @@
+{
+# all girls sleep
+allgirls : AX_t.((a_e -o (b_s -o X_t)) -o (b_s -o X_t))
+sleep : (a_e -o (b_s -o f_t))
+}
+{
+all : ((g_e -o (g_s -o g_t)) -o AX_t.((a_e -o (b_s -o X_t)) -o X_t))
+girl : (g_e -o (g_s -o g_t))
+sleep : (a_e -o (b_s -o f_t))
+}
+{
+all: AX_t.((g_e -o (g_s -o X_t)) -o X_t))
+girl : (g_e -o (g_s -o g_t))
+}
+{
+every : ((b_e -o (b_s -o b_t)) -o AX_t.((a_e -o (d_s -o X_t)) -o (d_s -o X_t)))
+try : ((a_e -o (c_s -o h_t)) -o (a_e -o (d_s -o f_t)))
+girl : (b_e -o (b_s -o b_t))
+love : (g_e -o (a_e -o (c_s -o h_t)))
+john : g_e 
+}
+{
+a : ((g_e -o (g_s -o g_t)) -o AX_t.((b_e -o (d_v -o X_t)) -o (d_v -o X_t)))
+impv : ((i_s -o (j_s -o h_t)) -o AX_t.((d_v -o X_t) -o (d_s -o X_t)))
+prog : (i_s -o (j_s -o h_t))
+past : AX_t.((d_s -o X_t) -o (k_s -o X_t))
+close : AX_t.((k_s -o X_t) -o X_t)
+girl : (g_e -o (g_s -o g_t))
+kiss :(a_e -o (b_e -o (d_v -o f_t)))
+john : a_e
+}
+{
+everyperson : AX_t.((a_e -o (d_s -o X_t)) -o (d_s -o X_t))
+somebody : AY_t.((b_e -o (d_s -o Y_t)) -o (d_s -o Y_t))
+love : (a_e -o (b_e -o (d_s -o h_t)))
+think : ((d_s -o h_t) -o (g_e -o (t_s -o f_t)))
+john : g_e 
+}
+{
+everyperson : AX_t.((a_e -o (d_s -o X_t)) -o (d_s -o X_t)))
+somebody : AX_t.((b_e -o (d_s -o X_t)) -o (d_s -o X_t)))
+love : (a_e -o (b_e -o (d_s -o h_t)))
+}

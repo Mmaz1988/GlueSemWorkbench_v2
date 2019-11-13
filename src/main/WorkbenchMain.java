@@ -46,6 +46,7 @@ public class WorkbenchMain {
     public static Settings settings = new Settings();
     public static LinkedHashMap<Integer, List<String>> solutions = new LinkedHashMap<>();
     public static List<String> partial = new ArrayList<>();
+    public static StringBuilder outputFileBuilder = new StringBuilder();
 
     public static void main(String[] args) {
         settings = new Settings();
@@ -131,6 +132,7 @@ public class WorkbenchMain {
                                 if (outFile.exists()) {
                                     BufferedWriter w = new BufferedWriter(new FileWriter(outFile,true));
 
+
                                     for (Integer key : solutions.keySet()) {
 
                                         for (String solution : solutions.get(key)) {
@@ -138,6 +140,12 @@ public class WorkbenchMain {
                                             w.append(System.lineSeparator());
                                         }
                                     }
+
+                                    w.append(System.lineSeparator());
+                                    w.append("Proof:");
+                                    w.append(System.lineSeparator());
+
+                                    w.append(outputFileBuilder.toString());
 
                                     if (settings.isPartial())
                                     {
@@ -348,7 +356,7 @@ public class WorkbenchMain {
 
     public static void searchProof(Integer key, List<LexicalEntry> lexicalEntries) throws VariableBindingException {
 
-        LLProver2 prover = new LLProver2(settings);
+        LLProver2 prover = new LLProver2(settings,outputFileBuilder);
 
         List<Premise> result;
         try {

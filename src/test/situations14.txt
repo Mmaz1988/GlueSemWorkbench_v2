@@ -1,0 +1,5 @@
+twopolicemen : AX_t.AY_s.((p_e -o (Y_s -o X_t)) -o (Y_s -o X_t))
+spied : (p_e -o (g_e -o (t_s -o  p_t)))
+someone : AX_t.((g_e -o (j_s -o X_t)) -o (j_s -o X_t))
+from : (g_e -o (h_e -o (j_s -o  p_t)))
+everycity : AX_t.((h_e -o (j_s -o X_t)) -o (j_s -o X_t))

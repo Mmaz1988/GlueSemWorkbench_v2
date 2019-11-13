@@ -1,0 +1,3 @@
+someone : AX_t.AY_s.((g_e -o (Y_s -o X_t)) -o (Y_s -o X_t))
+loves : (g_e -o (h_e -o (j_s -o  p_t)))
+everycity : AX_t.AY_s.((h_e -o (Y_s -o X_t)) -o (Y_s -o X_t))

@@ -201,9 +201,10 @@ public class LinearLogicParser {
                         throw new ParserInputException(pos,"Type identifier expected (e or t)");
                 }
             } catch (StringIndexOutOfBoundsException e) {
-                return new LLAtom(""+(char) c, new SemType(SemType.AtomicType.T), LLAtom.LLType.VAR,polarity);
+                return new LLAtom(glueIdentifier, new SemType(SemType.AtomicType.T), LLAtom.LLType.VAR,polarity);
             }
-            return new LLAtom(""+(char) c, new SemType(SemType.AtomicType.T), LLAtom.LLType.VAR,polarity);
+            pos = pos - 1;
+            return new LLAtom(glueIdentifier, new SemType(SemType.AtomicType.T), LLAtom.LLType.VAR,polarity);
 
         }
 

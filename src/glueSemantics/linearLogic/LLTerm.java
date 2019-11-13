@@ -148,6 +148,21 @@ public abstract class LLTerm {
         this.orderedDischarges = orderedDischarges;
     }
 
+/*
+    public void updateBoundVariables()
+    {
+        if (this instanceof LLFormula)
+        {
+        if(getVariable()!= null) {
+            //List<LLAtom> bvl = Stream.concat(findBoundOccurrences(lhs).stream(),findBoundOccurrences(rhs).stream()).collect(Collectors.toList());
+            List<LLAtom> bvl = new ArrayList<>();
+            bvl.addAll(findBoundOccurrences(((LLFormula) this).getLhs()));
+            bvl.addAll(findBoundOccurrences(((LLFormula) this).getRhs()));
+            ((LLFormula) this).getBoundVariables().put(getVariable(), bvl);
+        }
+        }
+    }
+*/
 
     public Set<Premise> getAssumptions2() {
         return assumptions2;

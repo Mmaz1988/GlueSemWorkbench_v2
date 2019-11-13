@@ -36,6 +36,7 @@ public class Settings {
     private boolean partial;
     private boolean glueOnly;
     private boolean multipleEntries;
+    private boolean outputFile;
 
     public Settings() {
         this.betaReduce = true;
@@ -100,5 +101,14 @@ public class Settings {
     public void setMultipleEntries(boolean multipleEntries) {
         this.multipleEntries = multipleEntries;
     }
+
+    public boolean isOutputFile() {
+        return outputFile;
+    }
+
+    public void setOutputFile(boolean outputFile) {
+        this.outputFile = outputFile;
+    }
+
 
 }

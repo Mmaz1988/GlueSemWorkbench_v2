@@ -20,7 +20,7 @@ package glueSemantics.synInterface.dependency;
 import java.util.*;
 
 public abstract class LexVariableHandler {
-    private static final int MAXINDEX = 5;
+    private static final int MAXINDEX = 100;
 
     public enum variableType{
         LLvar,

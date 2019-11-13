@@ -26,7 +26,6 @@ public class LLFormula extends LLTerm {
 
 
   //  private SemType semType;
-
     private HashMap<LLAtom,List<LLAtom>> boundVariables = new HashMap<>();
 
     public enum LLOperator{
@@ -127,6 +126,7 @@ public class LLFormula extends LLTerm {
     Represents the binder relation between the quantifier
     and the variables in the scope of the quantifier
     */
+    /*
     public List<LLAtom> findBoundOccurrences(LLTerm term){
 
 
@@ -153,7 +153,7 @@ public class LLFormula extends LLTerm {
         List<LLAtom> emptyList = Collections.emptyList();
         return emptyList;
     }
-
+*/
 
 
     //Checks to which quantifier a specific variable belongs
@@ -303,10 +303,13 @@ public class LLFormula extends LLTerm {
         return rhs;
     }
 
-
-
-
-
     public LLOperator getOperator() { return operator; }
+
+    public HashMap<LLAtom, List<LLAtom>> getBoundVariables() {
+        return boundVariables;
+    }
+    public void setBoundVariables(HashMap<LLAtom, List<LLAtom>> boundVariables) {
+        this.boundVariables = boundVariables;
+    }
 
 }

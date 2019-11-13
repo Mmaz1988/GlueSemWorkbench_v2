@@ -28,8 +28,13 @@ public class LLProver2 {
     private LinkedList<Premise> agenda;
     private LinkedList<Premise> solutions =new LinkedList<>();
 
-    private LinkedList<Premise> skeletons = new LinkedList<>();
-    private LinkedList<Premise> modifiers = new LinkedList<>();
+    private HashMap<Premise,List<Premise>> variableDependency = new HashMap<>();
+
+    private StringBuilder proofBuilder;
+
+
+    //private LinkedList<Premise> skeletons = new LinkedList<>();
+    //private LinkedList<Premise> modifiers = new LinkedList<>();
 
     private HashSet<Integer> goalIDs = new HashSet<>();
 
@@ -45,10 +50,16 @@ public class LLProver2 {
         setSettings(settings);
     }
 
+    public LLProver2(Settings settings, StringBuilder proofBuilder)
+    {
+        this.proofBuilder = proofBuilder;
+        setSettings(settings);
+    }
 
      public void deduce(Sequent seq) throws ProverException,VariableBindingException
-        { LinkedList<Premise> agenda = new LinkedList<>();
+        {
 
+            LinkedList<Premise> agenda = new LinkedList<>();
 
             this.db = new Debugging();
 
@@ -56,19 +67,52 @@ public class LLProver2 {
 
             long startTime = System.nanoTime();
 
-            for (Premise p : currentSequent.getLhs()) {
-                    agenda.addAll(convert(p));
-            }
-
             StringBuilder sb = new StringBuilder();
-            sb.append("Agenda:");
+            sb.append("Sequent:");
             sb.append(System.lineSeparator());
-            for (Premise p : agenda)
+            for (Premise le : currentSequent.getLhs())
             {
-                sb.append(p);
+                sb.append(le);
                 sb.append(System.lineSeparator());
             }
             System.out.println(sb.toString());
+
+            //TODO insert boolean for distinguishing between sdout and file
+            if (true)
+            {
+                proofBuilder.append(sb.toString());
+                proofBuilder.append(System.lineSeparator());
+                proofBuilder.append(System.lineSeparator());
+            }
+
+            for (Premise p : currentSequent.getLhs()) {
+
+                    List<Premise> compiled = convert(p);
+
+
+
+                    agenda.addAll(compiled);
+            }
+
+            StringBuilder ab = new StringBuilder();
+            ab.append("Agenda:");
+            ab.append(System.lineSeparator());
+            for (Premise p : agenda)
+            {
+                ab.append(p);
+                ab.append(System.lineSeparator());
+            }
+            System.out.println(ab.toString());
+
+            //TODO insert boolean for distinguishing between sdout and file
+            if (true)
+            {
+                proofBuilder.append(ab.toString());
+                proofBuilder.append(System.lineSeparator());
+                proofBuilder.append(System.lineSeparator());
+            }
+
+
 
             this.agenda = agenda;
 
@@ -122,6 +166,7 @@ public class LLProver2 {
 
                         } else if (p.getGlueTerm() instanceof LLFormula) {
 
+
                             if (((LLAtom) ((LLFormula) p.getGlueTerm()).getLhs()).getLLtype().equals(LLAtom.LLType.VAR)) {
                                 for (String key : atomicChart.keySet()) {
 
@@ -152,10 +197,13 @@ public class LLProver2 {
 
             }
 
+
+
             long endTime = System.nanoTime();
 
             db.computationTime = endTime - startTime;
 
+            proofBuilder.append(System.lineSeparator());
 
         }
 
@@ -266,6 +314,17 @@ public class LLProver2 {
 
             System.out.println("Combining " + f + " and " + a);
             System.out.println("to: " + combined.toString());
+
+            //TODO sdout vs file
+            if (true)
+            {
+                proofBuilder.append("Combining " + f + " and " + a);
+                proofBuilder.append(System.lineSeparator());
+                proofBuilder.append("to: " + combined.toString());
+                proofBuilder.append(System.lineSeparator());
+            }
+
+
         }
 
         return combined;
@@ -324,43 +383,41 @@ public class LLProver2 {
     {
         LinkedList<Premise> compiled = new LinkedList<>();
 
-        if (p.getGlueTerm() instanceof LLFormula)
-        {
+        if (p.getGlueTerm() instanceof LLFormula) {
+
+            // if (!p.getGlueTerm().isModifier()) {
 
             LLFormula f = (LLFormula) p.getGlueTerm();
             LLTerm l = ((LLFormula) p.getGlueTerm()).getLhs();
 
 
-            if (l instanceof LLFormula)
-            {
+            if (l instanceof LLFormula) {
                 db.compilations++;
                 //Compile out stuff
-                LLFormula compiledGlue = new LLFormula( ((LLFormula) l).getRhs(),f.getRhs(),f.isPolarity(),f.getVariable());
+                LLFormula compiledGlue = new LLFormula(((LLFormula) l).getRhs(), f.getRhs(), f.isPolarity(), f.getVariable());
                 compiledGlue.getLhs().orderedDischarges.addAll(l.getOrderedDischarges());
                 LLTerm outGlue = ((LLFormula) l).getLhs();
 
 
                 //outGlue.assumptions.add(outGlue);
-              //  compiledGlue.getLhs().getOrderedDischarges().add(outGlue);
+                //  compiledGlue.getLhs().getOrderedDischarges().add(outGlue);
 
                 SemType newtype = new SemType(((LLFormula) l).getLhs().getType());
                 SemAtom asumptionVar = new SemAtom(SemAtom.SemSort.VAR,
-                        LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVarE),newtype);
+                        LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVarE), newtype);
 
 
-                Premise assumption = new Premise(currentSequent.getNewID(),asumptionVar,outGlue);
+                Premise assumption = new Premise(currentSequent.getNewID(), asumptionVar, outGlue);
 
 
                 ((LLFormula) compiledGlue).getLhs().getOrderedDischarges().add(assumption);
 
-                Premise compiledPremise = new Premise(p.getPremiseIDs(),p.getSemTerm(),compiledGlue);
-
-
+                Premise compiledPremise = new Premise(p.getPremiseIDs(), p.getSemTerm(), compiledGlue);
 
 
                 assumption.getGlueTerm().assumptions2.add(assumption);
 
-              //  compiled.add(compiledPremise);
+                //  compiled.add(compiledPremise);
                 // compiled.add(assumption);
 
 
@@ -374,27 +431,24 @@ public class LLProver2 {
                 return compiled;
 
 
-            } else if (f.isNested() && !f.isModifier())
-            {
-                Premise temp = new Premise(p.getPremiseIDs(),p.getSemTerm(),f.getRhs());
+            } else if (f.isNested() && !f.isModifier()) {
+                Premise temp = new Premise(p.getPremiseIDs(), p.getSemTerm(), f.getRhs());
                 LinkedList<Premise> tempList = convert(temp);
 
-                for (int i = 1; i < tempList.size(); i++)
-                {
+                for (int i = 1; i < tempList.size(); i++) {
                     compiled.add(tempList.get(i));
                 }
 
-                LLFormula newLogic =new LLFormula(f.getLhs(),tempList.getFirst().getGlueTerm(),
-                        tempList.getFirst().getGlueTerm().isPolarity(),f.getVariable());
+                LLFormula newLogic = new LLFormula(f.getLhs(), tempList.getFirst().getGlueTerm(),
+                        tempList.getFirst().getGlueTerm().isPolarity(), f.getVariable());
 
                 p.setGlueTerm(newLogic);
 
 
             }
 
-
-
         }
+
 
         compiled.add(p);
 
@@ -473,4 +527,22 @@ public class LLProver2 {
     public void setSolutions(LinkedList<Premise> solutions) {
         this.solutions = solutions;
     }
+
+    public void updateVariableDependencies(List<Premise> compiled)
+    {
+        for (Premise premise : compiled)
+        {
+            if (premise.getGlueTerm() instanceof LLAtom &&
+                    ((LLAtom) premise.getGlueTerm()).getLLtype().equals(LLAtom.LLType.VAR))
+            {
+                for (Premise q : compiled)
+                {
+
+                }
+
+            }
+        }
+    }
+
+
 }
