@@ -213,6 +213,7 @@ public class LLProver2 {
     public Premise combinePremises(Premise functor, Premise argument) throws VariableBindingException, ProverException {
 
         Premise func = new Premise(functor.getPremiseIDs(), functor.getSemTerm().clone(), functor.getGlueTerm().clone());
+        Premise argumentClone = null;
 
         LinkedHashSet<Equality> eqs = ((LLFormula) func.getGlueTerm()).getLhs().checkCompatibility(argument.getGlueTerm());
 
@@ -245,7 +246,10 @@ public class LLProver2 {
 
             if (((LLFormula) func.getGlueTerm()).getLhs().getOrderedDischarges().isEmpty()) {
 
-                SemanticRepresentation reducedSem = combine(func,argument);
+                argumentClone = new Premise(argument.getPremiseIDs(),argument.getSemTerm().clone(),
+                        argument.getGlueTerm().clone());
+
+                SemanticRepresentation reducedSem = combine(func,argumentClone);
 
                 LLTerm newTerm = ((LLFormula) func.getGlueTerm()).getRhs();
                 if (func.getGlueTerm().getVariable() != null) {
@@ -265,13 +269,17 @@ public class LLProver2 {
 
                     LinkedList<Premise> discharges =  ((LLFormula) func.getGlueTerm()).getLhs().getOrderedDischarges();
 
+                    LLTerm argumentGlueClone = argument.getGlueTerm().clone();
+
                     while (!discharges.isEmpty())
                     {
-                       temp = new SemFunction((SemAtom) discharges.removeLast().getSemTerm(),temp);
+                        Premise p = discharges.removeLast();
+                        temp = new SemFunction((SemAtom) p.getSemTerm(),temp);
+                        argumentGlueClone.getAssumptions2().remove(p);
 
                        }
 
-                       Premise argumentClone = new Premise(argument.getPremiseIDs(),temp,argument.getGlueTerm().clone());
+                    argumentClone = new Premise(argument.getPremiseIDs(),temp,argumentGlueClone);
 
                     SemanticRepresentation reducedSem = combine(func,argumentClone);
 
@@ -291,7 +299,7 @@ public class LLProver2 {
 
             if (combined != null) {
                 combined.getGlueTerm().assumptions2.addAll(func.getGlueTerm().assumptions2);
-                combined.getGlueTerm().assumptions2.addAll(argument.getGlueTerm().assumptions2);
+                combined.getGlueTerm().assumptions2.addAll(argumentClone.getGlueTerm().assumptions2);
             }
 
 
