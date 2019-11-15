@@ -1,0 +1,9 @@
+/P./Q.Ex[P(x) & Q(x)] : ((g_e -o  g_t) -o AX_t.((a_e -o X_t) -o X_t))
+/x.person(x) : (g_e -o g_t)
+/R./S.Ay[R(y) -> S(y)] : ((h_e -o  h_t) -o AX_t.((b_e -o X_t) -o X_t))
+/z.city(z) : (h_e -o h_t)
+/x./y.from(x,y) : (b_e -o (a_e -o f_t))
+/F./Q./x.F(x) & Q(x) : ((a_e -o f_t) -o ((g_e -o g_t) -o (g_e -o g_t)))
+john : j_e
+/x./y.likes(x,y) : (j_e -o (a_e -o k_t))  
+

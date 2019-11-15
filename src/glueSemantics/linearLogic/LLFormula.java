@@ -212,7 +212,7 @@ public class LLFormula extends LLTerm {
         }
 
 */
-        return "(" + lhs.toPlainString()
+        return "(" + lhs.toString()
                 + " "
                 + "\u22B8" + " " + rhs.toString() + ")";
     }

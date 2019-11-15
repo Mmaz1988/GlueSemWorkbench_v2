@@ -347,12 +347,29 @@ public class LLProver2 {
 
     public Boolean checkDischarges(Premise functor, Premise argument) {
 
+        /*
+        List<Premise> funcList = ((LLFormula)functor.getGlueTerm()).getLhs().getOrderedDischarges();
+        List<Premise> argList  = argument.getGlueTerm().getAssumptions2();
+
+        for (int i = 0; i < ((LLFormula)functor.getGlueTerm()).getLhs().getOrderedDischarges().size(); i++)
+        {
+            if (!funcList.get(i).equals(argList.get(i)))
+            {
+                return false;
+            }
+        }
+
+        return true;
+
+         */
+
         for (Premise t : ((LLFormula) functor.getGlueTerm()).getLhs().getOrderedDischarges()) {
             if (!argument.getGlueTerm().assumptions2.contains(t)){
                 return false;
         }
     }
         return true;
+
     }
 
     public void adjustChart(Premise p) {
