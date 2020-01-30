@@ -22,8 +22,11 @@ public class LLProver2 {
 
     private Sequent currentSequent;
 
+    //TODO Add a third chart for modifiers and both atomic elements as well as non atomic elements are first
+    //run through the modifier chart.
     private HashMap<String,List<Premise>> atomicChart = new HashMap<>();
     private HashMap<String,List<Premise>> nonAtomicChart = new HashMap<>();
+    private HashMap<String,List<Premise>> modifierChart = new HashMap<>();
 
     private LinkedList<Premise> agenda;
     private LinkedList<Premise> solutions =new LinkedList<>();
@@ -86,11 +89,7 @@ public class LLProver2 {
             }
 
             for (Premise p : currentSequent.getLhs()) {
-
                     List<Premise> compiled = convert(p);
-
-
-
                     agenda.addAll(compiled);
             }
 
@@ -355,9 +354,14 @@ public class LLProver2 {
 
     public Boolean checkDischarges(Premise functor, Premise argument) {
 
-        /*
+/*
         List<Premise> funcList = ((LLFormula)functor.getGlueTerm()).getLhs().getOrderedDischarges();
         List<Premise> argList  = argument.getGlueTerm().getAssumptions2();
+
+        if (argList.isEmpty())
+        {
+            return false;
+        }
 
         for (int i = 0; i < ((LLFormula)functor.getGlueTerm()).getLhs().getOrderedDischarges().size(); i++)
         {
@@ -369,7 +373,8 @@ public class LLProver2 {
 
         return true;
 
-         */
+*/
+
 
         for (Premise t : ((LLFormula) functor.getGlueTerm()).getLhs().getOrderedDischarges()) {
             if (!argument.getGlueTerm().assumptions2.contains(t)){

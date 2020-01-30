@@ -104,7 +104,7 @@ public class LLFormula extends LLTerm {
         {
 
           //  this.assumptions = new HashSet<>(f.assumptions);
-            this.assumptions2 = new HashSet<>(f.assumptions2);
+            this.assumptions2 = new ArrayList<>(f.assumptions2);
          //   this.discharges = new HashSet<>(f.discharges);
             this.orderedDischarges = new LinkedList<>(f.orderedDischarges);
             this.lhs = f.getLhs().clone();

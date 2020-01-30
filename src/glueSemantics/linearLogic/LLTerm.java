@@ -35,7 +35,7 @@ public abstract class LLTerm {
     private SemType semType;
     //public Set<LLTerm> assumptions = new HashSet<>();
 
-    public Set<Premise> assumptions2 = new HashSet<>();
+    public List<Premise> assumptions2 = new ArrayList<>();
 
     //public Set<LLTerm> discharges = new HashSet<>();
 
@@ -164,11 +164,11 @@ public abstract class LLTerm {
     }
 */
 
-    public Set<Premise> getAssumptions2() {
+    public List<Premise> getAssumptions2() {
         return assumptions2;
     }
 
-    public void setAssumptions2(Set<Premise> assumptions2) {
+    public void setAssumptions2(List<Premise> assumptions2) {
         this.assumptions2 = assumptions2;
     }
 

@@ -4,6 +4,7 @@
 /z.city(z) : (h_e -o h_t)
 /x./y.from(x,y) : (a_e -o (b_e -o f_t))
 /F./Q./x.F(x) & Q(x) : ((a_e -o f_t) -o ((g_e -o g_t) -o (g_e -o g_t)))
-john : j_e
-/x./y.likes(x,y) : (j_e -o (a_e -o k_t))  
+/P./Q.Ex[P(x) & Q(x)] : ((i_e -o  i_t) -o AX_t.((d_e -o X_t) -o X_t))
+/x.person(x) : (i_e -o i_t)
+/x./y.likes(x,y) : (d_e -o (a_e -o k_t))  
 
