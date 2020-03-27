@@ -62,7 +62,6 @@ class LLProverTest {
     }
 
     @Test
-
     void testProlog() {
         LLProver2 lp = new LLProver2(new Settings(false,Settings.PROLOG));
         // Test transitive sentence with quantifiers

@@ -22,13 +22,17 @@ import java.util.*;
 public abstract class LexVariableHandler {
     private static final int MAXINDEX = 100;
 
+    private static Integer sentenceID;
+    private static int senteceIDmax = 1000;
+
     public enum variableType{
         LLvar,
         LLatomT,
         LLatomE,
         SemVar,
         SemVarE,
-        SemVarComp
+        SemVarComp,
+        SentenceID
 /*
 Possibly add more types, e.g. SemVarE, SemVarT etc.
 */
@@ -104,6 +108,24 @@ Possibly add more types, e.g. SemVarE, SemVarT etc.
 
     public static String returnNewVar(variableType varType)
     {
+        if (varType.equals(variableType.SentenceID)) {
+
+            if (sentenceID == null)
+            {
+                sentenceID = 0;
+            }else{
+                if (senteceIDmax >= sentenceID) {
+                    sentenceID++;
+                }else
+                {
+                    System.out.println("Exceeded maximum number of sentence variables");
+                    return null;
+                }
+
+            }
+            return "s" + sentenceID.toString();
+        }
+
         List<String> variables = reservedVariables.get(varType);
 
             for (String var : variables)

@@ -1,4 +1,4 @@
-/x.dog(x) : (g_e -o g_t)
+[/x.dog(x)] : (g_e -o g_t)
 /R./S./v.R(v) & S(v) : ((i_e -o i_t) -o ((g_e -o g_t) -o (g_e -o g_t)))
 /z.black(z) : (i_e -o i_t)
 /P./Q./x.every(x,P(x),Q(x)) : ((g_e -o g_t) -o AX_t.(h_e -o X_t) -o X_t)
@@ -8,3 +8,17 @@ Ax[P(x) & Q(x)]
 
 Ex[P(x) & Q(x)]
 
+0 bracket
+1 bracket 
+1 -> x 
+
+
+
+[/x.dog(x)]
+
+new SemFunction
+new SemAtom
+...
+a = new SemanticExpression
+
+Result= a.toString()

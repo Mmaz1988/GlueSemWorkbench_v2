@@ -1,6 +1,7 @@
-package glueSemantics.parser;
 
+/*
 import glueSemantics.linearLogic.LLAtom;
+import glueSemantics.parser.ParserInputException;
 import glueSemantics.semantics.lambda.SemAtom;
 import glueSemantics.semantics.lambda.SemFunction;
 import glueSemantics.semantics.lambda.SemType;
@@ -11,6 +12,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
 
+i*mport glueSemantics.linearLogic.LLAtom;
+
+/
+        package glueSemantics.parser;
+
+@Deprecated
 public class SemanticParser {
 
 
