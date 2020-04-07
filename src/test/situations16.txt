@@ -1,3 +1,5 @@
-
-
-
+some : ((h1 -o h2) -o ((j -o f) -o f))
+dog: (g1 -o g2)
+bone : (h1 -o h2)
+every : ((g1 -o g2) -o ((i -o f) -o f))
+eat : (i -o (j -o f))
