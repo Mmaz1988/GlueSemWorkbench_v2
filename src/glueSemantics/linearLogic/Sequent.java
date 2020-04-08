@@ -18,7 +18,7 @@
 package glueSemantics.linearLogic;
 
 
-import glueSemantics.lexicon.LexicalEntry;
+import glueSemantics.semantics.LexicalEntry;
 
 import java.util.ArrayList;
 import java.util.HashSet;

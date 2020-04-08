@@ -15,11 +15,9 @@
  *
  */
 
-package glueSemantics.lexicon;
+package glueSemantics.semantics;
 
 import glueSemantics.linearLogic.LLTerm;
-import glueSemantics.semantics.SemanticRepresentation;
-import glueSemantics.semantics.lambda.SemanticExpression;
 
 public class LexicalEntry {
 

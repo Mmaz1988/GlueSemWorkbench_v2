@@ -17,7 +17,7 @@
 
 package glueSemantics.linearLogic;
 
-import glueSemantics.lexicon.LexicalEntry;
+import glueSemantics.semantics.LexicalEntry;
 import glueSemantics.semantics.SemanticRepresentation;
 import glueSemantics.semantics.lambda.SemAtom;
 import glueSemantics.semantics.lambda.SemanticExpression;

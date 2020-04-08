@@ -17,11 +17,11 @@
 
 package test;
 
-import glueSemantics.lexicon.LexicalEntry;
 import glueSemantics.linearLogic.Premise;
 import glueSemantics.linearLogic.Sequent;
 import glueSemantics.parser.GlueParser;
 import glueSemantics.parser.ParserInputException;
+import glueSemantics.semantics.LexicalEntry;
 import main.Settings;
 import org.junit.jupiter.api.Test;
 import prover.LLProver2;

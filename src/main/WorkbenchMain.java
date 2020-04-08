@@ -16,17 +16,15 @@ package main;/*
  */
 
 
-import glueSemantics.lexicon.LexicalEntry;
 import glueSemantics.linearLogic.Premise;
 import glueSemantics.linearLogic.Sequent;
 import glueSemantics.parser.GlueParser;
 import glueSemantics.parser.ParserInputException;
-import glueSemantics.synInterface.dependency.LexicalParserException;
-import glueSemantics.synInterface.dependency.SentenceMeaning;
-import glueSemantics.synInterface.lfg.FStructureParser;
+import glueSemantics.semantics.LexicalEntry;
 import prover.LLProver2;
 import prover.ProverException;
 import prover.VariableBindingException;
+import utilities.LexicalParserException;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -83,23 +81,7 @@ public class WorkbenchMain {
 
         System.out.println(String.format("Current settings: automatic beta reduction: %s\t\toutput mode: %s", betaReduce, outputMode));
 
-        // Check program parameters for a mode setting
-        if (args.length > 0 && args[0].equals("-lfg")) {
-            try {
-                initiateLFGMode();
-            } catch (VariableBindingException | LexicalParserException e) {
-                e.printStackTrace();
-            }
-        }
-        else if (args.length > 0 && args[0].equals("-dp")){
-            try {
-                initiateDependencyMode();
-            } catch (VariableBindingException | LexicalParserException e) {
-                e.printStackTrace();
-            }
-        }
-
-        else if (args.length > 0 && args[0].equals("-i")){
+       if (args.length > 0 && args[0].equals("-i")){
             try {
 
                 File inFile = new File(args[1]);
@@ -186,53 +168,6 @@ public class WorkbenchMain {
         }
     }
 
-    public static void initiateLFGMode() throws VariableBindingException, LexicalParserException {
-            System.out.println("Starting LFG mode...\n");
-            File f = null;
-            final JFileChooser fc = new JFileChooser();
-            fc.setDialogTitle("Choose an f-structure file");
-            fc.addChoosableFileFilter(
-                    new FileNameExtensionFilter("Prolog f-structure files", "pl"));
-            int returnVal = fc.showOpenDialog(null);
-            if (returnVal == JFileChooser.APPROVE_OPTION) {
-                System.out.println("Selected file " + fc.getSelectedFile().getName());
-                f = fc.getSelectedFile();
-            } else {
-                System.out.println("No file selected");
-
-            }
-            Path p;
-            if (f != null) {
-                p = FileSystems.getDefault().getPath(f.getAbsolutePath());
-
-                //TODO adapt for multiple entry sets
-                searchProof(0,new FStructureParser(p).getLexicalEntries());
-
-            }
-            else
-                System.out.println("No file selected");
-    }
-
-
-    public static void initiateDependencyMode() throws VariableBindingException, LexicalParserException {
-        System.out.println("Starting interactive dependency mode...\n");
-        Scanner s = new Scanner(System.in);
-        String input;
-        while (true) {
-            System.out.println("Enter sentence to be analyzed or enter 'quit' to exit the program.");
-            input = s.nextLine();
-            if (input.equals("quit"))
-                break;
-            try {
-                //TODO adapt to deal with potential of multiple entrysets
-                searchProof(0,new SentenceMeaning(input).getLexicalEntries());
-            }
-            catch (NoClassDefFoundError e) {
-                System.out.println("Could not initialize dependency parser. Please refer to the README for more information");
-                return;
-            }
-        }
-    }
 
     public static void initiateManualMode() throws LexicalParserException, VariableBindingException {
         System.out.println("Starting manual entry mode...\n");
@@ -333,18 +268,6 @@ public class WorkbenchMain {
             }
 
             }
-
-    public static void initiateDependencyMode(String sentence) throws LexicalParserException {
-        try {
-            SentenceMeaning sm = new SentenceMeaning(sentence);
-            //TODO adapt to possibility of multiple entry sets
-            searchProof(0,sm.getLexicalEntries());
-        }
-        catch (VariableBindingException e) {
-            e.printStackTrace();
-        }
-
-    }
 
     /*
     public static void searchProof(List<LexicalEntry> lexicalEntries) throws VariableBindingException {

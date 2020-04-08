@@ -15,24 +15,17 @@
  *
  */
 
-package glueSemantics.synInterface.dependency;
+package utilities;
 
-import edu.stanford.nlp.ling.IndexedWord;
+import java.util.regex.Matcher;
 
-public class Tuple {
-
-    final IndexedWord right;
-    final String left;
-
-    public Tuple(String left,IndexedWord right){
-        this.left = left;
-        this.right = right;
-
-
+public class LexicalParserException extends Exception {
+    public LexicalParserException(String message) {
+        super(message);
     }
 
-    @Override
-    public String toString() {
-        return "(" + left + ": " + right.toString() + "--" + right.index() + ")";
+    public LexicalParserException(Matcher m) {
+        super ("Couldn't find pattern "+ m.pattern().toString());
     }
+
 }

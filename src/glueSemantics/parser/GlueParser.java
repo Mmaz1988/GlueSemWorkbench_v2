@@ -19,11 +19,11 @@ package glueSemantics.parser;
 
 
 
-import glueSemantics.lexicon.LexicalEntry;
+import glueSemantics.linearLogic.LLTerm;
+import glueSemantics.semantics.LexicalEntry;
 import glueSemantics.semantics.MeaningRepresentation;
 import glueSemantics.semantics.SemanticRepresentation;
 import prover.VariableBindingException;
-import glueSemantics.linearLogic.*;
 
 import java.util.ArrayList;
 import java.util.List;

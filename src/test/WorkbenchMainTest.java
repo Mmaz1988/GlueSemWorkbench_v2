@@ -17,24 +17,19 @@
 
 package test;
 
-import glueSemantics.lexicon.LexicalEntry;
 import glueSemantics.parser.GlueParser;
 import glueSemantics.parser.ParserInputException;
-import glueSemantics.synInterface.dependency.LexicalParserException;
-import glueSemantics.synInterface.lfg.FStructureParser;
-import main.WorkbenchMain;
+import glueSemantics.semantics.LexicalEntry;
 import org.junit.jupiter.api.Test;
-import prover.VariableBindingException;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 
-import static main.WorkbenchMain.searchProof;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class WorkbenchMainTest {
     private GlueParser parser = new GlueParser();
@@ -93,28 +88,7 @@ class WorkbenchMainTest {
     }
 
 
-    @Test
-    void testDependencyMode() {
-        try {
-            WorkbenchMain.initiateDependencyMode("Every man owns a black dog");
-            WorkbenchMain.initiateDependencyMode("John owns a big black dog.");
-        } catch (LexicalParserException e) {
-            e.printStackTrace();
-        }
-    }
 
-    @Test
-    void testLFGMode() {
-        Path p = Paths.get("C:\\Users\\User\\IdeaProjects\\glueSemWorkbench\\src\\test\\every_black_dog_barks_webXLE.pl");
-        try {
-          //  LLProver prover = new LLProver(new Settings());
-            searchProof(0,new FStructureParser(p).getLexicalEntries());
 
-            p = Paths.get("C:\\Users\\User\\IdeaProjects\\glueSemWorkbench\\src\\test\\john_cries_webXLE.pl");
-            searchProof(0,new FStructureParser(p).getLexicalEntries());
 
-        } catch (VariableBindingException | LexicalParserException e) {
-            e.printStackTrace();
-        }
-    }
 }

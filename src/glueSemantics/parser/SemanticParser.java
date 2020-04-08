@@ -2,7 +2,7 @@ package glueSemantics.parser;
 
 import glueSemantics.semantics.SemanticRepresentation;
 import glueSemantics.semantics.lambda.*;
-import glueSemantics.synInterface.dependency.LexVariableHandler;
+import utilities.LexVariableHandler;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;

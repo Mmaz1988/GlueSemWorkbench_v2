@@ -15,7 +15,7 @@
  *
  */
 
-package glueSemantics.synInterface.dependency;
+package utilities;
 
 import java.util.*;
 

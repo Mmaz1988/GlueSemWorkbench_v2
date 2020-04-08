@@ -6,7 +6,7 @@ import glueSemantics.semantics.lambda.FuncApp;
 import glueSemantics.semantics.lambda.SemAtom;
 import glueSemantics.semantics.lambda.SemFunction;
 import glueSemantics.semantics.lambda.SemType;
-import glueSemantics.synInterface.dependency.LexVariableHandler;
+import utilities.LexVariableHandler;
 import main.Settings;
 import test.Debugging;
 

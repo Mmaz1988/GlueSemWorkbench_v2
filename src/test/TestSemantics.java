@@ -2,7 +2,7 @@ package test;
 
 import glueSemantics.semantics.SemanticRepresentation;
 import glueSemantics.semantics.lambda.*;
-import glueSemantics.synInterface.dependency.LexVariableHandler;
+import utilities.LexVariableHandler;
 import main.Settings;
 import org.junit.jupiter.api.Test;
 import prover.LLProver2;
