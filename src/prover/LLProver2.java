@@ -432,7 +432,17 @@ public class LLProver2 {
                 //outGlue.assumptions.add(outGlue);
                 //  compiledGlue.getLhs().getOrderedDischarges().add(outGlue);
 
-                SemType newtype = new SemType(((LLFormula) l).getLhs().getType());
+                SemType newtype;
+
+                try{
+                    newtype = new SemType(((SemFunction) p.getSemTerm()).getBinder().getType().getLeft().clone());
+               //     ((SemFunction) p.getSemTerm()).getBinder().setType(((SemFunction) p.getSemTerm()).getBinder().getType().getRight());
+                }catch(Exception e)
+                {newtype = new SemType(((SemFunction) p.getSemTerm()).getBinder().getType().getLeft());
+                    System.out.println("error while compiling premise");}
+
+
+
                 SemAtom asumptionVar = new SemAtom(SemAtom.SemSort.VAR,
                         LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVarE), newtype);
 
@@ -462,7 +472,7 @@ public class LLProver2 {
 
 
             } else if (f.isNested() && !f.isModifier()) {
-                Premise temp = new Premise(p.getPremiseIDs(), p.getSemTerm(), f.getRhs());
+                Premise temp = new Premise(p.getPremiseIDs(), ((SemFunction) p.getSemTerm()).getFuncBody(), f.getRhs());
                 LinkedList<Premise> tempList = convert(temp);
 
                 for (int i = 1; i < tempList.size(); i++) {

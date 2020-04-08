@@ -164,4 +164,13 @@ Possibly add more types, e.g. SemVarE, SemVarT etc.
     //setters and Getters
 
 
+    public static HashMap<variableType, List<String>> getUsedVariables() {
+        return usedVariables;
+    }
+
+    public static void setUsedVariables(HashMap<variableType, List<String>> usedVariables) {
+        LexVariableHandler.usedVariables = usedVariables;
+    }
+
+
 }

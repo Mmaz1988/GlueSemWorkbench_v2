@@ -2,6 +2,7 @@ package glueSemantics.parser;
 
 import glueSemantics.semantics.SemanticRepresentation;
 import glueSemantics.semantics.lambda.*;
+import glueSemantics.synInterface.dependency.LexVariableHandler;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -10,9 +11,9 @@ import java.util.List;
 
 public class SemanticParser {
 
-    int bracketCounter = 0;
-    int pos = 0;
-    HashMap<Integer, List<SemAtom>> variableBindings = new HashMap<>();
+    private int bracketCounter = 0;
+    private int pos = 0;
+    private HashMap<Integer, List<SemAtom>> variableBindings = new HashMap<>();
 
     public SemanticParser()
     {
@@ -26,7 +27,8 @@ public class SemanticParser {
        // SemanticRepresentation p = parseExpression( "[/x_e.[/y_e.sleep(a(x),b(y))]]");
        // SemanticRepresentation p = parseExpression( "[/P_e.[/x_e.[/y_e.sleep(c(a(x),b(y),P(x),a(x,y)))]]]");
        // SemanticRepresentation p = parseExpression( "[/P_e.[/Q_e.[/y_e.[P(y) & Q(y)]]]]");
-        SemanticRepresentation p = parseExpression( "[/P_<e,t>.[/Q_<e,t>.some(x,P(x),Q(x))]]");
+        SemanticRepresentation p = parseExpression( "[/P_<e,t>.[/Q_<e,t>.some(x_e,P(x),Q(x))]]");
+      //  SemType t = typeParser("<e,<e,t>>",0);
 
         System.out.println("Done");
     }
@@ -42,70 +44,18 @@ public class SemanticParser {
             {
                 pos++;
             }
-            Character c = input.charAt(pos);
+            char c = input.charAt(pos);
             pos++;
                     if (c == '/') {
 
                         c = input.charAt(pos);
-                        if((c >= 97 && c <= 122) || (c >= 48 && c <= 57) || (c >= 66 && c <= 90)) {
-                            StringBuilder sb = new StringBuilder();
-                            //or sequence of letters
-                            while ((c >= 97 && c <= 122) || (c >= 48 && c <= 57) || (c >= 66 && c <= 90)) {
-                                sb.append(c);
-                                pos++;
-                                c = input.charAt(pos);
 
-                            }
-                            String varIdentifier = sb.toString();
-
-                            try {
-                                if (input.charAt(pos) == '_') {
-                                    pos++;
-                                    c = input.charAt(pos);
-                                    SemType t = null;
-                                    if (c == '<') {
-
-                                        StringBuilder sb1 = new StringBuilder();
-                                        int typeBracketCounter = 1;
-                                        pos++;
-                                        sb1.append(c);
-                                        while (typeBracketCounter > 0) {
-                                            c = input.charAt(pos);
-                                            sb1.append(c);
-
-                                            if (c == '<') {
-                                                typeBracketCounter++;
-                                            }
-                                            if (c == '>') {
-                                                typeBracketCounter = typeBracketCounter - 1;
-                                            }
-
-                                            pos++;
-                                        }
-                                        t = typeParser(sb1.toString());
-
-                                    } else {
-                                        pos++;
-                                        t = typeParser("" + c);
-                                    }
-
-
-                                    SemAtom newVar = new SemAtom(SemAtom.SemSort.VAR, varIdentifier, t);
-                                    if (!variableBindings.containsKey(bracketCounter)) {
-                                        variableBindings.put(bracketCounter, new ArrayList<SemAtom>());
-                                    }
-                                    variableBindings.get(bracketCounter).add(newVar);
-
-                                    return newVar;
-
-                                } else {
-
-                                }
-                            } catch (Exception e) {
-
-                            }
+                        SemanticRepresentation semBinder = parseExpression(input);
+                        pos++;
+                        return  semBinder;
+               //         if((c >= 97 && c <= 122) || (c >= 48 && c <= 57) || (c >= 66 && c <= 90)) {
                         }
-                    }
+
 
                     if (c == '[')
                     {
@@ -113,7 +63,6 @@ public class SemanticParser {
                         SemanticRepresentation left = parseExpression(input);
                         if (left instanceof SemAtom)
                         {
-                            pos++;
                             SemanticRepresentation right = parseExpression(input);
                             pos++;
                             return new SemFunction((SemAtom) left,right);
@@ -133,7 +82,6 @@ public class SemanticParser {
                                 pos++;
                                 c = input.charAt(pos);
                                 return new BinaryTerm(left, BinaryTerm.SemOperator.AND,right);
-
                             }
                             else if (c == 'v')
                             {
@@ -142,7 +90,6 @@ public class SemanticParser {
                                 pos++;
                                 pos++;
                                 return new BinaryTerm(left, BinaryTerm.SemOperator.OR,right);
-
                             }
                             else
                             {
@@ -152,8 +99,6 @@ public class SemanticParser {
                                 pos++;
                                 return new BinaryTerm(left, BinaryTerm.SemOperator.IMP,right);
                             }
-
-
                         }
                         else
                         {
@@ -180,7 +125,6 @@ public class SemanticParser {
                         SemanticRepresentation right = parseExpression(input);
                         pos++;
                         return new BinaryTerm(left, BinaryTerm.SemOperator.AND,right);
-
                     }
                     else if (c == 'v')
                     {
@@ -189,7 +133,6 @@ public class SemanticParser {
                         pos++;
                         pos++;
                         return new BinaryTerm(left, BinaryTerm.SemOperator.OR,right);
-
                     }
                     else
                     {
@@ -199,14 +142,11 @@ public class SemanticParser {
                         pos++;
                         return new BinaryTerm(left, BinaryTerm.SemOperator.IMP,right);
                     }
-
-
                 }
                 else
                 {
                     return  left;
                 }
-
             }
 
             if (c == ']')
@@ -214,9 +154,6 @@ public class SemanticParser {
                 pos++;
                 bracketCounter = bracketCounter - 1;
             }
-
-
-
                     if ((c >= 97 && c <= 122) || (c >= 48 && c <= 57) || (c >= 66 && c <= 90))
                     {
 
@@ -303,6 +240,61 @@ public class SemanticParser {
                        }
                        else
                        {
+
+                           try {
+                               if (input.charAt(pos) == '_') {
+                                   pos++;
+                                   c = input.charAt(pos);
+                                   SemType t = null;
+                                   if (c == '<') {
+
+                                       StringBuilder sb1 = new StringBuilder();
+                                       int typeBracketCounter = 1;
+                                       pos++;
+                                       sb1.append(c);
+                                       while (typeBracketCounter > 0) {
+                                           c = input.charAt(pos);
+                                           sb1.append(c);
+
+                                           if (c == '<') {
+                                               typeBracketCounter++;
+                                           }
+                                           if (c == '>') {
+                                               typeBracketCounter = typeBracketCounter - 1;
+                                           }
+
+                                           pos++;
+                                       }
+                                       t = typeParser(sb1.toString(), 0);
+
+                                   } else {
+                                       pos++;
+                                       t = typeParser("" + c, 0);
+                                   }
+
+
+                                   SemAtom newVar = new SemAtom(SemAtom.SemSort.VAR, varIdentifier, t);
+                                   if (!variableBindings.containsKey(bracketCounter)) {
+                                       variableBindings.put(bracketCounter, new ArrayList<SemAtom>());
+                                   }
+                                   variableBindings.get(bracketCounter).add(newVar);
+
+
+                                   if (newVar.getType().getLeft() == null) {
+                                       if (newVar.getType().toString().equals("e")) {
+                                           LexVariableHandler.getUsedVariables().
+                                                   get(LexVariableHandler.variableType.SemVarE).add(newVar.getName());
+                                       }
+                                   }
+
+                                   return newVar;
+                               }
+                           } catch (Exception e) {
+                               System.out.println("Could not determine type of variable at " + pos);
+                               e.printStackTrace();
+                           }
+
+
                            if (!(semRep instanceof SemAtom)) {
                                semRep = new SemAtom(SemAtom.SemSort.CONST, varIdentifier, SemType.AtomicType.TEMP);
                            }
@@ -321,9 +313,39 @@ public class SemanticParser {
     }
 
 
-    public SemType typeParser(String input)
+    private SemType typeParser(String input, int i)
     {
-        return new SemType(SemType.AtomicType.T);
+
+
+
+
+        {
+        while(i < input.length())
+            {
+                char c = input.charAt(i);
+                if (c == 'e')
+                {
+                    return  new SemType(SemType.AtomicType.E);
+                }
+                if (c == 't')
+                {
+
+                    return new SemType(SemType.AtomicType.T);
+                }
+                if (c == '<')
+                {
+                    i++;
+                    SemType left = typeParser(input,i);
+                    i++;
+                    SemType right = typeParser(input,i);
+                    return new SemType(left,right);
+                }
+                i++;
+            }
+        }
+
+        return null;
+
     }
 
     public void resetParser()

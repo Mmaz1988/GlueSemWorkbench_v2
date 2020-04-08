@@ -18,6 +18,7 @@
 package glueSemantics.semantics.lambda;
 
 import glueSemantics.semantics.SemanticRepresentation;
+import prover.ProverException;
 
 import java.util.ArrayList;
 
@@ -94,12 +95,17 @@ public class SemPred extends SemanticExpression {
     }
 
     @Override
-    public SemanticRepresentation applyTo(SemanticRepresentation var, SemanticRepresentation arg) {
+    public SemanticRepresentation applyTo(SemanticRepresentation var, SemanticRepresentation arg) throws ProverException {
         ArrayList<SemanticRepresentation> newArgs = new ArrayList<>(argList);
         for (int i = 0; i < newArgs.size(); i++) {
+/*
             if (newArgs.get(i) == var) {
                 newArgs.set(i,arg);
             }
+ */
+            SemanticRepresentation sr = newArgs.get(i).applyTo(var,arg).betaReduce();
+            newArgs.set(i,sr);
+
         }
         return new SemPred(this.predForm,newArgs);
     }
