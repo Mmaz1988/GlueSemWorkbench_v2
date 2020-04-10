@@ -22,8 +22,6 @@ import glueSemantics.semantics.SemanticRepresentation;
 import main.Settings;
 import prover.LLProver2;
 
-import static glueSemantics.semantics.lambda.SemAtom.SemSort.VAR;
-
 public class SemAtom extends SemanticExpression {
     private final String name;
     //private String value;
@@ -32,16 +30,14 @@ public class SemAtom extends SemanticExpression {
 
 
     // Constructor for atomic type atom
-    public SemAtom(SemSort sort, String name, SemType.AtomicType type)
-    {
+    public SemAtom(SemSort sort, String name, SemType.AtomicType type) {
         this.name = name;
         this.sort = sort;
         this.setType(type);
     }
 
     // Constructor for higher type atom
-    public SemAtom(SemSort sort, String name, SemType type)
-    {
+    public SemAtom(SemSort sort, String name, SemType type) {
         this.name = name;
         this.sort = sort;
         this.setType(type);
@@ -87,17 +83,32 @@ public class SemAtom extends SemanticExpression {
     public SemSort getSort() {
         return sort;
     }
-
+/*
     @Override
     public String toString() {
-        if (LLProver2.getSettings().getSemanticOutputStyle() == Settings.PROLOG && this.getSort() == VAR)
+        if (LLProver2.getSettings().getSemanticOutputStyle() == Settings.PROLOG && getSort() == VAR) {
             return name.toUpperCase();
-        else
+        } else {
             return name;
+        }
+    }
+ */
+    @Override
+    public String toString()
+    {
+        if (LLProver2.getSettings().getSemanticOutputStyle() == Settings.PROLOG && getSort() == SemSort.VAR)
+        {
+            return name.toUpperCase();
+        }
+        else
+        {
+            return name;
+        }
+
     }
 
     public String toStringTyped() {
-        return name + "_" + getType();
+        return name + "_" + getType().toString();
     }
 
 }

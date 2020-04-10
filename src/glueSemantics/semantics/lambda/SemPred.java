@@ -81,7 +81,7 @@ public class SemPred extends SemanticExpression {
         StringBuilder sb = new StringBuilder();
         sb.append("(");
         for (int i = 0; i < argList.size(); i++) {
-            sb.append(argList.get(i));
+            sb.append(argList.get(i).toString());
             if (i+1 < argList.size())
                 sb.append(",");
         }
@@ -103,7 +103,7 @@ public class SemPred extends SemanticExpression {
                 newArgs.set(i,arg);
             }
  */
-            SemanticRepresentation sr = newArgs.get(i).applyTo(var,arg).betaReduce();
+            SemanticRepresentation sr = newArgs.get(i).applyTo(var,arg);
             newArgs.set(i,sr);
 
         }

@@ -20,13 +20,12 @@ package glueSemantics.semantics.lambda;
 import glueSemantics.semantics.FunctionalApplication;
 import glueSemantics.semantics.MeaningRepresentation;
 import glueSemantics.semantics.SemanticRepresentation;
+import main.Settings;
 import prover.LLProver2;
 import prover.ProverException;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static main.Settings.PROLOG;
 
 public class FuncApp extends SemanticExpression implements FunctionalApplication {
 
@@ -115,7 +114,7 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
             if (lambda.getBinder().getType().equals(arg.getType())) {
                 SemanticRepresentation newBody = lambda.getFuncBody();
                 newBody = newBody.applyTo(lambda.getBinder(), arg);
-         //       newBody = newBody.betaReduce();
+                newBody = newBody.betaReduce();
           //      if (arg != this.argument)
          //           return new FuncApp(newBody, this.argument).betaReduce();
           //      else
@@ -228,10 +227,10 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
 
     @Override
     public String toString() {
-        if (LLProver2.getSettings().getSemanticOutputStyle() == PROLOG)
+        if (LLProver2.getSettings().getSemanticOutputStyle() == Settings.PROLOG)
             return String.format("app(%s,%s)",functor.toString(),argument.toString());
         else
-            return "[" + functor + "]" + "(" + argument + ")";
+            return functor.toString() + "(" + argument.toString() + ")";
 
     }
 

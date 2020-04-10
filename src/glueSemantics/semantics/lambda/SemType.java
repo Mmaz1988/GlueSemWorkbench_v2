@@ -22,7 +22,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import static glueSemantics.semantics.lambda.SemType.AtomicType.E;
 import static glueSemantics.semantics.lambda.SemType.AtomicType.TEMP;
 
 public class SemType {
@@ -151,6 +150,22 @@ public class SemType {
 
     public void setSimple(AtomicType simple) {
         this.simple = simple;
+    }
+
+
+    public boolean typeStructureEquals(SemType type)
+    {
+        if (left == null && type.left == null)
+        {return true;}
+        else if (!(left == null) && !(type.left == null)) {
+            boolean leftEquals = left.typeStructureEquals(type.left);
+            boolean rightEquals = right.typeStructureEquals(type.right);
+            if (leftEquals && rightEquals) {
+                return true;
+            }
+        }
+        return false;
+
     }
 
 }

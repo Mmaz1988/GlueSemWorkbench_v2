@@ -81,11 +81,11 @@ public class SemQuantEx extends SemanticExpression {
             if(LLProver2.getSettings().getSemanticOutputStyle() == PROLOG)
                 return String.format("all(%s,%s)",binder.toString(),quantBody.toString());
             else
-                return String.valueOf('\u2200') + binder + "[" + quantBody + "]";
+                return String.valueOf('\u2200') + binder.toString() + "[" + quantBody.toString() + "]";
         else
         if(LLProver2.getSettings().getSemanticOutputStyle() == PROLOG)
             return String.format("some(%s,%s)",binder.toString(),quantBody.toString());
         else
-            return String.valueOf('\u2203') + binder + "[" + quantBody + "]";
+            return String.valueOf('\u2203') + binder.toString() + "[" + quantBody.toString() + "]";
     }
 }

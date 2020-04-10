@@ -6,10 +6,11 @@ import glueSemantics.semantics.lambda.FuncApp;
 import glueSemantics.semantics.lambda.SemAtom;
 import glueSemantics.semantics.lambda.SemFunction;
 import glueSemantics.semantics.lambda.SemType;
-import utilities.LexVariableHandler;
 import main.Settings;
 import test.Debugging;
+import utilities.LexVariableHandler;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -280,7 +281,7 @@ public class LLProver2 {
 
                     argumentClone = new Premise(argument.getPremiseIDs(),temp,argumentGlueClone);
 
-                    SemanticRepresentation reducedSem = combine(func,argumentClone);
+                    SemanticRepresentation reducedSem = combine(func,argumentClone).betaReduce();
 
                     LLTerm newTerm = ((LLFormula) func.getGlueTerm()).getRhs();
                     if (func.getGlueTerm().getVariable() != null) {
@@ -432,13 +433,42 @@ public class LLProver2 {
                 //outGlue.assumptions.add(outGlue);
                 //  compiledGlue.getLhs().getOrderedDischarges().add(outGlue);
 
-                SemType newtype;
+                SemType newtype = null;
 
                 try{
-                    newtype = new SemType(((SemFunction) p.getSemTerm()).getBinder().getType().getLeft().clone());
+                    if (((LLFormula) l).getType().typeStructureEquals(
+                            ((SemFunction)p.getSemTerm()).getBinder().getType())) {
+                        newtype = new SemType(((SemFunction) p.getSemTerm()).getBinder().getType().getLeft().clone());
+                    }
+                    else
+                    {
+                        boolean typeMismatch = true;
+                        SemType tempType = ((SemFunction) p.getSemTerm()).getBinder().getType().getRight().clone();
+                        while (typeMismatch)
+                        {
+
+                            if ( l.getType().typeStructureEquals(tempType))
+                            {
+                                typeMismatch = false;
+                                newtype = tempType.getLeft();
+                                break;
+                            }
+                            else
+                            {
+                                tempType = tempType.getRight();
+                            }
+
+                            if (((SemFunction) p.getSemTerm()).getBinder().getType().getRight() == null)
+                            {
+
+                                throw new IOException("Typemismatch between glue type and lambda type.");
+                            }
+                        }
+
+                    }
                //     ((SemFunction) p.getSemTerm()).getBinder().setType(((SemFunction) p.getSemTerm()).getBinder().getType().getRight());
                 }catch(Exception e)
-                {newtype = new SemType(((SemFunction) p.getSemTerm()).getBinder().getType().getLeft());
+                {newtype = new SemType(((LLFormula) l).getLhs().getType());
                     System.out.println("error while compiling premise");}
 
 
@@ -472,7 +502,15 @@ public class LLProver2 {
 
 
             } else if (f.isNested() && !f.isModifier()) {
-                Premise temp = new Premise(p.getPremiseIDs(), ((SemFunction) p.getSemTerm()).getFuncBody(), f.getRhs());
+                SemanticRepresentation tempSem;
+                if (p.getSemTerm() instanceof SemFunction) {
+                    tempSem = ((SemFunction) p.getSemTerm()).getFuncBody();
+                }
+                else{
+                    tempSem = p.getSemTerm();
+                }
+
+                Premise temp = new Premise(p.getPremiseIDs(),tempSem, f.getRhs());
                 LinkedList<Premise> tempList = convert(temp);
 
                 for (int i = 1; i < tempList.size(); i++) {

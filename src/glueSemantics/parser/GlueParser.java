@@ -54,8 +54,8 @@ public class GlueParser {
             sem = new MeaningRepresentation(mcList[0].trim());
         } else
         {
-           sem = semParser.parseExpression(mcList[0]);
-           semParser.resetParser();
+           sem = semParser.parse(mcList[0]);
+
         }
         entry.setLlTerm(glue);
         entry.setSem(sem);

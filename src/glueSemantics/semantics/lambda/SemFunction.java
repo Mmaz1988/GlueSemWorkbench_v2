@@ -78,7 +78,7 @@ public class SemFunction extends SemanticExpression implements FunctionalAbstrac
         if(LLProver2.getSettings().getSemanticOutputStyle() == PROLOG)
             return String.format("lam(%s,%s)",binder.toString(),funcBody.toString());
         else
-            return operator + binder.toStringTyped() + "." + funcBody.toString();
+            return "[" + operator + binder.toStringTyped() + "." + funcBody.toString() + "]";
     }
 
 

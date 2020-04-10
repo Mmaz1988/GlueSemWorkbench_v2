@@ -27,12 +27,23 @@ public class SemanticParser {
        // SemanticRepresentation p = parseExpression( "[/x_e.[/y_e.sleep(a(x),b(y))]]");
        // SemanticRepresentation p = parseExpression( "[/P_e.[/x_e.[/y_e.sleep(c(a(x),b(y),P(x),a(x,y)))]]]");
        // SemanticRepresentation p = parseExpression( "[/P_e.[/Q_e.[/y_e.[P(y) & Q(y)]]]]");
-        SemanticRepresentation p = parseExpression( "[/P_<e,t>.[/Q_<e,t>.some(x_e,P(x),Q(x))]]");
+        //SemanticRepresentation p = parseExpression( "[/P_<e,t>.[/Q_<e,t>.Ex_v[P(x) -> Q(x))]]]");
+      //  SemanticRepresentation p = parseExpression("[/R_<v,t>.[/x_e.[/y_e.Ee_v[R(e) & (agent(e,x) & theme(e,y))]]]]");
+        SemanticRepresentation p = parseExpression("[/M_<s,<s,t>>.[/P_<s,t>.[/s_s.Az_s[M(s,z) -> P(z)]]]]");
       //  SemType t = typeParser("<e,<e,t>>",0);
 
         System.out.println("Done");
     }
 
+
+    public SemanticRepresentation parse(String input)
+    {
+        SemanticRepresentation sr =parseExpression(input);
+        variableBindings = new HashMap<>();
+        pos = 0;
+        bracketCounter = 0;
+        return sr;
+    }
 
     public SemanticRepresentation parseExpression(String input)
     {
@@ -46,9 +57,38 @@ public class SemanticParser {
             }
             char c = input.charAt(pos);
             pos++;
+
+
+                    if (c == 'E' || c == 'A')
+                    {
+                        bracketCounter++;
+                     SemanticRepresentation semBinder = parseExpression(input);
+                     bracketCounter = bracketCounter - 1;
+                     SemanticRepresentation scope = parseExpression(input);
+                     if (semBinder instanceof SemAtom && ((SemAtom) semBinder).getSort().equals(SemAtom.SemSort.VAR))
+                     {
+                         if (c == 'E') {
+                             return new SemQuantEx(SemQuantEx.SemQuant.EX, (SemAtom) semBinder, scope);
+                         }
+                         else
+                         {
+                             if (c == 'A')
+                             {
+                                 return new SemQuantEx(SemQuantEx.SemQuant.UNI, (SemAtom) semBinder, scope);
+                             }
+                         }
+                    }
+                     else
+                        {
+                            System.out.println("Failed to parse Quantifier Expression");
+                            return null;
+                        }
+                    }
+
+
                     if (c == '/') {
 
-                        c = input.charAt(pos);
+                        //c = input.charAt(pos);
 
                         SemanticRepresentation semBinder = parseExpression(input);
                         pos++;
@@ -65,6 +105,7 @@ public class SemanticParser {
                         {
                             SemanticRepresentation right = parseExpression(input);
                             pos++;
+                            bracketCounter = bracketCounter - 1;
                             return new SemFunction((SemAtom) left,right);
                         }
 
@@ -81,6 +122,7 @@ public class SemanticParser {
                                 SemanticRepresentation right = parseExpression(input);
                                 pos++;
                                 c = input.charAt(pos);
+                                bracketCounter = bracketCounter - 1;
                                 return new BinaryTerm(left, BinaryTerm.SemOperator.AND,right);
                             }
                             else if (c == 'v')
@@ -89,19 +131,22 @@ public class SemanticParser {
                                 SemanticRepresentation right = parseExpression(input);
                                 pos++;
                                 pos++;
+                                bracketCounter = bracketCounter - 1;
                                 return new BinaryTerm(left, BinaryTerm.SemOperator.OR,right);
                             }
-                            else
+                            else if (c == '-' & input.charAt(pos + 1) == '>')
                             {
-                                pos++;
+                                pos = pos + 2;
                                 SemanticRepresentation right = parseExpression(input);
                                 pos++;
                                 pos++;
+                                bracketCounter = bracketCounter - 1;
                                 return new BinaryTerm(left, BinaryTerm.SemOperator.IMP,right);
                             }
                         }
                         else
                         {
+                            bracketCounter = bracketCounter - 1;
                             return  left;
                         }
 
@@ -111,6 +156,7 @@ public class SemanticParser {
             {
                 bracketCounter++;
                 SemanticRepresentation left = parseExpression(input);
+                pos++;
 
                 if(left instanceof FuncApp || left instanceof SemPred)
                 {
@@ -133,6 +179,16 @@ public class SemanticParser {
                         pos++;
                         pos++;
                         return new BinaryTerm(left, BinaryTerm.SemOperator.OR,right);
+                    }
+
+                    else if (c == '-' & input.charAt(pos + 1) == '>')
+                    {
+                        pos = pos + 2;
+                        SemanticRepresentation right = parseExpression(input);
+                        pos++;
+                        pos++;
+                        bracketCounter = bracketCounter - 1;
+                        return new BinaryTerm(left, BinaryTerm.SemOperator.IMP,right);
                     }
                     else
                     {
@@ -316,9 +372,6 @@ public class SemanticParser {
     private SemType typeParser(String input, int i)
     {
 
-
-
-
         {
         while(i < input.length())
             {
@@ -332,6 +385,18 @@ public class SemanticParser {
 
                     return new SemType(SemType.AtomicType.T);
                 }
+
+                if (c == 's')
+                {
+                    return new SemType(SemType.AtomicType.S);
+                }
+
+                if (c == 'v')
+                {
+                    return new SemType(SemType.AtomicType.V);
+                }
+
+
                 if (c == '<')
                 {
                     i++;

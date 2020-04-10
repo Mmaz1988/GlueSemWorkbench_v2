@@ -153,6 +153,7 @@ public class WorkbenchMain {
                                 System.out.println("Error while generating output file. Maybe no valid path was given.");
                             }
                         }
+
                     }
             } catch (VariableBindingException | LexicalParserException e) {
                 e.printStackTrace();
