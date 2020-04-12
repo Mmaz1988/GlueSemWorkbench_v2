@@ -100,7 +100,6 @@ public class LinearLogicParser {
         }
 
         //char test = (char) c;
-        pos++;
 
         // character is a lower case letter
         if(c >= 97 && c <= 122 || c >= 48 && c <= 57){
@@ -108,21 +107,17 @@ public class LinearLogicParser {
             StringBuilder sb = new StringBuilder();
 
             //or sequence of letters
-            while ((c >= 97 && c <= 122) || (c >= 48 && c <= 57))
-            {
-                sb.append(c);
-                c = unparsedInput.charAt(pos);
-                pos++;
-                if (pos == unparsedInput.length())
-                {
+            while (((c >= 97 && c <= 122) || (c >= 48 && c <= 57))) {
                     sb.append(c);
-                    return new LLAtom(sb.toString(),
-                            new SemType(SemType.AtomicType.T),
-                            LLAtom.LLType.CONST,
-                            polarity);
+                    pos++;
+                if (pos < unparsedInput.length()) {
+                    c = unparsedInput.charAt(pos);
+                }else
+                {
+                    break;
                 }
-
             }
+
 
             String glueIdentifier = sb.toString();
             // check for a type identifier
@@ -156,6 +151,10 @@ public class LinearLogicParser {
                     }
                     else
                         throw new ParserInputException(pos,"Type identifier expected (e,s,v,t or t)");
+                }
+                else
+                {
+                    return new LLAtom(glueIdentifier, new SemType(SemType.AtomicType.T), LLAtom.LLType.CONST,polarity);
                 }
             } catch (StringIndexOutOfBoundsException e) {
                 return new LLAtom(glueIdentifier, new SemType(SemType.AtomicType.T), LLAtom.LLType.CONST,polarity);
@@ -221,7 +220,7 @@ public class LinearLogicParser {
 
         // character is a left parenthesis, set scope
         else if (c == 40) {
-
+            pos++;
             LLTerm left = parseTerm(unparsedInput, !polarity);
             //skip whitespaces
             while(unparsedInput.charAt(pos) == ' '){
