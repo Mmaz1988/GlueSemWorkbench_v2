@@ -21,6 +21,9 @@ import glueSemantics.semantics.SemanticRepresentation;
 import prover.LLProver2;
 import prover.ProverException;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import static glueSemantics.semantics.lambda.SemQuantEx.SemQuant.UNI;
 import static glueSemantics.semantics.lambda.SemType.AtomicType.T;
 import static main.Settings.PROLOG;
@@ -72,6 +75,14 @@ public class SemQuantEx extends SemanticExpression {
     @Override
     public SemanticExpression clone() {
         return new SemQuantEx(this);
+    }
+
+    @Override
+    public Set<SemAtom> findBoundVariables() {
+        Set<SemAtom> out = new HashSet<>();
+        out.add(binder);
+        out.addAll(quantBody.findBoundVariables());
+        return out;
     }
 
     @Override

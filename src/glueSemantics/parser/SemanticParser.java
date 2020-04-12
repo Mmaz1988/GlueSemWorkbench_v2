@@ -29,7 +29,8 @@ public class SemanticParser {
        // SemanticRepresentation p = parseExpression( "[/P_e.[/Q_e.[/y_e.[P(y) & Q(y)]]]]");
         //SemanticRepresentation p = parseExpression( "[/P_<e,t>.[/Q_<e,t>.Ex_v[P(x) -> Q(x))]]]");
       //  SemanticRepresentation p = parseExpression("[/R_<v,t>.[/x_e.[/y_e.Ee_v[R(e) & (agent(e,x) & theme(e,y))]]]]");
-        SemanticRepresentation p = parseExpression("[/M_<s,<s,t>>.[/P_<s,t>.[/s_s.Az_s[M(s,z) -> P(z)]]]]");
+       // SemanticRepresentation p = parseExpression("[/M_<s,<s,t>>.[/P_<s,t>.[/s_s.Az_s[M(s,z) -> P(z)]]]]");
+        SemanticRepresentation p = parseExpression("[/P_<s,t>.[/s_s.Er_s[before(r,s) & P(r)]]] ");
       //  SemType t = typeParser("<e,<e,t>>",0);
 
         System.out.println("Done");
@@ -282,6 +283,7 @@ public class SemanticParser {
                                    pos++;
                                    SemanticRepresentation semRep3 = parseExpression(input);
                                    argumentList.add(semRep3);
+                                   pos++;
                                    c = input.charAt(pos);
 
                                }

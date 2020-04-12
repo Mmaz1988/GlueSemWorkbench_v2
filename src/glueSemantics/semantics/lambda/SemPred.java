@@ -21,6 +21,8 @@ import glueSemantics.semantics.SemanticRepresentation;
 import prover.ProverException;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 import static glueSemantics.semantics.lambda.SemType.AtomicType.T;
 
@@ -113,5 +115,15 @@ public class SemPred extends SemanticExpression {
     @Override
     public SemanticExpression clone() {
         return new SemPred(this);
+    }
+
+    @Override
+    public Set<SemAtom> findBoundVariables() {
+        Set<SemAtom> out = new HashSet<>();
+        for (SemanticRepresentation sr : argList)
+        {
+            out.addAll(sr.findBoundVariables());
+        }
+        return out;
     }
 }

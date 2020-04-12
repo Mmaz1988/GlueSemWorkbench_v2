@@ -23,9 +23,12 @@ import glueSemantics.semantics.SemanticRepresentation;
 import main.Settings;
 import prover.LLProver2;
 import prover.ProverException;
+import utilities.LexVariableHandler;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class FuncApp extends SemanticExpression implements FunctionalApplication {
 
@@ -62,6 +65,7 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
 
     // Does a full beta reduction of the term including all nested functional applications
     public SemanticRepresentation betaReduce() throws ProverException {
+        alphaConversion();
         if (this.functor instanceof FuncApp)
             this.functor = functor.betaReduce();
 
@@ -221,6 +225,14 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
     }
 
     @Override
+    public Set<SemAtom> findBoundVariables() {
+        Set<SemAtom> out = new HashSet<>();
+        out.addAll(functor.findBoundVariables());
+        out.addAll(argument.findBoundVariables());
+        return out;
+    }
+
+    @Override
     public SemType getType() {
         return functor.getType();
     }
@@ -245,4 +257,24 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
     public void setFunctor(SemanticRepresentation functor) {
         this.functor = functor;
     }
+
+    public void alphaConversion()
+    {
+        Set<SemAtom> funcSet = functor.findBoundVariables();
+        Set<SemAtom> argSet = argument.findBoundVariables();
+
+        for (SemAtom var1 : funcSet)
+        {
+            for (SemAtom var2 : argSet)
+            {
+                if (!(var1 == var2) && var1.getName().equals(var2.getName()))
+                {
+                    var2.setName(LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVarE));
+                }
+            }
+        }
+
+
+    }
+
 }

@@ -22,6 +22,9 @@ import glueSemantics.semantics.SemanticRepresentation;
 import prover.LLProver2;
 import prover.ProverException;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import static main.Settings.PROLOG;
 
 public class SemFunction extends SemanticExpression implements FunctionalAbstraction {
@@ -94,6 +97,14 @@ public class SemFunction extends SemanticExpression implements FunctionalAbstrac
     @Override
     public SemanticExpression clone() {
         return new SemFunction(this);
+    }
+
+    @Override
+    public Set<SemAtom> findBoundVariables() {
+        Set<SemAtom> out = new HashSet<>();
+        out.add(binder);
+        out.addAll(funcBody.findBoundVariables());
+        return out;
     }
 
 }

@@ -21,6 +21,9 @@ import glueSemantics.semantics.SemanticRepresentation;
 import prover.LLProver2;
 import prover.ProverException;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import static glueSemantics.semantics.lambda.BinaryTerm.SemOperator.AND;
 import static glueSemantics.semantics.lambda.BinaryTerm.SemOperator.IMP;
 import static glueSemantics.semantics.lambda.SemType.AtomicType.T;
@@ -81,6 +84,14 @@ public class BinaryTerm extends SemanticExpression {
     @Override
     public SemanticExpression clone() {
         return new BinaryTerm(this);
+    }
+
+    @Override
+    public Set<SemAtom> findBoundVariables() {
+        Set<SemAtom> out = new HashSet<>();
+        out.addAll(left.findBoundVariables());
+        out.addAll(right.findBoundVariables());
+        return out;
     }
 
     public enum SemOperator {

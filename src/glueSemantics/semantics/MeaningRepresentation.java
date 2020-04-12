@@ -17,7 +17,11 @@
 
 package glueSemantics.semantics;
 
+import glueSemantics.semantics.lambda.SemAtom;
 import glueSemantics.semantics.lambda.SemType;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * A MeaningRepresentation is a generic semantic representation without any asociation
@@ -54,6 +58,11 @@ public class MeaningRepresentation implements SemanticRepresentation{
     @Override
     public SemanticRepresentation clone() {
         return new MeaningRepresentation(this.formula);
+    }
+
+    @Override
+    public Set<SemAtom> findBoundVariables() {
+        return new HashSet<>();
     }
 
     @Override

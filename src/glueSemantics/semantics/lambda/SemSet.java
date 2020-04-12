@@ -4,7 +4,9 @@ import glueSemantics.semantics.SemanticRepresentation;
 import prover.ProverException;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class SemSet extends SemanticExpression {
@@ -72,6 +74,16 @@ public class SemSet extends SemanticExpression {
     @Override
     public SemanticExpression clone() {
         return null;
+    }
+
+    @Override
+    public Set<SemAtom> findBoundVariables() {
+        Set<SemAtom> out = new HashSet<>();
+        for (SemanticRepresentation sr : members)
+        {
+            out.addAll(sr.findBoundVariables());
+        }
+        return out;
     }
 
     @Override

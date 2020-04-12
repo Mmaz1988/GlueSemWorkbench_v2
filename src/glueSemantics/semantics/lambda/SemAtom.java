@@ -22,8 +22,10 @@ import glueSemantics.semantics.SemanticRepresentation;
 import main.Settings;
 import prover.LLProver2;
 
+import java.util.*;
+
 public class SemAtom extends SemanticExpression {
-    private final String name;
+    private String name;
     //private String value;
     //private AtomicType atomicType;
     private final SemSort sort;
@@ -76,9 +78,19 @@ public class SemAtom extends SemanticExpression {
         return this;
     }
 
+    @Override
+    public Set<SemAtom> findBoundVariables() {
+        if (sort == SemSort.VAR)
+        {
+            return Collections.singleton(this);
+        }
+        return new HashSet<>();
+    }
+
     public String getName() {
         return name;
     }
+    public void setName(String name){this.name = name;}
 
     public SemSort getSort() {
         return sort;

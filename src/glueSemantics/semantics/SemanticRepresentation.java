@@ -17,14 +17,14 @@
 
 package glueSemantics.semantics;
 
+import glueSemantics.semantics.lambda.SemAtom;
 import glueSemantics.semantics.lambda.SemType;
 import prover.ProverException;
 
+import java.util.Set;
+
 public interface SemanticRepresentation {
 
-
-    // TODO is this necessary?
-    //public SemanticRepresentation applyTo();
     public SemanticRepresentation betaReduce() throws ProverException;
 
     public SemanticRepresentation applyTo(SemanticRepresentation var, SemanticRepresentation arg) throws ProverException;
@@ -32,4 +32,6 @@ public interface SemanticRepresentation {
     public SemType getType();
 
     public SemanticRepresentation clone();
+
+    public Set<SemAtom> findBoundVariables();
 }
