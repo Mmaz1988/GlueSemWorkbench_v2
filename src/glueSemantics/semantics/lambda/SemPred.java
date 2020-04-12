@@ -59,6 +59,7 @@ public class SemPred extends SemanticExpression {
     public SemPred(String predForm, ArrayList<SemanticRepresentation> args) {
         this.predForm = predForm;
         this.argList = args;
+        this.setType(T);
     }
 
     public SemPred(SemPred p) {
@@ -93,7 +94,20 @@ public class SemPred extends SemanticExpression {
 
     @Override
     public SemanticRepresentation betaReduce() {
-        return this;
+
+        ArrayList<SemanticRepresentation> newArgs = new ArrayList<>();
+
+        try{
+            for (SemanticRepresentation arg : argList)
+        {
+               newArgs.add(arg.betaReduce());}
+        }
+        catch(Exception e)
+        {
+            System.out.println("Failed to beta reduce " + this.toString());
+        }
+
+        return new SemPred(predForm,newArgs);
     }
 
     @Override

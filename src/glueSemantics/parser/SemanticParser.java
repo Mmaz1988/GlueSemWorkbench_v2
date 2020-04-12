@@ -30,7 +30,8 @@ public class SemanticParser {
         //SemanticRepresentation p = parseExpression( "[/P_<e,t>.[/Q_<e,t>.Ex_v[P(x) -> Q(x))]]]");
       //  SemanticRepresentation p = parseExpression("[/R_<v,t>.[/x_e.[/y_e.Ee_v[R(e) & (agent(e,x) & theme(e,y))]]]]");
        // SemanticRepresentation p = parseExpression("[/M_<s,<s,t>>.[/P_<s,t>.[/s_s.Az_s[M(s,z) -> P(z)]]]]");
-        SemanticRepresentation p = parseExpression("[/P_<s,t>.[/s_s.Er_s[before(r,s) & P(r)]]] ");
+      //  SemanticRepresentation p = parseExpression("[/P_<s,t>.[/s_s.Er_s[before(r,s) & P(r)]]] ");
+        SemanticRepresentation p = parseExpression("{[/x_e.sleep(x)],[/y_e.snore(y)]}");
       //  SemType t = typeParser("<e,<e,t>>",0);
 
         System.out.println("Done");
@@ -204,6 +205,45 @@ public class SemanticParser {
                 {
                     return  left;
                 }
+            }
+
+            if (c == '{')
+            {
+
+                /*
+                  pos++;
+                               SemanticRepresentation semRep2 = parseExpression(input);
+                               c = input.charAt(pos);
+                               ArrayList<SemanticRepresentation> argumentList = new ArrayList<>();
+                               argumentList.add(semRep2);
+
+                               if(input.charAt(pos) == ')')
+                                    {pos++;}
+
+                               while(c == ',')
+                               {
+                                   pos++;
+                                   SemanticRepresentation semRep3 = parseExpression(input);
+                                   argumentList.add(semRep3);
+                                   pos++;
+                                   c = input.charAt(pos);
+
+                               }
+                 */
+                SemanticRepresentation first = parseExpression(input);
+                c = input.charAt(pos);
+                List<SemanticRepresentation> semSetList = new ArrayList<>();
+                semSetList.add(first);
+                while(c == ',')
+                {
+                    pos++;
+                    SemanticRepresentation next = parseExpression(input);
+                    semSetList.add(next);
+                    c = input.charAt(pos);
+                }
+
+                return new SemSet(semSetList,first.getType());
+
             }
 
             if (c == ']')

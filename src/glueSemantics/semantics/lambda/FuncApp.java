@@ -115,7 +115,7 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
 
             //For end beta reduction
 
-            if (lambda.getBinder().getType().equals(arg.getType())) {
+            if (lambda.getBinder().getType().equals(arg.getType()) || arg.getType().getSimple().equals(SemType.AtomicType.TEMP) ) {
                 SemanticRepresentation newBody = lambda.getFuncBody();
                 newBody = newBody.applyTo(lambda.getBinder(), arg);
                 newBody = newBody.betaReduce();
@@ -234,7 +234,7 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
 
     @Override
     public SemType getType() {
-        return functor.getType();
+        return functor.getType().getRight();
     }
 
     @Override
@@ -250,7 +250,7 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
     public void instantiateFunctionalApp(SemanticRepresentation func, SemanticRepresentation arg) {
         this.functor = func;
         this.argument = arg;
-        this.setType(func.getType());
+            setType(func.getType().getRight());
     }
 
 

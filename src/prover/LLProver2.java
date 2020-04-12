@@ -2,10 +2,7 @@ package prover;
 
 import glueSemantics.linearLogic.*;
 import glueSemantics.semantics.SemanticRepresentation;
-import glueSemantics.semantics.lambda.FuncApp;
-import glueSemantics.semantics.lambda.SemAtom;
-import glueSemantics.semantics.lambda.SemFunction;
-import glueSemantics.semantics.lambda.SemType;
+import glueSemantics.semantics.lambda.*;
 import main.Settings;
 import test.Debugging;
 import utilities.LexVariableHandler;
@@ -249,7 +246,7 @@ public class LLProver2 {
                 argumentClone = new Premise(argument.getPremiseIDs(),argument.getSemTerm().clone(),
                         argument.getGlueTerm().clone());
 
-                SemanticRepresentation reducedSem = combine(func,argumentClone);
+                SemanticRepresentation reducedSem = combine(func,argumentClone).betaReduce();
 
                 LLTerm newTerm = ((LLFormula) func.getGlueTerm()).getRhs();
                 if (func.getGlueTerm().getVariable() != null) {
@@ -436,14 +433,33 @@ public class LLProver2 {
                 SemType newtype = null;
 
                 try{
-                    if (((LLFormula) l).getType().typeStructureEquals(
-                            ((SemFunction)p.getSemTerm()).getBinder().getType())) {
-                        newtype = new SemType(((SemFunction) p.getSemTerm()).getBinder().getType().getLeft().clone());
+                    SemType compileType = l.getType();
+                    SemType currentType = null;
+
+                    if (p.getSemTerm() instanceof SemFunction) {
+                        currentType =((SemFunction) p.getSemTerm()).getBinder().getType();
+                    }
+                    else if (p.getSemTerm() instanceof SemSet)
+                    {
+                        currentType = p.getSemTerm().getType().getLeft();
+                    }
+
+                    if (compileType.typeStructureEquals(currentType)) {
+                        newtype = new SemType(currentType.getLeft().clone());
                     }
                     else
                     {
                         boolean typeMismatch = true;
-                        SemType tempType = ((SemFunction) p.getSemTerm()).getBinder().getType().getRight().clone();
+
+                        SemType tempType;
+
+                        if (p.getSemTerm() instanceof SemSet)
+                        {
+                           tempType =  p.getSemTerm().getType().getLeft().getRight().clone();
+                        }
+                        else {
+                            tempType = ((SemFunction) p.getSemTerm()).getBinder().getType().getRight().clone();
+                        }
                         while (typeMismatch)
                         {
 
@@ -469,7 +485,8 @@ public class LLProver2 {
                //     ((SemFunction) p.getSemTerm()).getBinder().setType(((SemFunction) p.getSemTerm()).getBinder().getType().getRight());
                 }catch(Exception e)
                 {newtype = new SemType(((LLFormula) l).getLhs().getType());
-                    System.out.println("error while compiling premise");}
+                    System.out.println("error while compiling premise");
+                }
 
 
 

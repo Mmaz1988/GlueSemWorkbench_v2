@@ -68,12 +68,24 @@ public class SemSet extends SemanticExpression {
     @Override
     public SemanticRepresentation applyTo(SemanticRepresentation var, SemanticRepresentation arg) {
 
-    return null;
+        List<SemanticRepresentation> newMembers = new ArrayList<>();
+        for (SemanticRepresentation semRep : members)
+        {
+            try {
+                newMembers.add(semRep.applyTo(var, arg));
+            }catch(Exception e)
+            {
+                System.out.println("Failed to applied arg " + arg.toString() + "set " + this.toString());
+            }
+        }
+
+        return new SemSet(newMembers,this.getType());
     }
 
     @Override
     public SemanticExpression clone() {
-        return null;
+        return new SemSet(this.members,getType());
+
     }
 
     @Override

@@ -17,7 +17,9 @@
 
 package glueSemantics.parser;
 
-import glueSemantics.linearLogic.*;
+import glueSemantics.linearLogic.LLAtom;
+import glueSemantics.linearLogic.LLFormula;
+import glueSemantics.linearLogic.LLTerm;
 import glueSemantics.semantics.lambda.SemType;
 
 import java.util.ArrayList;
@@ -111,6 +113,15 @@ public class LinearLogicParser {
                 sb.append(c);
                 c = unparsedInput.charAt(pos);
                 pos++;
+                if (pos == unparsedInput.length())
+                {
+                    sb.append(c);
+                    return new LLAtom(sb.toString(),
+                            new SemType(SemType.AtomicType.T),
+                            LLAtom.LLType.CONST,
+                            polarity);
+                }
+
             }
 
             String glueIdentifier = sb.toString();
