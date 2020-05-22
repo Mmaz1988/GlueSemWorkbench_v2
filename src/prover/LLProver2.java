@@ -432,6 +432,8 @@ public class LLProver2 {
 
                 SemType newtype = null;
 
+
+                //Routine to define type of compiled out variables in typed lambda calculus.
                 try{
                     SemType compileType = l.getType();
                     SemType currentType = null;

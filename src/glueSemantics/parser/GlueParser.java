@@ -40,6 +40,14 @@ public class GlueParser {
         this.PARSESEMANTCS = true;
     }
 
+    public GlueParser(Boolean externalMeaningRepresentation)
+    {
+        if (externalMeaningRepresentation)
+            this.PARSESEMANTCS = false;
+        else{
+            this.PARSESEMANTCS = true;
+        }
+    }
 
     public LexicalEntry parseMeaningConstructor(String mc) throws ParserInputException {
         String[] mcList = mc.split(":");
@@ -57,6 +65,9 @@ public class GlueParser {
            sem = semParser.parse(mcList[0]);
 
         }
+
+
+
         entry.setLlTerm(glue);
         entry.setSem(sem);
 

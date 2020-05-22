@@ -49,6 +49,15 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
         this.functor = fa.functor.clone();
         this.argument = fa.argument.clone();
 
+        try {
+            setType(this.functor.getType().getRight());
+        }catch(Exception e)
+        {
+            setType(SemType.AtomicType.T);
+            System.out.println("External meaning representation.");
+        }
+
+
         //Test version
         //this.compiled = fa.compiled;
     }
@@ -234,7 +243,12 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
 
     @Override
     public SemType getType() {
-        return functor.getType().getRight();
+        if (functor.getType().getRight() != null) {
+            return functor.getType().getRight();
+        } else
+        {
+            return functor.getType();
+        }
     }
 
     @Override
@@ -250,7 +264,13 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
     public void instantiateFunctionalApp(SemanticRepresentation func, SemanticRepresentation arg) {
         this.functor = func;
         this.argument = arg;
+        try {
             setType(func.getType().getRight());
+        }catch(Exception e)
+        {
+            setType(SemType.AtomicType.T);
+            System.out.println("External meaning representation.");
+        }
     }
 
 
