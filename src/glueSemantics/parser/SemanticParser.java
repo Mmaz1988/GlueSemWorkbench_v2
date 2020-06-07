@@ -31,7 +31,8 @@ public class SemanticParser {
       //  SemanticRepresentation p = parseExpression("[/R_<v,t>.[/x_e.[/y_e.Ee_v[R(e) & (agent(e,x) & theme(e,y))]]]]");
        // SemanticRepresentation p = parseExpression("[/M_<s,<s,t>>.[/P_<s,t>.[/s_s.Az_s[M(s,z) -> P(z)]]]]");
       //  SemanticRepresentation p = parseExpression("[/P_<s,t>.[/s_s.Er_s[before(r,s) & P(r)]]] ");
-        SemanticRepresentation p = parseExpression("{[/x_e.sleep(x)],[/y_e.snore(y)]}");
+   //     SemanticRepresentation p = parseExpression("{[/x_e.sleep(x)],[/y_e.snore(y)]}");
+        SemanticRepresentation p = parseExpression("[/x_e.sleep(x,y,z)]");
       //  SemType t = typeParser("<e,<e,t>>",0);
 
         System.out.println("Done");
@@ -284,6 +285,7 @@ public class SemanticParser {
                        c = input.charAt(pos);
                        if (c == '(')
                        {
+                           //TODO or instance of semfunction
                            if(semRep instanceof SemAtom && ((SemAtom) semRep).getSort().equals(SemAtom.SemSort.VAR))
                            {
                                pos++;
@@ -323,7 +325,6 @@ public class SemanticParser {
                                    pos++;
                                    SemanticRepresentation semRep3 = parseExpression(input);
                                    argumentList.add(semRep3);
-                                   pos++;
                                    c = input.charAt(pos);
 
                                }
