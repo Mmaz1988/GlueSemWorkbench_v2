@@ -2,6 +2,8 @@ package glueSemantics.parser;
 
 import glueSemantics.semantics.SemanticRepresentation;
 import glueSemantics.semantics.lambda.*;
+import main.Settings;
+import prover.LLProver2;
 import utilities.LexVariableHandler;
 import org.junit.jupiter.api.Test;
 
@@ -25,16 +27,22 @@ public class SemanticParser {
       //  SemanticRepresentation s = parseExpression( "[/P_<e,t>.[/x_e.[/y_e.P(x)(y)]]]");
      //   SemanticRepresentation p = parseExpression( "[/x_e.[/y_e.sleep(a(x,y),b(y,x))]]");
        // SemanticRepresentation p = parseExpression( "[/x_e.[/y_e.sleep(a(x),b(y))]]");
-       // SemanticRepresentation p = parseExpression( "[/P_e.[/x_e.[/y_e.sleep(c(a(x),b(y),P(x),a(x,y)))]]]");
+        //SemanticRepresentation p = parseExpression( "[/P_e.[/x_e.[/y_e.sleep(c(a(x),b(y),P(x),a(x,y)))]]]");
        // SemanticRepresentation p = parseExpression( "[/P_e.[/Q_e.[/y_e.[P(y) & Q(y)]]]]");
         //SemanticRepresentation p = parseExpression( "[/P_<e,t>.[/Q_<e,t>.Ex_v[P(x) -> Q(x))]]]");
       //  SemanticRepresentation p = parseExpression("[/R_<v,t>.[/x_e.[/y_e.Ee_v[R(e) & (agent(e,x) & theme(e,y))]]]]");
        // SemanticRepresentation p = parseExpression("[/M_<s,<s,t>>.[/P_<s,t>.[/s_s.Az_s[M(s,z) -> P(z)]]]]");
       //  SemanticRepresentation p = parseExpression("[/P_<s,t>.[/s_s.Er_s[before(r,s) & P(r)]]] ");
    //     SemanticRepresentation p = parseExpression("{[/x_e.sleep(x)],[/y_e.snore(y)]}");
-        SemanticRepresentation p = parseExpression("[/x_e.sleep(x,y,z)]");
+       // SemanticRepresentation p = parseExpression("[/x_e.sleep(x,y,z)]");
       //  SemType t = typeParser("<e,<e,t>>",0);
 
+        LLProver2 prover = new LLProver2(new Settings());
+
+    //    SemanticRepresentation p = parseExpression("[/T_<s,<s,t>>.[/P_<s,t>.[/t_s.Et1_s[T(t)(t1) & P(t1)]]]]");
+        SemanticRepresentation p = parseExpression("[/P_<v,t>.[/s_s.exemplify(s,Ee_v[P(e)])]]");
+
+        System.out.println(p.toString());
         System.out.println("Done");
     }
 
@@ -104,6 +112,18 @@ public class SemanticParser {
                     {
                         bracketCounter++;
                         SemanticRepresentation left = parseExpression(input);
+
+                        while (input.charAt(pos) == ' ')
+                        {
+                            pos++;
+                        }
+                        c = input.charAt(pos);
+
+                        if (c == ']')
+                        {
+                            return left;
+                        }
+
                         if (left instanceof SemAtom)
                         {
                             SemanticRepresentation right = parseExpression(input);
