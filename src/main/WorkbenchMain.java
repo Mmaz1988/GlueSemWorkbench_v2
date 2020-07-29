@@ -69,6 +69,10 @@ public class WorkbenchMain {
                     break;
                 case ("-go"):
                     settings.setGlueOnly(true);
+                case("-parseSem"):
+                {
+                    settings.setParseSemantics(true);
+                }
             }
         }
 
@@ -203,8 +207,8 @@ public class WorkbenchMain {
     }
 
     public static void initiateManualMode(List<String> formulas) throws LexicalParserException, VariableBindingException {
-         LinkedHashMap<Integer,List<LexicalEntry>> lexicalEntries = new LinkedHashMap<>();
-        GlueParser parser = new GlueParser();
+        LinkedHashMap<Integer,List<LexicalEntry>> lexicalEntries = new LinkedHashMap<>();
+        GlueParser parser = new GlueParser(settings.isParseSemantics());
         Integer sets = 0;
         Pattern wrapperStart = Pattern.compile("\\t*\\{\\t*");
         Pattern wrapperEnd = Pattern.compile("\\t*\\}\\t*");

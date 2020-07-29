@@ -487,7 +487,7 @@ public class LLProver2 {
                //     ((SemFunction) p.getSemTerm()).getBinder().setType(((SemFunction) p.getSemTerm()).getBinder().getType().getRight());
                 }catch(Exception e)
                 {newtype = new SemType(((LLFormula) l).getLhs().getType());
-                    System.out.println("error while compiling premise");
+                    System.out.println("Error while compiling premise");
                 }
 
 

@@ -123,8 +123,7 @@ public class LinearLogicParser {
             // check for a type identifier
             try {
                 if(c == '_') {
-                   // pos++;
-
+                   pos++;
                     if ( SemType.typeStrings.contains(String.valueOf(unparsedInput.charAt(pos)))) {
                         if (unparsedInput.charAt(pos) == 'e') {
                             pos++;
@@ -174,15 +173,15 @@ public class LinearLogicParser {
             while ((c >= 66 && c <= 90) || (c >= 48 && c <= 57))
             {
                 sb.append(c);
-                c = unparsedInput.charAt(pos);
                 pos++;
+                c = unparsedInput.charAt(pos);
             }
 
             String glueIdentifier = sb.toString();
 
             try {
                 if(c == '_') {
-                   // pos++;
+                     pos++;
                     if (unparsedInput.charAt(pos) == 'e') {
                         pos++;
                         return new LLAtom( glueIdentifier,
@@ -213,7 +212,6 @@ public class LinearLogicParser {
             } catch (StringIndexOutOfBoundsException e) {
                 return new LLAtom(glueIdentifier, new SemType(SemType.AtomicType.T), LLAtom.LLType.VAR,polarity);
             }
-            pos = pos - 1;
             return new LLAtom(glueIdentifier, new SemType(SemType.AtomicType.T), LLAtom.LLType.VAR,polarity);
 
         }
@@ -248,6 +246,7 @@ public class LinearLogicParser {
         try parsing a quantified expression
         */
         else if (c == 14846080|| c == 65) {
+            pos++;
             LLTerm var;
             var = parseTerm(unparsedInput,polarity);
             if (!(var instanceof LLAtom && ((LLAtom) var).getLLtype() == LLAtom.LLType.VAR))

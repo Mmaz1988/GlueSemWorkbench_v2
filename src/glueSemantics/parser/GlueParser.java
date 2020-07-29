@@ -40,12 +40,12 @@ public class GlueParser {
         this.PARSESEMANTCS = true;
     }
 
-    public GlueParser(Boolean externalMeaningRepresentation)
+    public GlueParser(Boolean parseSemantics)
     {
-        if (externalMeaningRepresentation)
-            this.PARSESEMANTCS = false;
-        else{
+        if (parseSemantics)
             this.PARSESEMANTCS = true;
+        else{
+            this.PARSESEMANTCS = false;
         }
     }
 
@@ -60,6 +60,8 @@ public class GlueParser {
         SemanticRepresentation sem = null;
         if (!PARSESEMANTCS) {
             sem = new MeaningRepresentation(mcList[0].trim());
+            //TODO
+            //((MeaningRepresentation) sem).setType(glue.getType());
         } else
         {
            sem = semParser.parse(mcList[0]);

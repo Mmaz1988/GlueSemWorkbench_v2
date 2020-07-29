@@ -55,6 +55,8 @@ public class MeaningRepresentation implements SemanticRepresentation{
         return this.type;
     }
 
+    public void setType(SemType type) {this.type = type;}
+
     @Override
     public SemanticRepresentation clone() {
         return new MeaningRepresentation(this.formula);

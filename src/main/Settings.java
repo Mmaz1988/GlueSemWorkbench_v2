@@ -37,6 +37,7 @@ public class Settings {
     private boolean glueOnly;
     private boolean multipleEntries;
     private boolean outputFile;
+    private boolean parseSemantics;
 
     public Settings() {
         this.betaReduce = true;
@@ -44,6 +45,7 @@ public class Settings {
         this.debugging = false;
         this.partial = false;
         this.glueOnly = false;
+        this.parseSemantics = false;
     }
 
     public Settings (boolean betaReduce, int semanticOutputStyle) {
@@ -52,6 +54,7 @@ public class Settings {
         this.debugging = false;
         this.partial = false;
         this.glueOnly = false;
+        parseSemantics = false;
     }
 
     public boolean isBetaReduce() {
@@ -110,5 +113,12 @@ public class Settings {
         this.outputFile = outputFile;
     }
 
+    public boolean isParseSemantics() {
+        return parseSemantics;
+    }
+
+    public void setParseSemantics(boolean parseSemantics) {
+        this.parseSemantics = parseSemantics;
+    }
 
 }
