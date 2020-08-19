@@ -44,23 +44,27 @@ public abstract class LLTerm {
     private LLAtom variable;
 
     //Default constructor
-    public LLTerm(){ }
+    public LLTerm() {
+    }
 
 
-    public LLTerm(LLAtom var)
-    {
+    public LLTerm(LLAtom var) {
         this.variable = var;
     }
 
-    public boolean isPolarity() { return polarity; }
+    public boolean isPolarity() {
+        return polarity;
+    }
 
-    void setPolarity(boolean pol) { this.polarity = pol; }
+    void setPolarity(boolean pol) {
+        this.polarity = pol;
+    }
 
     public abstract boolean checkEquivalence(LLTerm term);
 
     public abstract LinkedHashSet<Equality> checkCompatibility(LLTerm term);
 
-    public SemType getType(){
+    public SemType getType() {
         return this.semType;
     }
 
@@ -111,33 +115,30 @@ public abstract class LLTerm {
    Represents the binder relation between the quantifier
    and the variables in the scope of the quantifier
    */
-    public List<LLAtom> findBoundOccurrences(LLTerm term){
+    public List<LLAtom> findBoundOccurrences(LLTerm term) {
 
 
         // Variables that are equivalent are bound by the quantifier
         if (term instanceof LLAtom) {
-            if (((LLAtom) term).getLLtype() == LLAtom.LLType.VAR){
+            if (((LLAtom) term).getLLtype() == LLAtom.LLType.VAR) {
 
-                if (getVariable().checkEquivalence(term))
-                {
-                    List <LLAtom> var = new ArrayList<>();
+                if (getVariable().checkEquivalence(term)) {
+                    List<LLAtom> var = new ArrayList<>();
                     var.add((LLAtom) term);
                     return var;
                 }
             }
 
             //Recursive call to find embedded instances of variables
-        } else if ( term instanceof LLFormula)
-        {
-            List <LLAtom> right = findBoundOccurrences(((LLFormula) term).getLhs());
-            List <LLAtom> left = findBoundOccurrences(((LLFormula) term).getRhs());
+        } else if (term instanceof LLFormula) {
+            List<LLAtom> right = findBoundOccurrences(((LLFormula) term).getLhs());
+            List<LLAtom> left = findBoundOccurrences(((LLFormula) term).getRhs());
 
             return Stream.concat(right.stream(), left.stream()).collect(Collectors.toList());
         }
         List<LLAtom> emptyList = Collections.emptyList();
         return emptyList;
     }
-
 
 
     public LinkedList<Premise> getOrderedDischarges() {
@@ -180,3 +181,5 @@ public abstract class LLTerm {
         this.variable = variable;
     }
 }
+
+

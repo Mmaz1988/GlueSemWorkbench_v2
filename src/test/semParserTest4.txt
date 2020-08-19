@@ -1,0 +1,5 @@
+[/P_<s,t>.[/s_s.[/s0_s.(before(s,s0) & P(s))]]] : ((2 -o 0) -o (1 -o (0 -o 0)))
+[/P_<s<s,t>>.[/s0_s.Es_s[P(s)(s0)]]] : ((1 -o (0 -o 0)) -o (1 -o 0))
+[/P_<s,t>.[/s_s.[/s0_s.(partof(s,s0) & P(s))]]] : ((3 -o 0) -o (2 -o (1 -o 0)))
+[/P_<s<s,t>>.[/s0_s.Es_s[P(s)(s0)]]] :  ((2 -o (1 -o 0)) -o (2 -o 0))
+[/s_s.eat(john,apple,s)] : (3 -o 0)

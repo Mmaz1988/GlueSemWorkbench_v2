@@ -40,7 +40,8 @@ public class SemanticParser {
         LLProver2 prover = new LLProver2(new Settings());
 
     //    SemanticRepresentation p = parseExpression("[/T_<s,<s,t>>.[/P_<s,t>.[/t_s.Et1_s[T(t)(t1) & P(t1)]]]]");
-        SemanticRepresentation p = parseExpression("[/P_<v,t>.[/s_s.exemplify(s,Ee_v[P(e)])]]");
+      //  SemanticRepresentation p = parseExpression("[/P_<v,t>.[/s_s.exemplify(s,Ee_v[P(e)])]]");
+        SemanticRepresentation p = parseExpression("[/P_<v,t>.[/x_e.[/e_v.Ee1_v[Ee2_v[equals(e,to(e1,e2)) & init(e1,x)]]]]]");
 
         System.out.println(p.toString());
         System.out.println("Done");
@@ -349,6 +350,9 @@ public class SemanticParser {
 
                                }
 
+                               if(input.charAt(pos) == ')')
+                               {pos++;}
+
                                return new SemPred(varIdentifier,argumentList);
 
 
@@ -447,6 +451,12 @@ public class SemanticParser {
                 {
 
                     return new SemType(SemType.AtomicType.T);
+                }
+
+                if (c == 'i')
+                {
+
+                    return new SemType(SemType.AtomicType.I);
                 }
 
                 if (c == 's')

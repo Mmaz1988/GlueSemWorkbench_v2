@@ -189,10 +189,10 @@ public class LLFormula extends LLTerm {
     }
 
 
-
+      /*
     @Override
     public String toString() {
-        /*
+
         String as = "";
         String dc = "";
         if (!(this.assumptions.isEmpty())) {
@@ -211,11 +211,29 @@ public class LLFormula extends LLTerm {
             dc = "[" + dcTemp.substring(1,dcTemp.length()) + "]";
         }
 
-*/
+
         return "(" + lhs.toString()
                 + " "
                 + "\u22B8" + " " + rhs.toString() + ")";
     }
+*/
+    @Override
+    public String toString()
+    {
+        if (getVariable()!=null)
+        {
+            return "A" + getVariable().toString() + "." + "(" + lhs.toString()
+                    + " "
+                    + "\u22B8" + " " + rhs.toString() + ")";
+        }
+        else
+        {
+            return "(" + lhs.toString()
+                    + " "
+                    + "\u22B8" + " " + rhs.toString() + ")";
+        }
+    }
+
 
     public String toPlainString() {
         return "(" + lhs.toPlainString() + " " + "\u22B8" + " "  + rhs.toPlainString() + ")";

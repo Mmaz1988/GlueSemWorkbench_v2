@@ -10,3 +10,4 @@ John : 35
 Mary : 36
 [/R_<v,<s,t>>.[/P_<s,t>.[/x_e.[/s_s.Ee_v[R(e)(s) & (agent(e,x) & theme(e,P(s)))]]]]] : ((29 -o (25 -o 27)) -o ((32 -o 28) -o (35 -o (23 -o 27))))
 [/R_<v,<s,t>>.[/x_e.[/s_s.Ee_v[R(e)(s) & agent(e,x)]]]] : ((30 -o (20 -o 28)) -o (36 -o (18 -o 28)))
+				   
