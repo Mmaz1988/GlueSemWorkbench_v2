@@ -1,0 +1,40 @@
+{
+path : h
+[/y_i.[/x_e.[/e_v.proc(e,x,y)]]] : (h-o (g -o (f -o e)))
+[/P_<v,t>.[/x_e.[/e_v.Ee1_v[Ee2_v[equals(e,to(e1,e2)) & (init(e1,x) & P(e2)]]]]] : ((f -o e) -o (d -o (c -o b)))
+[/R_<e,<e,<v,t>>>.[/x_e.[/y_e.(R(x)(y)(e) & (ag(e,x)  & pt(e,y)))]]] : ((d-o (g -o (c -o b))) -o (1 -o (2 -o (3 -o 0))))
+john : 1
+mary : 2
+}
+{
+path : h
+[/y_i.[/x_e.[/e_v.proc(e,x,y)]]] : (h-o (g -o (f -o e)))
+[/P_<e,<v,t>>.[/x_e.[/e_v.Ee1_v[Ee2_v[equals(e,to(e1,e2)) & (init(e1,x) & P(x)(e2)]]]]] : ((g -o (f -o e)) -o (d -o (c -o b)))
+[/R_<e,<v,t>>.[/x_e.[/y_e.(R(x)(e) & (ag(e,x)  & pt(e,y)))]]] : ((d -o (c -o b)) -o (1 -o (2 -o (3 -o 0))))
+john : 1
+potato : 2
+}
+{
+path : h
+[/y_i.[/x_e.[/e_v.proc(e,x,y)]]] : (h-o (2 -o (f -o e)))
+[/P_<v,t>.[/x_e.[/e_v.Ee1_v[Ee2_v[equals(e,to(e1,e2)) & (init(e1,x) & P(e2)]]]]] : ((f -o e) -o (1 -o (c -o b)))
+[/R_<e,<e,<v,t>>>.[/x_e.[/y_e.(R(x)(y)(e) & (ag(e,x)  & pt(e,y)))]]] : ((1-o (2 -o (c -o b))) -o (1 -o (2 -o (3 -o 0))))
+john : 1
+mary : 2
+}
+{
+path : h
+[/y_i.[/x_e.[/e_v.proc(e,x,y)]]] : (h-o (1 -o (f -o e)))
+[/P_<e,<v,t>>.[/x_e.[/e_v.Ee1_v[Ee2_v[equals(e,to(e1,e2)) & (init(e1,x) & P(x)(e2)]]]]] : ((1 -o (f -o e)) -o (1 -o (c -o b)))
+[/R_<e,<v,t>>.[/x_e.[/y_e.(R(x)(e) & (ag(e,x)  & pt(e,y)))]]] : ((1 -o (c -o b)) -o (1 -o (2 -o (3 -o 0))))
+john : 1
+potato : 2
+}
+{
+path : h
+[/y_i.[/x_e.[/e_v.proc(e,x,y)]]] : (h-o (1 -o (0 -o e)))
+[/P_<e,<v,t>>.[/x_e.[/e_v.Ee1_v[Ee2_v[equals(e,to(e1,e2)) & (init(e1,x) & P(x)(e2)]]]]] : ((1 -o (0 -o e)) -o (1 -o (0 -o b)))
+[/R_<e,<v,t>>.[/x_e.[/y_e.(R(x)(e) & (ag(e,x)  & pt(e,y)))]]] : ((1 -o (0 -o b)) -o (1 -o (2 -o (3 -o 0))))
+john : 1
+potato : 2
+}

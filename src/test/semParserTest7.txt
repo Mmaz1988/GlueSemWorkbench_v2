@@ -1,0 +1,14 @@
+{
+John : 24
+Mary : 25
+y : 23
+[/y_s.[/x_e.[/e_v.(visit(e) & proc(e,x,y))]]] : (23 -o (7 -o (0 -o 22)))
+[/P_<e,<v,t>>.[/x_e.[/e_v.Ee1_v[Ee2_v[visit(e1) & (equals(e,to(e1,e2)) & (init(e1,x) & P(x)(e2)))]]]]] : ((7 -o (0 -o 22)) -o (7 -o (0 -o 21)))
+[/R_<e,<v,t>>.[/x_e.[/y_e.[/e_v.(visit(e) & (R(x)(e) & (ag(e,x) & pt(e,y))))]]]] : ((7 -o (0 -o 21)) -o (24 -o (25 -o (21 -o 20)))))
+[/P_<v,t>.Ee_v[P(e)]] : ((21 -o 20) -o 20)
+[/P_t.[/s_s.exemplify(s,P)]] : (20 -o (18 -o 15))
+[/s_s.[/t_s.ongoing(t,s)]] : (28 -o (29 -o 18))
+[/M_<s,<s,t>>.[/P_<s,t>.[/s_s.Az_s[M(s)(z) -> P(z)]]]] : ((28 -o (29 -o 18)) -o ((18 -o 15) -o (16 -o 15)))
+[/P_<s,t>.[/s_s.Er_s[equals(r,s) & P(r)]]] : ((16 -o 15) -o (15 -o 0))
+[/P_<s,t>.[/s_s.Er_s[before(r,s) & P(r)]]] : ((16 -o 15) -o (16 -o 15))
+}

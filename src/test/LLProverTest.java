@@ -17,9 +17,11 @@
 
 package test;
 
+import glueSemantics.linearLogic.LLTerm;
 import glueSemantics.linearLogic.Premise;
 import glueSemantics.linearLogic.Sequent;
 import glueSemantics.parser.GlueParser;
+import glueSemantics.parser.LinearLogicParser;
 import glueSemantics.parser.ParserInputException;
 import glueSemantics.semantics.LexicalEntry;
 import main.Settings;
@@ -60,6 +62,17 @@ class LLProverTest {
 
         return new Sequent(lexicalEntries);
     }
+
+    @Test
+    void testLinearLogicParser() throws ParserInputException {
+        String testFormula = "AX_t.AY_t.((X_t -o Y_t) -o (X_t -o Y_t))";
+        LinearLogicParser lp = new LinearLogicParser();
+
+        LLTerm result = lp.parse(testFormula);
+
+        System.out.println(result.toPlainString());
+    }
+
 
     @Test
     void testProlog() {

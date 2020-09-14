@@ -184,6 +184,11 @@ public class LLAtom extends LLTerm {
     }
 
     @Override
+    public void updateBoundVariables(LLAtom var) {
+        //Empty method, because Atoms do not have bound variables
+    }
+
+    @Override
     public boolean isModifier() {
         return false;
     }

@@ -1,0 +1,6 @@
+{
+everygirl : AX_t.AY_s.((d_e -o (Y_s -o X_t)) -o(Y_s -o X_t))
+try :  ((d_e -o (i_s -o h_t)) -o (d_e -o (t_s -o f_t)))
+love : (g_e -o (d_e -o (i_s -o h_t)))
+john : g_e
+}

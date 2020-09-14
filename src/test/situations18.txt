@@ -1,0 +1,26 @@
+{
+John : 40
+[/P_<e,t>.[/Q_<e,t>.[/x_e.(P(x) & Q(x))]]] : ((44-o 45) -o ((42 -o 29) -o (44 -o 45)))
+[/P_<e,<s,t>>.[/Q_<e,<s,t>>.[/s_s.Ex_e[P(x)(s) & Q(x)(s)]]]] : ((44 -o (46 -o 45)) -o ((43 -o (35 -o 28)) -o (35 -o 28)))
+[/x_e.[/s_s.woman(x,s)] : (44 -o (46 -o 45)) 
+[/e_v.marry(e)] : (38 -o 36)
+[/e_v.become(e)] : (39 -o 37)
+[/R_<v,t>.[/x_e.[/e_v.(R(e) & ag(e,x))]]] : ((39 -o 37) -o (42 -o (39 -o 37)))
+[/R_<v,t>.[/x_e.[/y_e.[/e_v.(R(e) & (ag(e,x) & pt(e,y)))]]]] : ((38 -o 36) -o (40 -o (43 -o (38 -o 36)))
+[/P_<v,t>.Ee_v[P(e)]] : ((38 -o 36) -o 36)
+[/P_<v,t>.Ee_v[P(e)]] : ((39 -o 37) -o 37)
+[/P_t.[/s_s.exemplify(s,P)]] : (37 -o (34 -o 29))
+[/P_t.[/s_s.exemplify(s,P)]] : (36 -o (35 -o 28))
+[/s_s.[/t_s.bounded(t,s)]] : (52 -o (54 -o 35))
+[/s_s.[/t_s.bounded(t,s)]] : (51 -o (53 -o 34))
+[/M_<s,<s,t>>.[/P_<s,t>.[/s_s.Ez_s[M(s)(z) & P(z)]]]] : ((51 -o (53 -o 34)) -o ((34 -o 29) -o (31 -o 29)))
+[/M_<s,<s,t>>.[/P_<s,t>.[/s_s.Ez_s[M(s)(z) & P(z)]]]] : ((52 -o (54 -o 35)) -o ((35 -o 28) -o (30 -o 28)))
+[/P_<s,t>.[/s_s.Er_s[before(r,s) & P(r)]]] : ((30 -o 28) -o (32 -o 28))
+[/P_<s,t>.[/s_s.Er_s[before(r,s) & P(r)]]] : ((31 -o 29) -o (33 -o 29))
+now : 33
+now : 32
+}
+
+
+
+0: 28 : ∃r[before(r,now) ∧ ∃z[bounded(z,r) ∧ ∃x[woman(x,z) ∧ ∃z7[before(z7,now) ∧ ∃y7[bounded(y7,z7) ∧ exemplify(y7,∃e[become(e) ∧ ag(e,x)])]] ∧ exemplify(z,∃x7[marry(x7) ∧ ag(x7,John) ∧ pt(x7,x)])]]]

@@ -19,6 +19,7 @@ package glueSemantics.parser;
 
 import glueSemantics.linearLogic.LLAtom;
 import glueSemantics.linearLogic.LLFormula;
+import glueSemantics.linearLogic.LLQuantEx;
 import glueSemantics.linearLogic.LLTerm;
 import glueSemantics.semantics.lambda.SemType;
 
@@ -263,14 +264,14 @@ public class LinearLogicParser {
              */
             pos++;
             LLTerm scope = parseTerm(unparsedInput,polarity);
-            scope.setVariable((LLAtom) var);
+           // scope.setVariable((LLAtom) var);
 
-            if (scope instanceof LLFormula)
+            if (scope instanceof LLFormula || scope instanceof LLQuantEx)
             {
-                ((LLFormula) scope).updateBoundVariables();
+                scope.updateBoundVariables((LLAtom) var);
             }
 
-            return scope;
+            return new LLQuantEx((LLAtom) var,scope);
 
         }
 

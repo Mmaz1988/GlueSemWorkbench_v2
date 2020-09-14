@@ -26,6 +26,13 @@ public class LLProver2 {
     private HashMap<String,List<Premise>> nonAtomicChart = new HashMap<>();
     private HashMap<String,List<Premise>> modifierChart = new HashMap<>();
 
+
+    // A chart that associates variables that are compiled out with their original formula.
+    // This is necessary to instantiate variables that are atmoic elements rather than variables that occur in formulas.
+
+
+    private HashMap<LLAtom,HashMap<LLAtom,List<LLAtom>>> variableChart = new HashMap<>();
+
     private LinkedList<Premise> agenda;
     private LinkedList<Premise> solutions =new LinkedList<>();
 
@@ -109,9 +116,9 @@ public class LLProver2 {
                 proofBuilder.append(System.lineSeparator());
             }
 
-
-
             this.agenda = agenda;
+
+
 
             for (Premise p : this.agenda)
             {
@@ -252,7 +259,9 @@ public class LLProver2 {
                 if (func.getGlueTerm().getVariable() != null) {
                     newTerm.setVariable(func.getGlueTerm().getVariable());
                     if (newTerm instanceof LLFormula) {
-                        ((LLFormula) newTerm).updateBoundVariables();
+                        for (LLAtom var : newTerm.getVariable()) {
+                            ((LLFormula) newTerm).updateBoundVariables(var);
+                        }
                     }
                 }
 
@@ -284,7 +293,9 @@ public class LLProver2 {
                     if (func.getGlueTerm().getVariable() != null) {
                         newTerm.setVariable(func.getGlueTerm().getVariable());
                         if (newTerm instanceof LLFormula) {
-                            ((LLFormula) newTerm).updateBoundVariables();
+                            for (LLAtom var : newTerm.getVariable()) {
+                                ((LLFormula) newTerm).updateBoundVariables(var);
+                            }
                         }
                     }
 
@@ -411,12 +422,19 @@ public class LLProver2 {
     {
         LinkedList<Premise> compiled = new LinkedList<>();
 
-        if (p.getGlueTerm() instanceof LLFormula) {
+        if (p.getGlueTerm() instanceof LLFormula || p.getGlueTerm() instanceof LLQuantEx) {
 
             // if (!p.getGlueTerm().isModifier()) {
 
-            LLFormula f = (LLFormula) p.getGlueTerm();
-            LLTerm l = ((LLFormula) p.getGlueTerm()).getLhs();
+            LLTerm t = p.getGlueTerm();
+
+            while (t instanceof LLQuantEx)
+            {
+                t = ((LLQuantEx) t).getScope();
+            }
+
+            LLFormula f = (LLFormula) t;
+            LLTerm l = f.getLhs();
 
 
             if (l instanceof LLFormula) {
@@ -487,7 +505,7 @@ public class LLProver2 {
                //     ((SemFunction) p.getSemTerm()).getBinder().setType(((SemFunction) p.getSemTerm()).getBinder().getType().getRight());
                 }catch(Exception e)
                 {newtype = new SemType(((LLFormula) l).getLhs().getType());
-                    System.out.println("Error while compiling premise");
+                    System.out.println("Semantic side inherits type from linear logic side.");
                 }
 
 

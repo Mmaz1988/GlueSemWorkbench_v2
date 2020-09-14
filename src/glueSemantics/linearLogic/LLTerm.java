@@ -27,6 +27,8 @@ import java.util.stream.Stream;
 
 public abstract class LLTerm {
 
+
+
     public enum Type {
         E, T,
     }
@@ -41,14 +43,14 @@ public abstract class LLTerm {
 
     public LinkedList<Premise> orderedDischarges = new LinkedList<>();
 
-    private LLAtom variable;
+    private List<LLAtom> variable;
 
     //Default constructor
     public LLTerm() {
     }
 
 
-    public LLTerm(LLAtom var) {
+    public LLTerm(List<LLAtom> var) {
         this.variable = var;
     }
 
@@ -115,30 +117,31 @@ public abstract class LLTerm {
    Represents the binder relation between the quantifier
    and the variables in the scope of the quantifier
    */
-    public List<LLAtom> findBoundOccurrences(LLTerm term) {
+    public List<LLAtom> findBoundOccurrences(LLTerm term, LLAtom var) {
 
 
         // Variables that are equivalent are bound by the quantifier
         if (term instanceof LLAtom) {
             if (((LLAtom) term).getLLtype() == LLAtom.LLType.VAR) {
 
-                if (getVariable().checkEquivalence(term)) {
-                    List<LLAtom> var = new ArrayList<>();
-                    var.add((LLAtom) term);
-                    return var;
+                if (var.checkEquivalence(term)) {
+                    List<LLAtom> vars = new ArrayList<>();
+                    vars.add((LLAtom) term);
+                    return vars;
                 }
             }
 
             //Recursive call to find embedded instances of variables
         } else if (term instanceof LLFormula) {
-            List<LLAtom> right = findBoundOccurrences(((LLFormula) term).getLhs());
-            List<LLAtom> left = findBoundOccurrences(((LLFormula) term).getRhs());
+            List<LLAtom> right = findBoundOccurrences(((LLFormula) term).getLhs(),var);
+            List<LLAtom> left = findBoundOccurrences(((LLFormula) term).getRhs(),var);
 
             return Stream.concat(right.stream(), left.stream()).collect(Collectors.toList());
         }
         List<LLAtom> emptyList = Collections.emptyList();
         return emptyList;
     }
+
 
 
     public LinkedList<Premise> getOrderedDischarges() {
@@ -165,6 +168,9 @@ public abstract class LLTerm {
     }
 */
 
+    //For multiple quantifiers
+    public abstract void updateBoundVariables(LLAtom var);
+
     public List<Premise> getAssumptions2() {
         return assumptions2;
     }
@@ -173,11 +179,11 @@ public abstract class LLTerm {
         this.assumptions2 = assumptions2;
     }
 
-    public LLAtom getVariable() {
+    public List<LLAtom> getVariable() {
         return variable;
     }
 
-    public void setVariable(LLAtom variable) {
+    public void setVariable(List<LLAtom> variable) {
         this.variable = variable;
     }
 }

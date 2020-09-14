@@ -13,9 +13,6 @@ import glueSemantics.semantics.lambda.SemType;
 import prover.Equality;
 
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 
 import static glueSemantics.linearLogic.LLFormula.LLOperator.LLIMP;
 
@@ -41,7 +38,8 @@ public class LLFormula extends LLTerm {
         this.operator = LLIMP;
     }
 
-    public LLFormula(LLTerm lhs, LLTerm rhs, boolean pol, LLAtom var) {
+
+    public LLFormula(LLTerm lhs, LLTerm rhs, boolean pol, List<LLAtom> var) {
         super(var);
         this.lhs = lhs;
         this.rhs = rhs;
@@ -51,25 +49,28 @@ public class LLFormula extends LLTerm {
         //setVariable(var);
 
         if(getVariable()!= null) {
+
+            for (LLAtom variable : getVariable())
+            {
+                List<LLAtom> bvl = new ArrayList<>();
+                bvl.addAll(findBoundOccurrences(lhs,variable));
+                bvl.addAll(findBoundOccurrences(rhs,variable));
+                this.boundVariables.put(variable,bvl);
+            }
+
             //List<LLAtom> bvl = Stream.concat(findBoundOccurrences(lhs).stream(),findBoundOccurrences(rhs).stream()).collect(Collectors.toList());
+
+            /*
             List<LLAtom> bvl = new ArrayList<>();
             bvl.addAll(findBoundOccurrences(lhs));
             bvl.addAll(findBoundOccurrences(rhs));
             this.boundVariables.put(getVariable(), bvl);
+
+             */
         }
     }
 
 
-    public void updateBoundVariables()
-    {
-        if(getVariable()!= null) {
-            //List<LLAtom> bvl = Stream.concat(findBoundOccurrences(lhs).stream(),findBoundOccurrences(rhs).stream()).collect(Collectors.toList());
-            List<LLAtom> bvl = new ArrayList<>();
-            bvl.addAll(findBoundOccurrences(lhs));
-            bvl.addAll(findBoundOccurrences(rhs));
-            this.boundVariables.put(getVariable(), bvl);
-        }
-    }
 
     //Constructor for formulas without variables
     public LLFormula(LLTerm lhs, LLOperator operator,LLTerm rhs, boolean pol) {
@@ -82,7 +83,7 @@ public class LLFormula extends LLTerm {
 
     //Constructor for formulas with variables
     public LLFormula(LLTerm lhs, LLOperator operator, LLTerm rhs, boolean pol,
-                     LLAtom var) {
+                     List<LLAtom> var) {
         super(var);
         this.lhs = lhs;
         this.rhs = rhs;
@@ -92,10 +93,12 @@ public class LLFormula extends LLTerm {
 
 
         if (getVariable() != null) {
-            List<LLAtom> bvl = new ArrayList<>();
-            bvl.addAll(findBoundOccurrences(lhs));
-            bvl.addAll(findBoundOccurrences(rhs));
-            this.boundVariables.put(getVariable(), bvl);
+            for (LLAtom variable : getVariable()) {
+                List<LLAtom> bvl = new ArrayList<>();
+                bvl.addAll(findBoundOccurrences(lhs, variable));
+                bvl.addAll(findBoundOccurrences(rhs, variable));
+                this.boundVariables.put(variable, bvl);
+            }
         }
 
     }
@@ -113,15 +116,28 @@ public class LLFormula extends LLTerm {
             this.setPolarity(f.isPolarity());
             this.operator = f.getOperator();
             if (f.getVariable() != null) {
-            this.setVariable(new LLAtom(f.getVariable()));
+                this.setVariable(new ArrayList<>(f.getVariable()));
+
+
+                for (LLAtom variable : getVariable()) {
+                    List<LLAtom> bvl = new ArrayList<>();
+                    bvl.addAll(findBoundOccurrences(lhs, variable));
+                    bvl.addAll(findBoundOccurrences(rhs, variable));
+                    this.boundVariables.put(variable, bvl);
+                }
+            }}
+                /*
                 List<LLAtom> bvl = Stream.concat(findBoundOccurrences(lhs).stream(),
                         findBoundOccurrences(rhs).stream()).collect(Collectors.toList());
                 this.boundVariables.put(getVariable(), bvl);
             }
 
+                 */
 
 
-        }
+
+
+
     /*
     Represents the binder relation between the quantifier
     and the variables in the scope of the quantifier
@@ -155,6 +171,14 @@ public class LLFormula extends LLTerm {
     }
 */
 
+    public void updateBoundVariables(LLAtom var)
+    {
+        //List<LLAtom> bvl = Stream.concat(findBoundOccurrences(lhs).stream(),findBoundOccurrences(rhs).stream()).collect(Collectors.toList());
+        List<LLAtom> bvl = new ArrayList<>();
+        bvl.addAll(findBoundOccurrences(lhs,var));
+        bvl.addAll(findBoundOccurrences(rhs,var));
+        this.boundVariables.put(var, bvl);
+    }
 
     //Checks to which quantifier a specific variable belongs
     public boolean isInstance(LLAtom var){
@@ -178,10 +202,15 @@ public class LLFormula extends LLTerm {
     {
         if (this.isInstance(eq.getVariable()))
         {
-            for (LLAtom var : boundVariables.get(getVariable()))
+            for (LLAtom variable : getVariable())
             {
-                var.setName(eq.getConstant().getName());
-                var.setLLtype(LLAtom.LLType.CONST);
+                if (eq.getVariable().getName().equals(variable.getName()) &&
+                    eq.getVariable().getType().equals(variable.getType())) {
+                    for (LLAtom var : boundVariables.get(variable)) {
+                        var.setName(eq.getConstant().getName());
+                        var.setLLtype(LLAtom.LLType.CONST);
+                    }
+                }
             }
             return this;
         }
@@ -220,18 +249,10 @@ public class LLFormula extends LLTerm {
     @Override
     public String toString()
     {
-        if (getVariable()!=null)
-        {
-            return "A" + getVariable().toString() + "." + "(" + lhs.toString()
-                    + " "
-                    + "\u22B8" + " " + rhs.toString() + ")";
-        }
-        else
-        {
             return "(" + lhs.toString()
                     + " "
                     + "\u22B8" + " " + rhs.toString() + ")";
-        }
+
     }
 
 
@@ -288,6 +309,10 @@ public class LLFormula extends LLTerm {
             return true;
         else if (this.getRhs() instanceof LLFormula) {
             return ((LLFormula) this.getRhs()).isNested();
+        }
+        else if (this.getRhs() instanceof LLQuantEx)
+        {
+            return ((LLFormula)((LLQuantEx) this.getRhs()).getScope()).isNested();
         }
         else
             return false;
