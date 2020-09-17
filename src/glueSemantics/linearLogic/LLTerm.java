@@ -28,7 +28,6 @@ import java.util.stream.Stream;
 public abstract class LLTerm {
 
 
-
     public enum Type {
         E, T,
     }
@@ -44,6 +43,9 @@ public abstract class LLTerm {
     public LinkedList<Premise> orderedDischarges = new LinkedList<>();
 
     private List<LLAtom> variable;
+
+    //Compilation history
+    private List<LLTerm> cHistory;
 
     //Default constructor
     public LLTerm() {
@@ -71,7 +73,6 @@ public abstract class LLTerm {
     }
 
     public abstract String category();
-
 
     public void setType(SemType type) {
         this.semType = type;
@@ -133,15 +134,14 @@ public abstract class LLTerm {
 
             //Recursive call to find embedded instances of variables
         } else if (term instanceof LLFormula) {
-            List<LLAtom> right = findBoundOccurrences(((LLFormula) term).getLhs(),var);
-            List<LLAtom> left = findBoundOccurrences(((LLFormula) term).getRhs(),var);
+            List<LLAtom> right = findBoundOccurrences(((LLFormula) term).getLhs(), var);
+            List<LLAtom> left = findBoundOccurrences(((LLFormula) term).getRhs(), var);
 
             return Stream.concat(right.stream(), left.stream()).collect(Collectors.toList());
         }
         List<LLAtom> emptyList = Collections.emptyList();
         return emptyList;
     }
-
 
 
     public LinkedList<Premise> getOrderedDischarges() {
@@ -186,6 +186,17 @@ public abstract class LLTerm {
     public void setVariable(List<LLAtom> variable) {
         this.variable = variable;
     }
+
+
+    public List<LLTerm> getcHistory() {
+        return cHistory;
+    }
+
+    public void setcHistory(List<LLTerm> cHistory) {
+        this.cHistory = cHistory;
+    }
+
 }
+
 
 

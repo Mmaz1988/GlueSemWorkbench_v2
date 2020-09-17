@@ -108,9 +108,13 @@ public class SemAtom extends SemanticExpression {
     @Override
     public String toString()
     {
-        if (LLProver2.getSettings().getSemanticOutputStyle() == Settings.PROLOG && getSort() == SemSort.VAR)
-        {
-            return name.toUpperCase();
+        if (LLProver2.getSettings().getSemanticOutputStyle() == Settings.PROLOG) {
+            if (getSort() == SemSort.VAR) {
+                return name.toUpperCase();
+            }
+            else {
+                return name.toLowerCase();
+            }
         }
         else
         {

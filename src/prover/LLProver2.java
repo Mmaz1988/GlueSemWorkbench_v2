@@ -428,10 +428,10 @@ public class LLProver2 {
 
             LLTerm t = p.getGlueTerm();
 
-            while (t instanceof LLQuantEx)
-            {
-                t = ((LLQuantEx) t).getScope();
-            }
+                while (t instanceof LLQuantEx) {
+                    t = ((LLQuantEx) t).getScope();
+                }
+
 
             LLFormula f = (LLFormula) t;
             LLTerm l = f.getLhs();
@@ -439,6 +439,10 @@ public class LLProver2 {
 
             if (l instanceof LLFormula) {
                 db.compilations++;
+
+                //Update history
+
+
                 //Compile out stuff
                 LLFormula compiledGlue = new LLFormula(((LLFormula) l).getRhs(), f.getRhs(), f.isPolarity(), f.getVariable());
                 compiledGlue.getLhs().orderedDischarges.addAll(l.getOrderedDischarges());

@@ -43,9 +43,10 @@ import java.util.regex.Pattern;
 public class WorkbenchMain {
     // Initialize with default settings
     public static Settings settings = new Settings();
-    public static LinkedHashMap<Integer, List<String>> solutions = new LinkedHashMap<>();
+    public static LinkedHashMap<Integer, List<Premise>> solutions = new LinkedHashMap<>();
     public static List<String> partial = new ArrayList<>();
     public static StringBuilder outputFileBuilder = new StringBuilder();
+    public static List<Premise> result = new ArrayList<>();
 
     public static void main(String[] args) {
         settings = new Settings();
@@ -72,6 +73,10 @@ public class WorkbenchMain {
                 case("-parseSem"):
                 {
                     settings.setParseSemantics(true);
+                }
+                case("-s"):
+                {
+                    settings.setSolutionOnly(true);
                 }
             }
         }
@@ -120,30 +125,46 @@ public class WorkbenchMain {
                                     BufferedWriter w = new BufferedWriter(new FileWriter(outFile,true));
 
 
+
                                     for (Integer key : solutions.keySet()) {
 
-                                        for (String solution : solutions.get(key)) {
-                                            w.append(solution);
-                                            w.append(System.lineSeparator());
+
+
+                                        for (int i = 0; i < solutions.get(key).size();i++)
+                                        {
+                                            Premise solution = solutions.get(key).get(i);
+                                            if (settings.PROLOG == 1) {
+                                                w.append("solution" + "(" +  key.toString()  +i + ",");
+                                                w.append(solution.getSemTerm().toString());
+                                                w.append(").");
+                                                w.append(System.lineSeparator());
+                                            }
+                                            else
+                                            {
+                                                w.append(solution.toString());
+                                                w.append(System.lineSeparator());
+                                            }
                                         }
+
                                     }
 
-                                    w.append(System.lineSeparator());
-                                    w.append("Proof:");
-                                    w.append(System.lineSeparator());
-
-                                    w.append(outputFileBuilder.toString());
-
-                                    if (settings.isPartial())
-                                    {
-                                        w.append("The following partial solutions were found:");
+                                    if (!settings.getSolutionOnly()) {
+                                        w.append(System.lineSeparator());
+                                        w.append("Proof:");
                                         w.append(System.lineSeparator());
 
-                                        for (String partialSol : partial) {
-                                            w.append(partialSol);
-                                            w.append(System.lineSeparator());
-                                        }
+                                        w.append(outputFileBuilder.toString());
 
+                                        if (settings.isPartial()) {
+                                            w.append("The following partial solutions were found:");
+                                            w.append(System.lineSeparator());
+
+                                            for (String partialSol : partial) {
+                                                w.append(partialSol);
+                                                w.append(System.lineSeparator());
+                                            }
+
+                                        }
                                     }
 
                                 w.close();
@@ -287,7 +308,6 @@ public class WorkbenchMain {
 
         LLProver2 prover = new LLProver2(settings,outputFileBuilder);
 
-        List<Premise> result;
         try {
 
             System.out.println("Searching for valid proofs...");
@@ -301,17 +321,16 @@ public class WorkbenchMain {
 
             result = prover.getSolutions();
 
-
             System.out.println("Found the following deduction(s): ");
             for (Premise sol : result) {
 
                 if (solutions.keySet().contains(key))
                 {
-                    solutions.get(key).add(sol.toString());
+                    solutions.get(key).add(sol);
                 }
                 else
                 {
-                    solutions.put(key,new ArrayList<>(Arrays.asList(sol.toString())));
+                    solutions.put(key,new ArrayList<>(Arrays.asList(sol)));
                 }
 
         //        sol.setSemTerm((SemanticExpression) sol.getSemTerm().betaReduce());
