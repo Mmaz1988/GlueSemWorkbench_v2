@@ -26,7 +26,7 @@ public class LLProver2 {
     private HashMap<String,List<Premise>> nonAtomicChart = new HashMap<>();
     private HashMap<String,List<Premise>> modifierChart = new HashMap<>();
 
-    private HashMap<LLAtom,Set<LLAtom>> variableAssignment = new HashMap<>(); 
+    private HashMap<LLAtom,Set<LLAtom>> variableAssignment = new HashMap<>();
 
 
     // A chart that associates variables that are compiled out with their original formula.
