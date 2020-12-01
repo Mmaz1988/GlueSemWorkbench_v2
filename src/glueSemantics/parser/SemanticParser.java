@@ -273,13 +273,15 @@ public class SemanticParser extends StringParser {
                 pos++;
                 bracketCounter = bracketCounter - 1;
             }
-                    if ((c >= 97 && c <= 122) || (c >= 48 && c <= 57) || (c >= 66 && c <= 90))
+                    if ((c >= 97 && c <= 122) || (c >= 48 && c <= 57) ||
+                            (c >= 66 && c <= 90) || (c == 64) || (c==42))
                     {
 
 
                         StringBuilder sb = new StringBuilder();
                         //or sequence of letters
-                        while ((c >= 97 && c <= 122) || (c >= 48 && c <= 57) || (c >= 66 && c <= 90)) {
+                        while ((c >= 97 && c <= 122) || (c >= 48 && c <= 57) ||
+                                (c >= 66 && c <= 90) || (c == 64) || (c==42)) {
                             sb.append(c);
                             c = input.charAt(pos);
                             pos++;
