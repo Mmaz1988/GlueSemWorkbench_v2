@@ -37,7 +37,7 @@ public class GlueParser {
     private boolean PARSESEMANTCS;
 
     public GlueParser() {
-        this.PARSESEMANTCS = true;
+        this.PARSESEMANTCS = false;
     }
 
     public GlueParser(Boolean parseSemantics)

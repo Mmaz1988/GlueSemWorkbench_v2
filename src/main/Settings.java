@@ -41,7 +41,7 @@ public class Settings {
     private Boolean solutionOnly;
 
     public Settings() {
-        this.betaReduce = true;
+        this.betaReduce = false;
         this.semanticOutputStyle = PLAIN;
         this.debugging = false;
         this.partial = false;

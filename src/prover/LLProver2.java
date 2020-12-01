@@ -24,16 +24,13 @@ public class LLProver2 {
     //run through the modifier chart.
     private HashMap<String,List<Premise>> atomicChart = new HashMap<>();
     private HashMap<String,List<Premise>> nonAtomicChart = new HashMap<>();
-    private HashMap<String,List<Premise>> modifierChart = new HashMap<>();
-
-    private HashMap<LLAtom,Set<LLAtom>> variableAssignment = new HashMap<>();
-
+ //   private HashMap<String,List<Premise>> modifierChart = new HashMap<>();
 
     // A chart that associates variables that are compiled out with their original formula.
     // This is necessary to instantiate variables that are atmoic elements rather than variables that occur in formulas.
 
 
-    private HashMap<LLAtom,HashMap<LLAtom,List<LLAtom>>> variableChart = new HashMap<>();
+
 
     private LinkedList<Premise> agenda;
     private LinkedList<Premise> solutions =new LinkedList<>();
@@ -58,6 +55,7 @@ public class LLProver2 {
      */
     public LLProver2(Settings settings) {
         setSettings(settings);
+        this.proofBuilder = new StringBuilder();
     }
 
     public LLProver2(Settings settings, StringBuilder proofBuilder)
@@ -68,7 +66,6 @@ public class LLProver2 {
 
      public void deduce(Sequent seq) throws ProverException,VariableBindingException
         {
-
             LinkedList<Premise> agenda = new LinkedList<>();
 
             this.db = new Debugging();
@@ -146,15 +143,34 @@ public class LLProver2 {
 
                         if (p.getGlueTerm() instanceof LLAtom) {
 
-                            if (nonAtomicChart.keySet().contains(p.getGlueTerm().category())) {
-                                for (Premise q : nonAtomicChart.get(p.getGlueTerm().category())) {
-                                    combined = combinePremises(q, p);
-                                    if (combined != null) {
-                                        db.combinations++;
-                                        iter.add(combined);
+                            if (p.getGlueTerm().getType().equals(LLAtom.LLType.VAR))
+                            {
+
+                                for (String category : nonAtomicChart.keySet())
+                                {
+
+                                    for (Premise q : nonAtomicChart.get(category))
+                                    {
+                                        combined = combinePremises(p,q);
+                                        if (combined != null) {
+                                            db.combinations++;
+                                            iter.add(combined);
+                                        }
                                     }
                                 }
 
+                            } else {
+
+                                if (nonAtomicChart.keySet().contains(p.getGlueTerm().category())) {
+                                    for (Premise q : nonAtomicChart.get(p.getGlueTerm().category())) {
+                                        combined = combinePremises(q, p);
+                                        if (combined != null) {
+                                            db.combinations++;
+                                            iter.add(combined);
+                                        }
+                                    }
+
+                                }
                             }
 
                             for (String key : nonAtomicChart.keySet()) {
@@ -194,6 +210,21 @@ public class LLProver2 {
                                         }
                                     }
                                 }
+
+                                for (String category : atomicChart.keySet())
+                                {
+                                    if (Character.isUpperCase(category.charAt(0)))
+                                    {
+                                        for (Premise q : atomicChart.get(category)) {
+                                            combined = combinePremises(p, q);
+                                            if (combined != null) {
+                                                iter.add(combined);
+                                                db.combinations++;
+                                            }
+                                        }
+                                    }
+                                }
+
                             }
 
                         }
@@ -221,6 +252,26 @@ public class LLProver2 {
         Premise func = new Premise(functor.getPremiseIDs(), functor.getSemTerm().clone(), functor.getGlueTerm().clone());
         Premise argumentClone = null;
 
+
+        Boolean variableArgument = false;
+        if (((LLAtom)argument.getGlueTerm()).lltype.equals(LLAtom.LLType.VAR)) {
+            variableArgument = true;
+
+            if (((LLAtom)((LLFormula)  functor.getGlueTerm()).getLhs()).lltype.equals(LLAtom.LLType.CONST)) {
+                argumentClone = new Premise(argument.getPremiseIDs(), argument.getSemTerm().clone(),
+                        ((LLFormula) func.getGlueTerm()).getLhs().clone());
+                argumentClone.getGlueTerm().getAssumptions2().addAll(argument.getGlueTerm().getAssumptions2());
+            }else {
+                return null;
+            }
+
+        }
+        else
+        {
+            argumentClone = new Premise(argument.getPremiseIDs(), argument.getSemTerm().clone(),
+                    argument.getGlueTerm().clone());
+        }
+
         LinkedHashSet<Equality> eqs = ((LLFormula) func.getGlueTerm()).getLhs().checkCompatibility(argument.getGlueTerm());
 
         if (eqs == null) {
@@ -244,16 +295,13 @@ public class LLProver2 {
         Premise combined = null;
 
         HashSet<Integer> combined_IDs = new HashSet<>();
-        if (((LLFormula) func.getGlueTerm()).getLhs().checkEquivalence(argument.getGlueTerm())
+        if (((LLFormula) func.getGlueTerm()).getLhs().checkEquivalence(argumentClone.getGlueTerm())
                 && Collections.disjoint(func.getPremiseIDs(), argument.getPremiseIDs())) {
             combined_IDs.addAll(func.getPremiseIDs());
             combined_IDs.addAll(argument.getPremiseIDs());
 
 
             if (((LLFormula) func.getGlueTerm()).getLhs().getOrderedDischarges().isEmpty()) {
-
-                argumentClone = new Premise(argument.getPremiseIDs(),argument.getSemTerm().clone(),
-                        argument.getGlueTerm().clone());
 
                 SemanticRepresentation reducedSem = combine(func,argumentClone).betaReduce();
 
@@ -269,9 +317,62 @@ public class LLProver2 {
 
                 combined = new Premise(combined_IDs, reducedSem, newTerm);
 
+                if (variableArgument && combined != null)
+                {
+
+                        newTerm.getVariableAssignment().put((LLAtom) argument.getGlueTerm(), (LLAtom) argumentClone.getGlueTerm());
+
+                    newTerm.getVariableAssignment().putAll(functor.getGlueTerm().getVariableAssignment());
+                }
+
         }
          else {
                 if (checkDischarges(func, argument)) {
+
+                    if (!func.getGlueTerm().getVariableAssignment().keySet().isEmpty() && !argumentClone.getGlueTerm().getVariableAssignment().keySet().isEmpty())
+                    {
+                        boolean subset = false;
+
+                        for (LLAtom funcCategory : functor.getGlueTerm().getVariableAssignment().keySet())
+                        {
+                            if (argumentClone.getGlueTerm().getVariableAssignment().containsKey(funcCategory))
+                            {
+                                if (functor.getGlueTerm().getVariableAssignment().get(funcCategory).
+                                        equals(argumentClone.getGlueTerm().getVariableAssignment().get(funcCategory)));
+                                subset = true;
+                                break;
+                            }
+                        }
+
+                        if (!subset)
+                        {return  null;}
+                    }
+
+                    if (!argument.getGlueTerm().getVariableAssignment().keySet().isEmpty())
+                    {
+                      LinkedHashSet<Equality> eqs2 =   new LinkedHashSet<>();
+
+                      for (LLAtom key : argument.getGlueTerm().getVariableAssignment().keySet())
+                      {
+                          for (LLAtom key2 : ((LLFormula) func.getGlueTerm()).getBoundVariables().keySet())
+                          {
+                              if (key2.category().equals(key.category()))
+                              {
+                                  for (LLAtom key3 : ((LLFormula) func.getGlueTerm()).getBoundVariables().get(key2))
+                                  {
+                                      eqs2.add(new Equality(key3,argument.getGlueTerm().getVariableAssignment().get(key)));
+                                  }
+                              }
+                          }
+
+
+                      }
+
+                        for (Equality eq : eqs2) {
+                            ((LLFormula) func.getGlueTerm()).instantiateVariables(eq);
+                        }
+
+                    }
 
                     SemanticRepresentation temp = argument.getSemTerm().clone();
 
@@ -665,5 +766,12 @@ public class LLProver2 {
         }
     }
 
+    public StringBuilder getProofBuilder() {
+        return proofBuilder;
+    }
+
+    public void setProofBuilder(StringBuilder proofBuilder) {
+        this.proofBuilder = proofBuilder;
+    }
 
 }

@@ -23,4 +23,3 @@ now : 32
 
 
 
-0: 28 : ∃r[before(r,now) ∧ ∃z[bounded(z,r) ∧ ∃x[woman(x,z) ∧ ∃z7[before(z7,now) ∧ ∃y7[bounded(y7,z7) ∧ exemplify(y7,∃e[become(e) ∧ ag(e,x)])]] ∧ exemplify(z,∃x7[marry(x7) ∧ ag(x7,John) ∧ pt(x7,x)])]]]

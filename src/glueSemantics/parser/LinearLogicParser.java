@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 //Testtest
-public class LinearLogicParser {
+public class LinearLogicParser extends StringParser {
 
     public List<LLTerm> premises;
 
@@ -123,7 +123,43 @@ public class LinearLogicParser {
             String glueIdentifier = sb.toString();
             // check for a type identifier
             try {
-                if(c == '_') {
+                if (c == '_') {
+
+                    pos++;
+                    c = unparsedInput.charAt(pos);
+                    SemType t = null;
+                    if (c == '<') {
+
+                        StringBuilder sb1 = new StringBuilder();
+                        int typeBracketCounter = 1;
+                        pos++;
+                        sb1.append(c);
+                        while (typeBracketCounter > 0) {
+                            c = unparsedInput.charAt(pos);
+                            sb1.append(c);
+
+                            if (c == '<') {
+                                typeBracketCounter++;
+                            }
+                            if (c == '>') {
+                                typeBracketCounter = typeBracketCounter - 1;
+                            }
+
+                            pos++;
+                        }
+                        t = typeParser(sb1.toString(), 0);
+
+                    } else {
+                        pos++;
+                        t = typeParser("" + c, 0);
+                    }
+
+                    if (t != null)
+                    {
+                        return new LLAtom(glueIdentifier,t,LLAtom.LLType.CONST,polarity);
+                    }
+
+                    /*
                    pos++;
                     if ( SemType.typeStrings.contains(String.valueOf(unparsedInput.charAt(pos)))) {
                         if (unparsedInput.charAt(pos) == 'e') {
@@ -148,9 +184,7 @@ public class LinearLogicParser {
                             return new LLAtom(glueIdentifier,
                                     new SemType(SemType.AtomicType.V), LLAtom.LLType.CONST, polarity);
                         }
-                    }
-                    else
-                        throw new ParserInputException(pos,"Type identifier expected (e,s,v,t or t)");
+                     */
                 }
                 else
                 {
@@ -182,7 +216,41 @@ public class LinearLogicParser {
 
             try {
                 if(c == '_') {
-                     pos++;
+                    pos++;
+                    c = unparsedInput.charAt(pos);
+                    SemType t = null;
+                    if (c == '<') {
+
+                        StringBuilder sb1 = new StringBuilder();
+                        int typeBracketCounter = 1;
+                        pos++;
+                        sb1.append(c);
+                        while (typeBracketCounter > 0) {
+                            c = unparsedInput.charAt(pos);
+                            sb1.append(c);
+
+                            if (c == '<') {
+                                typeBracketCounter++;
+                            }
+                            if (c == '>') {
+                                typeBracketCounter = typeBracketCounter - 1;
+                            }
+
+                            pos++;
+                        }
+                        t = typeParser(sb1.toString(), 0);
+
+                    } else {
+                        pos++;
+                        t = typeParser("" + c, 0);
+                    }
+
+                    if (t != null)
+                    {
+                        return new LLAtom(glueIdentifier,t,LLAtom.LLType.VAR,polarity);
+                    }
+
+                    /*
                     if (unparsedInput.charAt(pos) == 'e') {
                         pos++;
                         return new LLAtom( glueIdentifier,
@@ -209,7 +277,9 @@ public class LinearLogicParser {
                 }
                     else
                         throw new ParserInputException(pos,"Type identifier expected (e or t)");
+                  */
                 }
+
             } catch (StringIndexOutOfBoundsException e) {
                 return new LLAtom(glueIdentifier, new SemType(SemType.AtomicType.T), LLAtom.LLType.VAR,polarity);
             }

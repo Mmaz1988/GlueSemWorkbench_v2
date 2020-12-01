@@ -133,7 +133,7 @@ public class WorkbenchMain {
                                         for (int i = 0; i < solutions.get(key).size();i++)
                                         {
                                             Premise solution = solutions.get(key).get(i);
-                                            if (settings.PROLOG == 1) {
+                                            if (settings.getSemanticOutputStyle() == 1) {
                                                 w.append("solution" + "(" +  key.toString()  +i + ",");
                                                 w.append(solution.getSemTerm().toString());
                                                 w.append(").");

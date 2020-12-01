@@ -79,7 +79,7 @@ class LLProverTest {
         LLProver2 lp = new LLProver2(new Settings(false,Settings.PROLOG));
         // Test transitive sentence with quantifiers
         System.out.println("\nTesting sentence with transitive verb and quantifiers in Prolog mode:");
-        Sequent transQuantPl = loadAndParseTestFormulas("C:\\Users\\User\\IdeaProjects\\glueSemWorkbench\\src\\test\\trans_quant_prolog.txt");
+        Sequent transQuantPl = loadAndParseTestFormulas("/Users/red_queen/IdeaProjects/glueSemWorkbench2/src/test/trans_quant_prolog.txt");
         List<Premise> transPlSolutions = null;
         try {
             lp.deduce(transQuantPl);
@@ -106,11 +106,11 @@ class LLProverTest {
 
             // Test intransitive sentence with quantifier
             System.out.println("\nTesting sentence with intransitive verband quantifier:");
-            Sequent intransQuant = loadAndParseTestFormulas("C:\\Users\\User\\IdeaProjects\\glueSemWorkbench\\src\\test\\intrans_quant.txt");
+            Sequent intransQuant = loadAndParseTestFormulas("/Users/red_queen/IdeaProjects/glueSemWorkbench2/src/test/intrans_quant.txt");
             lp.deduce(intransQuant);
             List<Premise> solutions = lp.getSolutions();
             assertEquals(1,solutions.size());
-            assertEquals("[[/P./Q./x.every(x,P(x),Q(x))](λy_t./y.sleep(y)(y))](λx_t./x.dog(x)(x))",solutions.get(0).getSemTerm().toString());
+            assertEquals("/P./Q./x.every(x,P(x),Q(x))([λx_e./x.dog(x)(x)])([λy_e./y.sleep(y)(y)])",solutions.get(0).getSemTerm().toString());
             assertEquals("f",solutions.get(0).getGlueTerm().toString());
             assertEquals(new HashSet<>(Arrays.asList(0,1,2,3,4)),solutions.get(0).getPremiseIDs());
 
@@ -119,9 +119,11 @@ class LLProverTest {
                 System.out.println(sol.toString());
             }
 
+            lp = new LLProver2(new Settings());
+
             // Test transitive sentence with quantifiers
             System.out.println("\nTesting sentence with transitive verb and quantifiers:");
-            Sequent transQuant = loadAndParseTestFormulas("C:\\Users\\User\\IdeaProjects\\glueSemWorkbench\\src\\test\\trans_quant.txt");
+            Sequent transQuant = loadAndParseTestFormulas("/Users/red_queen/IdeaProjects/glueSemWorkbench2/src/test/trans_quant.txt");
             lp.deduce(transQuant);
             List<Premise> transSolutions = lp.getSolutions();
             assertEquals(2,transSolutions.size());
@@ -131,9 +133,11 @@ class LLProverTest {
                 System.out.println(sol.toString());
             }
 
+            lp = new LLProver2(new Settings());
+
             // Test intransitve sentence with quantifier and adjective
             System.out.println("\nTesting sentence with intransitive verb, quantifier and adjective:");
-            Sequent adjIntransQuant = loadAndParseTestFormulas("C:\\Users\\User\\IdeaProjects\\glueSemWorkbench\\src\\test\\intrans_quant_adj.txt");
+            Sequent adjIntransQuant = loadAndParseTestFormulas("/Users/red_queen/IdeaProjects/glueSemWorkbench2/src/test/intrans_quant_adj.txt");
             lp.deduce(adjIntransQuant);
             List<Premise> adjIntransSolutions = lp.getSolutions();
             assertEquals(1,adjIntransSolutions.size());

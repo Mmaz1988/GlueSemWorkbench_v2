@@ -47,6 +47,8 @@ public abstract class LLTerm {
     //Compilation history
     private List<LLTerm> cHistory;
 
+    private HashMap<LLAtom,LLAtom> variableAssignment = new HashMap<>();
+
     //Default constructor
     public LLTerm() {
     }
@@ -194,6 +196,14 @@ public abstract class LLTerm {
 
     public void setcHistory(List<LLTerm> cHistory) {
         this.cHistory = cHistory;
+    }
+
+    public HashMap<LLAtom, LLAtom> getVariableAssignment() {
+        return variableAssignment;
+    }
+
+    public void setVariableAssignment(HashMap<LLAtom, LLAtom> variableAssignment) {
+        this.variableAssignment = variableAssignment;
     }
 
 }
