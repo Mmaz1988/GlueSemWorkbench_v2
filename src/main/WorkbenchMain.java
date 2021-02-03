@@ -20,6 +20,7 @@ import glueSemantics.linearLogic.Premise;
 import glueSemantics.linearLogic.Sequent;
 import glueSemantics.parser.GlueParser;
 import glueSemantics.parser.ParserInputException;
+import glueSemantics.parser.SemanticParser;
 import glueSemantics.semantics.LexicalEntry;
 import prover.LLProver2;
 import prover.ProverException;
@@ -50,53 +51,56 @@ public class WorkbenchMain {
 
     public static void main(String[] args) {
         settings = new Settings();
-        System.out.println("The Glue Semantics Workbench\n"+
-                            "copyright 2018 Moritz Messmer & Mark-Matthias Zymla\n");
+        System.out.println("The Glue Semantics Workbench\n" +
+                "copyright 2018 Moritz Messmer & Mark-Matthias Zymla\n");
 
-        // Check program arguments for prover settings
-        for (String arg : args) {
-            switch (arg) {
-                case ("-prolog"):
-                    settings.setSemanticOutputStyle(Settings.PROLOG);
-                    break;
-                case ("-noreduce"):
-                    settings.setBetaReduce(false);
-                    break;
-                case ("-debugging"):
-                    settings.setDebugging(true);
-                    break;
-                case ("-p"):
-                    settings.setPartial(true);
-                    break;
-                case ("-go"):
-                    settings.setGlueOnly(true);
-                case("-parseSem"):
-                {
-                    settings.setParseSemantics(true);
-                }
-                case("-s"):
-                {
-                    settings.setSolutionOnly(true);
+
+        if (args[0].equals("-test")) {
+            SemanticParser semParser = new SemanticParser();
+            semParser.testParseExpression2(args[1]);
+        } else {
+            // Check program arguments for prover settings
+            for (String arg : args) {
+                switch (arg) {
+                    case ("-prolog"):
+                        settings.setSemanticOutputStyle(Settings.PROLOG);
+                        break;
+                    case ("-noreduce"):
+                        settings.setBetaReduce(false);
+                        break;
+                    case ("-debugging"):
+                        settings.setDebugging(true);
+                        break;
+                    case ("-p"):
+                        settings.setPartial(true);
+                        break;
+                    case ("-go"):
+                        settings.setGlueOnly(true);
+                    case ("-parseSem"): {
+                        settings.setParseSemantics(true);
+                    }
+                    case ("-s"): {
+                        settings.setSolutionOnly(true);
+                    }
+
                 }
             }
-        }
 
-        String betaReduce = "on", outputMode = "plain";
-        if (!settings.isBetaReduce())
-            betaReduce = "off";
+            String betaReduce = "on", outputMode = "plain";
+            if (!settings.isBetaReduce())
+                betaReduce = "off";
 
-        if (settings.getSemanticOutputStyle() == 1)
-            outputMode = "prolog";
+            if (settings.getSemanticOutputStyle() == 1)
+                outputMode = "prolog";
 
-        System.out.println(String.format("Current settings: automatic beta reduction: %s\t\toutput mode: %s", betaReduce, outputMode));
+            System.out.println(String.format("Current settings: automatic beta reduction: %s\t\toutput mode: %s", betaReduce, outputMode));
 
-       if (args.length > 0 && args[0].equals("-i")){
-            try {
+            if (args.length > 0 && args[0].equals("-i")) {
+                try {
 
-                File inFile = new File(args[1]);
+                    File inFile = new File(args[1]);
 
-                    if (inFile.exists())
-                    {
+                    if (inFile.exists()) {
                         List<String> lines = null;
                         try {
                             lines = Files.readAllLines(inFile.toPath());
@@ -107,40 +111,32 @@ public class WorkbenchMain {
 
                         initiateManualMode(lines);
 
-                        if (args[2].equals("-o")){
-                            try{
+                        if (args[2].equals("-o")) {
+                            try {
                                 File outFile = new File(args[3]);
 
-                                if (outFile.exists())
-                                {
+                                if (outFile.exists()) {
                                     outFile.delete();
                                     outFile.createNewFile();
-                                }
-                                else
-                                {
+                                } else {
                                     outFile.createNewFile();
                                 }
 
                                 if (outFile.exists()) {
-                                    BufferedWriter w = new BufferedWriter(new FileWriter(outFile,true));
-
+                                    BufferedWriter w = new BufferedWriter(new FileWriter(outFile, true));
 
 
                                     for (Integer key : solutions.keySet()) {
 
 
-
-                                        for (int i = 0; i < solutions.get(key).size();i++)
-                                        {
+                                        for (int i = 0; i < solutions.get(key).size(); i++) {
                                             Premise solution = solutions.get(key).get(i);
-                                            if (settings.getSemanticOutputStyle() == 1) {
-                                                w.append("solution" + "(" +  key.toString()  +i + ",");
+                                            if (settings.PROLOG == 1) {
+                                                w.append("solution" + "(" + key.toString() + i + ",");
                                                 w.append(solution.getSemTerm().toString());
                                                 w.append(").");
                                                 w.append(System.lineSeparator());
-                                            }
-                                            else
-                                            {
+                                            } else {
                                                 w.append(solution.toString());
                                                 w.append(System.lineSeparator());
                                             }
@@ -167,29 +163,27 @@ public class WorkbenchMain {
                                         }
                                     }
 
-                                w.close();
+                                    w.close();
                                 }
 
                                 System.out.println("Wrote solutions to " + outFile.toString());
 
 
-                            } catch(Exception e)
-                            {
+                            } catch (Exception e) {
                                 System.out.println("Error while generating output file. Maybe no valid path was given.");
                             }
                         }
 
                     }
-            } catch (VariableBindingException | LexicalParserException e) {
-                e.printStackTrace();
-            }
-        }
-        else {
-            try {
-                initiateManualMode();
-            }
-            catch (VariableBindingException | LexicalParserException e) {
-                e.printStackTrace();
+                } catch (VariableBindingException | LexicalParserException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                try {
+                    initiateManualMode();
+                } catch (VariableBindingException | LexicalParserException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }

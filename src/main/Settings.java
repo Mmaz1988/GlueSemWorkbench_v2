@@ -39,6 +39,7 @@ public class Settings {
     private boolean outputFile;
     private boolean parseSemantics;
     private Boolean solutionOnly;
+    private Boolean testExpression;
 
     public Settings() {
         this.betaReduce = false;
@@ -48,6 +49,7 @@ public class Settings {
         this.glueOnly = false;
         this.parseSemantics = false;
         this.solutionOnly = false;
+        this.testExpression = false;
     }
 
     public Settings (boolean betaReduce, int semanticOutputStyle) {
@@ -58,6 +60,7 @@ public class Settings {
         this.glueOnly = false;
         this.parseSemantics = false;
         this.solutionOnly = false;
+        this.testExpression = false;
     }
 
     public boolean isBetaReduce() {
@@ -132,5 +135,14 @@ public class Settings {
     public void setSolutionOnly(Boolean solutionOnly) {
         this.solutionOnly = solutionOnly;
     }
+
+    public Boolean getTestExpression() {
+        return testExpression;
+    }
+
+    public void setTestExpression(Boolean testExpression) {
+        this.testExpression = testExpression;
+    }
+
 
 }

@@ -37,16 +37,22 @@ public class SemanticParser extends StringParser {
        // SemanticRepresentation p = parseExpression("[/x_e.sleep(x,y,z)]");
       //  SemType t = typeParser("<e,<e,t>>",0);
 
-        LLProver2 prover = new LLProver2(new Settings());
+     LLProver2 prover = new LLProver2(new Settings());
 
     //    SemanticRepresentation p = parseExpression("[/T_<s,<s,t>>.[/P_<s,t>.[/t_s.Et1_s[T(t)(t1) & P(t1)]]]]");
       //  SemanticRepresentation p = parseExpression("[/P_<v,t>.[/s_s.exemplify(s,Ee_v[P(e)])]]");
-        SemanticRepresentation p = parseExpression("[/P_<v,t>.Ee_v[P(e)]]");
+        SemanticRepresentation p = parseExpression("[/a_e.[/b_e.[/c_e.and((partof(a,c),partof(b,c))]]]");
 
         System.out.println(p.toString());
         System.out.println("Done");
-    }
 
+    }//Only call when settings initialized
+    public void testParseExpression2(String test){
+        LLProver2 prover = new LLProver2(new Settings());
+        SemanticRepresentation p = parseExpression(test);
+        System.out.println("Input: " + test);
+        System.out.println("Output: " + p.toString());
+    }
 
     public SemanticRepresentation parse(String input)
     {
@@ -214,6 +220,7 @@ public class SemanticParser extends StringParser {
                         bracketCounter = bracketCounter - 1;
                         return new BinaryTerm(left, BinaryTerm.SemOperator.IMP,right);
                     }
+                    /*
                     else
                     {
                         pos++;
@@ -222,6 +229,7 @@ public class SemanticParser extends StringParser {
                         pos++;
                         return new BinaryTerm(left, BinaryTerm.SemOperator.IMP,right);
                     }
+                     */
                 }
                 else
                 {
