@@ -124,6 +124,8 @@ public class LinearLogicParser {
             // check for a type identifier
             try {
                 if(c == '_') {
+
+
                    pos++;
                     if ( SemType.typeStrings.contains(String.valueOf(unparsedInput.charAt(pos)))) {
                         if (unparsedInput.charAt(pos) == 'e') {
