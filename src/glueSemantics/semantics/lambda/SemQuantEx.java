@@ -85,17 +85,18 @@ public class SemQuantEx extends SemanticExpression {
 
     @Override
     public String toString() {
-        if (quantifier == UNI)
-
-            if(LLProver2.getSettings().getSemanticOutputStyle() == PROLOG)
-                return String.format("all(%s,%s)",binder.toString(),quantBody.toString());
+        if (quantifier == UNI) {
+            if (LLProver2.getSettings().getSemanticOutputStyle() == PROLOG)
+                return String.format("all(%s,%s)", binder.toString(), quantBody.toString());
             else
                 return '\u2200' + binder.toString() + "[" + quantBody.toString() + "]";
-        else if (quantifier == EX)
-        if(LLProver2.getSettings().getSemanticOutputStyle() == PROLOG)
-            return String.format("some(%s,%s)",binder.toString(),quantBody.toString());
-        else
-            return '\u2203' + binder.toString() + "[" + quantBody.toString() + "]";
+        }
+        else if (quantifier == EX) {
+            if (LLProver2.getSettings().getSemanticOutputStyle() == PROLOG)
+                return String.format("some(%s,%s)", binder.toString(), quantBody.toString());
+            else
+                return '\u2203' + binder.toString() + "[" + quantBody.toString() + "]";
+        }
         else
         {
             if(LLProver2.getSettings().getSemanticOutputStyle() == PROLOG)

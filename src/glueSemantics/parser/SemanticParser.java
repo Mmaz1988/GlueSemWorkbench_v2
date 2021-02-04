@@ -92,7 +92,7 @@ public class SemanticParser extends StringParser {
                              {
                                  return new SemQuantEx(SemQuantEx.SemQuant.UNI, (SemAtom) semBinder, scope,new SemType(SemType.AtomicType.T));
                              }
-                         else if (c == 'i')
+                         else if (c == 'I')
                          {
                              return new SemQuantEx(SemQuantEx.SemQuant.DEF, (SemAtom) semBinder, scope,semBinder.getType());
 
