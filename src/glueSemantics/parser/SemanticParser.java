@@ -41,7 +41,7 @@ public class SemanticParser extends StringParser {
 
     //    SemanticRepresentation p = parseExpression("[/T_<s,<s,t>>.[/P_<s,t>.[/t_s.Et1_s[T(t)(t1) & P(t1)]]]]");
       //  SemanticRepresentation p = parseExpression("[/P_<v,t>.[/s_s.exemplify(s,Ee_v[P(e)])]]");
-        SemanticRepresentation p = parseExpression("[/x_e.ix_e[sleep(x)]]");
+        SemanticRepresentation p = parseExpression("[/P_<v,t>.[/x_e.[/e_v.Ee1_v[Ee2_v[kiss(e1) & (equals(e,to(e1,e2)) & (init(e1,x) & P(e2)))]]]]]");
 
         System.out.println(p.toString());
         System.out.println("Done");
@@ -77,7 +77,7 @@ public class SemanticParser extends StringParser {
             pos++;
 
 
-                    if (c == 'E' || c == 'A' || c == 'i')
+                    if (c == 'E' || c == 'A' || c == 'I')
                     {
                         bracketCounter++;
                      SemanticRepresentation semBinder = parseExpression(input);
