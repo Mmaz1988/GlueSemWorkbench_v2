@@ -161,7 +161,7 @@ public class LLProver2 {
 
                             } else {
 
-                                if (nonAtomicChart.keySet().contains(p.getGlueTerm().category())) {
+                                if (nonAtomicChart.containsKey(p.getGlueTerm().category())) {
                                     for (Premise q : nonAtomicChart.get(p.getGlueTerm().category())) {
                                         combined = combinePremises(q, p);
                                         if (combined != null) {
@@ -201,7 +201,7 @@ public class LLProver2 {
                                     }
                                 }
                             } else {
-                                if (atomicChart.keySet().contains(((LLFormula) p.getGlueTerm()).getLhs().category())) {
+                                if (atomicChart.containsKey(((LLFormula) p.getGlueTerm()).getLhs().category())) {
                                     for (Premise q : atomicChart.get(((LLFormula) p.getGlueTerm()).getLhs().category())) {
                                         combined = combinePremises(p, q);
                                         if (combined != null) {
@@ -310,7 +310,7 @@ public class LLProver2 {
                     newTerm.setVariable(func.getGlueTerm().getVariable());
                     if (newTerm instanceof LLFormula) {
                         for (LLAtom var : newTerm.getVariable()) {
-                            ((LLFormula) newTerm).updateBoundVariables(var);
+                            newTerm.updateBoundVariables(var);
                         }
                     }
                 }
@@ -397,7 +397,7 @@ public class LLProver2 {
                         newTerm.setVariable(func.getGlueTerm().getVariable());
                         if (newTerm instanceof LLFormula) {
                             for (LLAtom var : newTerm.getVariable()) {
-                                ((LLFormula) newTerm).updateBoundVariables(var);
+                                newTerm.updateBoundVariables(var);
                             }
                         }
                     }
@@ -431,8 +431,8 @@ public class LLProver2 {
                 a = argument.toString();
             }
 
-            System.out.println("Combining " + f + " and " + a);
-            System.out.println("to: " + combined.toString());
+        //    System.out.println("Combining " + f + " and " + a);
+        //    System.out.println("to: " + combined.toString());
 
             //TODO sdout vs file
             if (true)
@@ -501,7 +501,7 @@ public class LLProver2 {
         if (p.getGlueTerm() instanceof LLFormula) {
 
 
-                if (nonAtomicChart.keySet().contains(((LLFormula) p.getGlueTerm()).getLhs().category())) {
+                if (nonAtomicChart.containsKey(((LLFormula) p.getGlueTerm()).getLhs().category())) {
                     nonAtomicChart.get(((LLFormula) p.getGlueTerm()).getLhs().category()).add(p);
                 } else {
                     List<Premise> premises = new ArrayList<>();
@@ -510,7 +510,7 @@ public class LLProver2 {
                 }
 
         } else if (p.getGlueTerm() instanceof LLAtom) {
-            if (atomicChart.keySet().contains(p.getGlueTerm().category())) {
+            if (atomicChart.containsKey(p.getGlueTerm().category())) {
                 atomicChart.get(p.getGlueTerm().category()).add(p);
             } else {
                 List<Premise> premises = new ArrayList<>();
@@ -624,7 +624,7 @@ public class LLProver2 {
                 Premise assumption = new Premise(currentSequent.getNewID(), asumptionVar, outGlue);
 
 
-                ((LLFormula) compiledGlue).getLhs().getOrderedDischarges().add(assumption);
+                compiledGlue.getLhs().getOrderedDischarges().add(assumption);
 
                 Premise compiledPremise = new Premise(p.getPremiseIDs(), p.getSemTerm(), compiledGlue);
 
@@ -721,14 +721,7 @@ public class LLProver2 {
         Pattern p = Pattern.compile("(\\p{Lu}+).*_.+");
         Matcher pm = p.matcher(in);
 
-        if (pm.find())
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        return pm.find();
 
     }
 

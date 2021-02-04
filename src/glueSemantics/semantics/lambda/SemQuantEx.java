@@ -24,8 +24,8 @@ import prover.ProverException;
 import java.util.HashSet;
 import java.util.Set;
 
+import static glueSemantics.semantics.lambda.SemQuantEx.SemQuant.EX;
 import static glueSemantics.semantics.lambda.SemQuantEx.SemQuant.UNI;
-import static glueSemantics.semantics.lambda.SemType.AtomicType.T;
 import static main.Settings.PROLOG;
 
 public class SemQuantEx extends SemanticExpression {
@@ -33,20 +33,22 @@ public class SemQuantEx extends SemanticExpression {
     private final SemAtom binder;
     private final SemanticRepresentation quantBody;
 
-    public SemQuantEx(SemQuant quantifier, SemAtom binder, SemanticRepresentation quantBody) {
+    public SemQuantEx(SemQuant quantifier, SemAtom binder, SemanticRepresentation quantBody, SemType type) {
         this.quantifier = quantifier;
         this.binder = binder;
         this.quantBody = quantBody;
+        this.setType(type);
     }
 
     private SemQuantEx(SemQuantEx s) {
         this.quantifier = s.quantifier;
         this.binder = s.binder;
+        this.setType(s.getType());
         this.quantBody = s.quantBody.clone();
     }
 
     public enum SemQuant {
-        UNI,EX
+        UNI,EX,DEF
     }
 
     public SemAtom getBinder() {
@@ -57,19 +59,15 @@ public class SemQuantEx extends SemanticExpression {
         return quantBody;
     }
 
-    @Override
-    public SemType getType() {
-        return new SemType(T);
-    }
 
     @Override
     public SemanticRepresentation betaReduce() throws ProverException {
-        return new SemQuantEx(quantifier, binder, quantBody.betaReduce());
+        return new SemQuantEx(quantifier, binder, quantBody.betaReduce(),getType());
     }
 
     @Override
     public SemanticRepresentation applyTo(SemanticRepresentation var, SemanticRepresentation arg) throws ProverException {
-        return new SemQuantEx(quantifier, binder, quantBody.applyTo(var,arg));
+        return new SemQuantEx(quantifier, binder, quantBody.applyTo(var,arg),getType());
     }
 
     @Override
@@ -92,11 +90,18 @@ public class SemQuantEx extends SemanticExpression {
             if(LLProver2.getSettings().getSemanticOutputStyle() == PROLOG)
                 return String.format("all(%s,%s)",binder.toString(),quantBody.toString());
             else
-                return String.valueOf('\u2200') + binder.toString() + "[" + quantBody.toString() + "]";
-        else
+                return '\u2200' + binder.toString() + "[" + quantBody.toString() + "]";
+        else if (quantifier == EX)
         if(LLProver2.getSettings().getSemanticOutputStyle() == PROLOG)
             return String.format("some(%s,%s)",binder.toString(),quantBody.toString());
         else
-            return String.valueOf('\u2203') + binder.toString() + "[" + quantBody.toString() + "]";
+            return '\u2203' + binder.toString() + "[" + quantBody.toString() + "]";
+        else
+        {
+            if(LLProver2.getSettings().getSemanticOutputStyle() == PROLOG)
+                return String.format("the(%s,%s)",binder.toString(),quantBody.toString());
+            else
+                return '\u03B9' + binder.toString() + "[" + quantBody.toString() + "]";
+        }
     }
 }

@@ -41,7 +41,7 @@ public class SemanticParser extends StringParser {
 
     //    SemanticRepresentation p = parseExpression("[/T_<s,<s,t>>.[/P_<s,t>.[/t_s.Et1_s[T(t)(t1) & P(t1)]]]]");
       //  SemanticRepresentation p = parseExpression("[/P_<v,t>.[/s_s.exemplify(s,Ee_v[P(e)])]]");
-        SemanticRepresentation p = parseExpression("[/a_e.[/b_e.[/c_e.and((partof(a,c),partof(b,c))]]]");
+        SemanticRepresentation p = parseExpression("[/x_e.ix_e[sleep(x)]]");
 
         System.out.println(p.toString());
         System.out.println("Done");
@@ -77,7 +77,7 @@ public class SemanticParser extends StringParser {
             pos++;
 
 
-                    if (c == 'E' || c == 'A')
+                    if (c == 'E' || c == 'A' || c == 'i')
                     {
                         bracketCounter++;
                      SemanticRepresentation semBinder = parseExpression(input);
@@ -86,15 +86,18 @@ public class SemanticParser extends StringParser {
                      if (semBinder instanceof SemAtom && ((SemAtom) semBinder).getSort().equals(SemAtom.SemSort.VAR))
                      {
                          if (c == 'E') {
-                             return new SemQuantEx(SemQuantEx.SemQuant.EX, (SemAtom) semBinder, scope);
+                             return new SemQuantEx(SemQuantEx.SemQuant.EX, (SemAtom) semBinder, scope,new SemType(SemType.AtomicType.T));
                          }
-                         else
-                         {
-                             if (c == 'A')
+                         else if (c == 'A')
                              {
-                                 return new SemQuantEx(SemQuantEx.SemQuant.UNI, (SemAtom) semBinder, scope);
+                                 return new SemQuantEx(SemQuantEx.SemQuant.UNI, (SemAtom) semBinder, scope,new SemType(SemType.AtomicType.T));
                              }
+                         else if (c == 'i')
+                         {
+                             return new SemQuantEx(SemQuantEx.SemQuant.DEF, (SemAtom) semBinder, scope,semBinder.getType());
+
                          }
+
                     }
                      else
                         {
