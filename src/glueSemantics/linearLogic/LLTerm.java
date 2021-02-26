@@ -21,6 +21,7 @@ package glueSemantics.linearLogic;
 import glueSemantics.semantics.lambda.SemType;
 import prover.Equality;
 
+import javax.annotation.processing.ProcessingEnvironment;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -40,7 +41,7 @@ public abstract class LLTerm {
 
     //public Set<LLTerm> discharges = new HashSet<>();
 
-    public LinkedList<Premise> orderedDischarges = new LinkedList<>();
+    public LinkedHashMap<Integer,Premise> orderedDischarges = new LinkedHashMap<>();
 
     private List<LLAtom> variable;
 
@@ -146,11 +147,11 @@ public abstract class LLTerm {
     }
 
 
-    public LinkedList<Premise> getOrderedDischarges() {
+    public LinkedHashMap<Integer, Premise> getOrderedDischarges() {
         return orderedDischarges;
     }
 
-    public void setOrderedDischarges(LinkedList<Premise> orderedDischarges) {
+    public void setOrderedDischarges(LinkedHashMap<Integer,Premise> orderedDischarges) {
         this.orderedDischarges = orderedDischarges;
     }
 

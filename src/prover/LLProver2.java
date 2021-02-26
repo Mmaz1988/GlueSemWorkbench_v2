@@ -8,6 +8,7 @@ import test.Debugging;
 import utilities.LexVariableHandler;
 
 import java.io.IOException;
+import java.text.CollationElementIterator;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -17,25 +18,22 @@ public class LLProver2 {
     private static Settings settings;
 
 
-
     private Sequent currentSequent;
 
     //TODO Add a third chart for modifiers and both atomic elements as well as non atomic elements are first
     //run through the modifier chart.
-    private HashMap<String,List<Premise>> atomicChart = new HashMap<>();
-    private HashMap<String,List<Premise>> nonAtomicChart = new HashMap<>();
- //   private HashMap<String,List<Premise>> modifierChart = new HashMap<>();
+    private HashMap<String, List<Premise>> atomicChart = new HashMap<>();
+    private HashMap<String, List<Premise>> nonAtomicChart = new HashMap<>();
+    //   private HashMap<String,List<Premise>> modifierChart = new HashMap<>();
 
     // A chart that associates variables that are compiled out with their original formula.
     // This is necessary to instantiate variables that are atmoic elements rather than variables that occur in formulas.
 
 
-
-
     private LinkedList<Premise> agenda;
-    private LinkedList<Premise> solutions =new LinkedList<>();
+    private LinkedList<Premise> solutions = new LinkedList<>();
 
-    private HashMap<Premise,List<Premise>> variableDependency = new HashMap<>();
+    private HashMap<Premise, List<Premise>> variableDependency = new HashMap<>();
 
     private StringBuilder proofBuilder;
 
@@ -51,6 +49,7 @@ public class LLProver2 {
     /**
      * LLProver version 2.0
      * Implements Lev's rather than Hepple's algorithm. Avoids need for accidental binding.
+     *
      * @param settings
      */
     public LLProver2(Settings settings) {
@@ -58,194 +57,189 @@ public class LLProver2 {
         this.proofBuilder = new StringBuilder();
     }
 
-    public LLProver2(Settings settings, StringBuilder proofBuilder)
-    {
+    public LLProver2(Settings settings, StringBuilder proofBuilder) {
         this.proofBuilder = proofBuilder;
         setSettings(settings);
     }
 
-     public void deduce(Sequent seq) throws ProverException,VariableBindingException
-        {
-            LinkedList<Premise> agenda = new LinkedList<>();
+    public void deduce(Sequent seq) throws ProverException, VariableBindingException {
+        LinkedList<Premise> agenda = new LinkedList<>();
 
-            this.db = new Debugging();
+        this.db = new Debugging();
 
-            this.currentSequent = seq;
+        this.currentSequent = seq;
 
-            long startTime = System.nanoTime();
+        long startTime = System.nanoTime();
 
-            StringBuilder sb = new StringBuilder();
-            sb.append("Sequent:");
+        StringBuilder sb = new StringBuilder();
+        sb.append("Sequent:");
+        sb.append(System.lineSeparator());
+        for (Premise le : currentSequent.getLhs()) {
+            sb.append(le);
             sb.append(System.lineSeparator());
-            for (Premise le : currentSequent.getLhs())
-            {
-                sb.append(le);
-                sb.append(System.lineSeparator());
-            }
-            System.out.println(sb.toString());
+        }
+        System.out.println(sb.toString());
 
-            //TODO insert boolean for distinguishing between sdout and file
-            if (true)
-            {
-                proofBuilder.append(sb.toString());
-                proofBuilder.append(System.lineSeparator());
-                proofBuilder.append(System.lineSeparator());
-            }
+        //TODO insert boolean for distinguishing between sdout and file
+        if (true) {
+            proofBuilder.append(sb.toString());
+            proofBuilder.append(System.lineSeparator());
+            proofBuilder.append(System.lineSeparator());
+        }
 
-            for (Premise p : currentSequent.getLhs()) {
-                    List<Premise> compiled = convert(p);
-                    agenda.addAll(compiled);
-            }
+        for (Premise p : currentSequent.getLhs()) {
+            List<Premise> compiled = convert(p);
+            agenda.addAll(compiled);
+        }
 
-            StringBuilder ab = new StringBuilder();
-            ab.append("Agenda:");
+        StringBuilder ab = new StringBuilder();
+        ab.append("Agenda:");
+        ab.append(System.lineSeparator());
+        for (Premise p : agenda) {
+            ab.append(p);
             ab.append(System.lineSeparator());
-            for (Premise p : agenda)
-            {
-                ab.append(p);
-                ab.append(System.lineSeparator());
+        }
+        System.out.println(ab.toString());
+
+        //TODO insert boolean for distinguishing between sdout and file
+        if (true) {
+            proofBuilder.append(ab.toString());
+            proofBuilder.append(System.lineSeparator());
+            proofBuilder.append(System.lineSeparator());
+        }
+
+        this.agenda = agenda;
+
+
+        for (Premise p : this.agenda) {
+            if (p.getPremiseIDs().size() == 1) {
+                goalIDs.addAll(p.getPremiseIDs());
             }
-            System.out.println(ab.toString());
-
-            //TODO insert boolean for distinguishing between sdout and file
-            if (true)
-            {
-                proofBuilder.append(ab.toString());
-                proofBuilder.append(System.lineSeparator());
-                proofBuilder.append(System.lineSeparator());
-            }
-
-            this.agenda = agenda;
+        }
 
 
+        while (!agenda.isEmpty()) {
+            ListIterator<Premise> iter = agenda.listIterator();
 
-            for (Premise p : this.agenda)
-            {
-                if (p.getPremiseIDs().size() == 1)
-                {
-                    goalIDs.addAll(p.getPremiseIDs());
-                }
-            }
+            Premise combined = null;
 
+            while (iter.hasNext()) {
 
-
-            while (!agenda.isEmpty()) {
-                ListIterator<Premise> iter = agenda.listIterator();
-
-                Premise combined = null;
-
-                while (iter.hasNext()) {
-
-                    Premise p = iter.next();
-                    iter.remove();
-                    db.allIterations++;
+                Premise p = iter.next();
+                iter.remove();
+                db.allIterations++;
 
 
-                        if (p.getGlueTerm() instanceof LLAtom) {
+                if (p.getGlueTerm() instanceof LLAtom) {
 
-                            if (p.getGlueTerm().getType().equals(LLAtom.LLType.VAR))
-                            {
+                    if (p.getGlueTerm().getType().equals(LLAtom.LLType.VAR)) {
 
-                                for (String category : nonAtomicChart.keySet())
-                                {
+                        for (String category : nonAtomicChart.keySet()) {
 
-                                    for (Premise q : nonAtomicChart.get(category))
-                                    {
-                                        combined = combinePremises(p,q);
-                                        if (combined != null) {
-                                            db.combinations++;
-                                            iter.add(combined);
-                                        }
-                                    }
-                                }
-
-                            } else {
-
-                                if (nonAtomicChart.containsKey(p.getGlueTerm().category())) {
-                                    for (Premise q : nonAtomicChart.get(p.getGlueTerm().category())) {
-                                        combined = combinePremises(q, p);
-                                        if (combined != null) {
-                                            db.combinations++;
-                                            iter.add(combined);
-                                        }
-                                    }
-
+                            for (Premise q : nonAtomicChart.get(category)) {
+                                combined = combinePremises(p, q);
+                                if (combined != null && validPremise(combined)) {
+                                    db.combinations++;
+                                    iter.add(combined);
                                 }
                             }
+                        }
 
-                            for (String key : nonAtomicChart.keySet()) {
-                                if (isVar(key)) {
-                                    for (Premise q : nonAtomicChart.get(key)) {
-                                        combined = combinePremises(q, p);
-                                        if (combined != null) {
-                                            db.combinations++;
-                                            iter.add(combined);
-                                        }
-                                    }
+                    } else {
+
+                        if (nonAtomicChart.containsKey(p.getGlueTerm().category())) {
+                            for (Premise q : nonAtomicChart.get(p.getGlueTerm().category())) {
+                                combined = combinePremises(q, p);
+                                if (combined != null && validPremise(combined)) {
+                                    db.combinations++;
+                                    iter.add(combined);
                                 }
-                            }
-
-
-                        } else if (p.getGlueTerm() instanceof LLFormula) {
-
-
-                            if (((LLAtom) ((LLFormula) p.getGlueTerm()).getLhs()).getLLtype().equals(LLAtom.LLType.VAR)) {
-                                for (String key : atomicChart.keySet()) {
-
-                                    for (Premise q : atomicChart.get(key)) {
-                                        combined = combinePremises(p, q);
-                                        if (combined != null) {
-                                            iter.add(combined);
-                                            db.combinations++;
-                                        }
-                                    }
-                                }
-                            } else {
-                                if (atomicChart.containsKey(((LLFormula) p.getGlueTerm()).getLhs().category())) {
-                                    for (Premise q : atomicChart.get(((LLFormula) p.getGlueTerm()).getLhs().category())) {
-                                        combined = combinePremises(p, q);
-                                        if (combined != null) {
-                                            iter.add(combined);
-                                            db.combinations++;
-                                        }
-                                    }
-                                }
-
-                                for (String category : atomicChart.keySet())
-                                {
-                                    if (Character.isUpperCase(category.charAt(0)))
-                                    {
-                                        for (Premise q : atomicChart.get(category)) {
-                                            combined = combinePremises(p, q);
-                                            if (combined != null) {
-                                                iter.add(combined);
-                                                db.combinations++;
-                                            }
-                                        }
-                                    }
-                                }
-
                             }
 
                         }
-                        updateSolutions(p);
-                        adjustChart(p);
                     }
 
+                    for (String key : nonAtomicChart.keySet()) {
+                        if (isVar(key)) {
+                            for (Premise q : nonAtomicChart.get(key)) {
+                                combined = combinePremises(q, p);
+                                if (combined != null && validPremise(combined)) {
+                                    db.combinations++;
+                                    iter.add(combined);
+                                }
+                            }
+                        }
+                    }
+
+
+                } else if (p.getGlueTerm() instanceof LLFormula) {
+
+
+                    if (((LLAtom) ((LLFormula) p.getGlueTerm()).getLhs()).getLLtype().equals(LLAtom.LLType.VAR)) {
+                        for (String key : atomicChart.keySet()) {
+
+                            for (Premise q : atomicChart.get(key)) {
+                                combined = combinePremises(p, q);
+                                if (combined != null && validPremise(combined)) {
+                                    iter.add(combined);
+                                    db.combinations++;
+                                }
+                            }
+                        }
+                    } else {
+                        if (atomicChart.containsKey(((LLFormula) p.getGlueTerm()).getLhs().category())) {
+                            for (Premise q : atomicChart.get(((LLFormula) p.getGlueTerm()).getLhs().category())) {
+                                combined = combinePremises(p, q);
+                                if (combined != null && validPremise(combined)) {
+                                    iter.add(combined);
+                                    db.combinations++;
+                                }
+                            }
+                        }
+
+                        for (String category : atomicChart.keySet()) {
+                            if (Character.isUpperCase(category.charAt(0))) {
+                                for (Premise q : atomicChart.get(category)) {
+                                    combined = combinePremises(p, q);
+                                    if (combined != null && validPremise(combined)) {
+                                        iter.add(combined);
+                                        db.combinations++;
+                                    }
+                                }
+                            }
+                        }
+
+                    }
+
+                }
+                updateSolutions(p);
+                adjustChart(p);
             }
-
-
-
-            long endTime = System.nanoTime();
-
-            db.computationTime = endTime - startTime;
-
-            proofBuilder.append(System.lineSeparator());
 
         }
 
 
+        long endTime = System.nanoTime();
 
+        db.computationTime = endTime - startTime;
+
+        proofBuilder.append(System.lineSeparator());
+
+    }
+
+
+    public Boolean validPremise(Premise premise)
+    {
+        if (premise.getGlueTerm() instanceof LLFormula)
+        {
+            if (!((LLFormula) premise.getGlueTerm()).getLhs().getOrderedDischarges().keySet().isEmpty())
+            {
+        return Collections.disjoint(((LLFormula) premise.getGlueTerm()).getLhs().getOrderedDischarges().keySet(),premise.getPremiseIDs());
+            }
+        }
+
+        return true;
+    }
 
     public Premise combinePremises(Premise functor, Premise argument) throws VariableBindingException, ProverException {
 
@@ -376,13 +370,15 @@ public class LLProver2 {
 
                     SemanticRepresentation temp = argument.getSemTerm().clone();
 
-                    LinkedList<Premise> discharges =  ((LLFormula) func.getGlueTerm()).getLhs().getOrderedDischarges();
+                    //LinkedHashMap<Integer,Premise> discharges =  ((LLFormula) func.getGlueTerm()).getLhs().getOrderedDischarges();
+                    LinkedList<Map.Entry<Integer, Premise>> discharges = new LinkedList<>(((LLFormula) func.getGlueTerm()).getLhs().getOrderedDischarges().entrySet());
+
 
                     LLTerm argumentGlueClone = argument.getGlueTerm().clone();
 
                     while (!discharges.isEmpty())
                     {
-                        Premise p = discharges.removeLast();
+                        Premise p = discharges.removeLast().getValue();
                         temp = new SemFunction((SemAtom) p.getSemTerm(),temp);
                         argumentGlueClone.getAssumptions2().remove(p);
 
@@ -431,8 +427,8 @@ public class LLProver2 {
                 a = argument.toString();
             }
 
-        //    System.out.println("Combining " + f + " and " + a);
-        //    System.out.println("to: " + combined.toString());
+           System.out.println("Combining " + f + " and " + a);
+            System.out.println("to: " + combined.toString());
 
             //TODO sdout vs file
             if (true)
@@ -488,7 +484,8 @@ public class LLProver2 {
 */
 
 
-        for (Premise t : ((LLFormula) functor.getGlueTerm()).getLhs().getOrderedDischarges()) {
+        for (Integer key : ((LLFormula) functor.getGlueTerm()).getLhs().getOrderedDischarges().keySet()) {
+            Premise t = ((LLFormula) functor.getGlueTerm()).getLhs().getOrderedDischarges().get(key);
             if (!argument.getGlueTerm().assumptions2.contains(t)){
                 return false;
         }
@@ -548,7 +545,7 @@ public class LLProver2 {
 
                 //Compile out stuff
                 LLFormula compiledGlue = new LLFormula(((LLFormula) l).getRhs(), f.getRhs(), f.isPolarity(), f.getVariable());
-                compiledGlue.getLhs().orderedDischarges.addAll(l.getOrderedDischarges());
+                compiledGlue.getLhs().orderedDischarges.putAll(l.getOrderedDischarges());
                 LLTerm outGlue = ((LLFormula) l).getLhs();
 
 
@@ -624,7 +621,7 @@ public class LLProver2 {
                 Premise assumption = new Premise(currentSequent.getNewID(), asumptionVar, outGlue);
 
 
-                compiledGlue.getLhs().getOrderedDischarges().add(assumption);
+                compiledGlue.getLhs().getOrderedDischarges().put(assumption.getPremiseIDs().stream().findAny().get(),assumption);
 
                 Premise compiledPremise = new Premise(p.getPremiseIDs(), p.getSemTerm(), compiledGlue);
 

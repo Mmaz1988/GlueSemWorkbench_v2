@@ -63,7 +63,7 @@ public class LLAtom extends LLTerm {
     //    this.assumptions = new HashSet<>(term.assumptions);
    //     this.discharges = new HashSet<>(term.discharges);
 
-        this.orderedDischarges = new LinkedList<>(term.orderedDischarges);
+        this.orderedDischarges = new LinkedHashMap<>(term.orderedDischarges);
         this.assumptions2 = new ArrayList<>(term.assumptions2);
 
         this.name = term.getName();
