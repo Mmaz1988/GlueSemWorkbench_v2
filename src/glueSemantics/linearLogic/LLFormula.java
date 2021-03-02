@@ -261,14 +261,23 @@ public class LLFormula extends LLTerm {
         }
 
         @Override
-        public String category(){
-        return lhs.category() + "\u22B8" + rhs.category();
+        public Category category(){
+        return new Category(lhs.category(),rhs.category());
         }
 
 
     @Override
     public LLTerm clone() {
         return new LLFormula(this   );
+    }
+
+    @Override
+    public Set<Category> returnAllCategories() {
+        Set<Category> allCategories = new HashSet<>();
+        allCategories.addAll(this.lhs.returnAllCategories());
+        allCategories.addAll(this.rhs.returnAllCategories());
+        allCategories.add(this.category());
+        return allCategories;
     }
 
     @Override

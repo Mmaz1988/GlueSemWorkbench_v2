@@ -114,8 +114,8 @@ public class LLAtom extends LLTerm {
     }
 
     @Override
-    public String category() {
-        return this.name + "_" + getType();
+    public Category category() {
+        return new Category(this.name + "_" + getType());
     }
 
     @Override
@@ -183,6 +183,11 @@ public class LLAtom extends LLTerm {
     @Override
     public LLTerm clone() {
         return new LLAtom(this   );
+    }
+
+    @Override
+    public Set<Category> returnAllCategories() {
+        return Collections.singleton(this.category());
     }
 
     @Override

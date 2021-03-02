@@ -56,7 +56,7 @@ public class LLQuantEx extends LLTerm {
     }
 
     @Override
-    public String category() {
+    public Category category() {
         return scope.category();
     }
 
@@ -68,6 +68,11 @@ public class LLQuantEx extends LLTerm {
     @Override
     public LLTerm clone() {
         return new LLQuantEx(this);
+    }
+
+    @Override
+    public Set<Category> returnAllCategories() {
+        return scope.returnAllCategories();
     }
 
     @Override

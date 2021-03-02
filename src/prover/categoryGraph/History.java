@@ -25,6 +25,8 @@ public class History {
         this.premise = p;
     }
 
-
-
+    @Override
+    public String toString() {
+        return category + indexSet;
+    }
 }
