@@ -92,6 +92,10 @@ public abstract class LLTerm {
     public abstract LLTerm clone();
 
 
+    public abstract Set<Integer> dischargeRequirements();
+
+    public abstract List<LLAtom> returnAllAtoms();
+
  /*TODO update this method
     String printAssumptions() {
         StringBuilder sb = new StringBuilder();

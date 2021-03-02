@@ -4,6 +4,8 @@ import prover.Equality;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 public class LLQuantEx extends LLTerm {
 
@@ -66,6 +68,16 @@ public class LLQuantEx extends LLTerm {
     @Override
     public LLTerm clone() {
         return new LLQuantEx(this);
+    }
+
+    @Override
+    public Set<Integer> dischargeRequirements() {
+        return scope.dischargeRequirements();
+    }
+
+    @Override
+    public List<LLAtom> returnAllAtoms() {
+        return scope.returnAllAtoms();
     }
 
     @Override

@@ -4,14 +4,18 @@ import glueSemantics.linearLogic.*;
 import glueSemantics.semantics.SemanticRepresentation;
 import glueSemantics.semantics.lambda.*;
 import main.Settings;
+import org.jgrapht.Graph;
+import org.jgrapht.alg.connectivity.GabowStrongConnectivityInspector;
+import org.jgrapht.graph.DefaultDirectedGraph;
+import org.jgrapht.graph.DefaultEdge;
+import org.jgrapht.traverse.TopologicalOrderIterator;
+import prover.categoryGraph.CGNode;
+import prover.categoryGraph.History;
 import test.Debugging;
 import utilities.LexVariableHandler;
 
 import java.io.IOException;
-import java.text.CollationElementIterator;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class LLProver2 {
 
@@ -22,8 +26,7 @@ public class LLProver2 {
 
     //TODO Add a third chart for modifiers and both atomic elements as well as non atomic elements are first
     //run through the modifier chart.
-    private HashMap<String, List<Premise>> atomicChart = new HashMap<>();
-    private HashMap<String, List<Premise>> nonAtomicChart = new HashMap<>();
+
     //   private HashMap<String,List<Premise>> modifierChart = new HashMap<>();
 
     // A chart that associates variables that are compiled out with their original formula.
@@ -31,15 +34,9 @@ public class LLProver2 {
 
 
     private LinkedList<Premise> agenda;
-    private LinkedList<Premise> solutions = new LinkedList<>();
-
-    private HashMap<Premise, List<Premise>> variableDependency = new HashMap<>();
+    private LinkedList<History> solutions = new LinkedList<>();
 
     private StringBuilder proofBuilder;
-
-
-    //private LinkedList<Premise> skeletons = new LinkedList<>();
-    //private LinkedList<Premise> modifiers = new LinkedList<>();
 
     private HashSet<Integer> goalIDs = new HashSet<>();
 
@@ -62,12 +59,13 @@ public class LLProver2 {
         setSettings(settings);
     }
 
+
+
     public void deduce(Sequent seq) throws ProverException, VariableBindingException {
-        LinkedList<Premise> agenda = new LinkedList<>();
 
         this.db = new Debugging();
-
         this.currentSequent = seq;
+        LinkedList<Premise> agenda = new LinkedList<>();
 
         long startTime = System.nanoTime();
 
@@ -78,6 +76,7 @@ public class LLProver2 {
             sb.append(le);
             sb.append(System.lineSeparator());
         }
+
         System.out.println(sb.toString());
 
         //TODO insert boolean for distinguishing between sdout and file
@@ -91,6 +90,9 @@ public class LLProver2 {
             List<Premise> compiled = convert(p);
             agenda.addAll(compiled);
         }
+
+        String goalCategory = findAtomicGoal(agenda);
+        System.out.println("Automatically detected goal category: " + goalCategory);
 
         StringBuilder ab = new StringBuilder();
         ab.append("Agenda:");
@@ -110,136 +112,374 @@ public class LLProver2 {
 
         this.agenda = agenda;
 
+        List<LLTerm> initialCategories = new ArrayList<>();
+        HashMap<String,List<Premise>> category2premiseMapping = new HashMap<>();
 
-        for (Premise p : this.agenda) {
+        for (Premise p : agenda) {
             if (p.getPremiseIDs().size() == 1) {
                 goalIDs.addAll(p.getPremiseIDs());
             }
-        }
 
+            if (!category2premiseMapping.containsKey(p.getGlueTerm().category()))
+            {
+              category2premiseMapping.put(p.getGlueTerm().category(), new ArrayList<>());
+            }
+            category2premiseMapping.get(p.getGlueTerm().category()).add(p);
 
-        while (!agenda.isEmpty()) {
-            ListIterator<Premise> iter = agenda.listIterator();
+            Boolean contains = false;
+                for (LLTerm glue : initialCategories) {
+                    if (p.getGlueTerm().category().equals(glue.category())) {
+                        contains = true;
+                        break;
+                    }
+                }
+                    if(!contains)
+                    {
+                        initialCategories.add(p.getGlueTerm());
+                    }
+            }
+        List<LLTerm> copy = new ArrayList<LLTerm>(initialCategories);
 
-            Premise combined = null;
+        Graph<CGNode, DefaultEdge> categoryGraph2 = calculateCategoryGraph(copy,category2premiseMapping);
+        GabowStrongConnectivityInspector ins2 = new GabowStrongConnectivityInspector(categoryGraph2);
+        Graph scc2 = ins2.getCondensation();
 
-            while (iter.hasNext()) {
+        TopologicalOrderIterator graphIter2 = new TopologicalOrderIterator(scc2);
 
-                Premise p = iter.next();
-                iter.remove();
-                db.allIterations++;
+        while (graphIter2.hasNext())
+        {
+            Graph sccKey = (Graph) graphIter2.next();
 
+            //Element is outside of an scc
+            if (sccKey.vertexSet().size() == 1)
+            {
+                CGNode node =  (CGNode) sccKey.vertexSet().stream().findAny().get();
 
-                if (p.getGlueTerm() instanceof LLAtom) {
+                if (node.nodeType.equals(CGNode.type.CATEGORY)) {
 
-                    if (p.getGlueTerm().getType().equals(LLAtom.LLType.VAR)) {
-
-                        for (String category : nonAtomicChart.keySet()) {
-
-                            for (Premise q : nonAtomicChart.get(category)) {
-                                combined = combinePremises(p, q);
-                                if (combined != null && validPremise(combined)) {
-                                    db.combinations++;
-                                    iter.add(combined);
-                                }
-                            }
+                    for (Object edge : scc2.incomingEdgesOf(sccKey))
+                        {
+                           CGNode parentConnectorNode = (CGNode) ((Graph) scc2.getEdgeSource(edge)).vertexSet().stream().findAny().get();
+                           node.histories.addAll(parentConnectorNode.histories);
                         }
+                    //Compress histories
+                }
+                //Element is a connector node
+                if (node.nodeType.equals(CGNode.type.CONNECTOR))
+                {
+                    Object childNodeGraph = categoryGraph2.outgoingEdgesOf(node).stream().findAny().get();
+                    CGNode childNode = (CGNode) scc2.getEdgeTarget(childNodeGraph);
 
-                    } else {
-
-                        if (nonAtomicChart.containsKey(p.getGlueTerm().category())) {
-                            for (Premise q : nonAtomicChart.get(p.getGlueTerm().category())) {
-                                combined = combinePremises(q, p);
-                                if (combined != null && validPremise(combined)) {
-                                    db.combinations++;
-                                    iter.add(combined);
-                                }
+                    List<CGNode> parents = new ArrayList<>();
+                    for (Object edge : categoryGraph2.incomingEdgesOf(node)) {
+                        CGNode parentNode = (CGNode) categoryGraph2.getEdgeSource((DefaultEdge) edge);
+                        parents.add(parentNode);
+                    }
+                    CGNode arg;
+                    CGNode func;
+                    if (parents.get(0).toString().startsWith(parents.get(1).toString()))
+                    {
+                        func = parents.get(0);
+                        arg = parents.get(1);
+                    }
+                    else
+                    {
+                        func = parents.get(1);
+                        arg = parents.get(0);
+                    }
+                    for (History h1 : func.histories)
+                    {
+                        for (History h2 : arg.histories)
+                        {
+                            History result = combineHistories(h1,h2);
+                            if (result != null) {
+                                node.histories.add(result);
                             }
-
                         }
                     }
+                }
+            }
+            else
+            {
+                List<CGNode> outputNodes = new ArrayList<>();
+                List<CGNode> inputNodes = new ArrayList<>();
+                Set<History> sccHistories = new HashSet<>();
 
-                    for (String key : nonAtomicChart.keySet()) {
-                        if (isVar(key)) {
-                            for (Premise q : nonAtomicChart.get(key)) {
-                                combined = combinePremises(q, p);
-                                if (combined != null && validPremise(combined)) {
-                                    db.combinations++;
-                                    iter.add(combined);
-                                }
+                for (Object node : sccKey.vertexSet())
+                {
+
+                    if (categoryGraph2.incomingEdgesOf((CGNode) node).size() ==0)
+                    {
+                        inputNodes.add((CGNode) node);
+                            sccHistories.addAll(((CGNode) node).histories);
+                    } else
+                    {
+                        boolean input = true;
+                        for (Object edge : categoryGraph2.incomingEdgesOf((CGNode) node))
+                        {
+                            if (sccKey.vertexSet().contains(categoryGraph2.getEdgeSource((DefaultEdge) edge)))
+                            {
+                                input = false;
+                            } else
+                            {
+                                sccHistories.addAll(categoryGraph2.getEdgeSource((DefaultEdge) edge).histories);
                             }
+                        }
+                        if (input)
+                        {
+                            inputNodes.add((CGNode) node);
+                            sccHistories.addAll(((CGNode) node).histories);
                         }
                     }
-
-
-                } else if (p.getGlueTerm() instanceof LLFormula) {
-
-
-                    if (((LLAtom) ((LLFormula) p.getGlueTerm()).getLhs()).getLLtype().equals(LLAtom.LLType.VAR)) {
-                        for (String key : atomicChart.keySet()) {
-
-                            for (Premise q : atomicChart.get(key)) {
-                                combined = combinePremises(p, q);
-                                if (combined != null && validPremise(combined)) {
-                                    iter.add(combined);
-                                    db.combinations++;
-                                }
+                    if (categoryGraph2.outgoingEdgesOf((CGNode) node).size() > 0)
+                    {
+                        for (Object edge : categoryGraph2.outgoingEdgesOf((CGNode) node))
+                        {
+                            if (!(sccKey.vertexSet().contains(categoryGraph2.getEdgeTarget((DefaultEdge) edge)))
+                            && ((CGNode) categoryGraph2.getEdgeTarget((DefaultEdge) edge)).nodeType.equals(CGNode.type.CONNECTOR) )
+                            {
+                                outputNodes.add((CGNode) node);
+                                sccHistories.addAll(((CGNode) node).histories);
+                                break;
                             }
                         }
-                    } else {
-                        if (atomicChart.containsKey(((LLFormula) p.getGlueTerm()).getLhs().category())) {
-                            for (Premise q : atomicChart.get(((LLFormula) p.getGlueTerm()).getLhs().category())) {
-                                combined = combinePremises(p, q);
-                                if (combined != null && validPremise(combined)) {
-                                    iter.add(combined);
-                                    db.combinations++;
-                                }
-                            }
                         }
-
-                        for (String category : atomicChart.keySet()) {
-                            if (Character.isUpperCase(category.charAt(0))) {
-                                for (Premise q : atomicChart.get(category)) {
-                                    combined = combinePremises(p, q);
-                                    if (combined != null && validPremise(combined)) {
-                                        iter.add(combined);
-                                        db.combinations++;
-                                    }
-                                }
-                            }
-                        }
-
+                    else {
+                        if (((CGNode) node).category.equals(goalCategory))
+                        {
+                            outputNodes.add((CGNode) node);
+                            sccHistories.addAll(((CGNode) node).histories);
                     }
+                    }
+                }
+
+                List<History> sccAgenda = new ArrayList<>();
+                sccAgenda.addAll(sccHistories);
+                Chart c = chartDeduce(sccAgenda);
+
+                for (CGNode outputNode : outputNodes)
+                {
+                    if (c.atomicChart.containsKey(outputNode.category))
+                    {
+                        outputNode.histories.addAll(c.atomicChart.get(outputNode.category));
+
+                    } else if (c.nonAtomicChart.containsKey(outputNode.category)) {
+                        outputNode.histories.addAll(c.nonAtomicChart.get(outputNode.category));
 
                 }
-                updateSolutions(p);
-                adjustChart(p);
+                }
             }
-
         }
 
 
         long endTime = System.nanoTime();
-
         db.computationTime = endTime - startTime;
-
         proofBuilder.append(System.lineSeparator());
 
     }
 
+    public Chart chartDeduce(List<History> histories) throws VariableBindingException, ProverException {
+        Chart chart = new Chart();
 
-    public Boolean validPremise(Premise premise)
-    {
-        if (premise.getGlueTerm() instanceof LLFormula)
-        {
-            if (!((LLFormula) premise.getGlueTerm()).getLhs().getOrderedDischarges().keySet().isEmpty())
-            {
-        return Collections.disjoint(((LLFormula) premise.getGlueTerm()).getLhs().getOrderedDischarges().keySet(),premise.getPremiseIDs());
+        List<History> agenda = new ArrayList<>();
+        agenda.addAll(histories);
+
+        while (!agenda.isEmpty()) {
+            ListIterator<History> agendaIterator = agenda.listIterator();
+
+            while (agendaIterator.hasNext()) {
+                History current = agendaIterator.next();
+                agendaIterator.remove();
+
+                if (current.premise.getGlueTerm() instanceof LLFormula) {
+
+                    if (chart.atomicChart.containsKey(current.category))
+                    {
+                        for (History h : chart.atomicChart.get(current.category)) {
+                            History combined = combineHistories(current,h);
+                            if (combined != null) {
+                                agendaIterator.add(combined);
+                            }
+                        }
+                    }
+                    if (chart.nonAtomicChart.containsKey(((LLFormula) current.premise.getGlueTerm()).getLhs()))
+                    {
+                        chart.nonAtomicChart.get(((LLFormula) current.premise.getGlueTerm()).getLhs()).add(current);
+                    } else
+                    {
+                        Set<History> histories1 = new HashSet<>();
+                        histories1.add(current);
+                        chart.nonAtomicChart.put(((LLFormula) current.premise.getGlueTerm()).getLhs().category(),histories1);
+                    }
+
+                } else if (current.premise.getGlueTerm() instanceof LLAtom) {
+                    if (chart.nonAtomicChart.containsKey(current.category))
+                    {
+                        for (History h : chart.nonAtomicChart.get(current.category))
+                        {
+                            History combined = combineHistories(h,current);
+                            if (combined != null) {
+                                agendaIterator.add(combined);
+                            }
+                        }
+                    }
+
+                    if (chart.atomicChart.containsKey(current.category))
+                    {
+                        chart.atomicChart.get(current.category).add(current);
+                    } else
+                    {
+                        Set<History> histories1 = new HashSet<>();
+                        histories1.add(current);
+                        chart.atomicChart.put(current.category,histories1);
+                    }
+                }
             }
         }
-
-        return true;
+        return chart;
     }
+
+
+    public Graph<CGNode,DefaultEdge> calculateCategoryGraph(List<LLTerm> initialCategories, HashMap<String,List<Premise>> category2premiseMapping)
+    {
+        HashMap<String,Set<LLTerm>> atomicChart = new HashMap<>();
+        HashMap<String,Set<LLTerm>> nonAtomicChart = new HashMap<>();
+        Graph<CGNode,DefaultEdge> categoryGraph = new DefaultDirectedGraph<CGNode,DefaultEdge>(DefaultEdge.class);
+
+        HashMap<String,CGNode> category2graphmapping = new HashMap<>();
+
+        while (!initialCategories.isEmpty()) {
+
+            ListIterator<LLTerm> categoryIterator = initialCategories.listIterator();
+
+            while (categoryIterator.hasNext()) {
+                LLTerm category = categoryIterator.next();
+                categoryIterator.remove();
+                CGNode currentNode;
+                if (!category2graphmapping.containsKey(category.category())) {
+                    currentNode = new CGNode(category.category(), CGNode.type.CATEGORY);
+
+                    if (category2premiseMapping.containsKey(currentNode.category)) {
+                        for (Premise p : category2premiseMapping.get((currentNode).category)) {
+
+                            History h = new History(currentNode.category, p.getPremiseIDs(), null, p);
+
+                            if (p.getGlueTerm() instanceof LLFormula) {
+                                h.discharges.addAll(((LLFormula) p.getGlueTerm()).getLhs().orderedDischarges.keySet());
+                                h.requirements.addAll(((LLFormula) p.getGlueTerm()).getRhs().dischargeRequirements());
+                            }
+                            currentNode.histories.add(h);
+                        }
+                    }
+                    category2graphmapping.put(category.category(), currentNode);
+                    categoryGraph.addVertex(currentNode);
+                } else
+                {
+                    currentNode = category2graphmapping.get(category.category());
+                }
+                if (category instanceof LLAtom) {
+                    if (!atomicChart.containsKey(category.category()))
+                    {
+                        if (nonAtomicChart.containsKey(category.category())) {
+                            for (LLTerm nonAtomic : nonAtomicChart.get(category.category())) {
+                                CGNode connectorNode = new CGNode(LexVariableHandler.returnNewVar(LexVariableHandler.variableType.connectorNode), CGNode.type.CONNECTOR);
+
+                                CGNode resultNode;
+                                if (!category2graphmapping.containsKey(((LLFormula) nonAtomic).getRhs().category())) {
+                                    resultNode = new CGNode(((LLFormula) nonAtomic).getRhs().category(), CGNode.type.CATEGORY);
+                                    category2graphmapping.put(((LLFormula) nonAtomic).getRhs().category(), resultNode);
+                                    categoryGraph.addVertex(resultNode);
+                                } else
+                                {
+                                    resultNode = category2graphmapping.get(((LLFormula) nonAtomic).getRhs().category());
+                                }
+
+                                categoryGraph.addVertex(connectorNode);
+                                categoryGraph.addEdge(currentNode, connectorNode);
+                                categoryGraph.addEdge(category2graphmapping.get(nonAtomic.category()), connectorNode);
+                                categoryGraph.addEdge(connectorNode, resultNode);
+                                if (!initialCategories.contains(((LLFormula) nonAtomic).getRhs())) {
+                                    categoryIterator.add(((LLFormula) nonAtomic).getRhs());
+                                }
+                            }
+                        }
+                    }
+
+                    if (atomicChart.containsKey(category.category())) {
+                        atomicChart.get(category.category()).add(category);
+                    } else {
+                        Set<LLTerm> premises = new HashSet<>();
+                        premises.add(category);
+                        atomicChart.put(category.category(), premises);
+
+                    }
+
+                }
+
+                if (category instanceof LLFormula) {
+                    if (atomicChart.containsKey(((LLFormula) category).getLhs().category())) {
+                        for (LLTerm atomic : atomicChart.get(((LLFormula) category).getLhs().category())) {
+                            CGNode resultNode;
+                            CGNode connectorNode = new CGNode(LexVariableHandler.returnNewVar(LexVariableHandler.variableType.connectorNode), CGNode.type.CONNECTOR);
+                            if (!category2graphmapping.containsKey(((LLFormula) category).getRhs().category())) {
+                                resultNode = new CGNode(((LLFormula) category).getRhs().category(), CGNode.type.CATEGORY);
+                                category2graphmapping.put(((LLFormula) category).getRhs().category(), resultNode);
+                                categoryGraph.addVertex(resultNode);
+                            } else
+                            {
+                                resultNode = category2graphmapping.get(((LLFormula) category).getRhs().category());
+                            }
+                            categoryGraph.addVertex(connectorNode);
+                            categoryGraph.addEdge(currentNode, connectorNode);
+                            categoryGraph.addEdge(category2graphmapping.get(atomic.category()), connectorNode);
+                            categoryGraph.addEdge(connectorNode, resultNode);
+                            if (!initialCategories.contains(((LLFormula) category).getRhs())) {
+                                categoryIterator.add(((LLFormula) category).getRhs());
+                            }
+                        }
+                    }
+                    if (nonAtomicChart.containsKey(((LLFormula) category).getLhs().category())) {
+                        nonAtomicChart.get(((LLFormula) category).getLhs().category()).add(category);
+                    } else {
+                        Set<LLTerm> premises = new HashSet<>();
+                        premises.add(category);
+                        nonAtomicChart.put(((LLFormula) category).getLhs().category(), premises);
+                    }
+                }
+            }
+        }
+        return categoryGraph;
+    }
+
+
+    public History combineHistories(History h1, History h2) throws VariableBindingException, ProverException {
+        if (Collections.disjoint(h1.indexSet,h2.indexSet)) {
+            if (h2.indexSet.containsAll(h1.discharges)) {
+                if (Collections.disjoint(h1.requirements, h2.indexSet)) {
+                    Premise p = combinePremises(h1.premise, h2.premise);
+
+                    Set<Integer> union = new HashSet<>();
+                    union.addAll(h1.indexSet);
+                    union.addAll(h2.indexSet);
+                    HashMap<Integer, History> parentNodes = new HashMap<>();
+                    parentNodes.put(0, h1);
+                    parentNodes.put(1, h2);
+
+                    History result = new History(((LLFormula)h1.premise.getGlueTerm()).getRhs().category(), union, parentNodes, p);
+
+                    if (result.indexSet.equals(goalIDs))
+                    {
+                        solutions.add(result);
+                    }
+
+                    return result;
+
+                }
+            }
+        }
+        return null;
+    }
+
 
     public Premise combinePremises(Premise functor, Premise argument) throws VariableBindingException, ProverException {
 
@@ -462,28 +702,6 @@ public class LLProver2 {
 
     public Boolean checkDischarges(Premise functor, Premise argument) {
 
-/*
-        List<Premise> funcList = ((LLFormula)functor.getGlueTerm()).getLhs().getOrderedDischarges();
-        List<Premise> argList  = argument.getGlueTerm().getAssumptions2();
-
-        if (argList.isEmpty())
-        {
-            return false;
-        }
-
-        for (int i = 0; i < ((LLFormula)functor.getGlueTerm()).getLhs().getOrderedDischarges().size(); i++)
-        {
-            if (!funcList.get(i).equals(argList.get(i)))
-            {
-                return false;
-            }
-        }
-
-        return true;
-
-*/
-
-
         for (Integer key : ((LLFormula) functor.getGlueTerm()).getLhs().getOrderedDischarges().keySet()) {
             Premise t = ((LLFormula) functor.getGlueTerm()).getLhs().getOrderedDischarges().get(key);
             if (!argument.getGlueTerm().assumptions2.contains(t)){
@@ -494,29 +712,6 @@ public class LLProver2 {
 
     }
 
-    public void adjustChart(Premise p) {
-        if (p.getGlueTerm() instanceof LLFormula) {
-
-
-                if (nonAtomicChart.containsKey(((LLFormula) p.getGlueTerm()).getLhs().category())) {
-                    nonAtomicChart.get(((LLFormula) p.getGlueTerm()).getLhs().category()).add(p);
-                } else {
-                    List<Premise> premises = new ArrayList<>();
-                    premises.add(p);
-                    nonAtomicChart.put(((LLFormula) p.getGlueTerm()).getLhs().category(), premises);
-                }
-
-        } else if (p.getGlueTerm() instanceof LLAtom) {
-            if (atomicChart.containsKey(p.getGlueTerm().category())) {
-                atomicChart.get(p.getGlueTerm().category()).add(p);
-            } else {
-                List<Premise> premises = new ArrayList<>();
-                premises.add(p);
-                atomicChart.put(p.getGlueTerm().category(), premises);
-
-            }
-        }
-    }
 
     public LinkedList<Premise> convert(Premise p)
     {
@@ -667,8 +862,6 @@ public class LLProver2 {
             }
 
         }
-
-
         compiled.add(p);
 
 
@@ -711,50 +904,71 @@ public class LLProver2 {
         LLProver2.settings = settings;
     }
 
-
-
-    public boolean isVar(String in)
-    {
-        Pattern p = Pattern.compile("(\\p{Lu}+).*_.+");
-        Matcher pm = p.matcher(in);
-
-        return pm.find();
-
-    }
-
-
-    public void updateSolutions(Premise p)
-    {
-        if (p.getPremiseIDs().equals(goalIDs))
-        {
-            solutions.add(p);
-        }
-    }
-
     //Getter and Setter
-    public LinkedList<Premise> getSolutions() {
+    public LinkedList<History> getSolutions() {
         return solutions;
     }
 
-    public void setSolutions(LinkedList<Premise> solutions) {
+    public void setSolutions(LinkedList<History> solutions) {
         this.solutions = solutions;
     }
 
-    public void updateVariableDependencies(List<Premise> compiled)
+    public String findAtomicGoal(List<Premise> premises)
     {
-        for (Premise premise : compiled)
+        List<LLAtom> allAtoms = new ArrayList<>();
+        List<String> positive = new ArrayList<>();
+        List<String> negative = new ArrayList<>();
+
+
+        List<Premise> agendaCopy = new ArrayList<>(premises);
+
+        ListIterator<Premise> iter = agendaCopy.listIterator();
+
+        while (iter.hasNext())
         {
-            if (premise.getGlueTerm() instanceof LLAtom &&
-                    ((LLAtom) premise.getGlueTerm()).getLLtype().equals(LLAtom.LLType.VAR))
+            Premise p = iter.next();
+
+            if (p.getGlueTerm().isModifier())
             {
-                for (Premise q : compiled)
-                {
+                iter.remove();
+            }
+            allAtoms.addAll(p.getGlueTerm().returnAllAtoms());
+        }
 
-                }
-
+        for (LLAtom atom : allAtoms)
+        {
+            if (atom.isPolarity())
+            {
+                positive.add(atom.category());
+            } else
+            {
+                negative.add(atom.category());
             }
         }
+
+
+        ListIterator<String> negIter = negative.listIterator();
+
+        while (negIter.hasNext())
+        {
+            String negAtom = negIter.next();
+            ListIterator<String> posIter = positive.listIterator();
+            while (posIter.hasNext())
+            {
+                String posAtom = posIter.next();
+                if (negAtom.equals(posAtom))
+                {
+                    posIter.remove();
+                    negIter.remove();
+                    break;
+                }
+            }
+
+        }
+
+        return positive.stream().findAny().get();
     }
+
 
     public StringBuilder getProofBuilder() {
         return proofBuilder;

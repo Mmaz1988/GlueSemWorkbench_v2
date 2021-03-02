@@ -21,6 +21,8 @@ import glueSemantics.semantics.lambda.SemType;
 import prover.Equality;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class LLAtom extends LLTerm {
 
@@ -182,6 +184,18 @@ public class LLAtom extends LLTerm {
     public LLTerm clone() {
         return new LLAtom(this   );
     }
+
+    @Override
+    public Set<Integer> dischargeRequirements() {
+        Set<Integer> requirements = new HashSet<Integer>(getOrderedDischarges().keySet());
+        return requirements;
+    }
+
+    @Override
+    public List<LLAtom> returnAllAtoms() {
+        return Stream.of(this).collect(Collectors.toList());
+    }
+
 
     @Override
     public void updateBoundVariables(LLAtom var) {

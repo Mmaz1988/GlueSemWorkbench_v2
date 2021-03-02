@@ -16,6 +16,7 @@ import glueSemantics.semantics.LexicalEntry;
 import prover.LLProver2;
 import prover.ProverException;
 import prover.VariableBindingException;
+import prover.categoryGraph.History;
 import utilities.LexicalParserException;
 
 import javax.swing.*;
@@ -38,7 +39,7 @@ public class WorkbenchMain {
     public static LinkedHashMap<Integer, List<Premise>> solutions = new LinkedHashMap<>();
     public static List<String> partial = new ArrayList<>();
     public static StringBuilder outputFileBuilder = new StringBuilder();
-    public static List<Premise> result = new ArrayList<>();
+    public static List<History> result = new ArrayList<>();
 
     public static void main(String[] args) {
         settings = new Settings();
@@ -307,19 +308,19 @@ public class WorkbenchMain {
             result = prover.getSolutions();
 
             System.out.println("Found the following deduction(s): ");
-            for (Premise sol : result) {
+            for (History sol : result) {
 
                 if (solutions.keySet().contains(key))
                 {
-                    solutions.get(key).add(sol);
+                    solutions.get(key).add(sol.premise);
                 }
                 else
                 {
-                    solutions.put(key,new ArrayList<>(Arrays.asList(sol)));
+                    solutions.put(key,new ArrayList<>(Arrays.asList(sol.premise)));
                 }
 
         //        sol.setSemTerm((SemanticExpression) sol.getSemTerm().betaReduce());
-                System.out.println(key + ": " + sol.toString());
+                System.out.println(key + ": " + sol.premise.toString());
             }
 
             /*

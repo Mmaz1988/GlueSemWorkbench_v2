@@ -42,7 +42,7 @@ public class Settings {
     private Boolean testExpression;
 
     public Settings() {
-        this.betaReduce = false;
+        this.betaReduce = true;
         this.semanticOutputStyle = PLAIN;
         this.debugging = false;
         this.partial = false;

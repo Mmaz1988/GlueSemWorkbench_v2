@@ -271,6 +271,22 @@ public class LLFormula extends LLTerm {
         return new LLFormula(this   );
     }
 
+    @Override
+    public Set<Integer> dischargeRequirements() {
+        Set<Integer> requirements = new HashSet<>();
+        requirements.addAll(lhs.dischargeRequirements());
+        requirements.addAll(rhs.dischargeRequirements());
+        return  requirements;
+    }
+
+    @Override
+    public List<LLAtom> returnAllAtoms() {
+        List<LLAtom> allAtoms = new ArrayList<>();
+        allAtoms.addAll(lhs.returnAllAtoms());
+        allAtoms.addAll(rhs.returnAllAtoms());
+        return allAtoms;
+    }
+
 
     @Override
     public boolean checkEquivalence(LLTerm term) {
