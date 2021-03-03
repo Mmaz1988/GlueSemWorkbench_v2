@@ -282,6 +282,7 @@ public class LLProver2 {
         {
           solutions.addAll(solution.calculateSolutions(resultBuilder));
         }
+        proofBuilder.append(resultBuilder.toString());
         System.out.println(resultBuilder);
         System.out.println(System.lineSeparator());
 
