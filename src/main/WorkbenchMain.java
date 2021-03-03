@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
 public class WorkbenchMain {
     // Initialize with default settings
     public static Settings settings = new Settings();
-    public static LinkedHashMap<Integer, List<Premise>> solutions = new LinkedHashMap<>();
+    public static LinkedHashMap<Integer, List<History>> solutions = new LinkedHashMap<>();
     public static List<String> partial = new ArrayList<>();
     public static StringBuilder outputFileBuilder = new StringBuilder();
     public static List<History> result = new ArrayList<>();
@@ -122,10 +122,10 @@ public class WorkbenchMain {
 
 
                                         for (int i = 0; i < solutions.get(key).size(); i++) {
-                                            Premise solution = solutions.get(key).get(i);
+                                            History solution = solutions.get(key).get(i);
                                             if (settings.PROLOG == 1) {
                                                 w.append("solution" + "(" + key.toString() + i + ",");
-                                                w.append(solution.getSemTerm().toString());
+                                                w.append(solution.toString());
                                                 w.append(").");
                                                 w.append(System.lineSeparator());
                                             } else {
@@ -312,15 +312,15 @@ public class WorkbenchMain {
 
                 if (solutions.keySet().contains(key))
                 {
-                    solutions.get(key).add(sol.premise);
+                    solutions.get(key).add(sol);
                 }
                 else
                 {
-                    solutions.put(key,new ArrayList<>(Arrays.asList(sol.premise)));
+                    solutions.put(key,new ArrayList<>(Arrays.asList(sol)));
                 }
 
         //        sol.setSemTerm((SemanticExpression) sol.getSemTerm().betaReduce());
-                System.out.println(key + ": " + sol.premise.toString());
+                System.out.println(key + ": " + sol.toString());
             }
 
             /*

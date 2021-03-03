@@ -29,7 +29,7 @@ public class Category {
             return category;
         } else
         {
-            return left.toString() + "\u22B8" + right.toString();
+            return left.toString() + " -o " + right.toString();
         }
     }
 

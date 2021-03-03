@@ -15,6 +15,7 @@ import test.Debugging;
 import utilities.LexVariableHandler;
 
 import java.io.IOException;
+import java.text.CollationElementIterator;
 import java.util.*;
 
 public class LLProver2 {
@@ -142,7 +143,6 @@ public class LLProver2 {
 
         Graph<CGNode, DefaultEdge> categoryGraph2 = calculateCategoryGraph2(copy,category2premiseMapping);
 
-
         GabowStrongConnectivityInspector ins2 = new GabowStrongConnectivityInspector(categoryGraph2);
         Graph scc2 = ins2.getCondensation();
 
@@ -151,7 +151,6 @@ public class LLProver2 {
         while (graphIter2.hasNext())
         {
             Graph sccKey = (Graph) graphIter2.next();
-
             //Element is outside of an scc
             if (sccKey.vertexSet().size() == 1)
             {
@@ -163,6 +162,8 @@ public class LLProver2 {
                         {
                            CGNode parentConnectorNode = (CGNode) ((Graph) scc2.getEdgeSource(edge)).vertexSet().stream().findAny().get();
                            node.histories.addAll(parentConnectorNode.histories);
+                           node.compressHistories();
+
                         }
                     //Compress histories
                 }
@@ -199,6 +200,7 @@ public class LLProver2 {
                             }
                         }
                     }
+                    node.compressHistories();
                 }
             }
             else
@@ -214,7 +216,6 @@ public class LLProver2 {
 
                     if (!(categoryGraph2.incomingEdgesOf((CGNode) node).size() == 0))
                     {
-
                         boolean input = true;
                         for (Object edge : categoryGraph2.incomingEdgesOf((CGNode) node))
                         {
@@ -229,7 +230,7 @@ public class LLProver2 {
                         if (input)
                         {
                             inputNodes.add((CGNode) node);
-                                                 }
+                        }
                     }
                     if (categoryGraph2.outgoingEdgesOf((CGNode) node).size() > 0)
                     {
@@ -250,7 +251,6 @@ public class LLProver2 {
                     }
                     }
                 }
-
                 List<History> sccAgenda = new ArrayList<>();
                 sccAgenda.addAll(sccHistories);
                 Chart c = chartDeduce(sccAgenda);
@@ -263,10 +263,24 @@ public class LLProver2 {
 
                     } else if (c.nonAtomicChart.containsKey(outputNode.category)) {
                         outputNode.histories.addAll(c.nonAtomicChart.get(outputNode.category));
-
                 }
+                    outputNode.compressHistories();
                 }
             }
+        }
+
+        StringBuilder resultBuilder = new StringBuilder();
+
+        List<Premise> results = new ArrayList<>();
+
+        for (History solution : solutions)
+        {
+          results.addAll(solution.calculateSolutions(resultBuilder));
+        }
+        System.out.println(resultBuilder);
+        for (Premise result :results)
+        {
+            System.out.println(result.toString());
         }
 
 
@@ -288,31 +302,31 @@ public class LLProver2 {
                 History current = agendaIterator.next();
                 agendaIterator.remove();
 
-                if (current.premise.getGlueTerm() instanceof LLFormula) {
+                if (!current.category.atomic) {
 
-                    if (chart.atomicChart.containsKey(((LLFormula) current.premise.getGlueTerm()).getLhs().category().toString()))
+                    if (chart.atomicChart.containsKey(current.category.left.toString()))
                     {
-                        for (History h : chart.atomicChart.get(((LLFormula) current.premise.getGlueTerm()).getLhs().category().toString())) {
+                        for (History h : chart.atomicChart.get(current.category.left.toString())) {
                             History combined = combineHistories(current,h);
                             if (combined != null) {
                                 agendaIterator.add(combined);
                             }
                         }
                     }
-                    if (chart.nonAtomicChart.containsKey(((LLFormula) current.premise.getGlueTerm()).getLhs().category().toString()))
+                    if (chart.nonAtomicChart.containsKey(current.category.left.toString()))
                     {
-                        chart.nonAtomicChart.get(((LLFormula) current.premise.getGlueTerm()).getLhs().category().toString()).add(current);
+                        chart.nonAtomicChart.get(current.category.left.toString()).add(current);
                     } else
                     {
                         Set<History> histories1 = new HashSet<>();
                         histories1.add(current);
-                        chart.nonAtomicChart.put(((LLFormula) current.premise.getGlueTerm()).getLhs().category().toString(),histories1);
+                        chart.nonAtomicChart.put(current.category.left.toString(),histories1);
                     }
 
-                } else if (current.premise.getGlueTerm() instanceof LLAtom) {
-                    if (chart.nonAtomicChart.containsKey(current.category))
+                } else {
+                    if (chart.nonAtomicChart.containsKey(current.category.toString()))
                     {
-                        for (History h : chart.nonAtomicChart.get(current.category))
+                        for (History h : chart.nonAtomicChart.get(current.category.toString()))
                         {
                             History combined = combineHistories(h,current);
                             if (combined != null) {
@@ -321,14 +335,14 @@ public class LLProver2 {
                         }
                     }
 
-                    if (chart.atomicChart.containsKey(current.category))
+                    if (chart.atomicChart.containsKey(current.category.toString()))
                     {
-                        chart.atomicChart.get(current.category).add(current);
+                        chart.atomicChart.get(current.category.toString()).add(current);
                     } else
                     {
                         Set<History> histories1 = new HashSet<>();
                         histories1.add(current);
-                        chart.atomicChart.put(current.category,histories1);
+                        chart.atomicChart.put(current.category.toString(),histories1);
                     }
                 }
             }
@@ -358,7 +372,7 @@ public class LLProver2 {
 
                 for (Premise p : category2premiseMapping.get(category.toString())) {
 
-                    History h = new History(category.toString(), p.getPremiseIDs(), null, p);
+                    History h = new History(p.getGlueTerm().category(), p.getPremiseIDs(), Collections.singleton(new HashMap<>()),p);
 
                     if (p.getGlueTerm() instanceof LLFormula) {
                         h.discharges.addAll(((LLFormula) p.getGlueTerm()).getLhs().orderedDischarges.keySet());
@@ -408,13 +422,13 @@ public class LLProver2 {
         if (Collections.disjoint(h1.indexSet,h2.indexSet)) {
             if (h2.indexSet.containsAll(h1.discharges)) {
                 if (Collections.disjoint(h1.requirements, h2.indexSet)) {
+                    /*
                     Premise p = combinePremises(h1.premise, h2.premise);
-
                     if (p == null)
                     {
                         return null;
                     }
-
+                     */
 
                     Set<Integer> union = new HashSet<>();
                     union.addAll(h1.indexSet);
@@ -423,7 +437,9 @@ public class LLProver2 {
                     parentNodes.put(0, h1);
                     parentNodes.put(1, h2);
 
-                    History result = new History(((LLFormula)h1.premise.getGlueTerm()).getRhs().category().toString(), union, parentNodes, p);
+                    Set<HashMap<Integer,History>> parents = Collections.singleton(parentNodes);
+
+                    History result = new History( h1.category.right, union, parents);
 
                     if (result.indexSet.equals(goalIDs))
                     {
@@ -439,7 +455,7 @@ public class LLProver2 {
     }
 
 
-    public Premise combinePremises(Premise functor, Premise argument) throws VariableBindingException, ProverException {
+    public static Premise combinePremises(Premise functor, Premise argument, StringBuilder proofBuilder) throws VariableBindingException, ProverException {
 
         Premise func = new Premise(functor.getPremiseIDs(), functor.getSemTerm().clone(), functor.getGlueTerm().clone());
         Premise argumentClone = null;
@@ -658,7 +674,7 @@ public class LLProver2 {
 
     }
 
-    public Boolean checkDischarges(Premise functor, Premise argument) {
+    public static Boolean checkDischarges(Premise functor, Premise argument) {
 
         for (Integer key : ((LLFormula) functor.getGlueTerm()).getLhs().getOrderedDischarges().keySet()) {
             Premise t = ((LLFormula) functor.getGlueTerm()).getLhs().getOrderedDischarges().get(key);
