@@ -93,7 +93,7 @@ public abstract class LLTerm {
 
     public abstract Set<Category> returnAllCategories();
 
-    public abstract Set<Integer> dischargeRequirements();
+
 
     public abstract List<LLAtom> returnAllAtoms();
 

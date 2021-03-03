@@ -76,11 +76,6 @@ public class LLQuantEx extends LLTerm {
     }
 
     @Override
-    public Set<Integer> dischargeRequirements() {
-        return scope.dischargeRequirements();
-    }
-
-    @Override
     public List<LLAtom> returnAllAtoms() {
         return scope.returnAllAtoms();
     }

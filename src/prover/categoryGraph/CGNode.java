@@ -27,7 +27,6 @@ public class CGNode {
         return this.category;
     }
 
-
     public void compressHistories()
     {
         if (histories.size() > 1) {
@@ -57,10 +56,8 @@ public class CGNode {
                     {
                         chart.add(h1);
                     }
-
                 }
             }
-
             if (!chart.isEmpty())
             {
             this.histories = new HashSet<>(chart);

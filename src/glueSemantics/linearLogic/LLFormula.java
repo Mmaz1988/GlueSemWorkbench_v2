@@ -262,7 +262,7 @@ public class LLFormula extends LLTerm {
 
         @Override
         public Category category(){
-        return new Category(lhs.category(),rhs.category());
+        return new Category(lhs.category(),rhs.category(),new HashSet<>(getOrderedDischarges().keySet()));
         }
 
 
@@ -280,13 +280,7 @@ public class LLFormula extends LLTerm {
         return allCategories;
     }
 
-    @Override
-    public Set<Integer> dischargeRequirements() {
-        Set<Integer> requirements = new HashSet<>();
-        requirements.addAll(lhs.dischargeRequirements());
-        requirements.addAll(rhs.dischargeRequirements());
-        return  requirements;
-    }
+
 
     @Override
     public List<LLAtom> returnAllAtoms() {

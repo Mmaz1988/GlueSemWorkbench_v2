@@ -115,7 +115,7 @@ public class LLAtom extends LLTerm {
 
     @Override
     public Category category() {
-        return new Category(this.name + "_" + getType());
+        return new Category(this.name + "_" + getType(),new HashSet<Integer>(getOrderedDischarges().keySet()));
     }
 
     @Override
@@ -190,11 +190,6 @@ public class LLAtom extends LLTerm {
         return Collections.singleton(this.category());
     }
 
-    @Override
-    public Set<Integer> dischargeRequirements() {
-        Set<Integer> requirements = new HashSet<Integer>(getOrderedDischarges().keySet());
-        return requirements;
-    }
 
     @Override
     public List<LLAtom> returnAllAtoms() {

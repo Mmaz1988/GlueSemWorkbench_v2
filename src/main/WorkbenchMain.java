@@ -36,10 +36,10 @@ import java.util.regex.Pattern;
 public class WorkbenchMain {
     // Initialize with default settings
     public static Settings settings = new Settings();
-    public static LinkedHashMap<Integer, List<History>> solutions = new LinkedHashMap<>();
+    public static LinkedHashMap<Integer, List<Premise>> solutions = new LinkedHashMap<>();
     public static List<String> partial = new ArrayList<>();
     public static StringBuilder outputFileBuilder = new StringBuilder();
-    public static List<History> result = new ArrayList<>();
+    public static List<Premise> result = new ArrayList<>();
 
     public static void main(String[] args) {
         settings = new Settings();
@@ -122,7 +122,7 @@ public class WorkbenchMain {
 
 
                                         for (int i = 0; i < solutions.get(key).size(); i++) {
-                                            History solution = solutions.get(key).get(i);
+                                            Premise solution = solutions.get(key).get(i);
                                             if (settings.PROLOG == 1) {
                                                 w.append("solution" + "(" + key.toString() + i + ",");
                                                 w.append(solution.toString());
@@ -304,11 +304,10 @@ public class WorkbenchMain {
 
             prover.deduce(testseq);
 
-
             result = prover.getSolutions();
 
             System.out.println("Found the following deduction(s): ");
-            for (History sol : result) {
+            for (Premise sol : result) {
 
                 if (solutions.keySet().contains(key))
                 {

@@ -15,7 +15,6 @@ import test.Debugging;
 import utilities.LexVariableHandler;
 
 import java.io.IOException;
-import java.text.CollationElementIterator;
 import java.util.*;
 
 public class LLProver2 {
@@ -35,13 +34,12 @@ public class LLProver2 {
 
 
     private LinkedList<Premise> agenda;
-    private LinkedList<History> solutions = new LinkedList<>();
-
+    private LinkedList<History> finalHistories = new LinkedList<>();
+    private LinkedList<Premise> solutions = new LinkedList<>();
     private StringBuilder proofBuilder;
-
     private HashSet<Integer> goalIDs = new HashSet<>();
-
     public Debugging db;
+    public long startTime;
 
 
     /**
@@ -68,10 +66,10 @@ public class LLProver2 {
         this.currentSequent = seq;
         LinkedList<Premise> agenda = new LinkedList<>();
 
-        long startTime = System.nanoTime();
+        startTime = System.nanoTime();
 
         StringBuilder sb = new StringBuilder();
-        sb.append("Sequent:");
+        sb.append("Input premises:");
         sb.append(System.lineSeparator());
         for (Premise le : currentSequent.getLhs()) {
             sb.append(le);
@@ -87,14 +85,18 @@ public class LLProver2 {
             proofBuilder.append(System.lineSeparator());
         }
 
+        System.out.println("Starting compilation process:");
         for (Premise p : currentSequent.getLhs()) {
             List<Premise> compiled = convert(p);
             agenda.addAll(compiled);
         }
 
         String goalCategory = findAtomicGoal(agenda);
-        System.out.println("Automatically detected goal category: " + goalCategory);
+        System.out.println("Automatically detected goal category:");
+        System.out.println(goalCategory);
+        System.out.println(System.lineSeparator());
 
+        System.out.println("Starting deduction procedure:");
         StringBuilder ab = new StringBuilder();
         ab.append("Agenda:");
         ab.append(System.lineSeparator());
@@ -269,25 +271,23 @@ public class LLProver2 {
             }
         }
 
+        System.out.println(System.lineSeparator());
+        System.out.println("Starting semantic calculations:");
+
         StringBuilder resultBuilder = new StringBuilder();
 
-        List<Premise> results = new ArrayList<>();
 
-        for (History solution : solutions)
+
+        for (History solution : finalHistories)
         {
-          results.addAll(solution.calculateSolutions(resultBuilder));
+          solutions.addAll(solution.calculateSolutions(resultBuilder));
         }
         System.out.println(resultBuilder);
-        for (Premise result :results)
-        {
-            System.out.println(result.toString());
-        }
-
+        System.out.println(System.lineSeparator());
 
         long endTime = System.nanoTime();
         db.computationTime = endTime - startTime;
         proofBuilder.append(System.lineSeparator());
-
     }
 
     public Chart chartDeduce(List<History> histories) throws VariableBindingException, ProverException {
@@ -347,6 +347,7 @@ public class LLProver2 {
                 }
             }
         }
+        System.out.println("Chart derivation:");
         return chart;
     }
 
@@ -376,7 +377,7 @@ public class LLProver2 {
 
                     if (p.getGlueTerm() instanceof LLFormula) {
                         h.discharges.addAll(((LLFormula) p.getGlueTerm()).getLhs().orderedDischarges.keySet());
-                        h.requirements.addAll(((LLFormula) p.getGlueTerm()).getRhs().dischargeRequirements());
+                        h.requirements.addAll(((LLFormula) p.getGlueTerm()).getRhs().category().dischargeRequirements());
                     }
                     currentNode.histories.add(h);
                 }
@@ -416,8 +417,6 @@ public class LLProver2 {
         return categoryGraph;
     }
 
-
-
     public History combineHistories(History h1, History h2) throws VariableBindingException, ProverException {
         if (Collections.disjoint(h1.indexSet,h2.indexSet)) {
             if (h2.indexSet.containsAll(h1.discharges)) {
@@ -429,7 +428,6 @@ public class LLProver2 {
                         return null;
                     }
                      */
-
                     Set<Integer> union = new HashSet<>();
                     union.addAll(h1.indexSet);
                     union.addAll(h2.indexSet);
@@ -441,13 +439,21 @@ public class LLProver2 {
 
                     History result = new History( h1.category.right, union, parents);
 
-                    if (result.indexSet.equals(goalIDs))
-                    {
-                        solutions.add(result);
+                    if (!h1.category.right.atomic) {
+                        result.discharges = h1.category.right.left.discharges;
+                        result.requirements = h1.category.right.right.dischargeRequirements();
                     }
 
-                    return result;
+                    System.out.println("Now combining " + h1.category.toString() +
+                                                        " and " + h2.category.toString() +
+                                                    " with result: " + result.category);
 
+
+                    if (result.indexSet.equals(goalIDs))
+                    {
+                        finalHistories.add(result);
+                    }
+                    return result;
                 }
             }
         }
@@ -460,7 +466,6 @@ public class LLProver2 {
         Premise func = new Premise(functor.getPremiseIDs(), functor.getSemTerm().clone(), functor.getGlueTerm().clone());
         Premise argumentClone = null;
 
-
         Boolean variableArgument = false;
         if (((LLAtom)argument.getGlueTerm()).lltype.equals(LLAtom.LLType.VAR)) {
             variableArgument = true;
@@ -472,7 +477,6 @@ public class LLProver2 {
             }else {
                 return null;
             }
-
         }
         else
         {
@@ -522,7 +526,6 @@ public class LLProver2 {
                         }
                     }
                 }
-
                 combined = new Premise(combined_IDs, reducedSem, newTerm);
 
                 if (variableArgument && combined != null)
@@ -532,7 +535,6 @@ public class LLProver2 {
 
                     newTerm.getVariableAssignment().putAll(functor.getGlueTerm().getVariableAssignment());
                 }
-
         }
          else {
                 if (checkDischarges(func, argument)) {
@@ -551,11 +553,9 @@ public class LLProver2 {
                                 break;
                             }
                         }
-
                         if (!subset)
                         {return  null;}
                     }
-
                     if (!argument.getGlueTerm().getVariableAssignment().keySet().isEmpty())
                     {
                       LinkedHashSet<Equality> eqs2 =   new LinkedHashSet<>();
@@ -572,14 +572,11 @@ public class LLProver2 {
                                   }
                               }
                           }
-
-
                       }
 
                         for (Equality eq : eqs2) {
                             ((LLFormula) func.getGlueTerm()).instantiateVariables(eq);
                         }
-
                     }
 
                     SemanticRepresentation temp = argument.getSemTerm().clone();
@@ -595,9 +592,7 @@ public class LLProver2 {
                         Premise p = discharges.removeLast().getValue();
                         temp = new SemFunction((SemAtom) p.getSemTerm(),temp);
                         argumentGlueClone.getAssumptions2().remove(p);
-
                        }
-
                     argumentClone = new Premise(argument.getPremiseIDs(),temp,argumentGlueClone);
 
                     SemanticRepresentation reducedSem = combine(func,argumentClone).betaReduce();
@@ -611,19 +606,14 @@ public class LLProver2 {
                             }
                         }
                     }
-
                     combined = new Premise(combined_IDs, reducedSem,  newTerm);
-
                 }
-
             }
 
             if (combined != null) {
                 combined.getGlueTerm().assumptions2.addAll(func.getGlueTerm().assumptions2);
                 combined.getGlueTerm().assumptions2.addAll(argumentClone.getGlueTerm().assumptions2);
             }
-
-
         }
 
         if (combined != null)
@@ -652,12 +642,8 @@ public class LLProver2 {
                 proofBuilder.append("to: " + combined.toString());
                 proofBuilder.append(System.lineSeparator());
             }
-
-
         }
-
         return combined;
-
     }
 
     public static SemanticRepresentation combine(Premise func, Premise argument) throws ProverException
@@ -686,7 +672,6 @@ public class LLProver2 {
 
     }
 
-
     public LinkedList<Premise> convert(Premise p)
     {
         LinkedList<Premise> compiled = new LinkedList<>();
@@ -700,29 +685,22 @@ public class LLProver2 {
                 while (t instanceof LLQuantEx) {
                     t = ((LLQuantEx) t).getScope();
                 }
-
-
             LLFormula f = (LLFormula) t;
             LLTerm l = f.getLhs();
-
 
             if (l instanceof LLFormula) {
                 db.compilations++;
 
                 //Update history
-
-
                 //Compile out stuff
                 LLFormula compiledGlue = new LLFormula(((LLFormula) l).getRhs(), f.getRhs(), f.isPolarity(), f.getVariable());
                 compiledGlue.getLhs().orderedDischarges.putAll(l.getOrderedDischarges());
                 LLTerm outGlue = ((LLFormula) l).getLhs();
 
-
                 //outGlue.assumptions.add(outGlue);
                 //  compiledGlue.getLhs().getOrderedDischarges().add(outGlue);
 
                 SemType newtype = null;
-
 
                 //Routine to define type of compiled out variables in typed lambda calculus.
                 try{
@@ -769,7 +747,6 @@ public class LLProver2 {
 
                             if (((SemFunction) p.getSemTerm()).getBinder().getType().getRight() == null)
                             {
-
                                 throw new IOException("Typemismatch between glue type and lambda type.");
                             }
                         }
@@ -780,27 +757,19 @@ public class LLProver2 {
                 {newtype = new SemType(((LLFormula) l).getLhs().getType());
                     System.out.println("Semantic side inherits type from linear logic side.");
                 }
-
-
-
                 SemAtom asumptionVar = new SemAtom(SemAtom.SemSort.VAR,
                         LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVarE), newtype);
 
-
                 Premise assumption = new Premise(currentSequent.getNewID(), asumptionVar, outGlue);
-
 
                 compiledGlue.getLhs().getOrderedDischarges().put(assumption.getPremiseIDs().stream().findAny().get(),assumption);
 
                 Premise compiledPremise = new Premise(p.getPremiseIDs(), p.getSemTerm(), compiledGlue);
 
-
                 assumption.getGlueTerm().assumptions2.add(assumption);
 
                 //  compiled.add(compiledPremise);
                 // compiled.add(assumption);
-
-
 
                 List<Premise> recurseCompiled = convert(compiledPremise);
                 List<Premise> recurseAssumption = convert(assumption);
@@ -809,7 +778,6 @@ public class LLProver2 {
                 compiled.addAll(recurseAssumption);
 
                 return compiled;
-
 
             } else if (f.isNested() && !f.isModifier()) {
                 SemanticRepresentation tempSem;
@@ -831,14 +799,9 @@ public class LLProver2 {
                         tempList.getFirst().getGlueTerm().isPolarity(), f.getVariable());
 
                 p.setGlueTerm(newLogic);
-
-
             }
-
         }
         compiled.add(p);
-
-
         return compiled;
     }
 
@@ -868,23 +831,6 @@ public class LLProver2 {
             }
         }
         return false;
-    }
-
-    public static Settings getSettings() {
-        return settings;
-    }
-
-    public static void setSettings(Settings settings) {
-        LLProver2.settings = settings;
-    }
-
-    //Getter and Setter
-    public LinkedList<History> getSolutions() {
-        return solutions;
-    }
-
-    public void setSolutions(LinkedList<History> solutions) {
-        this.solutions = solutions;
     }
 
     public String findAtomicGoal(List<Premise> premises)
@@ -944,12 +890,39 @@ public class LLProver2 {
     }
 
 
+    public static Settings getSettings() {
+        return settings;
+    }
+
+    public static void setSettings(Settings settings) {
+        LLProver2.settings = settings;
+    }
+
+    //Getter and Setter
+    public LinkedList<History> getFinalHistories() {
+        return finalHistories;
+    }
+
+    public void setFinalHistories(LinkedList<History> finalHistories) {
+        this.finalHistories = finalHistories;
+    }
+
+
+
     public StringBuilder getProofBuilder() {
         return proofBuilder;
     }
 
     public void setProofBuilder(StringBuilder proofBuilder) {
         this.proofBuilder = proofBuilder;
+    }
+
+    public LinkedList<Premise> getSolutions() {
+        return solutions;
+    }
+
+    public void setSolutions(LinkedList<Premise> solutions) {
+        this.solutions = solutions;
     }
 
 }
