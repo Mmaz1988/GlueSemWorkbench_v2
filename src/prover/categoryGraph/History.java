@@ -43,8 +43,8 @@ public class History {
     }
 
     public List<Premise> calculateSolutions(StringBuilder resultBuilder) throws VariableBindingException, ProverException {
-        List<Premise> func = new ArrayList<>();
-        List<Premise> arg = new ArrayList<>();
+        Set<Premise> func = new HashSet<>();
+        Set<Premise> arg = new HashSet<>();
         List<Premise> results = new ArrayList<>();
 
         for (HashMap<Integer,History> parentLinks : parents)
