@@ -4,11 +4,11 @@ Richard Crouch, Tracy Holloway King and Miriam Butt with the intention to revive
 We want to provide a state-of-the-art platform for glue semantics that is both easy to use and extensible
 due to its modular structure.
 
-The system contains two prover:
+The system contains two prover2:
 
 1) A linear logic prover is based on Mark Hepple's
  chart prover and improved with suggestions made in Lev (2007)
-2) A basic implementation of Lev's own linear logic prover
+2) A basic implementation of Lev's own linear logic prover. Generally provides the same solutions as the first prover, but is usually more efficient and only works with propositional Glue!
 
 ## Licensing
 The Glue Semantics Workbench
@@ -29,9 +29,21 @@ enter formulas.
 - For running the program in interactive dependency mode, add _-dp_ as a program argument.
 - For running it in LFG mode, in which it reads a Prolog f-structure file created by XLE, add _-lfg_ as a program argument.
 
-## Additional parameters
-- For disabling automatic betareduction in dependency and LFG mode, add the parameter _-noreduce_
-- For using Blackburn & Bos-style Prolog as output format, add the parameter _-prolog_
+
+# Command line arguments 
+
+The following table presents the possible command line arguments: 
+| `command line argument` | `effect` |
+| ------------- | ------------- | 
+| `-i [path/to/file]`  | `used to specify an input file (list of premises; .txt file)` |
+| `-o [path/to/file]` | `specify an output file (.txt)` |
+| `-pr [0/1]` | `0 for Hepple-style algorithm (default); 1 for Lev-style algorithm` |
+| `-debugging` | `this argument can be used to output some additional debugging information` |
+| `-prolog` | `sets the output style to Prolog. Solutions are given as Prolog facts` |
+| `-parseSem` | `semantic parsing for the left-hand (semantic) side of a meaning constructor` |
+| `-noreduce` | `toggles beta-reduction of semantic representations` |
+| `-go` | `Only use the glue side in the output of the derivation` |
+| `-s` | `Only the solution of the derivation is written to the output file` |
 
 ## Glue formula syntax
 Glue formulas can be entered manually into a plain text file (".txt") to be read in by the default mode.
