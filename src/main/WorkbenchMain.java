@@ -44,10 +44,7 @@ public class WorkbenchMain {
                 "copyright 2018 Moritz Messmer & Mark-Matthias Zymla\n");
 
 
-        if (args[0].equals("-test")) {
-            SemanticParser semParser = new SemanticParser();
-            semParser.testParseExpression2(args[1]);
-        } else {
+
             // Check program arguments for prover settings
             //for (String arg : args) {
               for (int i = 0; i < args.length; i++)
@@ -87,7 +84,16 @@ public class WorkbenchMain {
                         }
                         break;
                         }
+
+                    case ("-test"):
+                    {
+                        SemanticParser semParser = new SemanticParser();
+                        semParser.testParseExpression2(args[i+1]);
+                        System.exit(0);
+                        break;
                     }
+                    }
+
                 }
 
             String betaReduce = "on", outputMode = "plain";
@@ -182,7 +188,7 @@ public class WorkbenchMain {
                 }
             }
         }
-    }
+
 
 
     public static void initiateManualMode() throws LexicalParserException, VariableBindingException {
