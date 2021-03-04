@@ -13,9 +13,7 @@ import glueSemantics.parser.GlueParser;
 import glueSemantics.parser.ParserInputException;
 import glueSemantics.parser.SemanticParser;
 import glueSemantics.semantics.LexicalEntry;
-import prover.LLProver2;
-import prover.ProverException;
-import prover.VariableBindingException;
+import prover.*;
 import utilities.LexicalParserException;
 
 import javax.swing.*;
@@ -51,7 +49,9 @@ public class WorkbenchMain {
             semParser.testParseExpression2(args[1]);
         } else {
             // Check program arguments for prover settings
-            for (String arg : args) {
+            //for (String arg : args) {
+              for (int i = 0; i < args.length; i++)
+              { String arg = args[i];
                 switch (arg) {
                     case ("-prolog"):
                         settings.setSemanticOutputStyle(Settings.PROLOG);
@@ -67,15 +67,28 @@ public class WorkbenchMain {
                         break;
                     case ("-go"):
                         settings.setGlueOnly(true);
+                        break;
                     case ("-parseSem"): {
                         settings.setParseSemantics(true);
+                        break;
                     }
                     case ("-s"): {
                         settings.setSolutionOnly(true);
+                        break;
                     }
-
+                    case ("-pr"): {
+                        String arg2 = args[i+1];
+                        if (arg2.equals("0") || arg2.equals("HEPPLE"))
+                        {
+                            settings.setProverType(0);
+                        } else if (arg2.equals("1") || arg2.equals("LEV"))
+                        {
+                            settings.setProverType(1);
+                        }
+                        break;
+                        }
+                    }
                 }
-            }
 
             String betaReduce = "on", outputMode = "plain";
             if (!settings.isBetaReduce())
@@ -124,7 +137,7 @@ public class WorkbenchMain {
                                             Premise solution = solutions.get(key).get(i);
                                             if (settings.getSemanticOutputStyle() == 1) {
                                                 w.append("solution" + "(" + key.toString() + i + ",");
-                                                w.append(solution.getSemTerm().toString());
+                                                w.append(solution.toString());
                                                 w.append(").");
                                                 w.append(System.lineSeparator());
                                             } else {
@@ -132,9 +145,7 @@ public class WorkbenchMain {
                                                 w.append(System.lineSeparator());
                                             }
                                         }
-
                                     }
-
                                     if (!settings.getSolutionOnly()) {
                                         w.append(System.lineSeparator());
                                         w.append("Proof:");
@@ -150,21 +161,15 @@ public class WorkbenchMain {
                                                 w.append(partialSol);
                                                 w.append(System.lineSeparator());
                                             }
-
                                         }
                                     }
-
                                     w.close();
                                 }
-
                                 System.out.println("Wrote solutions to " + outFile.toString());
-
-
                             } catch (Exception e) {
                                 System.out.println("Error while generating output file. Maybe no valid path was given.");
                             }
                         }
-
                     }
                 } catch (VariableBindingException | LexicalParserException e) {
                     e.printStackTrace();
@@ -205,7 +210,6 @@ public class WorkbenchMain {
                 throw new LexicalParserException("Error while trying to open file '"
                         + p + "'");
             }
-
             initiateManualMode(lines);
         }
         else
@@ -235,7 +239,6 @@ public class WorkbenchMain {
                         sets++;
                         break;
                     }
-
                     try {
                         currentLexicalEntries.add(parser.parseMeaningConstructor(formulas.get(i)));
                     } catch (ParserInputException e) {
@@ -245,8 +248,6 @@ public class WorkbenchMain {
                     }
                     i++;
                 }
-
-
             }
         }
 
@@ -267,17 +268,13 @@ public class WorkbenchMain {
             System.out.println(String.format("Found %d lexical entries.",singleSet.size()));
             searchProof(0,singleSet);
             }
-
-              } else {
+        } else {
                 //TODO fix output to accomodate for multiple entries
                 System.out.println(String.format("Found %d lexical entries.", lexicalEntries.size()));
-
                for (Integer key : lexicalEntries.keySet()) {
-
                    searchProof(key,lexicalEntries.get(key));
                }
             }
-
             }
 
     /*
@@ -291,8 +288,14 @@ public class WorkbenchMain {
 
     public static void searchProof(Integer key, List<LexicalEntry> lexicalEntries) throws VariableBindingException {
 
-        LLProver2 prover = new LLProver2(settings,outputFileBuilder);
+        LLProver prover;
 
+        if (settings.getProverType() == 1) {
+            prover = new LLProver1(settings, outputFileBuilder);
+        } else
+        {
+        prover = new LLProver2(settings,outputFileBuilder);
+        }
         try {
 
             System.out.println("Searching for valid proofs...");
@@ -302,7 +305,6 @@ public class WorkbenchMain {
             System.out.println("Sequent:" + testseq.toString());
 
             prover.deduce(testseq);
-
 
             result = prover.getSolutions();
 
@@ -317,7 +319,6 @@ public class WorkbenchMain {
                 {
                     solutions.put(key,new ArrayList<>(Arrays.asList(sol)));
                 }
-
         //        sol.setSemTerm((SemanticExpression) sol.getSemTerm().betaReduce());
                 System.out.println(key + ": " + sol.toString());
             }

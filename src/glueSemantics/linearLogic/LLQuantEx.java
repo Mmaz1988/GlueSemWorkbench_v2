@@ -4,6 +4,8 @@ import prover.Equality;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 public class LLQuantEx extends LLTerm {
 
@@ -54,7 +56,7 @@ public class LLQuantEx extends LLTerm {
     }
 
     @Override
-    public String category() {
+    public Category category() {
         return scope.category();
     }
 
@@ -66,6 +68,16 @@ public class LLQuantEx extends LLTerm {
     @Override
     public LLTerm clone() {
         return new LLQuantEx(this);
+    }
+
+    @Override
+    public Set<Category> returnAllCategories() {
+        return scope.returnAllCategories();
+    }
+
+    @Override
+    public List<LLAtom> returnAllAtoms() {
+        return scope.returnAllAtoms();
     }
 
     @Override

@@ -8,14 +8,11 @@ import test.Debugging;
 import utilities.LexVariableHandler;
 
 import java.io.IOException;
-import java.text.CollationElementIterator;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class LLProver2 {
-
-    private static Settings settings;
+public class LLProver2 extends LLProver{
 
 
     private Sequent currentSequent;
@@ -29,9 +26,7 @@ public class LLProver2 {
     // A chart that associates variables that are compiled out with their original formula.
     // This is necessary to instantiate variables that are atmoic elements rather than variables that occur in formulas.
 
-
     private LinkedList<Premise> agenda;
-    private LinkedList<Premise> solutions = new LinkedList<>();
 
     private HashMap<Premise, List<Premise>> variableDependency = new HashMap<>();
 
@@ -43,7 +38,6 @@ public class LLProver2 {
 
     private HashSet<Integer> goalIDs = new HashSet<>();
 
-    public Debugging db;
 
 
     /**
@@ -147,8 +141,8 @@ public class LLProver2 {
 
                     } else {
 
-                        if (nonAtomicChart.containsKey(p.getGlueTerm().category())) {
-                            for (Premise q : nonAtomicChart.get(p.getGlueTerm().category())) {
+                        if (nonAtomicChart.containsKey(p.getGlueTerm().category().toString())) {
+                            for (Premise q : nonAtomicChart.get(p.getGlueTerm().category().toString())) {
                                 combined = combinePremises(q, p);
                                 if (combined != null && validPremise(combined)) {
                                     db.combinations++;
@@ -187,8 +181,8 @@ public class LLProver2 {
                             }
                         }
                     } else {
-                        if (atomicChart.containsKey(((LLFormula) p.getGlueTerm()).getLhs().category())) {
-                            for (Premise q : atomicChart.get(((LLFormula) p.getGlueTerm()).getLhs().category())) {
+                        if (atomicChart.containsKey(((LLFormula) p.getGlueTerm()).getLhs().category().toString())) {
+                            for (Premise q : atomicChart.get(((LLFormula) p.getGlueTerm()).getLhs().category().toString())) {
                                 combined = combinePremises(p, q);
                                 if (combined != null && validPremise(combined)) {
                                     iter.add(combined);
@@ -234,7 +228,7 @@ public class LLProver2 {
         {
             if (!((LLFormula) premise.getGlueTerm()).getLhs().getOrderedDischarges().keySet().isEmpty())
             {
-        return Collections.disjoint(((LLFormula) premise.getGlueTerm()).getLhs().getOrderedDischarges().keySet(),premise.getPremiseIDs());
+                return Collections.disjoint(((LLFormula) premise.getGlueTerm()).getLhs().getOrderedDischarges().keySet(),premise.getPremiseIDs());
             }
         }
 
@@ -314,13 +308,13 @@ public class LLProver2 {
                 if (variableArgument && combined != null)
                 {
 
-                        newTerm.getVariableAssignment().put((LLAtom) argument.getGlueTerm(), (LLAtom) argumentClone.getGlueTerm());
+                    newTerm.getVariableAssignment().put((LLAtom) argument.getGlueTerm(), (LLAtom) argumentClone.getGlueTerm());
 
                     newTerm.getVariableAssignment().putAll(functor.getGlueTerm().getVariableAssignment());
                 }
 
-        }
-         else {
+            }
+            else {
                 if (checkDischarges(func, argument)) {
 
                     if (!func.getGlueTerm().getVariableAssignment().keySet().isEmpty() && !argumentClone.getGlueTerm().getVariableAssignment().keySet().isEmpty())
@@ -344,23 +338,23 @@ public class LLProver2 {
 
                     if (!argument.getGlueTerm().getVariableAssignment().keySet().isEmpty())
                     {
-                      LinkedHashSet<Equality> eqs2 =   new LinkedHashSet<>();
+                        LinkedHashSet<Equality> eqs2 =   new LinkedHashSet<>();
 
-                      for (LLAtom key : argument.getGlueTerm().getVariableAssignment().keySet())
-                      {
-                          for (LLAtom key2 : ((LLFormula) func.getGlueTerm()).getBoundVariables().keySet())
-                          {
-                              if (key2.category().equals(key.category()))
-                              {
-                                  for (LLAtom key3 : ((LLFormula) func.getGlueTerm()).getBoundVariables().get(key2))
-                                  {
-                                      eqs2.add(new Equality(key3,argument.getGlueTerm().getVariableAssignment().get(key)));
-                                  }
-                              }
-                          }
+                        for (LLAtom key : argument.getGlueTerm().getVariableAssignment().keySet())
+                        {
+                            for (LLAtom key2 : ((LLFormula) func.getGlueTerm()).getBoundVariables().keySet())
+                            {
+                                if (key2.category().equals(key.category()))
+                                {
+                                    for (LLAtom key3 : ((LLFormula) func.getGlueTerm()).getBoundVariables().get(key2))
+                                    {
+                                        eqs2.add(new Equality(key3,argument.getGlueTerm().getVariableAssignment().get(key)));
+                                    }
+                                }
+                            }
 
 
-                      }
+                        }
 
                         for (Equality eq : eqs2) {
                             ((LLFormula) func.getGlueTerm()).instantiateVariables(eq);
@@ -382,7 +376,7 @@ public class LLProver2 {
                         temp = new SemFunction((SemAtom) p.getSemTerm(),temp);
                         argumentGlueClone.getAssumptions2().remove(p);
 
-                       }
+                    }
 
                     argumentClone = new Premise(argument.getPremiseIDs(),temp,argumentGlueClone);
 
@@ -427,7 +421,7 @@ public class LLProver2 {
                 a = argument.toString();
             }
 
-           System.out.println("Combining " + f + " and " + a);
+            System.out.println("Combining " + f + " and " + a);
             System.out.println("to: " + combined.toString());
 
             //TODO sdout vs file
@@ -450,9 +444,9 @@ public class LLProver2 {
     {
         SemanticRepresentation reducedSem;
         if (getSettings().isBetaReduce()) {
-        //    System.out.println("Beta reduced: " + func.getSemTerm().toString() + ", " + argument.getSemTerm().toString());
+            //    System.out.println("Beta reduced: " + func.getSemTerm().toString() + ", " + argument.getSemTerm().toString());
             reducedSem = new FuncApp(func.getSemTerm(), argument.getSemTerm()).betaReduce();
-        //    System.out.println("To:" + reducedSem.toString());
+            //    System.out.println("To:" + reducedSem.toString());
         } else
             reducedSem = new FuncApp(func.getSemTerm(), argument.getSemTerm());
 
@@ -488,8 +482,8 @@ public class LLProver2 {
             Premise t = ((LLFormula) functor.getGlueTerm()).getLhs().getOrderedDischarges().get(key);
             if (!argument.getGlueTerm().assumptions2.contains(t)){
                 return false;
+            }
         }
-    }
         return true;
 
     }
@@ -498,21 +492,21 @@ public class LLProver2 {
         if (p.getGlueTerm() instanceof LLFormula) {
 
 
-                if (nonAtomicChart.containsKey(((LLFormula) p.getGlueTerm()).getLhs().category())) {
-                    nonAtomicChart.get(((LLFormula) p.getGlueTerm()).getLhs().category()).add(p);
-                } else {
-                    List<Premise> premises = new ArrayList<>();
-                    premises.add(p);
-                    nonAtomicChart.put(((LLFormula) p.getGlueTerm()).getLhs().category(), premises);
-                }
-
-        } else if (p.getGlueTerm() instanceof LLAtom) {
-            if (atomicChart.containsKey(p.getGlueTerm().category())) {
-                atomicChart.get(p.getGlueTerm().category()).add(p);
+            if (nonAtomicChart.containsKey(((LLFormula) p.getGlueTerm()).getLhs().category().toString())) {
+                nonAtomicChart.get(((LLFormula) p.getGlueTerm()).getLhs().category().toString()).add(p);
             } else {
                 List<Premise> premises = new ArrayList<>();
                 premises.add(p);
-                atomicChart.put(p.getGlueTerm().category(), premises);
+                nonAtomicChart.put(((LLFormula) p.getGlueTerm()).getLhs().category().toString(), premises);
+            }
+
+        } else if (p.getGlueTerm() instanceof LLAtom) {
+            if (atomicChart.containsKey(p.getGlueTerm().category().toString())) {
+                atomicChart.get(p.getGlueTerm().category().toString()).add(p);
+            } else {
+                List<Premise> premises = new ArrayList<>();
+                premises.add(p);
+                atomicChart.put(p.getGlueTerm().category().toString(), premises);
 
             }
         }
@@ -528,9 +522,9 @@ public class LLProver2 {
 
             LLTerm t = p.getGlueTerm();
 
-                while (t instanceof LLQuantEx) {
-                    t = ((LLQuantEx) t).getScope();
-                }
+            while (t instanceof LLQuantEx) {
+                t = ((LLQuantEx) t).getScope();
+            }
 
 
             LLFormula f = (LLFormula) t;
@@ -579,7 +573,7 @@ public class LLProver2 {
 
                         if (p.getSemTerm() instanceof SemSet)
                         {
-                           tempType =  p.getSemTerm().getType().getLeft().getRight().clone();
+                            tempType =  p.getSemTerm().getType().getLeft().getRight().clone();
                         }
                         else {
                             tempType = ((SemFunction) p.getSemTerm()).getBinder().getType().getRight().clone();
@@ -606,7 +600,7 @@ public class LLProver2 {
                         }
 
                     }
-               //     ((SemFunction) p.getSemTerm()).getBinder().setType(((SemFunction) p.getSemTerm()).getBinder().getType().getRight());
+                    //     ((SemFunction) p.getSemTerm()).getBinder().setType(((SemFunction) p.getSemTerm()).getBinder().getType().getRight());
                 }catch(Exception e)
                 {newtype = new SemType(((LLFormula) l).getLhs().getType());
                     System.out.println("Semantic side inherits type from linear logic side.");
@@ -703,13 +697,6 @@ public class LLProver2 {
         return false;
     }
 
-    public static Settings getSettings() {
-        return settings;
-    }
-
-    public static void setSettings(Settings settings) {
-        LLProver2.settings = settings;
-    }
 
 
 
@@ -727,18 +714,11 @@ public class LLProver2 {
     {
         if (p.getPremiseIDs().equals(goalIDs))
         {
-            solutions.add(p);
+            getSolutions().add(p);
         }
     }
 
-    //Getter and Setter
-    public LinkedList<Premise> getSolutions() {
-        return solutions;
-    }
 
-    public void setSolutions(LinkedList<Premise> solutions) {
-        this.solutions = solutions;
-    }
 
     public void updateVariableDependencies(List<Premise> compiled)
     {
@@ -765,3 +745,5 @@ public class LLProver2 {
     }
 
 }
+
+

@@ -23,6 +23,7 @@ public abstract class LexVariableHandler {
     private static final int MAXINDEX = 100;
 
     private static Integer sentenceID;
+    private static Integer connectorID;
     private static int senteceIDmax = 1000;
 
     public enum variableType{
@@ -32,7 +33,8 @@ public abstract class LexVariableHandler {
         SemVar,
         SemVarE,
         SemVarComp,
-        SentenceID
+        SentenceID,
+        connectorNode
 /*
 Possibly add more types, e.g. SemVarE, SemVarT etc.
 */
@@ -108,6 +110,19 @@ Possibly add more types, e.g. SemVarE, SemVarT etc.
 
     public static String returnNewVar(variableType varType)
     {
+        if (varType.equals(variableType.connectorNode))
+        {
+            if (connectorID == null)
+            {
+                connectorID = 0;
+            }
+            else
+            {
+                connectorID++;
+            }
+            return "c" + connectorID;
+        }
+
         if (varType.equals(variableType.SentenceID)) {
 
             if (sentenceID == null)

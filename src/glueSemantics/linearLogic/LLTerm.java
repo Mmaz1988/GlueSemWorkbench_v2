@@ -75,7 +75,7 @@ public abstract class LLTerm {
         return this.semType;
     }
 
-    public abstract String category();
+    public abstract Category category();
 
     public void setType(SemType type) {
         this.semType = type;
@@ -91,6 +91,11 @@ public abstract class LLTerm {
     // of the respective class.
     public abstract LLTerm clone();
 
+    public abstract Set<Category> returnAllCategories();
+
+
+
+    public abstract List<LLAtom> returnAllAtoms();
 
  /*TODO update this method
     String printAssumptions() {

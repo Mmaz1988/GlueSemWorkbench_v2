@@ -3,7 +3,7 @@ package glueSemantics.parser;
 import glueSemantics.semantics.SemanticRepresentation;
 import glueSemantics.semantics.lambda.*;
 import main.Settings;
-import prover.LLProver2;
+import prover.LLProver1;
 import utilities.LexVariableHandler;
 import org.junit.jupiter.api.Test;
 
@@ -37,7 +37,7 @@ public class SemanticParser extends StringParser {
        // SemanticRepresentation p = parseExpression("[/x_e.sleep(x,y,z)]");
       //  SemType t = typeParser("<e,<e,t>>",0);
 
-     LLProver2 prover = new LLProver2(new Settings());
+     LLProver1 prover = new LLProver1(new Settings());
 
     //    SemanticRepresentation p = parseExpression("[/T_<s,<s,t>>.[/P_<s,t>.[/t_s.Et1_s[T(t)(t1) & P(t1)]]]]");
       //  SemanticRepresentation p = parseExpression("[/P_<v,t>.[/s_s.exemplify(s,Ee_v[P(e)])]]");
@@ -48,7 +48,7 @@ public class SemanticParser extends StringParser {
 
     }//Only call when settings initialized
     public void testParseExpression2(String test){
-        LLProver2 prover = new LLProver2(new Settings());
+        LLProver1 prover = new LLProver1(new Settings());
         SemanticRepresentation p = parseExpression(test);
         System.out.println("Input: " + test);
         System.out.println("Output: " + p.toString());

@@ -25,10 +25,17 @@ package main;/*
  */
 
 public class Settings {
+
+
+ //Outputnodes
     public static final int PLAIN = 0;
     public static final int PROLOG = 1;
     // TODO implement latex output
     //private final int LATEX = 2;
+
+    //Provers
+    public static  final int HEPPLE = 0;
+    public static final int LEV = 1;
 
     private boolean betaReduce;
     private int semanticOutputStyle;
@@ -40,6 +47,7 @@ public class Settings {
     private boolean parseSemantics;
     private Boolean solutionOnly;
     private Boolean testExpression;
+    private int proverType;
 
     public Settings() {
         this.betaReduce = true;
@@ -50,6 +58,7 @@ public class Settings {
         this.parseSemantics = false;
         this.solutionOnly = false;
         this.testExpression = false;
+        this.proverType = HEPPLE;
     }
 
     public Settings (boolean betaReduce, int semanticOutputStyle) {
@@ -61,6 +70,7 @@ public class Settings {
         this.parseSemantics = false;
         this.solutionOnly = false;
         this.testExpression = false;
+        this.proverType = HEPPLE;
     }
 
     public boolean isBetaReduce() {
@@ -142,6 +152,14 @@ public class Settings {
 
     public void setTestExpression(Boolean testExpression) {
         this.testExpression = testExpression;
+    }
+
+    public int getProverType() {
+        return proverType;
+    }
+
+    public void setProverType(int proverType) {
+        this.proverType = proverType;
     }
 
 
