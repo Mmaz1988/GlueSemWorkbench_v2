@@ -65,6 +65,6 @@ The inbuilt syntax/semantics interface for XLE and UD was removed, since the req
 
 # Contact
 For more information please contact
-mark-matthias.zymla(at)uni-konstanz.de  or
+mark-matthias.zymla(at)uni-konstanz.de        or     
 moritzmessmer(at)gmail.com      
 
