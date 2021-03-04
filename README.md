@@ -43,6 +43,7 @@ Omitting an input file allows you to run a file chooser. When no output file is 
 | `-noreduce` | `toggles beta-reduction of semantic representations` |
 | `-go` | `Only use the glue side in the output of the derivation` |
 | `-s` | `Only the solution of the derivation is written to the output file` |
+| `-test [sem_expr]` | `Parses a string containing a semantic expression and returns the expected result (use without any other parameters)` |
 
 ## Glue formula syntax
 - Glue formulas can be entered manually into a plain text file (".txt").
