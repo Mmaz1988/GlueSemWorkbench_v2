@@ -18,24 +18,16 @@
 package test;
 
 import glueSemantics.linearLogic.LLTerm;
-import glueSemantics.linearLogic.Premise;
 import glueSemantics.linearLogic.Sequent;
 import glueSemantics.parser.GlueParser;
 import glueSemantics.parser.LinearLogicParser;
 import glueSemantics.parser.ParserInputException;
 import glueSemantics.semantics.LexicalEntry;
-import main.Settings;
 import org.junit.jupiter.api.Test;
-import prover.LLProver2;
-import prover.ProverException;
-import prover.VariableBindingException;
-import prover.categoryGraph.History;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 

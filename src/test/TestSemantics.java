@@ -5,7 +5,7 @@ import glueSemantics.semantics.lambda.*;
 import utilities.LexVariableHandler;
 import main.Settings;
 import org.junit.jupiter.api.Test;
-import prover.LLProver2;
+import prover.LLProver1;
 import prover.ProverException;
 
 import java.util.ArrayList;
@@ -19,7 +19,7 @@ public class TestSemantics {
     void testFuncApp()
 {
 
-    LLProver2 lp = new LLProver2(new Settings(true,0));
+    LLProver1 lp = new LLProver1(new Settings(true,0));
     SemAtom binder = new SemAtom(SemAtom.SemSort.VAR,LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVarE),
             new SemType(SemType.AtomicType.E));
 
@@ -46,7 +46,7 @@ public class TestSemantics {
     void testPointwiseFuncApp()
     {
 
-        LLProver2 lp = new LLProver2(new Settings(true,0));
+        LLProver1 lp = new LLProver1(new Settings(true,0));
         SemAtom binder = new SemAtom(SemAtom.SemSort.VAR,LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVarE),
                 new SemType(SemType.AtomicType.E));
 
@@ -83,7 +83,7 @@ public class TestSemantics {
     void testPointwiseFuncApp2()
     {
 
-        LLProver2 lp = new LLProver2(new Settings(true,0));
+        LLProver1 lp = new LLProver1(new Settings(true,0));
 
         SemAtom binder = new SemAtom(SemAtom.SemSort.VAR,LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVarE),
                 new SemType(SemType.AtomicType.E));
@@ -127,7 +127,7 @@ public class TestSemantics {
     void testPointwiseFuncApp3()
     {
 
-        LLProver2 lp = new LLProver2(new Settings(true,0));
+        LLProver1 lp = new LLProver1(new Settings(true,0));
 
         SemAtom binder = new SemAtom(SemAtom.SemSort.VAR,LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVarE),
                 new SemType(SemType.AtomicType.E));

@@ -2,7 +2,7 @@ package prover.categoryGraph;
 
 import glueSemantics.linearLogic.Category;
 import glueSemantics.linearLogic.Premise;
-import prover.LLProver2;
+import prover.LLProver1;
 import prover.ProverException;
 import prover.VariableBindingException;
 
@@ -71,7 +71,7 @@ public class History {
         {
             for (Premise q : arg)
             {
-                Premise r = LLProver2.combinePremises(p,q,resultBuilder);
+                Premise r = LLProver1.combinePremises(p,q,resultBuilder);
                 if (r != null)
                 {
                     results.add(r);

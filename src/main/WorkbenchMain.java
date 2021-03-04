@@ -13,10 +13,7 @@ import glueSemantics.parser.GlueParser;
 import glueSemantics.parser.ParserInputException;
 import glueSemantics.parser.SemanticParser;
 import glueSemantics.semantics.LexicalEntry;
-import prover.LLProver2;
-import prover.ProverException;
-import prover.VariableBindingException;
-import prover.categoryGraph.History;
+import prover.*;
 import utilities.LexicalParserException;
 
 import javax.swing.*;
@@ -52,7 +49,9 @@ public class WorkbenchMain {
             semParser.testParseExpression2(args[1]);
         } else {
             // Check program arguments for prover settings
-            for (String arg : args) {
+            //for (String arg : args) {
+              for (int i = 0; i < args.length; i++)
+              { String arg = args[i];
                 switch (arg) {
                     case ("-prolog"):
                         settings.setSemanticOutputStyle(Settings.PROLOG);
@@ -68,15 +67,28 @@ public class WorkbenchMain {
                         break;
                     case ("-go"):
                         settings.setGlueOnly(true);
+                        break;
                     case ("-parseSem"): {
                         settings.setParseSemantics(true);
+                        break;
                     }
                     case ("-s"): {
                         settings.setSolutionOnly(true);
+                        break;
                     }
-
+                    case ("-pr"): {
+                        String arg2 = args[i+1];
+                        if (arg2.equals("0") || arg2.equals("HEPPLE"))
+                        {
+                            settings.setProverType(0);
+                        } else if (arg2.equals("1") || arg2.equals("LEV"))
+                        {
+                            settings.setProverType(1);
+                        }
+                        break;
+                        }
+                    }
                 }
-            }
 
             String betaReduce = "on", outputMode = "plain";
             if (!settings.isBetaReduce())
@@ -276,8 +288,14 @@ public class WorkbenchMain {
 
     public static void searchProof(Integer key, List<LexicalEntry> lexicalEntries) throws VariableBindingException {
 
-        LLProver2 prover = new LLProver2(settings,outputFileBuilder);
+        LLProver prover;
 
+        if (settings.getProverType() == 1) {
+            prover = new LLProver1(settings, outputFileBuilder);
+        } else
+        {
+        prover = new LLProver2(settings,outputFileBuilder);
+        }
         try {
 
             System.out.println("Searching for valid proofs...");

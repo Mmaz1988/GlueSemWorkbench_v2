@@ -4,42 +4,40 @@ import glueSemantics.linearLogic.*;
 import glueSemantics.semantics.SemanticRepresentation;
 import glueSemantics.semantics.lambda.*;
 import main.Settings;
-import org.jgrapht.Graph;
-import org.jgrapht.alg.connectivity.GabowStrongConnectivityInspector;
-import org.jgrapht.graph.DefaultDirectedGraph;
-import org.jgrapht.graph.DefaultEdge;
-import org.jgrapht.traverse.TopologicalOrderIterator;
-import prover.categoryGraph.CGNode;
-import prover.categoryGraph.History;
 import test.Debugging;
 import utilities.LexVariableHandler;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-public class LLProver2 {
-
-    private static Settings settings;
+public class LLProver2 extends LLProver{
 
 
     private Sequent currentSequent;
 
     //TODO Add a third chart for modifiers and both atomic elements as well as non atomic elements are first
     //run through the modifier chart.
-
+    private HashMap<String, List<Premise>> atomicChart = new HashMap<>();
+    private HashMap<String, List<Premise>> nonAtomicChart = new HashMap<>();
     //   private HashMap<String,List<Premise>> modifierChart = new HashMap<>();
 
     // A chart that associates variables that are compiled out with their original formula.
     // This is necessary to instantiate variables that are atmoic elements rather than variables that occur in formulas.
 
-
     private LinkedList<Premise> agenda;
-    private LinkedList<History> finalHistories = new LinkedList<>();
-    private LinkedList<Premise> solutions = new LinkedList<>();
+
+    private HashMap<Premise, List<Premise>> variableDependency = new HashMap<>();
+
     private StringBuilder proofBuilder;
+
+
+    //private LinkedList<Premise> skeletons = new LinkedList<>();
+    //private LinkedList<Premise> modifiers = new LinkedList<>();
+
     private HashSet<Integer> goalIDs = new HashSet<>();
-    public Debugging db;
-    public long startTime;
+
 
 
     /**
@@ -58,24 +56,22 @@ public class LLProver2 {
         setSettings(settings);
     }
 
-
-
     public void deduce(Sequent seq) throws ProverException, VariableBindingException {
-
-        this.db = new Debugging();
-        this.currentSequent = seq;
         LinkedList<Premise> agenda = new LinkedList<>();
 
-        startTime = System.nanoTime();
+        this.db = new Debugging();
+
+        this.currentSequent = seq;
+
+        long startTime = System.nanoTime();
 
         StringBuilder sb = new StringBuilder();
-        sb.append("Input premises:");
+        sb.append("Sequent:");
         sb.append(System.lineSeparator());
         for (Premise le : currentSequent.getLhs()) {
             sb.append(le);
             sb.append(System.lineSeparator());
         }
-
         System.out.println(sb.toString());
 
         //TODO insert boolean for distinguishing between sdout and file
@@ -85,18 +81,11 @@ public class LLProver2 {
             proofBuilder.append(System.lineSeparator());
         }
 
-        System.out.println("Starting compilation process:");
         for (Premise p : currentSequent.getLhs()) {
             List<Premise> compiled = convert(p);
             agenda.addAll(compiled);
         }
 
-        String goalCategory = findAtomicGoal(agenda);
-        System.out.println("Automatically detected goal category:");
-        System.out.println(goalCategory);
-        System.out.println(System.lineSeparator());
-
-        System.out.println("Starting deduction procedure:");
         StringBuilder ab = new StringBuilder();
         ab.append("Agenda:");
         ab.append(System.lineSeparator());
@@ -115,357 +104,142 @@ public class LLProver2 {
 
         this.agenda = agenda;
 
-        List<LLTerm> initialCategories = new ArrayList<>();
-        HashMap<String,List<Premise>> category2premiseMapping = new HashMap<>();
 
-        for (Premise p : agenda) {
+        for (Premise p : this.agenda) {
             if (p.getPremiseIDs().size() == 1) {
                 goalIDs.addAll(p.getPremiseIDs());
             }
-
-            if (!category2premiseMapping.containsKey(p.getGlueTerm().category().toString()))
-            {
-              category2premiseMapping.put(p.getGlueTerm().category().toString(), new ArrayList<>());
-            }
-            category2premiseMapping.get(p.getGlueTerm().category().toString()).add(p);
-
-            Boolean contains = false;
-                for (LLTerm glue : initialCategories) {
-                    if (p.getGlueTerm().category().equals(glue.category())) {
-                        contains = true;
-                        break;
-                    }
-                }
-                    if(!contains)
-                    {
-                        initialCategories.add(p.getGlueTerm());
-                    }
-            }
-        List<LLTerm> copy = new ArrayList<LLTerm>(initialCategories);
-
-        Graph<CGNode, DefaultEdge> categoryGraph2 = calculateCategoryGraph2(copy,category2premiseMapping);
-
-        GabowStrongConnectivityInspector ins2 = new GabowStrongConnectivityInspector(categoryGraph2);
-        Graph scc2 = ins2.getCondensation();
-
-        TopologicalOrderIterator graphIter2 = new TopologicalOrderIterator(scc2);
-
-        while (graphIter2.hasNext())
-        {
-            Graph sccKey = (Graph) graphIter2.next();
-            //Element is outside of an scc
-            if (sccKey.vertexSet().size() == 1)
-            {
-                CGNode node =  (CGNode) sccKey.vertexSet().stream().findAny().get();
-
-                if (node.nodeType.equals(CGNode.type.CATEGORY)) {
-
-                    for (Object edge : scc2.incomingEdgesOf(sccKey))
-                        {
-                           CGNode parentConnectorNode = (CGNode) ((Graph) scc2.getEdgeSource(edge)).vertexSet().stream().findAny().get();
-                           node.histories.addAll(parentConnectorNode.histories);
-                           node.compressHistories();
-
-                        }
-                    //Compress histories
-                }
-                //Element is a connector node
-                if (node.nodeType.equals(CGNode.type.CONNECTOR))
-                {
-                    Object childNodeGraph = categoryGraph2.outgoingEdgesOf(node).stream().findAny().get();
-                    CGNode childNode = (CGNode) scc2.getEdgeTarget(childNodeGraph);
-
-                    List<CGNode> parents = new ArrayList<>();
-                    for (Object edge : categoryGraph2.incomingEdgesOf(node)) {
-                        CGNode parentNode = (CGNode) categoryGraph2.getEdgeSource((DefaultEdge) edge);
-                        parents.add(parentNode);
-                    }
-                    CGNode arg;
-                    CGNode func;
-                    if (parents.get(0).toString().startsWith(parents.get(1).toString()))
-                    {
-                        func = parents.get(0);
-                        arg = parents.get(1);
-                    }
-                    else
-                    {
-                        func = parents.get(1);
-                        arg = parents.get(0);
-                    }
-                    for (History h1 : func.histories)
-                    {
-                        for (History h2 : arg.histories)
-                        {
-                            History result = combineHistories(h1,h2);
-                            if (result != null) {
-                                node.histories.add(result);
-                            }
-                        }
-                    }
-                    node.compressHistories();
-                }
-            }
-            else
-            {
-                List<CGNode> outputNodes = new ArrayList<>();
-                List<CGNode> inputNodes = new ArrayList<>();
-                Set<History> sccHistories = new HashSet<>();
-
-                for (Object node : sccKey.vertexSet())
-                {
-                    inputNodes.add((CGNode) node);
-                    sccHistories.addAll(((CGNode) node).histories);
-
-                    if (!(categoryGraph2.incomingEdgesOf((CGNode) node).size() == 0))
-                    {
-                        boolean input = true;
-                        for (Object edge : categoryGraph2.incomingEdgesOf((CGNode) node))
-                        {
-                            if (sccKey.vertexSet().contains(categoryGraph2.getEdgeSource((DefaultEdge) edge)))
-                            {
-                                input = false;
-                            } else
-                            {
-                                sccHistories.addAll(categoryGraph2.getEdgeSource((DefaultEdge) edge).histories);
-                            }
-                        }
-                        if (input)
-                        {
-                            inputNodes.add((CGNode) node);
-                        }
-                    }
-                    if (categoryGraph2.outgoingEdgesOf((CGNode) node).size() > 0)
-                    {
-                        for (Object edge : categoryGraph2.outgoingEdgesOf((CGNode) node))
-                        {
-                            if (!(sccKey.vertexSet().contains(categoryGraph2.getEdgeTarget((DefaultEdge) edge)))
-                            && ((CGNode) categoryGraph2.getEdgeTarget((DefaultEdge) edge)).nodeType.equals(CGNode.type.CONNECTOR) )
-                            {
-                                outputNodes.add((CGNode) node);
-                                break;
-                            }
-                        }
-                        }
-                    else {
-                        if (((CGNode) node).category.equals(goalCategory))
-                        {
-                            outputNodes.add((CGNode) node);
-                    }
-                    }
-                }
-                List<History> sccAgenda = new ArrayList<>();
-                sccAgenda.addAll(sccHistories);
-                Chart c = chartDeduce(sccAgenda);
-
-                for (CGNode outputNode : outputNodes)
-                {
-                    if (c.atomicChart.containsKey(outputNode.category))
-                    {
-                        outputNode.histories.addAll(c.atomicChart.get(outputNode.category));
-
-                    } else if (c.nonAtomicChart.containsKey(outputNode.category)) {
-                        outputNode.histories.addAll(c.nonAtomicChart.get(outputNode.category));
-                }
-                    outputNode.compressHistories();
-                }
-            }
         }
 
-        System.out.println(System.lineSeparator());
-        System.out.println("Starting semantic calculations:");
-
-        StringBuilder resultBuilder = new StringBuilder();
-
-
-
-        for (History solution : finalHistories)
-        {
-          solutions.addAll(solution.calculateSolutions(resultBuilder));
-        }
-        proofBuilder.append(resultBuilder.toString());
-        System.out.println(resultBuilder);
-        System.out.println(System.lineSeparator());
-
-        long endTime = System.nanoTime();
-        db.computationTime = endTime - startTime;
-        proofBuilder.append(System.lineSeparator());
-    }
-
-    public Chart chartDeduce(List<History> histories) throws VariableBindingException, ProverException {
-        System.out.println("Chart derivation:");
-        Chart chart = new Chart();
-
-        List<History> agenda = new ArrayList<>(histories);
 
         while (!agenda.isEmpty()) {
-            ListIterator<History> agendaIterator = agenda.listIterator();
+            ListIterator<Premise> iter = agenda.listIterator();
 
-            while (agendaIterator.hasNext()) {
-                History current = agendaIterator.next();
-                agendaIterator.remove();
+            Premise combined = null;
 
-                if (!current.category.atomic) {
+            while (iter.hasNext()) {
 
-                    if (chart.atomicChart.containsKey(current.category.left.toString()))
-                    {
-                        for (History h : chart.atomicChart.get(current.category.left.toString())) {
-                            History combined = combineHistories(current,h);
-                            if (combined != null) {
-                                agendaIterator.add(combined);
+                Premise p = iter.next();
+                iter.remove();
+                db.allIterations++;
+
+
+                if (p.getGlueTerm() instanceof LLAtom) {
+
+                    if (p.getGlueTerm().getType().equals(LLAtom.LLType.VAR)) {
+
+                        for (String category : nonAtomicChart.keySet()) {
+
+                            for (Premise q : nonAtomicChart.get(category)) {
+                                combined = combinePremises(p, q);
+                                if (combined != null && validPremise(combined)) {
+                                    db.combinations++;
+                                    iter.add(combined);
+                                }
+                            }
+                        }
+
+                    } else {
+
+                        if (nonAtomicChart.containsKey(p.getGlueTerm().category().toString())) {
+                            for (Premise q : nonAtomicChart.get(p.getGlueTerm().category().toString())) {
+                                combined = combinePremises(q, p);
+                                if (combined != null && validPremise(combined)) {
+                                    db.combinations++;
+                                    iter.add(combined);
+                                }
+                            }
+
+                        }
+                    }
+
+                    for (String key : nonAtomicChart.keySet()) {
+                        if (isVar(key)) {
+                            for (Premise q : nonAtomicChart.get(key)) {
+                                combined = combinePremises(q, p);
+                                if (combined != null && validPremise(combined)) {
+                                    db.combinations++;
+                                    iter.add(combined);
+                                }
                             }
                         }
                     }
-                    if (chart.nonAtomicChart.containsKey(current.category.left.toString()))
-                    {
-                        chart.nonAtomicChart.get(current.category.left.toString()).add(current);
-                    } else
-                    {
-                        Set<History> histories1 = new HashSet<>();
-                        histories1.add(current);
-                        chart.nonAtomicChart.put(current.category.left.toString(),histories1);
-                    }
 
-                } else {
-                    if (chart.nonAtomicChart.containsKey(current.category.toString()))
-                    {
-                        for (History h : chart.nonAtomicChart.get(current.category.toString()))
-                        {
-                            History combined = combineHistories(h,current);
-                            if (combined != null) {
-                                agendaIterator.add(combined);
+
+                } else if (p.getGlueTerm() instanceof LLFormula) {
+
+
+                    if (((LLAtom) ((LLFormula) p.getGlueTerm()).getLhs()).getLLtype().equals(LLAtom.LLType.VAR)) {
+                        for (String key : atomicChart.keySet()) {
+
+                            for (Premise q : atomicChart.get(key)) {
+                                combined = combinePremises(p, q);
+                                if (combined != null && validPremise(combined)) {
+                                    iter.add(combined);
+                                    db.combinations++;
+                                }
                             }
                         }
+                    } else {
+                        if (atomicChart.containsKey(((LLFormula) p.getGlueTerm()).getLhs().category().toString())) {
+                            for (Premise q : atomicChart.get(((LLFormula) p.getGlueTerm()).getLhs().category().toString())) {
+                                combined = combinePremises(p, q);
+                                if (combined != null && validPremise(combined)) {
+                                    iter.add(combined);
+                                    db.combinations++;
+                                }
+                            }
+                        }
+
+                        for (String category : atomicChart.keySet()) {
+                            if (Character.isUpperCase(category.charAt(0))) {
+                                for (Premise q : atomicChart.get(category)) {
+                                    combined = combinePremises(p, q);
+                                    if (combined != null && validPremise(combined)) {
+                                        iter.add(combined);
+                                        db.combinations++;
+                                    }
+                                }
+                            }
+                        }
+
                     }
 
-                    if (chart.atomicChart.containsKey(current.category.toString()))
-                    {
-                        chart.atomicChart.get(current.category.toString()).add(current);
-                    } else
-                    {
-                        Set<History> histories1 = new HashSet<>();
-                        histories1.add(current);
-                        chart.atomicChart.put(current.category.toString(),histories1);
-                    }
                 }
+                updateSolutions(p);
+                adjustChart(p);
             }
+
         }
-        return chart;
+
+
+        long endTime = System.nanoTime();
+
+        db.computationTime = endTime - startTime;
+
+        proofBuilder.append(System.lineSeparator());
+
     }
 
 
-    public Graph<CGNode,DefaultEdge> calculateCategoryGraph2(List<LLTerm> initialPremises,HashMap<String,List<Premise>> category2premiseMapping)
+    public Boolean validPremise(Premise premise)
     {
-        Graph<CGNode,DefaultEdge> categoryGraph = new DefaultDirectedGraph<CGNode,DefaultEdge>(DefaultEdge.class);
-        HashMap<String,CGNode> category2node = new HashMap<>();
-        Set<Category> categories = new HashSet<>();
-        for (LLTerm t :initialPremises)
+        if (premise.getGlueTerm() instanceof LLFormula)
         {
-            categories.addAll(t.returnAllCategories());
-        }
-        List<Category> cgnList = new ArrayList<>(categories);
-
-        cgnList.sort((s1,s2) -> s1.toString().length() - s2.toString().length());
-
-        for (Category category : cgnList)
-        {
-            CGNode currentNode = new CGNode(category.toString(), CGNode.type.CATEGORY);
-
-            if (category2premiseMapping.containsKey(category.toString())) {
-
-                for (Premise p : category2premiseMapping.get(category.toString())) {
-
-                    History h = new History(p.getGlueTerm().category(), p.getPremiseIDs(), Collections.singleton(new HashMap<>()),p);
-
-                    if (p.getGlueTerm() instanceof LLFormula) {
-                        h.discharges.addAll(((LLFormula) p.getGlueTerm()).getLhs().orderedDischarges.keySet());
-                        h.requirements.addAll(((LLFormula) p.getGlueTerm()).getRhs().category().dischargeRequirements());
-                    }
-                    currentNode.histories.add(h);
-                }
-            }
-            categoryGraph.addVertex(currentNode);
-            category2node.put(category.toString(),currentNode);
-        }
-
-             ListIterator<Category> iter= cgnList.listIterator();
-
-             while (iter.hasNext())
-             {
-             Category category = iter.next();
-             iter.remove();
-
-                ListIterator<Category> iter2 = cgnList.listIterator();
-                while (iter2.hasNext()) {
-                    Category compareCategory = iter2.next();
-                    if (!compareCategory.atomic) {
-                        if (compareCategory.left.equals(category)) {
-                            CGNode func = category2node.get(category.toString());
-                            String prefix = func + "\u22B8";
-                            CGNode arg = category2node.get(compareCategory.toString());
-                            CGNode result = category2node.get(compareCategory.right.toString());
-                            CGNode connector =
-                                    new CGNode(LexVariableHandler.
-                                            returnNewVar(LexVariableHandler.variableType.connectorNode),
-                                            CGNode.type.CONNECTOR);
-                            categoryGraph.addVertex(connector);
-                            categoryGraph.addEdge(func, connector);
-                            categoryGraph.addEdge(arg, connector);
-                            categoryGraph.addEdge(connector, result);
-                        }
-                    }
-                }
-             }
-        return categoryGraph;
-    }
-
-    public History combineHistories(History h1, History h2) throws VariableBindingException, ProverException {
-        if (Collections.disjoint(h1.indexSet,h2.indexSet)) {
-            if (h2.indexSet.containsAll(h1.discharges)) {
-                if (Collections.disjoint(h1.requirements, h2.indexSet)) {
-                    /*
-                    Premise p = combinePremises(h1.premise, h2.premise);
-                    if (p == null)
-                    {
-                        return null;
-                    }
-                     */
-                    Set<Integer> union = new HashSet<>();
-                    union.addAll(h1.indexSet);
-                    union.addAll(h2.indexSet);
-                    HashMap<Integer, History> parentNodes = new HashMap<>();
-                    parentNodes.put(0, h1);
-                    parentNodes.put(1, h2);
-
-                    Set<HashMap<Integer,History>> parents = Collections.singleton(parentNodes);
-
-                    History result = new History( h1.category.right, union, parents);
-
-                    if (!h1.category.right.atomic) {
-                        result.discharges = h1.category.right.left.discharges;
-                        result.requirements = h1.category.right.right.dischargeRequirements();
-                    }
-
-                    System.out.println("Now combining " + h1.category.toString() +
-                                                        " and " + h2.category.toString() +
-                                                    " with result: " + result.category);
-
-
-                    if (result.indexSet.equals(goalIDs))
-                    {
-                        finalHistories.add(result);
-                    }
-                    return result;
-                }
+            if (!((LLFormula) premise.getGlueTerm()).getLhs().getOrderedDischarges().keySet().isEmpty())
+            {
+                return Collections.disjoint(((LLFormula) premise.getGlueTerm()).getLhs().getOrderedDischarges().keySet(),premise.getPremiseIDs());
             }
         }
-        return null;
+
+        return true;
     }
 
-
-    public static Premise combinePremises(Premise functor, Premise argument, StringBuilder proofBuilder) throws VariableBindingException, ProverException {
+    public Premise combinePremises(Premise functor, Premise argument) throws VariableBindingException, ProverException {
 
         Premise func = new Premise(functor.getPremiseIDs(), functor.getSemTerm().clone(), functor.getGlueTerm().clone());
         Premise argumentClone = null;
+
 
         Boolean variableArgument = false;
         if (((LLAtom)argument.getGlueTerm()).lltype.equals(LLAtom.LLType.VAR)) {
@@ -478,6 +252,7 @@ public class LLProver2 {
             }else {
                 return null;
             }
+
         }
         else
         {
@@ -527,17 +302,19 @@ public class LLProver2 {
                         }
                     }
                 }
+
                 combined = new Premise(combined_IDs, reducedSem, newTerm);
 
                 if (variableArgument && combined != null)
                 {
 
-                        newTerm.getVariableAssignment().put((LLAtom) argument.getGlueTerm(), (LLAtom) argumentClone.getGlueTerm());
+                    newTerm.getVariableAssignment().put((LLAtom) argument.getGlueTerm(), (LLAtom) argumentClone.getGlueTerm());
 
                     newTerm.getVariableAssignment().putAll(functor.getGlueTerm().getVariableAssignment());
                 }
-        }
-         else {
+
+            }
+            else {
                 if (checkDischarges(func, argument)) {
 
                     if (!func.getGlueTerm().getVariableAssignment().keySet().isEmpty() && !argumentClone.getGlueTerm().getVariableAssignment().keySet().isEmpty())
@@ -554,30 +331,35 @@ public class LLProver2 {
                                 break;
                             }
                         }
+
                         if (!subset)
                         {return  null;}
                     }
+
                     if (!argument.getGlueTerm().getVariableAssignment().keySet().isEmpty())
                     {
-                      LinkedHashSet<Equality> eqs2 =   new LinkedHashSet<>();
+                        LinkedHashSet<Equality> eqs2 =   new LinkedHashSet<>();
 
-                      for (LLAtom key : argument.getGlueTerm().getVariableAssignment().keySet())
-                      {
-                          for (LLAtom key2 : ((LLFormula) func.getGlueTerm()).getBoundVariables().keySet())
-                          {
-                              if (key2.category().equals(key.category()))
-                              {
-                                  for (LLAtom key3 : ((LLFormula) func.getGlueTerm()).getBoundVariables().get(key2))
-                                  {
-                                      eqs2.add(new Equality(key3,argument.getGlueTerm().getVariableAssignment().get(key)));
-                                  }
-                              }
-                          }
-                      }
+                        for (LLAtom key : argument.getGlueTerm().getVariableAssignment().keySet())
+                        {
+                            for (LLAtom key2 : ((LLFormula) func.getGlueTerm()).getBoundVariables().keySet())
+                            {
+                                if (key2.category().equals(key.category()))
+                                {
+                                    for (LLAtom key3 : ((LLFormula) func.getGlueTerm()).getBoundVariables().get(key2))
+                                    {
+                                        eqs2.add(new Equality(key3,argument.getGlueTerm().getVariableAssignment().get(key)));
+                                    }
+                                }
+                            }
+
+
+                        }
 
                         for (Equality eq : eqs2) {
                             ((LLFormula) func.getGlueTerm()).instantiateVariables(eq);
                         }
+
                     }
 
                     SemanticRepresentation temp = argument.getSemTerm().clone();
@@ -593,7 +375,9 @@ public class LLProver2 {
                         Premise p = discharges.removeLast().getValue();
                         temp = new SemFunction((SemAtom) p.getSemTerm(),temp);
                         argumentGlueClone.getAssumptions2().remove(p);
-                       }
+
+                    }
+
                     argumentClone = new Premise(argument.getPremiseIDs(),temp,argumentGlueClone);
 
                     SemanticRepresentation reducedSem = combine(func,argumentClone).betaReduce();
@@ -607,14 +391,19 @@ public class LLProver2 {
                             }
                         }
                     }
+
                     combined = new Premise(combined_IDs, reducedSem,  newTerm);
+
                 }
+
             }
 
             if (combined != null) {
                 combined.getGlueTerm().assumptions2.addAll(func.getGlueTerm().assumptions2);
                 combined.getGlueTerm().assumptions2.addAll(argumentClone.getGlueTerm().assumptions2);
             }
+
+
         }
 
         if (combined != null)
@@ -632,10 +421,9 @@ public class LLProver2 {
                 a = argument.toString();
             }
 
-            /*
-           System.out.println("Combining " + f + " and " + a);
+            System.out.println("Combining " + f + " and " + a);
             System.out.println("to: " + combined.toString());
-*/
+
             //TODO sdout vs file
             if (true)
             {
@@ -644,17 +432,21 @@ public class LLProver2 {
                 proofBuilder.append("to: " + combined.toString());
                 proofBuilder.append(System.lineSeparator());
             }
+
+
         }
+
         return combined;
+
     }
 
     public static SemanticRepresentation combine(Premise func, Premise argument) throws ProverException
     {
         SemanticRepresentation reducedSem;
         if (getSettings().isBetaReduce()) {
-        //    System.out.println("Beta reduced: " + func.getSemTerm().toString() + ", " + argument.getSemTerm().toString());
+            //    System.out.println("Beta reduced: " + func.getSemTerm().toString() + ", " + argument.getSemTerm().toString());
             reducedSem = new FuncApp(func.getSemTerm(), argument.getSemTerm()).betaReduce();
-        //    System.out.println("To:" + reducedSem.toString());
+            //    System.out.println("To:" + reducedSem.toString());
         } else
             reducedSem = new FuncApp(func.getSemTerm(), argument.getSemTerm());
 
@@ -662,16 +454,62 @@ public class LLProver2 {
 
     }
 
-    public static Boolean checkDischarges(Premise functor, Premise argument) {
+    public Boolean checkDischarges(Premise functor, Premise argument) {
+
+/*
+        List<Premise> funcList = ((LLFormula)functor.getGlueTerm()).getLhs().getOrderedDischarges();
+        List<Premise> argList  = argument.getGlueTerm().getAssumptions2();
+
+        if (argList.isEmpty())
+        {
+            return false;
+        }
+
+        for (int i = 0; i < ((LLFormula)functor.getGlueTerm()).getLhs().getOrderedDischarges().size(); i++)
+        {
+            if (!funcList.get(i).equals(argList.get(i)))
+            {
+                return false;
+            }
+        }
+
+        return true;
+
+*/
+
 
         for (Integer key : ((LLFormula) functor.getGlueTerm()).getLhs().getOrderedDischarges().keySet()) {
             Premise t = ((LLFormula) functor.getGlueTerm()).getLhs().getOrderedDischarges().get(key);
             if (!argument.getGlueTerm().assumptions2.contains(t)){
                 return false;
+            }
         }
-    }
         return true;
 
+    }
+
+    public void adjustChart(Premise p) {
+        if (p.getGlueTerm() instanceof LLFormula) {
+
+
+            if (nonAtomicChart.containsKey(((LLFormula) p.getGlueTerm()).getLhs().category().toString())) {
+                nonAtomicChart.get(((LLFormula) p.getGlueTerm()).getLhs().category().toString()).add(p);
+            } else {
+                List<Premise> premises = new ArrayList<>();
+                premises.add(p);
+                nonAtomicChart.put(((LLFormula) p.getGlueTerm()).getLhs().category().toString(), premises);
+            }
+
+        } else if (p.getGlueTerm() instanceof LLAtom) {
+            if (atomicChart.containsKey(p.getGlueTerm().category().toString())) {
+                atomicChart.get(p.getGlueTerm().category().toString()).add(p);
+            } else {
+                List<Premise> premises = new ArrayList<>();
+                premises.add(p);
+                atomicChart.put(p.getGlueTerm().category().toString(), premises);
+
+            }
+        }
     }
 
     public LinkedList<Premise> convert(Premise p)
@@ -684,25 +522,32 @@ public class LLProver2 {
 
             LLTerm t = p.getGlueTerm();
 
-                while (t instanceof LLQuantEx) {
-                    t = ((LLQuantEx) t).getScope();
-                }
+            while (t instanceof LLQuantEx) {
+                t = ((LLQuantEx) t).getScope();
+            }
+
+
             LLFormula f = (LLFormula) t;
             LLTerm l = f.getLhs();
+
 
             if (l instanceof LLFormula) {
                 db.compilations++;
 
                 //Update history
+
+
                 //Compile out stuff
                 LLFormula compiledGlue = new LLFormula(((LLFormula) l).getRhs(), f.getRhs(), f.isPolarity(), f.getVariable());
                 compiledGlue.getLhs().orderedDischarges.putAll(l.getOrderedDischarges());
                 LLTerm outGlue = ((LLFormula) l).getLhs();
 
+
                 //outGlue.assumptions.add(outGlue);
                 //  compiledGlue.getLhs().getOrderedDischarges().add(outGlue);
 
                 SemType newtype = null;
+
 
                 //Routine to define type of compiled out variables in typed lambda calculus.
                 try{
@@ -728,7 +573,7 @@ public class LLProver2 {
 
                         if (p.getSemTerm() instanceof SemSet)
                         {
-                           tempType =  p.getSemTerm().getType().getLeft().getRight().clone();
+                            tempType =  p.getSemTerm().getType().getLeft().getRight().clone();
                         }
                         else {
                             tempType = ((SemFunction) p.getSemTerm()).getBinder().getType().getRight().clone();
@@ -749,29 +594,38 @@ public class LLProver2 {
 
                             if (((SemFunction) p.getSemTerm()).getBinder().getType().getRight() == null)
                             {
+
                                 throw new IOException("Typemismatch between glue type and lambda type.");
                             }
                         }
 
                     }
-               //     ((SemFunction) p.getSemTerm()).getBinder().setType(((SemFunction) p.getSemTerm()).getBinder().getType().getRight());
+                    //     ((SemFunction) p.getSemTerm()).getBinder().setType(((SemFunction) p.getSemTerm()).getBinder().getType().getRight());
                 }catch(Exception e)
                 {newtype = new SemType(((LLFormula) l).getLhs().getType());
                     System.out.println("Semantic side inherits type from linear logic side.");
                 }
+
+
+
                 SemAtom asumptionVar = new SemAtom(SemAtom.SemSort.VAR,
                         LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVarE), newtype);
 
+
                 Premise assumption = new Premise(currentSequent.getNewID(), asumptionVar, outGlue);
+
 
                 compiledGlue.getLhs().getOrderedDischarges().put(assumption.getPremiseIDs().stream().findAny().get(),assumption);
 
                 Premise compiledPremise = new Premise(p.getPremiseIDs(), p.getSemTerm(), compiledGlue);
 
+
                 assumption.getGlueTerm().assumptions2.add(assumption);
 
                 //  compiled.add(compiledPremise);
                 // compiled.add(assumption);
+
+
 
                 List<Premise> recurseCompiled = convert(compiledPremise);
                 List<Premise> recurseAssumption = convert(assumption);
@@ -780,6 +634,7 @@ public class LLProver2 {
                 compiled.addAll(recurseAssumption);
 
                 return compiled;
+
 
             } else if (f.isNested() && !f.isModifier()) {
                 SemanticRepresentation tempSem;
@@ -801,9 +656,16 @@ public class LLProver2 {
                         tempList.getFirst().getGlueTerm().isPolarity(), f.getVariable());
 
                 p.setGlueTerm(newLogic);
+
+
             }
+
         }
+
+
         compiled.add(p);
+
+
         return compiled;
     }
 
@@ -835,81 +697,44 @@ public class LLProver2 {
         return false;
     }
 
-    public String findAtomicGoal(List<Premise> premises)
+
+
+
+    public boolean isVar(String in)
     {
-        List<LLAtom> allAtoms = new ArrayList<>();
-        List<String> positive = new ArrayList<>();
-        List<String> negative = new ArrayList<>();
+        Pattern p = Pattern.compile("(\\p{Lu}+).*_.+");
+        Matcher pm = p.matcher(in);
+
+        return pm.find();
+
+    }
 
 
-        List<Premise> agendaCopy = new ArrayList<>(premises);
-
-        ListIterator<Premise> iter = agendaCopy.listIterator();
-
-        while (iter.hasNext())
+    public void updateSolutions(Premise p)
+    {
+        if (p.getPremiseIDs().equals(goalIDs))
         {
-            Premise p = iter.next();
-
-            if (p.getGlueTerm().isModifier())
-            {
-                iter.remove();
-            }
-            allAtoms.addAll(p.getGlueTerm().returnAllAtoms());
+            getSolutions().add(p);
         }
+    }
 
-        for (LLAtom atom : allAtoms)
+
+
+    public void updateVariableDependencies(List<Premise> compiled)
+    {
+        for (Premise premise : compiled)
         {
-            if (atom.isPolarity())
+            if (premise.getGlueTerm() instanceof LLAtom &&
+                    ((LLAtom) premise.getGlueTerm()).getLLtype().equals(LLAtom.LLType.VAR))
             {
-                positive.add(atom.category().toString());
-            } else
-            {
-                negative.add(atom.category().toString());
-            }
-        }
-
-
-        ListIterator<String> negIter = negative.listIterator();
-
-        while (negIter.hasNext())
-        {
-            String negAtom = negIter.next();
-            ListIterator<String> posIter = positive.listIterator();
-            while (posIter.hasNext())
-            {
-                String posAtom = posIter.next();
-                if (negAtom.equals(posAtom))
+                for (Premise q : compiled)
                 {
-                    posIter.remove();
-                    negIter.remove();
-                    break;
+
                 }
+
             }
-
         }
-
-        return positive.stream().findAny().get();
     }
-
-
-    public static Settings getSettings() {
-        return settings;
-    }
-
-    public static void setSettings(Settings settings) {
-        LLProver2.settings = settings;
-    }
-
-    //Getter and Setter
-    public LinkedList<History> getFinalHistories() {
-        return finalHistories;
-    }
-
-    public void setFinalHistories(LinkedList<History> finalHistories) {
-        this.finalHistories = finalHistories;
-    }
-
-
 
     public StringBuilder getProofBuilder() {
         return proofBuilder;
@@ -919,12 +744,6 @@ public class LLProver2 {
         this.proofBuilder = proofBuilder;
     }
 
-    public LinkedList<Premise> getSolutions() {
-        return solutions;
-    }
-
-    public void setSolutions(LinkedList<Premise> solutions) {
-        this.solutions = solutions;
-    }
-
 }
+
+
