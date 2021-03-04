@@ -26,9 +26,6 @@ To run the Workbench in a terminal window (Terminal for Unix systems or Powershe
 When running the program without parameters it initiates the manual entry mode by default, prompting the user
 to open a text file containing glue formulas. Check the "glue formula syntax" section for more information on how to
 enter formulas.
-- For running the program in interactive dependency mode, add _-dp_ as a program argument.
-- For running it in LFG mode, in which it reads a Prolog f-structure file created by XLE, add _-lfg_ as a program argument.
-
 
 # Command line arguments 
 
