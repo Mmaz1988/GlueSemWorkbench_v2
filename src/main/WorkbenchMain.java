@@ -133,9 +133,7 @@ public class WorkbenchMain {
                                                 w.append(System.lineSeparator());
                                             }
                                         }
-
                                     }
-
                                     if (!settings.getSolutionOnly()) {
                                         w.append(System.lineSeparator());
                                         w.append("Proof:");
@@ -151,21 +149,15 @@ public class WorkbenchMain {
                                                 w.append(partialSol);
                                                 w.append(System.lineSeparator());
                                             }
-
                                         }
                                     }
-
                                     w.close();
                                 }
-
                                 System.out.println("Wrote solutions to " + outFile.toString());
-
-
                             } catch (Exception e) {
                                 System.out.println("Error while generating output file. Maybe no valid path was given.");
                             }
                         }
-
                     }
                 } catch (VariableBindingException | LexicalParserException e) {
                     e.printStackTrace();
@@ -206,7 +198,6 @@ public class WorkbenchMain {
                 throw new LexicalParserException("Error while trying to open file '"
                         + p + "'");
             }
-
             initiateManualMode(lines);
         }
         else
@@ -236,7 +227,6 @@ public class WorkbenchMain {
                         sets++;
                         break;
                     }
-
                     try {
                         currentLexicalEntries.add(parser.parseMeaningConstructor(formulas.get(i)));
                     } catch (ParserInputException e) {
@@ -246,8 +236,6 @@ public class WorkbenchMain {
                     }
                     i++;
                 }
-
-
             }
         }
 
@@ -268,17 +256,13 @@ public class WorkbenchMain {
             System.out.println(String.format("Found %d lexical entries.",singleSet.size()));
             searchProof(0,singleSet);
             }
-
-              } else {
+        } else {
                 //TODO fix output to accomodate for multiple entries
                 System.out.println(String.format("Found %d lexical entries.", lexicalEntries.size()));
-
                for (Integer key : lexicalEntries.keySet()) {
-
                    searchProof(key,lexicalEntries.get(key));
                }
             }
-
             }
 
     /*
@@ -317,7 +301,6 @@ public class WorkbenchMain {
                 {
                     solutions.put(key,new ArrayList<>(Arrays.asList(sol)));
                 }
-
         //        sol.setSemTerm((SemanticExpression) sol.getSemTerm().betaReduce());
                 System.out.println(key + ": " + sol.toString());
             }

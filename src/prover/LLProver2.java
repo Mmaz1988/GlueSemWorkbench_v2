@@ -292,6 +292,7 @@ public class LLProver2 {
     }
 
     public Chart chartDeduce(List<History> histories) throws VariableBindingException, ProverException {
+        System.out.println("Chart derivation:");
         Chart chart = new Chart();
 
         List<History> agenda = new ArrayList<>(histories);
@@ -348,7 +349,6 @@ public class LLProver2 {
                 }
             }
         }
-        System.out.println("Chart derivation:");
         return chart;
     }
 
@@ -632,9 +632,10 @@ public class LLProver2 {
                 a = argument.toString();
             }
 
+            /*
            System.out.println("Combining " + f + " and " + a);
             System.out.println("to: " + combined.toString());
-
+*/
             //TODO sdout vs file
             if (true)
             {
