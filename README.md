@@ -4,11 +4,11 @@ Richard Crouch, Tracy Holloway King and Miriam Butt with the intention to revive
 We want to provide a state-of-the-art platform for glue semantics that is both easy to use and extensible
 due to its modular structure.
 
-The system contains two prover2:
+The system contains two linear logic provers:
 
 1) A linear logic prover is based on Mark Hepple's
  chart prover and improved with suggestions made in Lev (2007)
-2) A basic implementation of Lev's own linear logic prover. Generally provides the same solutions as the first prover, but is usually more efficient and only works with propositional Glue!
+2) A basic implementation of Lev's own linear logic prover. Generally provides the same solutions as the first prover, but is usually more efficient. However, it only works with propositional glue!
 
 ## Licensing
 The Glue Semantics Workbench
@@ -32,7 +32,9 @@ enter formulas.
 
 # Command line arguments 
 
-The following table presents the possible command line arguments: 
+The following table presents the possible command line arguments. Input and output file have to be specified first.
+Omitting an input file allows you to run a file chooser. When no output file is specified the output is written to the console.
+
 | `command line argument` | `effect` |
 | ------------- | ------------- | 
 | `-i [path/to/file]`  | `used to specify an input file (list of premises; .txt file)` |
