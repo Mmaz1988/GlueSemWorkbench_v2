@@ -58,13 +58,16 @@ variables. LL atoms can (and should) be suffixed with an underscore and a letter
 Linear implication operators are written as "-o", LL quantifiers (especially the "universal quantifier") are not necessary
 for the introduction of LL variables.
 
-# Troubleshooting
-- When loading the dependency mode, a message states "Could not initialize dependency parser".
+# Info
 
-This usually means that the Stanford CoreNLP JAR file could not be found.
-It needs to be in the same directory as the glueSemWorkbench JAR file. The JAR file can be optained [here](https://stanfordnlp.github.io/CoreNLP/history.html)
+The inbuilt syntax/semantics interface for XLE and UD was removed, since the required libraries bloated the project and haven't been useful for people interested in the project. We recommend two ways for specifying the syntax/semantics interface:
+
+- [XLE+Glue](https://github.com/Mmaz1988/xle-glueworkbench-interface)
+- The rewrite system for linguistic annotations found [here](https://github.com/Mmaz1988/abstract-syntax-annotator-web). 
+
 
 # Contact
 For more information please contact
-moritzmessmer(at)gmail.com      or
-mark-matthias.zymla(at)uni-konstanz.de
+mark-matthias.zymla(at)uni-konstanz.de  or
+moritzmessmer(at)gmail.com      
+
