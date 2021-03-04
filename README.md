@@ -2,12 +2,13 @@
 This software project started out as a mini-project by Mark-Matthias Zymla and Moritz Messmer in cooperation with
 Richard Crouch, Tracy Holloway King and Miriam Butt with the intention to revive the old glue prover used by XLE.
 We want to provide a state-of-the-art platform for glue semantics that is both easy to use and extensible
-due to its modular structure. Our program provides modules for reading syntactic input from Stanford Core NLP
-dependency parses and Prolog f-structure files created by the Xerox linguistic environment
- (http://ling.uni-konstanz.de/pages/xle/doc/xle_toc.html). The linear logic prover is based on Mark Hepple's
- chart prover with ideas from Gupta & Lamping (2008). The lexicon module provides some basic classes for creating
- glue premises for verbs, nouns, determiners and adjectives and other modifiers.
- Lexical entries may also be entered manually by using the default manual-entry mode (see below).
+due to its modular structure.
+
+The system contains two prover:
+
+1) A linear logic prover is based on Mark Hepple's
+ chart prover and improved with suggestions made in Lev (2007)
+2) A basic implementation of Lev's own linear logic prover
 
 ## Licensing
 The Glue Semantics Workbench
@@ -17,12 +18,6 @@ The Glue Semantics Workbench is free software and distributed under the conditio
 without any warranty.
 You should have received a copy of the GNU General Public License along with the source code.
 If not, please visit http://www.gnu.org/licenses/ for more information.
-
-## Distribution
-For using the dependency parser, the Stanford CoreNLP tools are required, preferably in version 3.8.0 from
-2017-06-09 or version 3.9.1 from 2018-02-27. The CoreNLP tools can be downloaded here: https://stanfordnlp.github.io/CoreNLP/history.html.
-The respective JAR file needs to be either compiled as part of the glueSemWorkbench build or placed into
-the same directory as the glueSemWB JAR.
 
 # Usage
 You will need a Java runtime environment (version 8 or higher) to run the program. We recommend to use OpenJDK which can be downloaded at [OpenJDK](https://jdk.java.net/13/).
