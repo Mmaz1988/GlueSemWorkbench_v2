@@ -45,14 +45,14 @@ Omitting an input file allows you to run a file chooser. When no output file is 
 | `-s` | `Only the solution of the derivation is written to the output file` |
 
 ## Glue formula syntax
-Glue formulas can be entered manually into a plain text file (".txt") to be read in by the default mode.
-Each formula needs to be in a separate line.
-Each formula must contain a semantic side and a glue side separated by a colon (whitespaces around the colon are optional).
-The semantic side of a formula may have any form and may contain any (unicode) character except ":"
-The glue side of a formula must be a valid implicationa linear logic formula, with each implication put in parantheses.
-LL atoms must be single letters: lower-case letters (a-z) will be recognized as LL constants, while upper-case letters will be recognized as LL
-variables. LL atoms can (and should) be suffixed with an underscore and a letter denoting their type ("e" or "t").
-Linear implication operators are written as "-o", LL quantifiers (especially the "universal quantifier") are not necessary
+- Glue formulas can be entered manually into a plain text file (".txt").
+- Each formula needs to be in a separate line.
+- Each formula must contain a semantic side and a glue side separated by a colon (whitespaces around the colon are optional).
+- The semantic side of a formula may have any form and may contain any (unicode) character except ":" (when semantic parsing is active, the input is more restrictive)
+- The glue side of a formula must be a valid implicationa linear logic formula, with each implication put in parantheses.
+- LL atoms must be single letters: lower-case letters (a-z) will be recognized as LL constants, while upper-case letters will be recognized as LL variables
+- LL atoms can (and should) be suffixed with an underscore and a letter denoting their type ("e" or "t").
+- Linear implication operators are written as "-o", LL quantifiers (especially the "universal quantifier") are not necessary
 for the introduction of LL variables.
 
 # Info
