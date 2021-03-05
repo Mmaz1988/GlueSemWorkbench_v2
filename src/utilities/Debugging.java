@@ -1,4 +1,4 @@
-package test;
+package utilities;
 
 public class Debugging {
     /**
@@ -9,6 +9,7 @@ public class Debugging {
     public Integer allIterations = 0;
     public Integer combinations = 0;
     public Integer compilations = 0;
+    public Integer discardedHistories = 0;
 
 
     @Override
@@ -20,12 +21,20 @@ public class Debugging {
         sb.append(System.lineSeparator());
         sb.append("computationTime: " + computationTime / 1000000 + "ms" );
         sb.append(System.lineSeparator());
-        sb.append("Number of iterations through Sequent: " + allIterations);
-        sb.append(System.lineSeparator());
+        if (allIterations > 0) {
+            sb.append("Number of iterations through Sequent: " + allIterations);
+            sb.append(System.lineSeparator());
+        }
         sb.append("Number of combination steps: " + combinations);
         sb.append(System.lineSeparator());
-        sb.append("Number of proper compilation steps:" + compilations);
+        sb.append("Number of proper compilation steps: " + compilations);
         sb.append(System.lineSeparator());
+
+        if (discardedHistories > 0)
+        {
+            sb.append("Number of histories discared during derivation: " + discardedHistories);
+            sb.append(System.lineSeparator());
+        }
 
 
         return sb.toString();

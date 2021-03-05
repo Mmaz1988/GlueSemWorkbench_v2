@@ -4,7 +4,7 @@ import glueSemantics.linearLogic.*;
 import glueSemantics.semantics.SemanticRepresentation;
 import glueSemantics.semantics.lambda.*;
 import main.Settings;
-import test.Debugging;
+import utilities.Debugging;
 import utilities.LexVariableHandler;
 
 import java.io.IOException;
@@ -30,7 +30,7 @@ public class LLProver2 extends LLProver{
 
     private HashMap<Premise, List<Premise>> variableDependency = new HashMap<>();
 
-    private StringBuilder proofBuilder;
+    private StringBuilder outputFileBuilder;
 
 
     //private LinkedList<Premise> skeletons = new LinkedList<>();
@@ -48,11 +48,11 @@ public class LLProver2 extends LLProver{
      */
     public LLProver2(Settings settings) {
         setSettings(settings);
-        this.proofBuilder = new StringBuilder();
+        this.outputFileBuilder = new StringBuilder();
     }
 
     public LLProver2(Settings settings, StringBuilder proofBuilder) {
-        this.proofBuilder = proofBuilder;
+        this.outputFileBuilder = proofBuilder;
         setSettings(settings);
     }
 
@@ -72,15 +72,15 @@ public class LLProver2 extends LLProver{
             sb.append(le);
             sb.append(System.lineSeparator());
         }
-        System.out.println(sb.toString());
 
         //TODO insert boolean for distinguishing between sdout and file
-        if (true) {
-            proofBuilder.append(sb.toString());
-            proofBuilder.append(System.lineSeparator());
-            proofBuilder.append(System.lineSeparator());
-        }
 
+            outputFileBuilder.append(sb.toString());
+            outputFileBuilder.append(System.lineSeparator());
+            outputFileBuilder.append(System.lineSeparator());
+
+
+        getLOGGER().fine("Starting compilation process...");
         for (Premise p : currentSequent.getLhs()) {
             List<Premise> compiled = convert(p);
             agenda.addAll(compiled);
@@ -93,14 +93,14 @@ public class LLProver2 extends LLProver{
             ab.append(p);
             ab.append(System.lineSeparator());
         }
-        System.out.println(ab.toString());
+
 
         //TODO insert boolean for distinguishing between sdout and file
-        if (true) {
-            proofBuilder.append(ab.toString());
-            proofBuilder.append(System.lineSeparator());
-            proofBuilder.append(System.lineSeparator());
-        }
+
+            outputFileBuilder.append(ab.toString());
+            outputFileBuilder.append(System.lineSeparator());
+            outputFileBuilder.append(System.lineSeparator());
+
 
         this.agenda = agenda;
 
@@ -111,6 +111,9 @@ public class LLProver2 extends LLProver{
             }
         }
 
+        StringBuilder proofBuilder = new StringBuilder();
+
+        getLOGGER().fine("Starting deduction procedure...");
 
         while (!agenda.isEmpty()) {
             ListIterator<Premise> iter = agenda.listIterator();
@@ -131,7 +134,7 @@ public class LLProver2 extends LLProver{
                         for (String category : nonAtomicChart.keySet()) {
 
                             for (Premise q : nonAtomicChart.get(category)) {
-                                combined = combinePremises(p, q);
+                                combined = combinePremises(p, q,proofBuilder);
                                 if (combined != null && validPremise(combined)) {
                                     db.combinations++;
                                     iter.add(combined);
@@ -143,7 +146,7 @@ public class LLProver2 extends LLProver{
 
                         if (nonAtomicChart.containsKey(p.getGlueTerm().category().toString())) {
                             for (Premise q : nonAtomicChart.get(p.getGlueTerm().category().toString())) {
-                                combined = combinePremises(q, p);
+                                combined = combinePremises(q, p,proofBuilder);
                                 if (combined != null && validPremise(combined)) {
                                     db.combinations++;
                                     iter.add(combined);
@@ -156,7 +159,7 @@ public class LLProver2 extends LLProver{
                     for (String key : nonAtomicChart.keySet()) {
                         if (isVar(key)) {
                             for (Premise q : nonAtomicChart.get(key)) {
-                                combined = combinePremises(q, p);
+                                combined = combinePremises(q, p,proofBuilder);
                                 if (combined != null && validPremise(combined)) {
                                     db.combinations++;
                                     iter.add(combined);
@@ -173,7 +176,7 @@ public class LLProver2 extends LLProver{
                         for (String key : atomicChart.keySet()) {
 
                             for (Premise q : atomicChart.get(key)) {
-                                combined = combinePremises(p, q);
+                                combined = combinePremises(p, q,proofBuilder);
                                 if (combined != null && validPremise(combined)) {
                                     iter.add(combined);
                                     db.combinations++;
@@ -183,7 +186,7 @@ public class LLProver2 extends LLProver{
                     } else {
                         if (atomicChart.containsKey(((LLFormula) p.getGlueTerm()).getLhs().category().toString())) {
                             for (Premise q : atomicChart.get(((LLFormula) p.getGlueTerm()).getLhs().category().toString())) {
-                                combined = combinePremises(p, q);
+                                combined = combinePremises(p, q,proofBuilder);
                                 if (combined != null && validPremise(combined)) {
                                     iter.add(combined);
                                     db.combinations++;
@@ -194,7 +197,7 @@ public class LLProver2 extends LLProver{
                         for (String category : atomicChart.keySet()) {
                             if (Character.isUpperCase(category.charAt(0))) {
                                 for (Premise q : atomicChart.get(category)) {
-                                    combined = combinePremises(p, q);
+                                    combined = combinePremises(p, q,proofBuilder);
                                     if (combined != null && validPremise(combined)) {
                                         iter.add(combined);
                                         db.combinations++;
@@ -217,7 +220,12 @@ public class LLProver2 extends LLProver{
 
         db.computationTime = endTime - startTime;
 
+        getLOGGER().info("Found the following glue derivation(s):\n" + proofBuilder.toString());
+
         proofBuilder.append(System.lineSeparator());
+        proofBuilder.append(System.lineSeparator());
+        outputFileBuilder.append(proofBuilder);
+
 
     }
 
@@ -235,7 +243,8 @@ public class LLProver2 extends LLProver{
         return true;
     }
 
-    public Premise combinePremises(Premise functor, Premise argument) throws VariableBindingException, ProverException {
+    @Override
+    public Premise combinePremises(Premise functor, Premise argument, StringBuilder proofBuilder) throws VariableBindingException, ProverException {
 
         Premise func = new Premise(functor.getPremiseIDs(), functor.getSemTerm().clone(), functor.getGlueTerm().clone());
         Premise argumentClone = null;
@@ -421,8 +430,8 @@ public class LLProver2 extends LLProver{
                 a = argument.toString();
             }
 
-            System.out.println("Combining " + f + " and " + a);
-            System.out.println("to: " + combined.toString());
+          //  System.out.println("Combining " + f + " and " + a);
+            // System.out.println("to: " + combined.toString());
 
             //TODO sdout vs file
             if (true)
@@ -603,7 +612,7 @@ public class LLProver2 extends LLProver{
                     //     ((SemFunction) p.getSemTerm()).getBinder().setType(((SemFunction) p.getSemTerm()).getBinder().getType().getRight());
                 }catch(Exception e)
                 {newtype = new SemType(((LLFormula) l).getLhs().getType());
-                    System.out.println("Semantic side inherits type from linear logic side.");
+                    getLOGGER().finer("Semantic side inherits type from linear logic side.");
                 }
 
 
@@ -736,12 +745,12 @@ public class LLProver2 extends LLProver{
         }
     }
 
-    public StringBuilder getProofBuilder() {
-        return proofBuilder;
+    public StringBuilder getOutputFileBuilder() {
+        return outputFileBuilder;
     }
 
-    public void setProofBuilder(StringBuilder proofBuilder) {
-        this.proofBuilder = proofBuilder;
+    public void setOutputFileBuilder(StringBuilder outputFileBuilder) {
+        this.outputFileBuilder = outputFileBuilder;
     }
 
 }

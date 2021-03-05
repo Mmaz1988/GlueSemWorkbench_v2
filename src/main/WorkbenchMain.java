@@ -13,9 +13,12 @@ import glueSemantics.parser.GlueParser;
 import glueSemantics.parser.ParserInputException;
 import glueSemantics.parser.SemanticParser;
 import glueSemantics.semantics.LexicalEntry;
+import org.jgrapht.graph.IntrusiveEdgesSpecifics;
 import prover.*;
 import utilities.LexicalParserException;
+import utilities.MyFormatter;
 
+import javax.naming.MalformedLinkException;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.BufferedWriter;
@@ -26,6 +29,10 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,12 +44,26 @@ public class WorkbenchMain {
     public static List<String> partial = new ArrayList<>();
     public static StringBuilder outputFileBuilder = new StringBuilder();
     public static List<Premise> result = new ArrayList<>();
+    private final static Logger LOGGER = Logger.getLogger(WorkbenchMain.class.getName());
 
     public static void main(String[] args) {
         settings = new Settings();
-        System.out.println("The Glue Semantics Workbench\n" +
-                "copyright 2018 Moritz Messmer & Mark-Matthias Zymla\n");
 
+        /*
+        ConsoleHandler handler = new ConsoleHandler();
+        handler.setFormatter(new SimpleFormatter());
+        handler.setLevel(Level.ALL);
+        LOGGER.addHandler(handler);
+         */
+        LOGGER.setUseParentHandlers(false);
+        ConsoleHandler handler = new ConsoleHandler();
+        handler.setFormatter(new MyFormatter());
+        handler.setLevel(Level.FINE);
+        LOGGER.addHandler(handler);
+
+        LOGGER.setLevel(Level.ALL);
+
+       LOGGER.info("The Glue Semantics Workbench -- copyright 2018 Moritz Messmer & Mark-Matthias Zymla");
 
 
             // Check program arguments for prover settings
@@ -50,8 +71,8 @@ public class WorkbenchMain {
               for (int i = 0; i < args.length; i++)
               { String arg = args[i];
                 switch (arg) {
-                    case ("-prolog"):
-                        settings.setSemanticOutputStyle(Settings.PROLOG);
+                    case ("-inputStyle"):
+                        settings.setSemanticOutputStyle(Integer.parseInt(args[i+1]));
                         break;
                     case ("-noreduce"):
                         settings.setBetaReduce(false);
@@ -95,7 +116,6 @@ public class WorkbenchMain {
                     }
 
                 }
-
             String betaReduce = "on", outputMode = "plain";
             if (!settings.isBetaReduce())
                 betaReduce = "off";
@@ -103,7 +123,10 @@ public class WorkbenchMain {
             if (settings.getSemanticOutputStyle() == 1)
                 outputMode = "prolog";
 
-            System.out.println(String.format("Current settings: automatic beta reduction: %s\t\toutput mode: %s", betaReduce, outputMode));
+            if (settings.getSemanticOutputStyle() == 2)
+                outputMode = "json";
+
+            LOGGER.config(String.format("Current settings: automatic beta reduction: %s\t\toutput mode: %s", betaReduce, outputMode));
 
             if (args.length > 0 && args[0].equals("-i")) {
                 try {
@@ -118,7 +141,7 @@ public class WorkbenchMain {
                             throw new LexicalParserException("Error while trying to open file '"
                                     + inFile + "'");
                         }
-
+                        LOGGER.info("Read input file: " + inFile.toString());
                         initiateManualMode(lines);
 
                         if (args[2].equals("-o")) {
@@ -132,13 +155,11 @@ public class WorkbenchMain {
                                     outFile.createNewFile();
                                 }
 
+
+
                                 if (outFile.exists()) {
                                     BufferedWriter w = new BufferedWriter(new FileWriter(outFile, true));
-
-
                                     for (Integer key : solutions.keySet()) {
-
-
                                         for (int i = 0; i < solutions.get(key).size(); i++) {
                                             Premise solution = solutions.get(key).get(i);
                                             if (settings.getSemanticOutputStyle() == 1) {
@@ -171,7 +192,7 @@ public class WorkbenchMain {
                                     }
                                     w.close();
                                 }
-                                System.out.println("Wrote solutions to " + outFile.toString());
+                                LOGGER.info("Wrote output to: " + outFile.toString());
                             } catch (Exception e) {
                                 System.out.println("Error while generating output file. Maybe no valid path was given.");
                             }
@@ -192,7 +213,7 @@ public class WorkbenchMain {
 
 
     public static void initiateManualMode() throws LexicalParserException, VariableBindingException {
-        System.out.println("Starting manual entry mode...\n");
+        LOGGER.info("Starting manual entry mode...");
         File f = null;
         final JFileChooser fc = new JFileChooser();
         fc.setDialogTitle("Choose a file containing lexical entries");
@@ -200,10 +221,10 @@ public class WorkbenchMain {
                 new FileNameExtensionFilter("Text files", "txt"));
         int returnVal = fc.showOpenDialog(null);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
-            System.out.println("Selected file " + fc.getSelectedFile().getName());
+            LOGGER.info("Selected file " + fc.getSelectedFile().getName());
             f = fc.getSelectedFile();
         } else {
-            System.out.println("No file selected");
+           LOGGER.info("No file selected");
         }
         Path p;
         if (f != null) {
@@ -219,7 +240,7 @@ public class WorkbenchMain {
             initiateManualMode(lines);
         }
         else
-            System.out.println("No file selected");
+            LOGGER.info("No file selected");
     }
 
     public static void initiateManualMode(List<String> formulas) throws LexicalParserException, VariableBindingException {
@@ -248,7 +269,7 @@ public class WorkbenchMain {
                     try {
                         currentLexicalEntries.add(parser.parseMeaningConstructor(formulas.get(i)));
                     } catch (ParserInputException e) {
-                        System.out.println(String.format("Error: " +
+                       LOGGER.warning(String.format("Error: " +
                                 "glue parser could not parse line %d of input file. " +
                                 "Skipping this line.", formulas.indexOf(formulas.get(i))));
                     }
@@ -264,20 +285,21 @@ public class WorkbenchMain {
             try {
                 singleSet.add(parser.parseMeaningConstructor(s));
             } catch (ParserInputException e) {
-                System.out.println(String.format("Error: glue parser could not parse line %d of input file. Skipping this line.",formulas.indexOf(s)));
+                LOGGER.warning(String.format("Error: glue parser could not parse line %d of input file. Skipping this line.",formulas.indexOf(s)));
             }
         }
         if (singleSet.isEmpty()) {
-            System.out.println("No lexical entries found.");
+            LOGGER.warning("No lexical entries found.");
         }
         else {
-            System.out.println(String.format("Found %d lexical entries.",singleSet.size()));
+            LOGGER.info(String.format("Searching for valid proofs in proof with id S%d",0));
             searchProof(0,singleSet);
             }
         } else {
                 //TODO fix output to accomodate for multiple entries
-                System.out.println(String.format("Found %d lexical entries.", lexicalEntries.size()));
+                LOGGER.info(String.format("Found %d different proofs in input file.", lexicalEntries.size()));
                for (Integer key : lexicalEntries.keySet()) {
+                   LOGGER.info(String.format("Searching for valid proofs in proof with id S%d",key));
                    searchProof(key,lexicalEntries.get(key));
                }
             }
@@ -294,6 +316,8 @@ public class WorkbenchMain {
 
     public static void searchProof(Integer key, List<LexicalEntry> lexicalEntries) throws VariableBindingException {
 
+        LOGGER.info(String.format("Found %d lexical entries for proof with id S%d",lexicalEntries.size(),key));
+
         LLProver prover;
 
         if (settings.getProverType() == 1) {
@@ -304,17 +328,16 @@ public class WorkbenchMain {
         }
         try {
 
-            System.out.println("Searching for valid proofs...");
+
 
             Sequent testseq = new Sequent(lexicalEntries);
 
-            System.out.println("Sequent:" + testseq.toString());
-
             prover.deduce(testseq);
-
             result = prover.getSolutions();
 
-            System.out.println("Found the following deduction(s): ");
+
+        // LOGGER.info("Found the following deduction(s):\n");
+         StringBuilder resultBuilder = new StringBuilder();
             for (Premise sol : result) {
 
                 if (solutions.keySet().contains(key))
@@ -326,8 +349,21 @@ public class WorkbenchMain {
                     solutions.put(key,new ArrayList<>(Arrays.asList(sol)));
                 }
         //        sol.setSemTerm((SemanticExpression) sol.getSemTerm().betaReduce());
-                System.out.println(key + ": " + sol.toString());
             }
+
+
+                StringBuilder solutionBuilder = new StringBuilder();
+                solutionBuilder.append(String.format("Found the following solutions for proof with id S%d:\n",key));
+                for (Premise p : solutions.get(key))
+                {
+                    solutionBuilder.append(p.toString());
+                    solutionBuilder.append(System.lineSeparator());
+                }
+
+                LOGGER.info(solutionBuilder.toString());
+
+
+          //  LOGGER.info(String.format("Found %d solution(s) for derivation with id S%d",solutions.size(),key) );
 
             /*
             if (settings.isPartial()) {
@@ -350,10 +386,10 @@ public class WorkbenchMain {
 
             */
 
-            System.out.println("Done!\n");
+
             if (settings.isDebugging()) {
-                System.out.println("Debugging report:");
-                System.out.println(prover.db.toString());
+                LOGGER.info(String.format("Generated debugging report for proof with id S%d:\n" + prover.db.toString(),key));
+                LOGGER.info(String.format("Finished glue derivation of proof with id S%d.",key));
             }
 
         } catch (ProverException e) {

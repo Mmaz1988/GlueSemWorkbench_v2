@@ -6,39 +6,30 @@ import glueSemantics.semantics.lambda.*;
 import main.Settings;
 import org.jgrapht.Graph;
 import org.jgrapht.alg.connectivity.GabowStrongConnectivityInspector;
+import org.jgrapht.alg.interfaces.StrongConnectivityAlgorithm;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.traverse.TopologicalOrderIterator;
 import prover.categoryGraph.CGNode;
 import prover.categoryGraph.History;
-import test.Debugging;
+import utilities.Debugging;
 import utilities.LexVariableHandler;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class LLProver1 extends LLProver {
 
 
 
     private Sequent currentSequent;
-
-    //TODO Add a third chart for modifiers and both atomic elements as well as non atomic elements are first
-    //run through the modifier chart.
-
-    //   private HashMap<String,List<Premise>> modifierChart = new HashMap<>();
-
-    // A chart that associates variables that are compiled out with their original formula.
-    // This is necessary to instantiate variables that are atmoic elements rather than variables that occur in formulas.
-
-
-    private LinkedList<Premise> agenda;
     private LinkedList<History> finalHistories = new LinkedList<>();
-
     private StringBuilder proofBuilder;
     private HashSet<Integer> goalIDs = new HashSet<>();
-
     public long startTime;
+
+
 
 
     /**
@@ -61,11 +52,14 @@ public class LLProver1 extends LLProver {
 
     public void deduce(Sequent seq) throws ProverException, VariableBindingException {
 
+
+
         this.db = new Debugging();
         this.currentSequent = seq;
         LinkedList<Premise> agenda = new LinkedList<>();
 
         startTime = System.nanoTime();
+
 
         StringBuilder sb = new StringBuilder();
         sb.append("Input premises:");
@@ -75,7 +69,9 @@ public class LLProver1 extends LLProver {
             sb.append(System.lineSeparator());
         }
 
-        System.out.println(sb.toString());
+        String inputPremises = currentSequent.getLhs().stream().map(Objects::toString).collect(Collectors.joining(", "));
+
+        getLOGGER().fine("List of current premises: " + inputPremises);
 
         //TODO insert boolean for distinguishing between sdout and file
         if (true) {
@@ -84,18 +80,17 @@ public class LLProver1 extends LLProver {
             proofBuilder.append(System.lineSeparator());
         }
 
-        System.out.println("Starting compilation process:");
+        getLOGGER().fine("Starting compilation process...");
         for (Premise p : currentSequent.getLhs()) {
             List<Premise> compiled = convert(p);
             agenda.addAll(compiled);
         }
 
         String goalCategory = findAtomicGoal(agenda);
-        System.out.println("Automatically detected goal category:");
-        System.out.println(goalCategory);
-        System.out.println(System.lineSeparator());
+        getLOGGER().fine("Automatically detected goal category: " + goalCategory);
 
-        System.out.println("Starting deduction procedure:");
+
+        getLOGGER().fine("Starting deduction procedure...");
         StringBuilder ab = new StringBuilder();
         ab.append("Agenda:");
         ab.append(System.lineSeparator());
@@ -103,7 +98,7 @@ public class LLProver1 extends LLProver {
             ab.append(p);
             ab.append(System.lineSeparator());
         }
-        System.out.println(ab.toString());
+
 
         //TODO insert boolean for distinguishing between sdout and file
         if (true) {
@@ -111,8 +106,6 @@ public class LLProver1 extends LLProver {
             proofBuilder.append(System.lineSeparator());
             proofBuilder.append(System.lineSeparator());
         }
-
-        this.agenda = agenda;
 
         List<LLTerm> initialCategories = new ArrayList<>();
         HashMap<String,List<Premise>> category2premiseMapping = new HashMap<>();
@@ -144,7 +137,7 @@ public class LLProver1 extends LLProver {
 
         Graph<CGNode, DefaultEdge> categoryGraph2 = calculateCategoryGraph2(copy,category2premiseMapping);
 
-        GabowStrongConnectivityInspector ins2 = new GabowStrongConnectivityInspector(categoryGraph2);
+        StrongConnectivityAlgorithm ins2 = new GabowStrongConnectivityInspector(categoryGraph2);
         Graph scc2 = ins2.getCondensation();
 
         TopologicalOrderIterator graphIter2 = new TopologicalOrderIterator(scc2);
@@ -269,21 +262,20 @@ public class LLProver1 extends LLProver {
                 }
             }
         }
-
-        System.out.println(System.lineSeparator());
-        System.out.println("Starting semantic calculations:");
+        getLOGGER().fine("Starting semantic calculations...");
 
         StringBuilder resultBuilder = new StringBuilder();
-
-
 
         for (History solution : finalHistories)
         {
           getSolutions().addAll(solution.calculateSolutions(resultBuilder));
         }
         proofBuilder.append(resultBuilder.toString());
-        System.out.println(resultBuilder);
-        System.out.println(System.lineSeparator());
+
+        getLOGGER().info("Found the following glue derivation(s):\n" + resultBuilder.toString());
+
+       // System.out.println(resultBuilder);
+        // System.out.println(System.lineSeparator());
 
         long endTime = System.nanoTime();
         db.computationTime = endTime - startTime;
@@ -291,7 +283,7 @@ public class LLProver1 extends LLProver {
     }
 
     public Chart chartDeduce(List<History> histories) throws VariableBindingException, ProverException {
-        System.out.println("Chart derivation:");
+        getLOGGER().finer("Beginning a partial chart derivation...");
         Chart chart = new Chart();
 
         List<History> agenda = new ArrayList<>(histories);
@@ -367,13 +359,13 @@ public class LLProver1 extends LLProver {
 
         for (Category category : cgnList)
         {
-            CGNode currentNode = new CGNode(category.toString(), CGNode.type.CATEGORY);
+            CGNode currentNode = new CGNode(category.toString(), CGNode.type.CATEGORY,this);
 
             if (category2premiseMapping.containsKey(category.toString())) {
 
                 for (Premise p : category2premiseMapping.get(category.toString())) {
 
-                    History h = new History(p.getGlueTerm().category(), p.getPremiseIDs(), Collections.singleton(new HashMap<>()),p);
+                    History h = new History(p.getGlueTerm().category(), p.getPremiseIDs(), Collections.singleton(new HashMap<>()),p,this);
 
                     if (p.getGlueTerm() instanceof LLFormula) {
                         h.discharges.addAll(((LLFormula) p.getGlueTerm()).getLhs().orderedDischarges.keySet());
@@ -405,7 +397,7 @@ public class LLProver1 extends LLProver {
                             CGNode connector =
                                     new CGNode(LexVariableHandler.
                                             returnNewVar(LexVariableHandler.variableType.connectorNode),
-                                            CGNode.type.CONNECTOR);
+                                            CGNode.type.CONNECTOR,this);
                             categoryGraph.addVertex(connector);
                             categoryGraph.addEdge(func, connector);
                             categoryGraph.addEdge(arg, connector);
@@ -437,16 +429,16 @@ public class LLProver1 extends LLProver {
 
                     Set<HashMap<Integer,History>> parents = Collections.singleton(parentNodes);
 
-                    History result = new History( h1.category.right, union, parents);
+                    History result = new History( h1.category.right, union, parents,this);
 
                     if (!h1.category.right.atomic) {
                         result.discharges = h1.category.right.left.discharges;
                         result.requirements = h1.category.right.right.dischargeRequirements();
                     }
 
-                    System.out.println("Now combining " + h1.category.toString() +
-                                                        " and " + h2.category.toString() +
-                                                    " with result: " + result.category);
+                    getLOGGER().finer("Now combining " + h1.category.toString() +
+                            " and " + h2.category.toString() +
+                            " with result: " + result.category);
 
 
                     if (result.indexSet.equals(goalIDs))
@@ -460,8 +452,8 @@ public class LLProver1 extends LLProver {
         return null;
     }
 
-
-    public static Premise combinePremises(Premise functor, Premise argument, StringBuilder proofBuilder) throws VariableBindingException, ProverException {
+    @Override
+    public Premise combinePremises(Premise functor, Premise argument, StringBuilder proofBuilder) throws VariableBindingException, ProverException {
 
         Premise func = new Premise(functor.getPremiseIDs(), functor.getSemTerm().clone(), functor.getGlueTerm().clone());
         Premise argumentClone = null;
@@ -751,12 +743,11 @@ public class LLProver1 extends LLProver {
                                 throw new IOException("Typemismatch between glue type and lambda type.");
                             }
                         }
-
                     }
                //     ((SemFunction) p.getSemTerm()).getBinder().setType(((SemFunction) p.getSemTerm()).getBinder().getType().getRight());
                 }catch(Exception e)
                 {newtype = new SemType(((LLFormula) l).getLhs().getType());
-                    System.out.println("Semantic side inherits type from linear logic side.");
+                    getLOGGER().finer("Semantic side inherits type from linear logic side.");
                 }
                 SemAtom asumptionVar = new SemAtom(SemAtom.SemSort.VAR,
                         LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVarE), newtype);

@@ -2,6 +2,7 @@ package prover.categoryGraph;
 
 import glueSemantics.linearLogic.Category;
 import glueSemantics.linearLogic.Premise;
+import prover.LLProver;
 import prover.LLProver1;
 import prover.ProverException;
 import prover.VariableBindingException;
@@ -10,6 +11,7 @@ import java.util.*;
 
 public class History {
 
+    public LLProver prover;
     public Category category;
     public Set<Integer> indexSet;
     public Set<Integer> requirements = new HashSet<>();
@@ -19,8 +21,9 @@ public class History {
     public Premise p;
 
 
-    public History(Category category, Set<Integer> indexSet, Set<HashMap<Integer,History>> parents, Premise p)
+    public History(Category category, Set<Integer> indexSet, Set<HashMap<Integer,History>> parents, Premise p, LLProver prover)
     {
+        this.prover = prover;
         this.category = category;
         this.indexSet = indexSet;
         this.parents = parents;
@@ -28,8 +31,9 @@ public class History {
 
     }
 
-    public History(Category category, Set<Integer> indexSet, Set<HashMap<Integer,History>> parents)
+    public History(Category category, Set<Integer> indexSet, Set<HashMap<Integer,History>> parents, LLProver prover)
     {
+        this.prover = prover;
         this.category = category;
         this.indexSet = indexSet;
         this.parents = parents;
@@ -71,9 +75,10 @@ public class History {
         {
             for (Premise q : arg)
             {
-                Premise r = LLProver1.combinePremises(p,q,resultBuilder);
+                Premise r = prover.combinePremises(p,q,resultBuilder);
                 if (r != null)
                 {
+                    prover.db.combinations++;
                     results.add(r);
                 }
             }
