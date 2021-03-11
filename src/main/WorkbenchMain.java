@@ -194,7 +194,7 @@ public class WorkbenchMain {
                                 }
                                 LOGGER.info("Wrote output to: " + outFile.toString());
                             } catch (Exception e) {
-                                System.out.println("Error while generating output file. Maybe no valid path was given.");
+                                LOGGER.warning("Error while generating output file. Maybe no valid path was given.");
                             }
                         }
                     }
