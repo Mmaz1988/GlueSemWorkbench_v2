@@ -34,7 +34,7 @@ public class SemanticParser extends StringParser {
         //SemanticRepresentation p = parseExpression( "[/P_<e,t>.[/Q_<e,t>.Ex_v[P(x) -> Q(x))]]]");
       // SemanticRepresentation p = parseExpression("[/R_<v,t>.[/x_e.[/y_e.Ee_v[R(e) & (agent(e,x) v theme(e,y))]]]]");
     //   SemanticRepresentation p = parseExpression("[/M_<s,<s,t>>.[/P_<s,t>.[/s_s.Az_s[M(s)(z) -> P(z)]]]]");
-        SemanticRepresentation p = parseExpression("[/P_<s,t>.[/s_s.Er_s[Efore(r,s) & P(r)]]] ");
+        SemanticRepresentation p = parseExpression("[/P_<s,t>.[/s_s.Er_s[before(r,s) & P(r)]]] ");
    //     SemanticRepresentation p = parseExpression("{[/x_e.sleep(x)],[/y_e.snore(y)]}");
        // SemanticRepresentation p = parseExpression("[/x_e.sleep(x,y,z)]");
       //  SemType t = typeParser("<e,<e,t>>",0);
