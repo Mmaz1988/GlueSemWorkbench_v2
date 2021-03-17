@@ -208,6 +208,7 @@ public class WorkbenchMain {
                     e.printStackTrace();
                 }
             }
+            System.exit(0);
         }
 
 
