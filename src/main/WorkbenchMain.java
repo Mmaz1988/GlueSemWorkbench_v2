@@ -29,10 +29,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
+import java.util.logging.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -56,8 +53,8 @@ public class WorkbenchMain {
         LOGGER.addHandler(handler);
          */
         LOGGER.setUseParentHandlers(false);
-        ConsoleHandler handler = new ConsoleHandler();
-        handler.setFormatter(new MyFormatter());
+        StreamHandler handler = new StreamHandler(System.out, new MyFormatter());
+     //   handler.setFormatter(new MyFormatter());
         handler.setLevel(Level.FINE);
         LOGGER.addHandler(handler);
 
