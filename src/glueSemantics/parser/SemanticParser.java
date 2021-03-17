@@ -8,6 +8,7 @@ import utilities.LexVariableHandler;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -16,6 +17,7 @@ public class SemanticParser extends StringParser {
     private int bracketCounter = 0;
     private int pos = 0;
     private HashMap<Integer, List<SemAtom>> variableBindings = new HashMap<>();
+    private List<Integer> specialChars = Arrays.asList(46,47,91,93,40,41,123,125,44,95,60,62);
 
     public SemanticParser()
     {
@@ -30,18 +32,18 @@ public class SemanticParser extends StringParser {
         //SemanticRepresentation p = parseExpression( "[/P_e.[/x_e.[/y_e.sleep(c(a(x),b(y),P(x),a(x,y)))]]]");
        // SemanticRepresentation p = parseExpression( "[/P_e.[/Q_e.[/y_e.[P(y) & Q(y)]]]]");
         //SemanticRepresentation p = parseExpression( "[/P_<e,t>.[/Q_<e,t>.Ex_v[P(x) -> Q(x))]]]");
-      //  SemanticRepresentation p = parseExpression("[/R_<v,t>.[/x_e.[/y_e.Ee_v[R(e) & (agent(e,x) & theme(e,y))]]]]");
-       // SemanticRepresentation p = parseExpression("[/M_<s,<s,t>>.[/P_<s,t>.[/s_s.Az_s[M(s,z) -> P(z)]]]]");
-      //  SemanticRepresentation p = parseExpression("[/P_<s,t>.[/s_s.Er_s[before(r,s) & P(r)]]] ");
+      // SemanticRepresentation p = parseExpression("[/R_<v,t>.[/x_e.[/y_e.Ee_v[R(e) & (agent(e,x) v theme(e,y))]]]]");
+    //   SemanticRepresentation p = parseExpression("[/M_<s,<s,t>>.[/P_<s,t>.[/s_s.Az_s[M(s)(z) -> P(z)]]]]");
+        SemanticRepresentation p = parseExpression("[/P_<s,t>.[/s_s.Er_s[Efore(r,s) & P(r)]]] ");
    //     SemanticRepresentation p = parseExpression("{[/x_e.sleep(x)],[/y_e.snore(y)]}");
        // SemanticRepresentation p = parseExpression("[/x_e.sleep(x,y,z)]");
       //  SemType t = typeParser("<e,<e,t>>",0);
 
      LLProver1 prover = new LLProver1(new Settings());
 
-    //    SemanticRepresentation p = parseExpression("[/T_<s,<s,t>>.[/P_<s,t>.[/t_s.Et1_s[T(t)(t1) & P(t1)]]]]");
-      //  SemanticRepresentation p = parseExpression("[/P_<v,t>.[/s_s.exemplify(s,Ee_v[P(e)])]]");
-        SemanticRepresentation p = parseExpression("[/P_<e,<s,t>>.[/Q_<e,<s,t>>.[/s_s.the((P(x)(s) & Q(x)(s)))]]]");
+    //   SemanticRepresentation p = parseExpression("[/T_<s,<s,t>>.[/P_<s,t>.[/t_s.Et1_s[T(t)(t1) & P(t1)]]]]");
+       // SemanticRepresentation p = parseExpression("[/P_<v,t>.[/s_s.exemplify(s,Ee_v[P(e)])]]");
+     //  SemanticRepresentation p = parseExpression("[/x_e.[/y_e.lubić(x,y)]]");
 
         System.out.println(p.toString());
         System.out.println("Done");
@@ -79,30 +81,29 @@ public class SemanticParser extends StringParser {
 
                     if (c == 'E' || c == 'A' || c == 'I')
                     {
-                        bracketCounter++;
-                     SemanticRepresentation semBinder = parseExpression(input);
-                     bracketCounter = bracketCounter - 1;
-                     SemanticRepresentation scope = parseExpression(input);
-                     if (semBinder instanceof SemAtom && ((SemAtom) semBinder).getSort().equals(SemAtom.SemSort.VAR))
-                     {
-                         if (c == 'E') {
-                             return new SemQuantEx(SemQuantEx.SemQuant.EX, (SemAtom) semBinder, scope,new SemType(SemType.AtomicType.T));
-                         }
-                         else if (c == 'A')
-                             {
-                                 return new SemQuantEx(SemQuantEx.SemQuant.UNI, (SemAtom) semBinder, scope,new SemType(SemType.AtomicType.T));
+                      //  bracketCounter++;
+                        int current = pos;
+                        SemanticRepresentation semBinder = null;
+                        try {
+                             semBinder = parseExpression(input);
+                        } catch(Exception e)
+                        {
+                            pos = current;
+                        }
+                     if (semBinder != null && semBinder instanceof SemAtom && ((SemAtom) semBinder).getSort().equals(SemAtom.SemSort.VAR)) {
+                         //         bracketCounter = bracketCounter - 1;
+                         SemanticRepresentation scope = parseExpression(input);
+                             if (c == 'E') {
+                                 return new SemQuantEx(SemQuantEx.SemQuant.EX, (SemAtom) semBinder, scope, new SemType(SemType.AtomicType.T));
+                             } else if (c == 'A') {
+                                 return new SemQuantEx(SemQuantEx.SemQuant.UNI, (SemAtom) semBinder, scope, new SemType(SemType.AtomicType.T));
+                             } else if (c == 'I') {
+                                 return new SemQuantEx(SemQuantEx.SemQuant.DEF, (SemAtom) semBinder, scope, semBinder.getType());
                              }
-                         else if (c == 'I')
-                         {
-                             return new SemQuantEx(SemQuantEx.SemQuant.DEF, (SemAtom) semBinder, scope,semBinder.getType());
-
-                         }
-
-                    }
+                     }
                      else
                         {
-                            System.out.println("Failed to parse Quantifier Expression");
-                            return null;
+                            pos = current;
                         }
                     }
 
@@ -284,17 +285,25 @@ public class SemanticParser extends StringParser {
                 pos++;
                 bracketCounter = bracketCounter - 1;
             }
-                    if ((c >= 97 && c <= 122) || (c >= 48 && c <= 57) ||
+            /*
+            if ((c >= 97 && c <= 122) || (c >= 48 && c <= 57) ||
                             (c >= 66 && c <= 90) || (c == 64) || (c==42))
                     {
-
+             */
+                        if (!specialChars.contains((int) c))
+                        {
 
                         StringBuilder sb = new StringBuilder();
                         //or sequence of letters
-                        while ((c >= 97 && c <= 122) || (c >= 48 && c <= 57) ||
-                                (c >= 66 && c <= 90) || (c == 64) || (c==42)) {
-                            sb.append(c);
-                            c = input.charAt(pos);
+                        while (!specialChars.contains((int) c)) {
+                            if (pos < input.length()) {
+                                sb.append(c);
+                                c = input.charAt(pos);
+                            } else
+                            {
+                                sb.append(c);
+                                break;
+                            }
                             pos++;
                         }
                         pos = pos - 1;
