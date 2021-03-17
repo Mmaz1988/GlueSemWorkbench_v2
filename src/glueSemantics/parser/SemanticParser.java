@@ -17,7 +17,7 @@ public class SemanticParser extends StringParser {
     private int bracketCounter = 0;
     private int pos = 0;
     private HashMap<Integer, List<SemAtom>> variableBindings = new HashMap<>();
-    private List<Integer> specialChars = Arrays.asList(46,47,91,93,40,41,123,125,44,95,60,62);
+    private List<Integer> specialChars = Arrays.asList(46,47,91,93,40,41,123,125,44,95,60,62,32);
 
     public SemanticParser()
     {
