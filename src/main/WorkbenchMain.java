@@ -45,7 +45,7 @@ public class WorkbenchMain {
 
     public static void main(String[] args) {
         settings = new Settings();
-        
+
 
         /*
         ConsoleHandler handler = new ConsoleHandler();
@@ -162,7 +162,7 @@ public class WorkbenchMain {
                                             Premise solution = solutions.get(key).get(i);
                                             if (settings.getSemanticOutputStyle() == 1) {
                                                 w.append("solution" + "(" + key.toString() + i + ",");
-                                                w.append(solution.toString());
+                                                w.append(solution.getSemTerm().toString());
                                                 w.append(").");
                                                 w.append(System.lineSeparator());
                                             } else {
