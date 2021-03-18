@@ -13,12 +13,10 @@ import glueSemantics.parser.GlueParser;
 import glueSemantics.parser.ParserInputException;
 import glueSemantics.parser.SemanticParser;
 import glueSemantics.semantics.LexicalEntry;
-import org.jgrapht.graph.IntrusiveEdgesSpecifics;
 import prover.*;
 import utilities.LexicalParserException;
 import utilities.MyFormatter;
 
-import javax.naming.MalformedLinkException;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.BufferedWriter;
@@ -29,7 +27,9 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.logging.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.StreamHandler;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,6 +45,8 @@ public class WorkbenchMain {
 
     public static void main(String[] args) {
         settings = new Settings();
+
+        System.out.println("Test"); 
 
         /*
         ConsoleHandler handler = new ConsoleHandler();
@@ -338,7 +340,7 @@ public class WorkbenchMain {
          StringBuilder resultBuilder = new StringBuilder();
             for (Premise sol : result) {
 
-                if (solutions.keySet().contains(key))
+                if (solutions.containsKey(key))
                 {
                     solutions.get(key).add(sol);
                 }
