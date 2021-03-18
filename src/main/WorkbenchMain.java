@@ -45,8 +45,7 @@ public class WorkbenchMain {
 
     public static void main(String[] args) {
         settings = new Settings();
-
-        System.out.println("Test"); 
+        
 
         /*
         ConsoleHandler handler = new ConsoleHandler();
