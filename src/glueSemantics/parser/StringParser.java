@@ -10,8 +10,6 @@ public class StringParser {
 
     public SemType typeParser(String input, int i)
     {
-
-
         {
             while(i < input.length())
             {
