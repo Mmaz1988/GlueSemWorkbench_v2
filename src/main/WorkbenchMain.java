@@ -157,6 +157,8 @@ public class WorkbenchMain {
 
                                 if (outFile.exists()) {
                                     BufferedWriter w = new BufferedWriter(new FileWriter(outFile, true));
+                                    if (!solutions.keySet().isEmpty())
+                                    {
                                     for (Integer key : solutions.keySet()) {
                                         for (int i = 0; i < solutions.get(key).size(); i++) {
                                             Premise solution = solutions.get(key).get(i);
@@ -171,6 +173,11 @@ public class WorkbenchMain {
                                             }
                                         }
                                     }
+                                    } else
+                                    {
+                                        LOGGER.info("No solutions found for given input.");
+                                    }
+
                                     if (!settings.getSolutionOnly()) {
                                         w.append(System.lineSeparator());
                                         w.append("Proof:");
@@ -353,10 +360,14 @@ public class WorkbenchMain {
 
                 StringBuilder solutionBuilder = new StringBuilder();
                 solutionBuilder.append(String.format("Found the following solutions for proof with id S%d:\n",key));
-                for (Premise p : solutions.get(key))
+                if (solutions.containsKey(key)) {
+                    for (Premise p : solutions.get(key)) {
+                        solutionBuilder.append(p.toString());
+                        solutionBuilder.append(System.lineSeparator());
+                    }
+                } else
                 {
-                    solutionBuilder.append(p.toString());
-                    solutionBuilder.append(System.lineSeparator());
+                    solutionBuilder.append("None!");
                 }
 
                 LOGGER.info(solutionBuilder.toString());

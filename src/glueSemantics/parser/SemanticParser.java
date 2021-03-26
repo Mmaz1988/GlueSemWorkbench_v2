@@ -15,6 +15,7 @@ import java.util.List;
 public class SemanticParser extends StringParser {
 
     private int bracketCounter = 0;
+    private int parenthesisCounter = 0;
     private int pos = 0;
     private HashMap<Integer, List<SemAtom>> variableBindings = new HashMap<>();
     private List<Integer> specialChars = Arrays.asList(46, 47, 91, 93, 40, 41, 123, 125, 44, 95, 60, 62, 32, 38);
@@ -38,6 +39,7 @@ public class SemanticParser extends StringParser {
         //   SemanticRepresentation p = parseExpression("[/T_<s,<s,t>>.[/P_<s,t>.[/t_s.Et1_s[T(t)(t1) & P(t1)]]]]");
         // SemanticRepresentation p = parseExpression("[/P_<v,t>.[/s_s.exemplify(s,Ee_v[P(e)])]]");
         //  SemanticRepresentation p = parseExpression("[/x_e.[/y_e.lubić(x,y)]]");
+        // SemanticRepresentation p = parseExpression( "[/P_<e,t>.[/Q_<e,t>.Ex_v[P(x) -> Q(x))]]]");
 
 
         List<String> testFormulas = new ArrayList<>();
@@ -59,6 +61,9 @@ public class SemanticParser extends StringParser {
         testFormulas.add("[/P_t.[/Q_t.(P & Q)]]");
         testFormulas.add("[/R_<v,t>.[Ez_v.R(z)]] ");
         testFormulas.add("[/R_<v,t>.[Ez_v.(R(z) & sleep(x))]] ");
+        testFormulas.add("[/P_t.[/Q_t.(P&Q)]]");
+        testFormulas.add("(/P_<e,t>.(/Q_<e,t>.Ex_v(P(x) -> Q(x)))))");
+        testFormulas.add("(/P_e.(/x_e.(/y_e.sleep(c(a(x),b(y),P(x),a(x,y))))))");
 
         Settings s = new Settings();
         s.setSemanticOutputStyle(0);
@@ -125,7 +130,7 @@ public class SemanticParser extends StringParser {
                 return semBinder;
                 //         if((c >= 97 && c <= 122) || (c >= 48 && c <= 57) || (c >= 66 && c <= 90)) {
             }
-            if (c == '[') {
+            if (c == '[' || c == '(') {
                 bracketCounter++;
                 SemanticRepresentation left = parseExpression(input);
                 while (input.charAt(pos) == ' ') {
@@ -173,11 +178,26 @@ public class SemanticParser extends StringParser {
                     return left;
                 }
             }
+
+            /*
             if (c == '(') {
-                bracketCounter++;
+                parenthesisCounter++;
                 SemanticRepresentation left = parseExpression(input);
-                pos++;
-                if (left instanceof FuncApp || left instanceof SemPred || left instanceof SemAtom) {
+                while (input.charAt(pos) == ' ') {
+                    pos++;
+                }
+                c = input.charAt(pos);
+                if (c == ')') {
+                    return left;
+                }
+                if (c =='.') {
+                    pos++;
+                    SemanticRepresentation right = parseExpression(input);
+                    pos++;
+                    parenthesisCounter = parenthesisCounter - 1;
+                    return new SemFunction((SemAtom) left, right);
+                }
+                  else if (left instanceof FuncApp || left instanceof SemPred || left instanceof SemAtom) {
                     while (input.charAt(pos) == ' ') {
                         pos++;
                     }
@@ -186,19 +206,21 @@ public class SemanticParser extends StringParser {
                         pos++;
                         SemanticRepresentation right = parseExpression(input);
                         pos++;
+                        parenthesisCounter = parenthesisCounter - 1;
                         return new BinaryTerm(left, BinaryTerm.SemOperator.AND, right);
                     } else if (c == 'v') {
                         pos++;
                         SemanticRepresentation right = parseExpression(input);
                         pos++;
                         pos++;
+                        parenthesisCounter = parenthesisCounter - 1;
                         return new BinaryTerm(left, BinaryTerm.SemOperator.OR, right);
                     } else if (c == '-' & input.charAt(pos + 1) == '>') {
                         pos = pos + 2;
                         SemanticRepresentation right = parseExpression(input);
                         pos++;
                         pos++;
-                        bracketCounter = bracketCounter - 1;
+                        parenthesisCounter = parenthesisCounter - 1;
                         return new BinaryTerm(left, BinaryTerm.SemOperator.IMP, right);
                     }
                 }
@@ -207,6 +229,8 @@ public class SemanticParser extends StringParser {
                     return left;
                 }
             }
+
+             */
             if (c == '{') {
                 SemanticRepresentation first = parseExpression(input);
                 c = input.charAt(pos);
@@ -220,10 +244,11 @@ public class SemanticParser extends StringParser {
                 }
                 return new SemSet(semSetList, first.getType());
             }
-            if (c == ']') {
+            if (c == ']' || c == ')') {
                 pos++;
                 bracketCounter = bracketCounter - 1;
             }
+
             if (!specialChars.contains((int) c)) {
                 StringBuilder sb = new StringBuilder();
                 //or sequence of letters
@@ -332,6 +357,7 @@ public class SemanticParser extends StringParser {
                                 t = typeParser("" + c, 0);
                                 }
                             SemAtom newVar = new SemAtom(SemAtom.SemSort.VAR, varIdentifier, t);
+
                             if (!variableBindings.containsKey(bracketCounter))
                             {
                                 variableBindings.put(bracketCounter, new ArrayList<SemAtom>());
@@ -368,5 +394,6 @@ public class SemanticParser extends StringParser {
     public void resetParser() {
         pos = 0;
         bracketCounter = 0;
+        variableBindings = new HashMap<>();
     }
 }

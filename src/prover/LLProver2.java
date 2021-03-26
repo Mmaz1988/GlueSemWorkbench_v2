@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class LLProver2 extends LLProver{
 
@@ -205,9 +206,7 @@ public class LLProver2 extends LLProver{
                                 }
                             }
                         }
-
                     }
-
                 }
                 updateSolutions(p);
                 adjustChart(p);
@@ -215,6 +214,27 @@ public class LLProver2 extends LLProver{
 
         }
 
+        List<Premise> partialSolutions = new ArrayList<>();
+        if (getSolutions().isEmpty())
+        {
+         for (String key : nonAtomicChart.keySet())
+         {
+             List<Premise> usedNodes = nonAtomicChart.get(key).stream().filter(n -> n.getPremiseIDs().size() > 1).collect(Collectors.toList());
+             partialSolutions.addAll(usedNodes);
+
+         }
+            for (String key : atomicChart.keySet())
+            {
+                List<Premise> usedNodes = atomicChart.get(key).stream().filter(n -> n.getPremiseIDs().size() > 1).collect(Collectors.toList());
+                partialSolutions.addAll(usedNodes);
+            }
+        }
+
+        partialSolutions.sort(Comparator.comparingInt(o -> o.getPremiseIDs().size()));
+
+        StringBuilder analysisBuilder = new StringBuilder();
+
+        System.out.println(partialSolutions);
 
         long endTime = System.nanoTime();
 
@@ -663,18 +683,10 @@ public class LLProver2 extends LLProver{
 
                 LLFormula newLogic = new LLFormula(f.getLhs(), tempList.getFirst().getGlueTerm(),
                         tempList.getFirst().getGlueTerm().isPolarity(), f.getVariable());
-
                 p.setGlueTerm(newLogic);
-
-
             }
-
         }
-
-
         compiled.add(p);
-
-
         return compiled;
     }
 
@@ -686,11 +698,9 @@ public class LLProver2 extends LLProver{
      */
     private static boolean checkDuplicateBinding(LinkedHashSet<Equality> in) {
         List<Equality> eqs = new ArrayList<>(in);
-
         // no multiple assignments possible
         if (eqs.size() <= 1)
             return false;
-
         for (int i = 0; i < eqs.size(); i++)
         {
             for (int j = 0; j <eqs.size(); j++)
@@ -705,19 +715,12 @@ public class LLProver2 extends LLProver{
         }
         return false;
     }
-
-
-
-
     public boolean isVar(String in)
     {
         Pattern p = Pattern.compile("(\\p{Lu}+).*_.+");
         Matcher pm = p.matcher(in);
-
         return pm.find();
-
     }
-
 
     public void updateSolutions(Premise p)
     {
@@ -727,8 +730,7 @@ public class LLProver2 extends LLProver{
         }
     }
 
-
-
+    /*
     public void updateVariableDependencies(List<Premise> compiled)
     {
         for (Premise premise : compiled)
@@ -740,7 +742,6 @@ public class LLProver2 extends LLProver{
                 {
 
                 }
-
             }
         }
     }
@@ -752,7 +753,7 @@ public class LLProver2 extends LLProver{
     public void setOutputFileBuilder(StringBuilder outputFileBuilder) {
         this.outputFileBuilder = outputFileBuilder;
     }
-
+*/
 }
 
 

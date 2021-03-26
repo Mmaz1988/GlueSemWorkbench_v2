@@ -41,6 +41,7 @@ public class Premise {
     private SemanticRepresentation originalSemTerm;
     private Object func;
     private Object arg;
+    public boolean used;
 
     public HashSet<Integer> getPremiseIDs() {
         return premiseIDs;
@@ -65,6 +66,7 @@ public class Premise {
         this.premiseIDs = premiseIDs;
         this.glueTerm = llterm;
         this.glueTerm.setPolarity(true);
+        this.used = false;
     }
 
     public Premise(HashSet<Integer> premiseIDs, SemanticRepresentation semTerm, LLTerm glueTerm) {
@@ -72,6 +74,7 @@ public class Premise {
         this.glueTerm = glueTerm;
         this.semTerm = semTerm;
         this.originalSemTerm = semTerm.clone();
+        this.used = false;
     }
 
     public Premise(HashSet<Integer> premiseIDs, SemanticRepresentation semTerm, SemanticRepresentation originalSemTerm, LLTerm glueTerm) {
@@ -79,6 +82,7 @@ public class Premise {
         this.glueTerm = glueTerm;
         this.semTerm = semTerm;
         this.originalSemTerm = originalSemTerm;
+        this.used = false;
     }
 
     //For work with Lexicon
@@ -87,6 +91,7 @@ public class Premise {
         this.glueTerm = lexEn.getLlTerm();
         this.semTerm = lexEn.getSem();
         this.originalSemTerm = semTerm.clone();
+        this.used = false;
     }
 
 
