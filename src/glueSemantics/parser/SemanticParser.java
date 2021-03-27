@@ -249,6 +249,8 @@ public class SemanticParser extends StringParser {
                 bracketCounter = bracketCounter - 1;
             }
 
+           // SemanticRepresentation first = null;
+
             if (!specialChars.contains((int) c)) {
                 StringBuilder sb = new StringBuilder();
                 //or sequence of letters
