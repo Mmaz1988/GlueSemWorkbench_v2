@@ -2,6 +2,7 @@ package glueSemantics.parser;
 
 import glueSemantics.semantics.SemanticRepresentation;
 import glueSemantics.semantics.lambda.*;
+import glueSemantics.semantics.lambda.SemType.AtomicType;
 import main.Settings;
 import prover.LLProver1;
 import utilities.LexVariableHandler;
@@ -114,9 +115,9 @@ public class SemanticParser extends StringParser {
                     //         bracketCounter = bracketCounter - 1;
                     SemanticRepresentation scope = parseExpression(input);
                     if (c == 'E') {
-                        return new SemQuantEx(SemQuantEx.SemQuant.EX, (SemAtom) semBinder, scope, new SemType(SemType.AtomicType.T));
+                        return new SemQuantEx(SemQuantEx.SemQuant.EX, (SemAtom) semBinder, scope, new SemType(AtomicType.T));
                     } else if (c == 'A') {
-                        return new SemQuantEx(SemQuantEx.SemQuant.UNI, (SemAtom) semBinder, scope, new SemType(SemType.AtomicType.T));
+                        return new SemQuantEx(SemQuantEx.SemQuant.UNI, (SemAtom) semBinder, scope, new SemType(AtomicType.T));
                     } else if (c == 'I') {
                         return new SemQuantEx(SemQuantEx.SemQuant.DEF, (SemAtom) semBinder, scope, semBinder.getType());
                     }
@@ -365,13 +366,40 @@ public class SemanticParser extends StringParser {
                                 variableBindings.put(bracketCounter, new ArrayList<SemAtom>());
                             }
                             variableBindings.get(bracketCounter).add(newVar);
-                            if (newVar.getType().getLeft() == null)
+                            if (newVar.getType().getLeft() == null && newVar.getType().getSimple() != null)
                             {
-                                if (newVar.getType().toString().equals("e"))
-                                {
-                                    LexVariableHandler.getUsedVariables().
+
+                                switch(newVar.getType().getSimple()) {
+                                    case E:
+                                            LexVariableHandler.getUsedVariables().
                                             get(LexVariableHandler.variableType.SemVarE).add(newVar.getName());
+                                            break;
+                                    case V:
+                                        LexVariableHandler.getUsedVariables().
+                                                get(LexVariableHandler.variableType.SemVarV).add(newVar.getName());
+                                        break;
+                                    case S:
+                                        LexVariableHandler.getUsedVariables().
+                                                get(LexVariableHandler.variableType.SemVarS).add(newVar.getName());
+                                        break;
+                                    case I:
+                                        LexVariableHandler.getUsedVariables().
+                                                get(LexVariableHandler.variableType.SemVarI).add(newVar.getName());
+                                        break;
+                                    case T:
+                                        LexVariableHandler.getUsedVariables().
+                                                get(LexVariableHandler.variableType.SemVar).add(newVar.getName());
+                                        break;
+                                    case TEMP:
+                                        LexVariableHandler.getUsedVariables().
+                                                get(LexVariableHandler.variableType.SemVar).add(newVar.getName());
+                                        break;
                                 }
+
+                            }  else
+                            {
+                                LexVariableHandler.getUsedVariables().
+                                        get(LexVariableHandler.variableType.SemVarComp).add(newVar.getName());
                             }
                             return newVar;
                         }
@@ -383,7 +411,7 @@ public class SemanticParser extends StringParser {
                     }
                     if (!(semRep instanceof SemAtom))
                     {
-                        semRep = new SemAtom(SemAtom.SemSort.CONST, varIdentifier, SemType.AtomicType.TEMP);
+                        semRep = new SemAtom(SemAtom.SemSort.CONST, varIdentifier, AtomicType.TEMP);
                     }
                     return (SemanticRepresentation) semRep;
                 }

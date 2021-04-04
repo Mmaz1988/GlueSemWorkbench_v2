@@ -289,7 +289,33 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
             {
                 if (!(var1 == var2) && var1.getName().equals(var2.getName()))
                 {
-                    var2.setName(LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVarE));
+                    if (var2.getType().getLeft() == null && var2.getType().getSimple() != null)
+                    {
+                        switch(var2.getType().getSimple()) {
+                            case E:
+                                var2.setName(LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVarE));
+                                break;
+                            case V:
+                                var2.setName(LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVarV));
+                                break;
+                            case S:
+                                var2.setName(LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVarS));
+                                break;
+                            case I:
+                                var2.setName(LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVarI));
+                                break;
+                            case T:
+                                var2.setName(LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVar));
+                                break;
+                            case TEMP:
+                                var2.setName(LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVar));
+                                break;
+                        }
+
+                    }  else
+                    {
+                        var2.setName(LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVarComp));
+                    }
                 }
             }
         }
