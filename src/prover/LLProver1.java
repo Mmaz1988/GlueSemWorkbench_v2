@@ -169,7 +169,7 @@ public class LLProver1 extends LLProver {
 
                     List<CGNode> parents = new ArrayList<>();
                     for (Object edge : categoryGraph2.incomingEdgesOf(node)) {
-                        CGNode parentNode = (CGNode) categoryGraph2.getEdgeSource((DefaultEdge) edge);
+                        CGNode parentNode = categoryGraph2.getEdgeSource((DefaultEdge) edge);
                         parents.add(parentNode);
                     }
                     CGNode arg;
@@ -231,7 +231,7 @@ public class LLProver1 extends LLProver {
                         for (Object edge : categoryGraph2.outgoingEdgesOf((CGNode) node))
                         {
                             if (!(sccKey.vertexSet().contains(categoryGraph2.getEdgeTarget((DefaultEdge) edge)))
-                            && ((CGNode) categoryGraph2.getEdgeTarget((DefaultEdge) edge)).nodeType.equals(CGNode.type.CONNECTOR) )
+                            && categoryGraph2.getEdgeTarget((DefaultEdge) edge).nodeType.equals(CGNode.type.CONNECTOR) )
                             {
                                 outputNodes.add((CGNode) node);
                                 break;
@@ -793,7 +793,7 @@ public class LLProver1 extends LLProver {
                 p.setGlueTerm(newLogic);
             }
         }
-        compiled.add(p);
+        compiled.addFirst(p);
         return compiled;
     }
 
