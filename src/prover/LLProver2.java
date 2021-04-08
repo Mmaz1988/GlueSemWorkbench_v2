@@ -686,7 +686,7 @@ public class LLProver2 extends LLProver{
                 p.setGlueTerm(newLogic);
             }
         }
-        compiled.add(p);
+        compiled.addFirst(p);
         return compiled;
     }
 
