@@ -44,6 +44,7 @@ public class SemanticParser extends StringParser {
 
 
         List<String> testFormulas = new ArrayList<>();
+
         testFormulas.add("[/P_<e,t>.[/x_e.[/y_e.P(x)(y)]]]");
         testFormulas.add("[/x_e.[/y_e.sleep(a(x,y),b(y,x))]]");
         testFormulas.add("[/x_e.[/y_e.sleep(a(x),b(y))]]");
@@ -65,6 +66,7 @@ public class SemanticParser extends StringParser {
         testFormulas.add("[/P_t.[/Q_t.(P&Q)]]");
         testFormulas.add("(/P_<e,t>.(/Q_<e,t>.Ex_v(P(x) -> Q(x)))))");
         testFormulas.add("(/P_e.(/x_e.(/y_e.sleep(c(a(x),b(y),P(x),a(x,y))))))");
+        testFormulas.add("[/P_<<v,t>,t>.[/Q_<<v,t>,t>.[/Z_<v,t>.[P(Z)&Q(Z)]]]]");
 
         Settings s = new Settings();
         s.setSemanticOutputStyle(0);
@@ -352,12 +354,12 @@ public class SemanticParser extends StringParser {
                                     }
                                     pos++;
                                 }
-                                t = typeParser(sb1.toString(), 0);
+                                t = callParser(sb1.toString());
                             }
                             else
                                 {
                                 pos++;
-                                t = typeParser("" + c, 0);
+                                t = callParser("" + c);
                                 }
                             SemAtom newVar = new SemAtom(SemAtom.SemSort.VAR, varIdentifier, t);
 

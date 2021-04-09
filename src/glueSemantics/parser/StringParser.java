@@ -5,15 +5,23 @@ import glueSemantics.semantics.lambda.SemType;
 public class StringParser {
 
 
+    private int pos = 0;
+
     public StringParser()
     {}
 
-    public SemType typeParser(String input, int i)
+    public SemType callParser(String input)
+    {
+        pos = 0;
+        return typeParser(input);
+    }
+
+    public SemType typeParser(String input)
     {
         {
-            while(i < input.length())
+            while(pos < input.length())
             {
-                char c = input.charAt(i);
+                char c = input.charAt(pos);
                 if (c == 'e')
                 {
                     return  new SemType(SemType.AtomicType.E);
@@ -43,13 +51,13 @@ public class StringParser {
 
                 if (c == '<')
                 {
-                    i++;
-                    SemType left = typeParser(input,i);
-                    i++;
-                    SemType right = typeParser(input,i);
+                    pos++;
+                    SemType left = typeParser(input);
+                    pos++;
+                    SemType right = typeParser(input);
                     return new SemType(left,right);
                 }
-                i++;
+                pos++;
             }
         }
 

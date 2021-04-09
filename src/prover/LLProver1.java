@@ -507,7 +507,16 @@ public class LLProver1 extends LLProver {
 
             if (((LLFormula) func.getGlueTerm()).getLhs().getOrderedDischarges().isEmpty()) {
 
-                SemanticRepresentation reducedSem = combine(func,argumentClone).betaReduce();
+                SemanticRepresentation reducedSem = null;
+
+                try {
+                reducedSem = combine(func, argumentClone).betaReduce();
+                } catch(Exception e)
+                {
+                    getLOGGER().warning("Failed to combine functor: " + func.toString() + " and argument: " +
+                            argumentClone.toString());
+                    return null;
+                }
 
                 LLTerm newTerm = ((LLFormula) func.getGlueTerm()).getRhs();
                 if (func.getGlueTerm().getVariable() != null) {
@@ -587,7 +596,15 @@ public class LLProver1 extends LLProver {
                        }
                     argumentClone = new Premise(argument.getPremiseIDs(),temp,argumentGlueClone);
 
-                    SemanticRepresentation reducedSem = combine(func,argumentClone).betaReduce();
+                    SemanticRepresentation reducedSem = null;
+                    try {
+                        reducedSem = combine(func, argumentClone).betaReduce();
+                    } catch(Exception e)
+                    {
+                        getLOGGER().warning("Failed to combine functor: " + func.toString() + " and argument: " +
+                                argumentClone.toString());
+                        return null;
+                    }
 
                     LLTerm newTerm = ((LLFormula) func.getGlueTerm()).getRhs();
                     if (func.getGlueTerm().getVariable() != null) {
