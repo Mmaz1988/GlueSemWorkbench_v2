@@ -76,7 +76,7 @@ public class LinearLogicParser {
 
         if (pos < input.length() - 1)
         {
-            getLOGGER().warning("Didn't parse all off linear logic formula:\n" + input +
+            getLOGGER().warning("Didn't parse all of linear logic formula:\n" + input +
                     "\nParsing stopped at position [" + pos + "/" + input.length() + "]\n" +
                     "Parse result: " + result.toString());
         }

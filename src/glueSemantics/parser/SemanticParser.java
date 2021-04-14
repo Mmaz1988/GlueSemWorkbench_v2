@@ -117,7 +117,7 @@ public class SemanticParser extends StringParser {
         SemanticRepresentation sr = parseExpression(input);
         if (pos < input.length() - 1)
         {
-            getLOGGER().warning("Didn't parse all off semantic representation:\n" + input +
+            getLOGGER().warning("Didn't parse all of semantic representation:\n" + input +
                     "\nParsing stopped at position [" + pos + "/" + input.length() + "]\n" +
                     "Parse result: " + sr.toString());
         }
