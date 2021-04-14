@@ -17,11 +17,11 @@
 
 package glueSemantics.semantics.lambda;
 
+import glueSemantics.parser.SemanticParser;
 import glueSemantics.semantics.FunctionalApplication;
 import glueSemantics.semantics.MeaningRepresentation;
 import glueSemantics.semantics.SemanticRepresentation;
 import main.Settings;
-import prover.LLProver1;
 import prover.ProverException;
 import utilities.LexVariableHandler;
 
@@ -253,7 +253,7 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
 
     @Override
     public String toString() {
-        if (LLProver1.getSettings().getSemanticOutputStyle() == Settings.PROLOG)
+        if (SemanticParser.settings.getSemanticOutputStyle() == Settings.PROLOG)
             return String.format("app(%s,%s)",functor.toString(),argument.toString());
         else
             return functor.toString() + "(" + argument.toString() + ")";

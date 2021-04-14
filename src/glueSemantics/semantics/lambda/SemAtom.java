@@ -18,11 +18,13 @@
 package glueSemantics.semantics.lambda;
 
 
+import glueSemantics.parser.SemanticParser;
 import glueSemantics.semantics.SemanticRepresentation;
 import main.Settings;
-import prover.LLProver1;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 public class SemAtom extends SemanticExpression {
     private String name;
@@ -108,7 +110,7 @@ public class SemAtom extends SemanticExpression {
     @Override
     public String toString()
     {
-        if (LLProver1.getSettings().getSemanticOutputStyle() == Settings.PROLOG) {
+        if (SemanticParser.settings.getSemanticOutputStyle() == Settings.PROLOG) {
             if (getSort() == SemSort.VAR) {
                 return name.toUpperCase();
             }

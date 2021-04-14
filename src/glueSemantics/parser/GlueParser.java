@@ -42,11 +42,7 @@ public class GlueParser {
 
     public GlueParser(Boolean parseSemantics)
     {
-        if (parseSemantics)
-            this.PARSESEMANTCS = true;
-        else{
-            this.PARSESEMANTCS = false;
-        }
+        this.PARSESEMANTCS = parseSemantics;
     }
 
     public LexicalEntry parseMeaningConstructor(String mc) throws ParserInputException {
@@ -56,7 +52,7 @@ public class GlueParser {
                     "Meaning side and glue side need to be separated with a ':'");
         }
         LexicalEntry entry = new LexicalEntry();
-        LLTerm glue = llparser.parse(mcList[1]);
+        LLTerm glue = llparser.callParser(mcList[1].trim());
         SemanticRepresentation sem = null;
         if (!PARSESEMANTCS) {
             sem = new MeaningRepresentation(mcList[0].trim());
@@ -64,7 +60,7 @@ public class GlueParser {
             //((MeaningRepresentation) sem).setType(glue.getType());
         } else
         {
-           sem = semParser.parse(mcList[0]);
+           sem = semParser.parse(mcList[0].trim());
 
         }
 

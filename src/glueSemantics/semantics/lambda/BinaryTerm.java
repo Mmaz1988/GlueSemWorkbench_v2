@@ -17,8 +17,8 @@
 
 package glueSemantics.semantics.lambda;
 
+import glueSemantics.parser.SemanticParser;
 import glueSemantics.semantics.SemanticRepresentation;
-import prover.LLProver1;
 import prover.ProverException;
 
 import java.util.HashSet;
@@ -95,25 +95,25 @@ public class BinaryTerm extends SemanticExpression {
     }
 
     public enum SemOperator {
-        AND, OR, IMP;
+        AND, OR, IMP
     }
 
     @Override
     public String toString() {
         if (operator == AND)
-            if(LLProver1.getSettings().getSemanticOutputStyle() == PROLOG)
+            if(SemanticParser.settings.getSemanticOutputStyle() == PROLOG)
                 return String.format("and(%s,%s)",left.toString(),right.toString());
             else
-                return left.toString() + " " + String.valueOf('\u2227') + " " + right.toString();
+                return left.toString() + " " + '\u2227' + " " + right.toString();
         else if (operator == IMP)
-            if(LLProver1.getSettings().getSemanticOutputStyle() == PROLOG)
+            if(SemanticParser.settings.getSemanticOutputStyle() == PROLOG)
                 return String.format("imp(%s,%s)",left.toString(),right.toString());
             else
-                return left.toString() + " " + String.valueOf('\u2192') + " " + right.toString();
+                return left.toString() + " " + '\u2192' + " " + right.toString();
         else
-        if(LLProver1.getSettings().getSemanticOutputStyle() == PROLOG)
+        if(SemanticParser.settings.getSemanticOutputStyle() == PROLOG)
             return String.format("or(%s,%s)",left.toString(),right.toString());
         else
-            return left.toString() + " " + String.valueOf('\u2228') + " " + right.toString();
+            return left.toString() + " " + '\u2228' + " " + right.toString();
     }
 }

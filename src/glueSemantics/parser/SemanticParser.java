@@ -4,28 +4,45 @@ import glueSemantics.semantics.SemanticRepresentation;
 import glueSemantics.semantics.lambda.*;
 import glueSemantics.semantics.lambda.SemType.AtomicType;
 import main.Settings;
+import main.WorkbenchMain;
+import org.junit.jupiter.api.Test;
 import prover.LLProver1;
 import utilities.LexVariableHandler;
-import org.junit.jupiter.api.Test;
+import utilities.MyFormatter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.StreamHandler;
+
+import static prover.LLProver.getLOGGER;
 
 public class SemanticParser extends StringParser {
 
+    public static Settings settings = new Settings();
     private int bracketCounter = 0;
-    private int parenthesisCounter = 0;
     private int pos = 0;
     private HashMap<Integer, List<SemAtom>> variableBindings = new HashMap<>();
     private List<Integer> specialChars = Arrays.asList(46, 47, 91, 93, 40, 41, 123, 125, 44, 95, 60, 62, 32, 38);
+    private final static Logger LOGGER = Logger.getLogger(WorkbenchMain.class.getName());
+
 
     public SemanticParser() {
+
     }
 
     @Test
     void testParseExpression() {
+
+        LOGGER.setUseParentHandlers(false);
+        StreamHandler handler = new StreamHandler(System.out, new MyFormatter());
+        //   handler.setFormatter(new MyFormatter());
+        handler.setLevel(Level.FINE);
+        LOGGER.addHandler(handler);
+
         //  SemanticRepresentation s = parseExpression( "[/P_<e,t>.[/x_e.[/y_e.P(x)(y)]]]");
         //   SemanticRepresentation p = parseExpression( "[/x_e.[/y_e.sleep(a(x,y),b(y,x))]]");
         // SemanticRepresentation p = parseExpression( "[/x_e.[/y_e.sleep(a(x),b(y))]]");
@@ -45,6 +62,7 @@ public class SemanticParser extends StringParser {
 
         List<String> testFormulas = new ArrayList<>();
 
+
         testFormulas.add("[/P_<e,t>.[/x_e.[/y_e.P(x)(y)]]]");
         testFormulas.add("[/x_e.[/y_e.sleep(a(x,y),b(y,x))]]");
         testFormulas.add("[/x_e.[/y_e.sleep(a(x),b(y))]]");
@@ -61,7 +79,7 @@ public class SemanticParser extends StringParser {
         testFormulas.add("[/P_<v,t>.[/s_s.exemplify(s,Ee_v[P(e)])]]");
         testFormulas.add("[/x_e.[/y_e.lubić(x,y)]]");
         testFormulas.add("[/P_t.[/Q_t.(P & Q)]]");
-        testFormulas.add("[/R_<v,t>.[Ez_v.R(z)]] ");
+        testFormulas.add("[/R_<v,t>.[Ez_v.R(z)]]");
         testFormulas.add("[/R_<v,t>.[Ez_v.(R(z) & sleep(x))]] ");
         testFormulas.add("[/P_t.[/Q_t.(P&Q)]]");
         testFormulas.add("(/P_<e,t>.(/Q_<e,t>.Ex_v(P(x) -> Q(x)))))");
@@ -74,9 +92,9 @@ public class SemanticParser extends StringParser {
 
         for (String p : testFormulas)
         {
-            SemanticRepresentation pp = parseExpression(p);
-            System.out.println("Input: " + p);
-            System.out.println("Output: " + pp.toString());
+            SemanticRepresentation pp = parse(p);
+            getLOGGER().info("Input: " + p);
+            getLOGGER().info("Output: " + pp.toString());
             resetParser();
         }
         System.out.println("Done");
@@ -85,15 +103,21 @@ public class SemanticParser extends StringParser {
     public void testParseExpression2(String test) {
         LLProver1 prover = new LLProver1(new Settings());
         SemanticRepresentation p = parseExpression(test);
-        System.out.println("Input: " + test);
-        System.out.println("Output: " + p.toString());
+        getLOGGER().info("Input: " + test);
+        getLOGGER().info("Output: " + p.toString());
     }
 
     public SemanticRepresentation parse(String input) {
-        SemanticRepresentation sr = parseExpression(input);
         variableBindings = new HashMap<>();
         pos = 0;
         bracketCounter = 0;
+        SemanticRepresentation sr = parseExpression(input);
+        if (pos < input.length())
+        {
+            getLOGGER().warning("Didn't parse all off semantic representation:\n" + input +
+                    "\nParsing stopped at position [" + pos + "/" + input.length() + "]\n" +
+                    "Parse result: " + sr.toString());
+        }
         return sr;
     }
 
@@ -105,6 +129,7 @@ public class SemanticParser extends StringParser {
             char c = input.charAt(pos);
             pos++;
             if (c == 'E' || c == 'A' || c == 'I') {
+                String quant = c + "";
                 //  bracketCounter++;
                 int current = pos;
                 SemanticRepresentation semBinder = null;
@@ -116,11 +141,15 @@ public class SemanticParser extends StringParser {
                 if (semBinder instanceof SemAtom && ((SemAtom) semBinder).getSort().equals(SemAtom.SemSort.VAR)) {
                     //         bracketCounter = bracketCounter - 1;
                     SemanticRepresentation scope = parseExpression(input);
-                    if (c == 'E') {
+                    c = input.charAt(pos);
+                    if (c == ']' || c == ')') {
+                        bracketCounter = bracketCounter - 1;
+                    }
+                    if (quant.equals("E")) {
                         return new SemQuantEx(SemQuantEx.SemQuant.EX, (SemAtom) semBinder, scope, new SemType(AtomicType.T));
-                    } else if (c == 'A') {
+                    } else if (quant.equals("A")) {
                         return new SemQuantEx(SemQuantEx.SemQuant.UNI, (SemAtom) semBinder, scope, new SemType(AtomicType.T));
-                    } else if (c == 'I') {
+                    } else if (quant.equals("I")) {
                         return new SemQuantEx(SemQuantEx.SemQuant.DEF, (SemAtom) semBinder, scope, semBinder.getType());
                     }
                 } else {
@@ -140,9 +169,13 @@ public class SemanticParser extends StringParser {
                     pos++;
                 }
                 c = input.charAt(pos);
-                if (c == ']') {
+
+                while (c == ']' || c == ')') {
+                    bracketCounter = bracketCounter- 1;
+                    pos++;
                     return left;
                 }
+
                 if (c =='.') {
                     pos++;
                     SemanticRepresentation right = parseExpression(input);
@@ -245,7 +278,10 @@ public class SemanticParser extends StringParser {
                     semSetList.add(next);
                     c = input.charAt(pos);
                 }
-                return new SemSet(semSetList, first.getType());
+                if (c == '}') {
+                    pos++;
+                    return new SemSet(semSetList, first.getType());
+                }
             }
             if (c == ']' || c == ')') {
                 pos++;

@@ -37,40 +37,31 @@ public class Settings {
     public static  final int HEPPLE = 0;
     public static final int LEV = 1;
 
-    private boolean betaReduce;
-    private int semanticOutputStyle;
-    private boolean debugging;
-    private boolean partial;
-    private boolean glueOnly;
-    private boolean multipleEntries;
-    private boolean outputFile;
-    private boolean parseSemantics;
-    private Boolean solutionOnly;
-    private Boolean testExpression;
-    private int proverType;
+    private static boolean betaReduce = true;
+    private static int semanticOutputStyle = PLAIN;
+    private static boolean debugging = false;
+    private static boolean partial = false;
+    private static boolean glueOnly = false;
+    private static boolean multipleEntries;
+    private static boolean outputFile;
+    private static boolean parseSemantics = false;
+    private static Boolean solutionOnly = false;
+    private static Boolean testExpression = false;
+    private static int proverType = HEPPLE;
 
     public Settings() {
-        this.betaReduce = true;
-        this.semanticOutputStyle = PLAIN;
-        this.debugging = false;
-        this.partial = false;
-        this.glueOnly = false;
-        this.parseSemantics = false;
-        this.solutionOnly = false;
-        this.testExpression = false;
-        this.proverType = HEPPLE;
     }
 
     public Settings (boolean betaReduce, int semanticOutputStyle) {
-        this.betaReduce = betaReduce;
-        this.semanticOutputStyle = semanticOutputStyle;
-        this.debugging = false;
-        this.partial = false;
-        this.glueOnly = false;
-        this.parseSemantics = false;
-        this.solutionOnly = false;
-        this.testExpression = false;
-        this.proverType = HEPPLE;
+        Settings.betaReduce = betaReduce;
+        Settings.semanticOutputStyle = semanticOutputStyle;
+        debugging = false;
+        partial = false;
+        glueOnly = false;
+        parseSemantics = false;
+        solutionOnly = false;
+        testExpression = false;
+        proverType = HEPPLE;
     }
 
     public boolean isBetaReduce() {
@@ -78,7 +69,7 @@ public class Settings {
     }
 
     public void setBetaReduce(boolean betaReduce) {
-        this.betaReduce = betaReduce;
+        Settings.betaReduce = betaReduce;
     }
 
     public int getSemanticOutputStyle() {
@@ -86,7 +77,7 @@ public class Settings {
     }
 
     public void setSemanticOutputStyle(int semanticOutputStyle) {
-        this.semanticOutputStyle = semanticOutputStyle;
+        Settings.semanticOutputStyle = semanticOutputStyle;
     }
 
     public boolean isDebugging() {
@@ -94,7 +85,7 @@ public class Settings {
     }
 
     public void setDebugging(boolean debugging) {
-        this.debugging = debugging;
+        Settings.debugging = debugging;
     }
 
     public boolean isPartial() {
@@ -102,7 +93,7 @@ public class Settings {
     }
 
     public void setPartial(boolean partial) {
-        this.partial = partial;
+        Settings.partial = partial;
     }
 
     public boolean isGlueOnly() {
@@ -110,7 +101,7 @@ public class Settings {
     }
 
     public void setGlueOnly(boolean glueOnly) {
-        this.glueOnly = glueOnly;
+        Settings.glueOnly = glueOnly;
     }
 
     public boolean isMultipleEntries() {
@@ -118,7 +109,7 @@ public class Settings {
     }
 
     public void setMultipleEntries(boolean multipleEntries) {
-        this.multipleEntries = multipleEntries;
+        Settings.multipleEntries = multipleEntries;
     }
 
     public boolean isOutputFile() {
@@ -126,7 +117,7 @@ public class Settings {
     }
 
     public void setOutputFile(boolean outputFile) {
-        this.outputFile = outputFile;
+        Settings.outputFile = outputFile;
     }
 
     public boolean isParseSemantics() {
@@ -134,7 +125,7 @@ public class Settings {
     }
 
     public void setParseSemantics(boolean parseSemantics) {
-        this.parseSemantics = parseSemantics;
+        Settings.parseSemantics = parseSemantics;
     }
 
 
@@ -143,7 +134,7 @@ public class Settings {
     }
 
     public void setSolutionOnly(Boolean solutionOnly) {
-        this.solutionOnly = solutionOnly;
+        Settings.solutionOnly = solutionOnly;
     }
 
     public Boolean getTestExpression() {
@@ -151,7 +142,7 @@ public class Settings {
     }
 
     public void setTestExpression(Boolean testExpression) {
-        this.testExpression = testExpression;
+        Settings.testExpression = testExpression;
     }
 
     public int getProverType() {
@@ -159,7 +150,7 @@ public class Settings {
     }
 
     public void setProverType(int proverType) {
-        this.proverType = proverType;
+        Settings.proverType = proverType;
     }
 
 
