@@ -32,6 +32,10 @@ public abstract class LexVariableHandler {
         LLatomE,
         SemVar,
         SemVarE,
+        SemVarS,
+        SemVarW,
+        SemVarI,
+        SemVarV,
         SemVarComp,
         SentenceID,
         connectorNode
@@ -64,6 +68,18 @@ Possibly add more types, e.g. SemVarE, SemVarT etc.
         usedVars.put(variableType.SemVarE,
                 new ArrayList<String>());
 
+        usedVars.put(variableType.SemVarS,
+                new ArrayList<String>());
+
+        usedVars.put(variableType.SemVarW,
+                new ArrayList<String>());
+
+        usedVars.put(variableType.SemVarI,
+                new ArrayList<String>());
+
+        usedVars.put(variableType.SemVarV,
+                new ArrayList<String>());
+
         usedVars.put(variableType.SemVarComp,
                 new ArrayList<String>());
 
@@ -90,15 +106,25 @@ Possibly add more types, e.g. SemVarE, SemVarT etc.
                 new ArrayList<String>(Arrays.asList("f")));
         reservedVars.put(variableType.LLatomE,
                 new ArrayList<String>(Arrays.asList("g","h","i","j")));
-
-
         //Variables for Semantics; Entities
         reservedVars.put(variableType.SemVar,
-                new ArrayList<String>(Arrays.asList("s","t","u","v")));
+                new ArrayList<String>(Arrays.asList("u","v")));
 
         //Variables for Semantics; Entities
         reservedVars.put(variableType.SemVarE,
                 new ArrayList<String>(Arrays.asList("x","y","z")));
+
+        reservedVars.put(variableType.SemVarW,
+                new ArrayList<String>(Collections.singletonList("w")));
+
+        reservedVars.put(variableType.SemVarS,
+                new ArrayList<String>(Collections.singletonList("s")));
+
+        reservedVars.put(variableType.SemVarI,
+                new ArrayList<String>(Collections.singletonList("t")));
+
+        reservedVars.put(variableType.SemVarV,
+                new ArrayList<String>(Collections.singletonList("e")));
 
         //Variables for Semantics predicates of complex type
          reservedVars.put(variableType.SemVarComp,

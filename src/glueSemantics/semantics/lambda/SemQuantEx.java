@@ -17,8 +17,8 @@
 
 package glueSemantics.semantics.lambda;
 
+import glueSemantics.parser.SemanticParser;
 import glueSemantics.semantics.SemanticRepresentation;
-import prover.LLProver1;
 import prover.ProverException;
 
 import java.util.HashSet;
@@ -86,20 +86,20 @@ public class SemQuantEx extends SemanticExpression {
     @Override
     public String toString() {
         if (quantifier == UNI) {
-            if (LLProver1.getSettings().getSemanticOutputStyle() == PROLOG)
+            if (SemanticParser.settings.getSemanticOutputStyle() == PROLOG)
                 return String.format("all(%s,%s)", binder.toString(), quantBody.toString());
             else
                 return '\u2200' + binder.toString() + "[" + quantBody.toString() + "]";
         }
         else if (quantifier == EX) {
-            if (LLProver1.getSettings().getSemanticOutputStyle() == PROLOG)
+            if (SemanticParser.settings.getSemanticOutputStyle() == PROLOG)
                 return String.format("some(%s,%s)", binder.toString(), quantBody.toString());
             else
                 return '\u2203' + binder.toString() + "[" + quantBody.toString() + "]";
         }
         else
         {
-            if(LLProver1.getSettings().getSemanticOutputStyle() == PROLOG)
+            if(SemanticParser.settings.getSemanticOutputStyle() == PROLOG)
                 return String.format("the(%s,%s)",binder.toString(),quantBody.toString());
             else
                 return '\u03B9' + binder.toString() + "[" + quantBody.toString() + "]";

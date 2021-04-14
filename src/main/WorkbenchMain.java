@@ -44,9 +44,6 @@ public class WorkbenchMain {
     private final static Logger LOGGER = Logger.getLogger(WorkbenchMain.class.getName());
 
     public static void main(String[] args) {
-        settings = new Settings();
-
-
         /*
         ConsoleHandler handler = new ConsoleHandler();
         handler.setFormatter(new SimpleFormatter());
@@ -123,6 +120,8 @@ public class WorkbenchMain {
 
             if (settings.getSemanticOutputStyle() == 2)
                 outputMode = "json";
+
+
 
             LOGGER.config(String.format("Current settings: automatic beta reduction: %s\t\toutput mode: %s", betaReduce, outputMode));
 
@@ -256,6 +255,8 @@ public class WorkbenchMain {
         Pattern wrapperStart = Pattern.compile("\\t*\\{\\t*");
         Pattern wrapperEnd = Pattern.compile("\\t*\\}\\t*");
 
+        LOGGER.info("Now parsing input premises...");
+
         for (int i = 0; i < formulas.size(); i++) {
             Matcher startMatcher = wrapperStart.matcher(formulas.get(i));
 
@@ -273,6 +274,7 @@ public class WorkbenchMain {
                         break;
                     }
                     try {
+                        LOGGER.finer("Now parsing meaning constructor at position " + i + " in premise list...");
                         currentLexicalEntries.add(parser.parseMeaningConstructor(formulas.get(i)));
                     } catch (ParserInputException e) {
                        LOGGER.warning(String.format("Error: " +
@@ -286,6 +288,7 @@ public class WorkbenchMain {
 
         List<LexicalEntry> singleSet = new ArrayList<>();
         if (lexicalEntries.keySet().isEmpty()) {
+
 
         for (String s : formulas) {
             try {

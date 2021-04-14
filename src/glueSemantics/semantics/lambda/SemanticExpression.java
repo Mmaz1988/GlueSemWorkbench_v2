@@ -23,6 +23,7 @@ import glueSemantics.semantics.SemanticRepresentation;
 public abstract class SemanticExpression implements SemanticRepresentation {
     private SemType type;
 
+
     public SemanticExpression() {
     }
 

@@ -17,11 +17,11 @@
 
 package glueSemantics.semantics.lambda;
 
+import glueSemantics.parser.SemanticParser;
 import glueSemantics.semantics.FunctionalApplication;
 import glueSemantics.semantics.MeaningRepresentation;
 import glueSemantics.semantics.SemanticRepresentation;
 import main.Settings;
-import prover.LLProver1;
 import prover.ProverException;
 import utilities.LexVariableHandler;
 
@@ -253,7 +253,7 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
 
     @Override
     public String toString() {
-        if (LLProver1.getSettings().getSemanticOutputStyle() == Settings.PROLOG)
+        if (SemanticParser.settings.getSemanticOutputStyle() == Settings.PROLOG)
             return String.format("app(%s,%s)",functor.toString(),argument.toString());
         else
             return functor.toString() + "(" + argument.toString() + ")";
@@ -289,7 +289,33 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
             {
                 if (!(var1 == var2) && var1.getName().equals(var2.getName()))
                 {
-                    var2.setName(LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVarE));
+                    if (var2.getType().getLeft() == null && var2.getType().getSimple() != null)
+                    {
+                        switch(var2.getType().getSimple()) {
+                            case E:
+                                var2.setName(LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVarE));
+                                break;
+                            case V:
+                                var2.setName(LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVarV));
+                                break;
+                            case S:
+                                var2.setName(LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVarS));
+                                break;
+                            case I:
+                                var2.setName(LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVarI));
+                                break;
+                            case T:
+                                var2.setName(LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVar));
+                                break;
+                            case TEMP:
+                                var2.setName(LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVar));
+                                break;
+                        }
+
+                    }  else
+                    {
+                        var2.setName(LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVarComp));
+                    }
                 }
             }
         }

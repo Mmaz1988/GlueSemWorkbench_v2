@@ -17,9 +17,9 @@
 
 package glueSemantics.semantics.lambda;
 
+import glueSemantics.parser.SemanticParser;
 import glueSemantics.semantics.FunctionalAbstraction;
 import glueSemantics.semantics.SemanticRepresentation;
-import prover.LLProver1;
 import prover.ProverException;
 
 import java.util.HashSet;
@@ -55,7 +55,6 @@ public class SemFunction extends SemanticExpression implements FunctionalAbstrac
         this.binder = f.binder;
         this.funcBody = f.funcBody.clone();
         this.setType(f.getType());
-      ;
     }
 
     @Override
@@ -78,7 +77,7 @@ public class SemFunction extends SemanticExpression implements FunctionalAbstrac
 
     @Override
     public String toString() {
-        if(LLProver1.getSettings().getSemanticOutputStyle() == PROLOG)
+        if(SemanticParser.settings.getSemanticOutputStyle() == PROLOG)
             return String.format("lam(%s,%s)",binder.toString(),funcBody.toString());
         else
             return "[" + operator + binder.toStringTyped() + "." + funcBody.toString() + "]";

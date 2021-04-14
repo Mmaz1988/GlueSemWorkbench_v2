@@ -22,9 +22,13 @@ import glueSemantics.linearLogic.LLFormula;
 import glueSemantics.linearLogic.LLQuantEx;
 import glueSemantics.linearLogic.LLTerm;
 import glueSemantics.semantics.lambda.SemType;
+import main.WorkbenchMain;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
+
+import static prover.LLProver.getLOGGER;
 
 //Testtest
 public class LinearLogicParser {
@@ -34,7 +38,7 @@ public class LinearLogicParser {
 
     // Handles the position in the recursive function parse(string)
     private int pos;
-
+    private final static Logger LOGGER = Logger.getLogger(WorkbenchMain.class.getName());
 
     public LinearLogicParser(){}
 
@@ -64,6 +68,20 @@ public class LinearLogicParser {
     */
     private void resetParser() {
         this.pos = 0;
+    }
+
+    public LLTerm callParser(String input) throws ParserInputException {
+        pos = 0;
+        LLTerm result = parse(input);
+
+        if (pos < input.length())
+        {
+            getLOGGER().warning("Didn't parse all off linear logic formula:\n" + input +
+                    "\nParsing stopped at position [" + pos + "/" + input.length() + "]\n" +
+                    "Parse result: " + result.toString());
+        }
+
+        return result;
     }
 
 
