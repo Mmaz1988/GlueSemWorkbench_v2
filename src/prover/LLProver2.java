@@ -29,8 +29,6 @@ public class LLProver2 extends LLProver{
 
     private LinkedList<Premise> agenda;
 
-    private HashMap<Premise, List<Premise>> variableDependency = new HashMap<>();
-
     private StringBuilder outputFileBuilder;
 
 
@@ -215,26 +213,23 @@ public class LLProver2 extends LLProver{
         }
 
         List<Premise> partialSolutions = new ArrayList<>();
-        if (getSolutions().isEmpty())
-        {
-         for (String key : nonAtomicChart.keySet())
-         {
-             List<Premise> usedNodes = nonAtomicChart.get(key).stream().filter(n -> n.getPremiseIDs().size() > 1).collect(Collectors.toList());
-             partialSolutions.addAll(usedNodes);
+        if (getSolutions().isEmpty()) {
+            for (String key : nonAtomicChart.keySet()) {
+                List<Premise> usedNodes = nonAtomicChart.get(key).stream().filter(n -> n.getPremiseIDs().size() > 1).collect(Collectors.toList());
+                partialSolutions.addAll(usedNodes);
 
-         }
-            for (String key : atomicChart.keySet())
-            {
+            }
+            for (String key : atomicChart.keySet()) {
                 List<Premise> usedNodes = atomicChart.get(key).stream().filter(n -> n.getPremiseIDs().size() > 1).collect(Collectors.toList());
                 partialSolutions.addAll(usedNodes);
             }
+
+
+            partialSolutions.sort(Comparator.comparingInt(o -> o.getPremiseIDs().size()));
+            StringBuilder analysisBuilder = new StringBuilder();
+
+            //System.out.println(partialSolutions);
         }
-
-        partialSolutions.sort(Comparator.comparingInt(o -> o.getPremiseIDs().size()));
-
-        StringBuilder analysisBuilder = new StringBuilder();
-
-        System.out.println(partialSolutions);
 
         long endTime = System.nanoTime();
 

@@ -29,9 +29,6 @@ public class LLProver1 extends LLProver {
     private HashSet<Integer> goalIDs = new HashSet<>();
     public long startTime;
 
-
-
-
     /**
      * LLProver version 2.0
      * Implements Lev's rather than Hepple's algorithm. Avoids need for accidental binding.
@@ -47,8 +44,6 @@ public class LLProver1 extends LLProver {
         this.proofBuilder = proofBuilder;
         setSettings(settings);
     }
-
-
 
     public void deduce(Sequent seq) throws ProverException, VariableBindingException {
 

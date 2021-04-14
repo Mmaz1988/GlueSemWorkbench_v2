@@ -85,6 +85,9 @@ public class SemanticParser extends StringParser {
         testFormulas.add("(/P_<e,t>.(/Q_<e,t>.Ex_v(P(x) -> Q(x)))))");
         testFormulas.add("(/P_e.(/x_e.(/y_e.sleep(c(a(x),b(y),P(x),a(x,y))))))");
         testFormulas.add("[/P_<<v,t>,t>.[/Q_<<v,t>,t>.[/Z_<v,t>.[P(Z)&Q(Z)]]]]");
+       testFormulas.add("John");
+       testFormulas.add("x_e");
+        testFormulas.add("love(John,and(Jean,Paul))");
 
         Settings s = new Settings();
         s.setSemanticOutputStyle(0);
@@ -112,7 +115,7 @@ public class SemanticParser extends StringParser {
         pos = 0;
         bracketCounter = 0;
         SemanticRepresentation sr = parseExpression(input);
-        if (pos < input.length())
+        if (pos < input.length() - 1)
         {
             getLOGGER().warning("Didn't parse all off semantic representation:\n" + input +
                     "\nParsing stopped at position [" + pos + "/" + input.length() + "]\n" +
@@ -122,7 +125,7 @@ public class SemanticParser extends StringParser {
     }
 
     public SemanticRepresentation parseExpression(String input) {
-        while (pos < input.length()) {
+        while (pos <= input.length()) {
             while (input.charAt(pos) == ' ') {
                 pos++;
             }
@@ -297,13 +300,16 @@ public class SemanticParser extends StringParser {
                     if (pos < input.length()) {
                         sb.append(c);
                         c = input.charAt(pos);
+                        pos++;
                     } else {
                         sb.append(c);
                         break;
                     }
-                    pos++;
+
                 }
-                pos = pos - 1;
+
+                    pos = pos - 1;
+
                 String varIdentifier = sb.toString();
 
                 Object semRep = varIdentifier;
@@ -447,6 +453,7 @@ public class SemanticParser extends StringParser {
                         System.out.println("Could not determine type of variable at " + pos);
                         e.printStackTrace();
                     }
+
                     if (!(semRep instanceof SemAtom))
                     {
                         semRep = new SemAtom(SemAtom.SemSort.CONST, varIdentifier, AtomicType.TEMP);
