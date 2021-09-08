@@ -123,7 +123,10 @@ public class WorkbenchMain {
                 outputMode = "prolog";
 
             if (settings.getSemanticOutputStyle() == 2)
-                outputMode = "nltk";
+                outputMode = "json";
+
+            if (settings.getSemanticOutputStyle() == 3)
+                    outputMode = "nltk";
 
 
 
