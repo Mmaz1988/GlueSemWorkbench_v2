@@ -108,8 +108,12 @@ public class WorkbenchMain {
                         System.exit(0);
                         break;
                     }
+                    case ("-nltk"):
+                    {
+                    	settings.setSemanticOutputStyle(Settings.NLTK);
+                        break;
                     }
-
+                  }
                 }
             String betaReduce = "on", outputMode = "plain";
             if (!settings.isBetaReduce())
@@ -119,7 +123,7 @@ public class WorkbenchMain {
                 outputMode = "prolog";
 
             if (settings.getSemanticOutputStyle() == 2)
-                outputMode = "json";
+                outputMode = "nltk";
 
 
 

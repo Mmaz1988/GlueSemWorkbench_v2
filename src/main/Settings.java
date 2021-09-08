@@ -30,6 +30,7 @@ public class Settings {
  //Outputnodes
     public static final int PLAIN = 0;
     public static final int PROLOG = 1;
+    public static final int NLTK = 3; 
     // TODO implement latex output
     //private final int LATEX = 2;
 
