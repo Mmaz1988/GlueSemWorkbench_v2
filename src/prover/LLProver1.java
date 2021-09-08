@@ -3,6 +3,7 @@ package prover;
 import glueSemantics.linearLogic.*;
 import glueSemantics.semantics.SemanticRepresentation;
 import glueSemantics.semantics.lambda.*;
+import main.InputOutputProcessor;
 import main.Settings;
 import org.jgrapht.Graph;
 import org.jgrapht.alg.connectivity.GabowStrongConnectivityInspector;
@@ -642,9 +643,9 @@ public class LLProver1 extends LLProver {
             //TODO sdout vs file
             if (true)
             {
-                proofBuilder.append("Combining " + f + " and " + a);
+                proofBuilder.append("Combining " + InputOutputProcessor.restoreBackLinearLogicSide(f) + " and " + InputOutputProcessor.restoreBackLinearLogicSide(a));
                 proofBuilder.append(System.lineSeparator());
-                proofBuilder.append("to: " + combined.toString());
+                proofBuilder.append("to: " + InputOutputProcessor.restoreBackLinearLogicSide(combined.toString()));
                 proofBuilder.append(System.lineSeparator());
             }
         }

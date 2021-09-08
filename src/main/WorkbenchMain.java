@@ -139,7 +139,8 @@ public class WorkbenchMain {
 
             if (args.length > 0 && args[0].equals("-i")) {
                 try {
-
+                	
+            		
                     File inFile = new File(args[1]);
 
                     if (inFile.exists()) {
@@ -151,6 +152,11 @@ public class WorkbenchMain {
                                     + inFile + "'");
                         }
                         LOGGER.info("Read input file: " + inFile.toString());
+                        
+                        InputOutputProcessor.process(lines);
+                		lines = InputOutputProcessor.translate(lines) ;
+                        
+                        
                         initiateManualMode(lines);
 
                         if (args[2].equals("-o")) {
@@ -183,7 +189,7 @@ public class WorkbenchMain {
                                                 w.append(").");
                                                 w.append(System.lineSeparator());
                                             } else {
-                                                w.append(solution.toString());
+                                                w.append(InputOutputProcessor.restoreBackLinearLogicSide(solution.toString()));
                                                 w.append(System.lineSeparator());
                                             }
                                         }
@@ -384,7 +390,7 @@ public class WorkbenchMain {
                 solutionBuilder.append(String.format("Found the following solutions for proof with id S%d:\n",key));
                 if (solutions.containsKey(key)) {
                     for (Premise p : solutions.get(key)) {
-                        solutionBuilder.append(p.toString());
+                        solutionBuilder.append(InputOutputProcessor.restoreBackLinearLogicSide(p.toString()));
                         solutionBuilder.append(System.lineSeparator());
                     }
                 } else
