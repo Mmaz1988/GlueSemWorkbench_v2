@@ -42,6 +42,7 @@ public class WorkbenchMain {
     public static StringBuilder outputFileBuilder = new StringBuilder();
     public static List<Premise> result = new ArrayList<>();
     private final static Logger LOGGER = Logger.getLogger(WorkbenchMain.class.getName());
+    
 
     public static void main(String[] args) {
         /*
@@ -58,15 +59,16 @@ public class WorkbenchMain {
 
         LOGGER.setLevel(Level.ALL);
 
-       LOGGER.info("The Glue Semantics Workbench -- copyright 2018 Moritz Messmer & Mark-Matthias Zymla");
+        LOGGER.info("The Glue Semantics Workbench -- copyright 2018 Moritz Messmer & Mark-Matthias Zymla");
 
-
+        boolean onlyMeaningSide = false;
+        
             // Check program arguments for prover settings
             //for (String arg : args) {
               for (int i = 0; i < args.length; i++)
               { String arg = args[i];
                 switch (arg) {
-                    case ("-inputStyle"):
+                    case ("-outputStyle"):
                         settings.setSemanticOutputStyle(Integer.parseInt(args[i+1]));
                         break;
                     case ("-noreduce"):
@@ -108,9 +110,9 @@ public class WorkbenchMain {
                         System.exit(0);
                         break;
                     }
-                    case ("-nltk"):
+                    case ("-onlyMeaningSide"):
                     {
-                    	settings.setSemanticOutputStyle(Settings.NLTK);
+                        onlyMeaningSide = true;
                         break;
                     }
                   }
@@ -127,10 +129,13 @@ public class WorkbenchMain {
 
             if (settings.getSemanticOutputStyle() == 3)
                     outputMode = "nltk";
+                String outputSides = "meaning and linear logic sides";
+            if (onlyMeaningSide) {
+            	outputSides = "only meaning side"; 
+            }
 
 
-
-            LOGGER.config(String.format("Current settings: automatic beta reduction: %s\t\toutput mode: %s", betaReduce, outputMode));
+            LOGGER.config(String.format("Current settings: automatic beta reduction: %s\t\toutput mode: %s\t\toutput: %s", betaReduce, outputMode, outputSides));
 
             if (args.length > 0 && args[0].equals("-i")) {
                 try {
@@ -168,7 +173,11 @@ public class WorkbenchMain {
                                     for (Integer key : solutions.keySet()) {
                                         for (int i = 0; i < solutions.get(key).size(); i++) {
                                             Premise solution = solutions.get(key).get(i);
-                                            if (settings.getSemanticOutputStyle() == 1) {
+                                            if(onlyMeaningSide)
+                                        	{
+                                            	w.append(solution.getSemTerm().toString() + System.lineSeparator());
+                                        	}
+                                            else if (settings.getSemanticOutputStyle() == 1) {
                                                 w.append("solution" + "(" + key.toString() + i + ",");
                                                 w.append(solution.getSemTerm().toString());
                                                 w.append(").");
@@ -185,6 +194,8 @@ public class WorkbenchMain {
                                     }
 
                                     if (!settings.getSolutionOnly()) {
+                                    	if(!onlyMeaningSide)
+                                    	{
                                         w.append(System.lineSeparator());
                                         w.append("Proof:");
                                         w.append(System.lineSeparator());
@@ -200,6 +211,7 @@ public class WorkbenchMain {
                                                 w.append(System.lineSeparator());
                                             }
                                         }
+                                    	}
                                     }
                                     w.close();
                                 }
