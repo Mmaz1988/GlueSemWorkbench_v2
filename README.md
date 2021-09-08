@@ -38,7 +38,7 @@ Omitting an input file allows you to run a file chooser. When no output file is 
 | `-o [path/to/file]` | `specify an output file (.txt)` |
 | `-pr [0/1]` | `0 for Hepple-style algorithm (default); 1 for Lev-style algorithm` |
 | `-debugging` | `this argument can be used to output some additional debugging information` |
-| `-outputStyle [0..2]` | `sets the output style to plain string (0), Prolog (1), JSON(2)*, or NLTK(3)´ |
+| `-outputStyle [0..3]` | `sets the output style to plain string (0), Prolog (1), JSON(2)*, or NLTK(3)` |
 | `-parseSem` | `semantic parsing for the left-hand (semantic) side of a meaning constructor` |
 | `-noreduce` | `toggles beta-reduction of semantic representations` |
 | `-go` | `Only use the glue side in the output of the derivation` |
