@@ -185,7 +185,7 @@ public class WorkbenchMain {
 			if (!stdIn && inputFileName.equals("") || !stdOut && outputFileName.equals("")) {
 				try {
 					inputFileName = getFileName("Choose a file containing lexical entries");
-					outputFileName = getFileName("Choose a file containing lexical entries");
+					outputFileName = getFileName("Choose an output file name");
 					stdIn = false;
 					stdOut = false;
 					// initiateManualMode();
