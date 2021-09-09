@@ -45,7 +45,7 @@ Omitting an input file allows you to run a file chooser. When no output file is 
 | `-s` | `Only the solution of the derivation is written to the output file` |
 | `-test [sem_expr]` | `Parses a string containing a semantic expression and returns the expected result (use without any other parameters)` |
 | `-onlyMeaningSide` | `Only the meaning side of the solutions are output. Partial solutions and derivations are not output. `|
-| `-explainFail` | `Include an explain of failing cases (potantially non-cobining premises) in the output. This option only works with Lev-style algorithm.  ` |
+| `-explainFail` | `Include an explanation of failing cases (potantially non-cobining premises) in the output. This option only works with Lev-style algorithm.  ` |
 
 *in development.
 
