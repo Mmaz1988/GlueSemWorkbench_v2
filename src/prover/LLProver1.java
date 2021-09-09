@@ -1,5 +1,13 @@
 package prover;
 
+
+import com.mxgraph.layout.hierarchical.mxHierarchicalLayout;
+import com.mxgraph.layout.mxGraphLayout;
+import com.mxgraph.model.mxCell;
+import com.mxgraph.model.mxIGraphModel;
+import com.mxgraph.swing.mxGraphComponent;
+import com.mxgraph.util.mxConstants;
+import com.mxgraph.view.mxGraph;
 import glueSemantics.linearLogic.*;
 import glueSemantics.semantics.SemanticRepresentation;
 import glueSemantics.semantics.lambda.*;
@@ -7,6 +15,7 @@ import main.Settings;
 import org.jgrapht.Graph;
 import org.jgrapht.alg.connectivity.GabowStrongConnectivityInspector;
 import org.jgrapht.alg.interfaces.StrongConnectivityAlgorithm;
+import org.jgrapht.ext.JGraphXAdapter;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.traverse.TopologicalOrderIterator;
@@ -15,7 +24,13 @@ import prover.categoryGraph.History;
 import utilities.Debugging;
 import utilities.LexVariableHandler;
 
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -28,6 +43,7 @@ public class LLProver1 extends LLProver {
     private StringBuilder proofBuilder;
     private HashSet<Integer> goalIDs = new HashSet<>();
     public long startTime;
+    public GraphAnalysis analysis;
 
     /**
      * LLProver version 2.0
@@ -137,6 +153,7 @@ public class LLProver1 extends LLProver {
 
         TopologicalOrderIterator graphIter2 = new TopologicalOrderIterator(scc2);
 
+
         while (graphIter2.hasNext())
         {
             Graph sccKey = (Graph) graphIter2.next();
@@ -194,6 +211,8 @@ public class LLProver1 extends LLProver {
             }
             else
             {
+
+                //Inside an scc
                 List<CGNode> outputNodes = new ArrayList<>();
                 List<CGNode> inputNodes = new ArrayList<>();
                 Set<History> sccHistories = new HashSet<>();
@@ -257,17 +276,25 @@ public class LLProver1 extends LLProver {
                 }
             }
         }
+
+
+        analysis = new GraphAnalysis(goalCategory,scc2);
+        //analysis.displayGraph();
+
         getLOGGER().fine("Starting semantic calculations...");
 
         StringBuilder resultBuilder = new StringBuilder();
 
-        for (History solution : finalHistories)
-        {
-          getSolutions().addAll(solution.calculateSolutions(resultBuilder));
-        }
-        proofBuilder.append(resultBuilder.toString());
+        if (!finalHistories.isEmpty()) {
+            for (History solution : finalHistories) {
+                getSolutions().addAll(solution.calculateSolutions(resultBuilder));
+            }
+            proofBuilder.append(resultBuilder.toString());
 
-        getLOGGER().info("Found the following glue derivation(s):\n" + resultBuilder.toString());
+            getLOGGER().info("Found the following glue derivation(s):\n" + resultBuilder.toString());
+        }
+
+
 
        // System.out.println(resultBuilder);
         // System.out.println(System.lineSeparator());

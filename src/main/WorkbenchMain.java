@@ -43,6 +43,8 @@ public class WorkbenchMain {
     public static List<Premise> result = new ArrayList<>();
     private final static Logger LOGGER = Logger.getLogger(WorkbenchMain.class.getName());
 
+    public static JFrame visualization;
+
     public static void main(String[] args) {
         /*
         ConsoleHandler handler = new ConsoleHandler();
@@ -108,6 +110,11 @@ public class WorkbenchMain {
                         System.exit(0);
                         break;
                     }
+
+                    case ("-vis"):
+                        visualization = new JFrame();
+                        visualization.setSize(1200,800);
+                        visualization.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
                     }
 
                 }
@@ -404,6 +411,16 @@ public class WorkbenchMain {
                 LOGGER.info(String.format("Generated debugging report for proof with id S%d:\n" + prover.db.toString(),key));
                 LOGGER.info(String.format("Finished glue derivation of proof with id S%d.",key));
             }
+
+
+
+            if (settings.getProverType() == 1)
+            {
+                //visualization.getContentPane().add(((LLProver1) prover).analysis.displayGraph());
+                ((LLProver1) prover).analysis.displayGraph();
+            //    visualization.setVisible(true);
+            }
+
 
         } catch (ProverException e) {
             e.printStackTrace();
