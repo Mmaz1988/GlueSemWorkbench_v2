@@ -742,6 +742,13 @@ public class LLProver2 extends LLProver{
         }
     }
 
+    public HashMap<String, List<Premise>> getAtomicChart() {
+    	return atomicChart;
+    }
+    public HashMap<String, List<Premise>> getNonAtomicChart() {
+    	return nonAtomicChart;
+    }
+    
     /*
     public void updateVariableDependencies(List<Premise> compiled)
     {

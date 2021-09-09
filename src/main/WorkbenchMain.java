@@ -43,6 +43,8 @@ public class WorkbenchMain {
     public static List<Premise> result = new ArrayList<>();
     private final static Logger LOGGER = Logger.getLogger(WorkbenchMain.class.getName());
     
+    private static String explanation = "";
+    private static boolean explainFail = false;
 
     public static void main(String[] args) {
         /*
@@ -115,6 +117,11 @@ public class WorkbenchMain {
                         onlyMeaningSide = true;
                         break;
                     }
+                    case("-explainFail"):
+                    {
+                    	explainFail = true;
+                    	break;
+                    }
                   }
                 }
             String betaReduce = "on", outputMode = "plain";
@@ -176,6 +183,9 @@ public class WorkbenchMain {
                                     BufferedWriter w = new BufferedWriter(new FileWriter(outFile, true));
                                     if (!solutions.keySet().isEmpty())
                                     {
+                                    if(onlyMeaningSide) {
+                                    	w.append("% Proof(s) found." + System.lineSeparator());
+                                    }
                                     for (Integer key : solutions.keySet()) {
                                         for (int i = 0; i < solutions.get(key).size(); i++) {
                                             Premise solution = solutions.get(key).get(i);
@@ -196,6 +206,11 @@ public class WorkbenchMain {
                                     }
                                     } else
                                     {
+                                    	if(explainFail && !explanation.equals(""))
+                                    	{
+                                    		w.append("% No proof. Explanation: " + System.lineSeparator());
+                                    		w.append(explanation);
+                                    	}
                                         LOGGER.info("No solutions found for given input.");
                                     }
 
@@ -395,6 +410,10 @@ public class WorkbenchMain {
                     }
                 } else
                 {
+                if(explainFail && prover instanceof LLProver2)
+                	{
+                		explanation = failExplainer.explain( ((LLProver2)prover).getNonAtomicChart(), ((LLProver2)prover).getAtomicChart());
+                	}
                     solutionBuilder.append("None!");
                 }
 
