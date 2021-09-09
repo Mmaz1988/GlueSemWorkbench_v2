@@ -46,6 +46,8 @@ Omitting an input file allows you to run a file chooser. When no output file is 
 | `-test [sem_expr]` | `Parses a string containing a semantic expression and returns the expected result (use without any other parameters)` |
 | `-onlyMeaningSide` | `Only the meaning side of the solutions are output. Partial solutions and derivations are not output. `|
 | `-explainFail` | `Include an explanation of failing cases (potantially non-cobining premises) in the output. This option only works with Lev-style algorithm.  ` |
+| `-readStdIn` | `Read the input from Stdin. If a filename is given by -i, the file is ignored` |
+| `-writeStdOut` | `Write the output to Stdout. If a filename is given by -o, the file is ignored` |
 
 *in development.
 
