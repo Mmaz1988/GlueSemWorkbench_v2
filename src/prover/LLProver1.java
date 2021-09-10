@@ -63,8 +63,6 @@ public class LLProver1 extends LLProver {
 
     public void deduce(Sequent seq) throws ProverException, VariableBindingException {
 
-
-
         this.db = new Debugging();
         this.currentSequent = seq;
         LinkedList<Premise> agenda = new LinkedList<>();

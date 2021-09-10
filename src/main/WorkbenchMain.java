@@ -43,7 +43,6 @@ public class WorkbenchMain {
     public static List<Premise> result = new ArrayList<>();
     private final static Logger LOGGER = Logger.getLogger(WorkbenchMain.class.getName());
 
-    public static JFrame visualization;
 
     public static void main(String[] args) {
         /*
@@ -112,9 +111,8 @@ public class WorkbenchMain {
                     }
 
                     case ("-vis"):
-                        visualization = new JFrame();
-                        visualization.setSize(1200,800);
-                        visualization.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+                        settings.setVisualize(true);
+                        break;
                     }
 
                 }
@@ -414,7 +412,7 @@ public class WorkbenchMain {
 
 
 
-            if (settings.getProverType() == 1)
+            if (settings.getProverType() == 1 && settings.isVisualize())
             {
                 //visualization.getContentPane().add(((LLProver1) prover).analysis.displayGraph());
                 ((LLProver1) prover).analysis.displayGraph();

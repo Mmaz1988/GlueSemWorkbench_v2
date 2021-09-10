@@ -91,19 +91,6 @@ public class GraphAnalysis {
             }
         }
 
-
-
-
-                            /* for test purposes
-                            JDialog testFrame = new JDialog();
-                            testFrame.setSize(1200, 800);
-                            testFrame.setModalityType(Dialog.DEFAULT_MODALITY_TYPE);
-                            testFrame.getContentPane().add(graphComponent1);
-                            testFrame.pack();
-                            testFrame.setVisible(true);
-                            testFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-    */
-
                     mxGraphLayout layout = new mxHierarchicalLayout(jGraphXAdapter);
                     layout.execute(jGraphXAdapter.getDefaultParent());
                     jGraphXAdapter.getModel().endUpdate();
