@@ -92,7 +92,6 @@ public class GraphAnalysis {
         }
 
 
-
                     mxGraphLayout layout = new mxHierarchicalLayout(jGraphXAdapter);
                     layout.execute(jGraphXAdapter.getDefaultParent());
                     jGraphXAdapter.getModel().endUpdate();

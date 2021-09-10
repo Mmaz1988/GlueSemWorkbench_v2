@@ -50,7 +50,11 @@ public class WorkbenchMain {
     private static String explanation = "";
     private static boolean explainFail = false;
 
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> d6f0427257db8a79683738f6a177e8ee1e5205e7
     public static void main(String[] args) {
         /*
         ConsoleHandler handler = new ConsoleHandler();
@@ -156,7 +160,6 @@ public class WorkbenchMain {
                     	break;
                     }
                     case ("-vis"):
-                    {
                         settings.setVisualize(true);
                         break;
                     }
@@ -491,7 +494,8 @@ public class WorkbenchMain {
                 ((LLProver1) prover).analysis.displayGraph();
             //    visualization.setVisible(true);
             }
-            
+
+
         } catch (ProverException e) {
             e.printStackTrace();
         }
