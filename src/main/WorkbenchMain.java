@@ -50,6 +50,7 @@ public class WorkbenchMain {
     private static String explanation = "";
     private static boolean explainFail = false;
 
+    
     public static void main(String[] args) {
         /*
         ConsoleHandler handler = new ConsoleHandler();
@@ -153,7 +154,12 @@ public class WorkbenchMain {
                     {
                     	stdOut = true;
                     	break;
-                    }         
+                    }
+                    case ("-vis"):
+                    {
+                        settings.setVisualize(true);
+                        break;
+                    }
                 }
             }
             String betaReduce = "on", outputMode = "plain";
@@ -479,6 +485,13 @@ public class WorkbenchMain {
                 LOGGER.info(String.format("Finished glue derivation of proof with id S%d.",key));
             }
 
+            if (settings.getProverType() == 1 && settings.isVisualize())
+            {
+                //visualization.getContentPane().add(((LLProver1) prover).analysis.displayGraph());
+                ((LLProver1) prover).analysis.displayGraph();
+            //    visualization.setVisible(true);
+            }
+            
         } catch (ProverException e) {
             e.printStackTrace();
         }

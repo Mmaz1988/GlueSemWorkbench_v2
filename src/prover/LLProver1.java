@@ -20,6 +20,22 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.mxgraph.layout.hierarchical.mxHierarchicalLayout;
+import com.mxgraph.layout.mxGraphLayout;
+import com.mxgraph.model.mxCell;
+import com.mxgraph.model.mxIGraphModel;
+import com.mxgraph.swing.mxGraphComponent;
+import com.mxgraph.util.mxConstants;
+import com.mxgraph.view.mxGraph;
+import org.jgrapht.ext.JGraphXAdapter;
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.util.List;
+
+
 public class LLProver1 extends LLProver {
 
 
@@ -29,6 +45,7 @@ public class LLProver1 extends LLProver {
     private StringBuilder proofBuilder;
     private HashSet<Integer> goalIDs = new HashSet<>();
     public long startTime;
+    public GraphAnalysis analysis;
 
     /**
      * LLProver version 2.0
@@ -47,8 +64,6 @@ public class LLProver1 extends LLProver {
     }
 
     public void deduce(Sequent seq) throws ProverException, VariableBindingException {
-
-
 
         this.db = new Debugging();
         this.currentSequent = seq;
@@ -195,6 +210,8 @@ public class LLProver1 extends LLProver {
             }
             else
             {
+            	
+            	//Inside an scc
                 List<CGNode> outputNodes = new ArrayList<>();
                 List<CGNode> inputNodes = new ArrayList<>();
                 Set<History> sccHistories = new HashSet<>();
@@ -258,17 +275,26 @@ public class LLProver1 extends LLProver {
                 }
             }
         }
+        
+        analysis = new GraphAnalysis(goalCategory,scc2);
+        //analysis.displayGraph();     
+        
         getLOGGER().fine("Starting semantic calculations...");
 
         StringBuilder resultBuilder = new StringBuilder();
 
-        for (History solution : finalHistories)
-        {
-          getSolutions().addAll(solution.calculateSolutions(resultBuilder));
-        }
-        proofBuilder.append(resultBuilder.toString());
+        if (!finalHistories.isEmpty()) {
+            for (History solution : finalHistories) {
+                getSolutions().addAll(solution.calculateSolutions(resultBuilder));
+            }
+            proofBuilder.append(resultBuilder.toString());
 
-        getLOGGER().info("Found the following glue derivation(s):\n" + resultBuilder.toString());
+            getLOGGER().info("Found the following glue derivation(s):\n" + resultBuilder.toString());
+          
+        }
+        
+
+        
 
        // System.out.println(resultBuilder);
         // System.out.println(System.lineSeparator());
