@@ -25,6 +25,7 @@ import prover.ProverException;
 import java.util.HashSet;
 import java.util.Set;
 
+import static main.Settings.NLTK;
 import static main.Settings.PROLOG;
 
 public class SemFunction extends SemanticExpression implements FunctionalAbstraction {
@@ -79,8 +80,10 @@ public class SemFunction extends SemanticExpression implements FunctionalAbstrac
     public String toString() {
         if(SemanticParser.settings.getSemanticOutputStyle() == PROLOG)
             return String.format("lam(%s,%s)",binder.toString(),funcBody.toString());
+        else if (SemanticParser.settings.getSemanticOutputStyle() == NLTK)
+        	return "\\" + binder.toStringTyped() + ".(" + funcBody.toString() +")";
         else
-            return "[" + operator + binder.toStringTyped() + "." + funcBody.toString() + "]";
+        	return "[" + operator + binder.toStringTyped() + "." + funcBody.toString() + "]";
     }
 
 

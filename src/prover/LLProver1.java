@@ -11,6 +11,7 @@ import com.mxgraph.view.mxGraph;
 import glueSemantics.linearLogic.*;
 import glueSemantics.semantics.SemanticRepresentation;
 import glueSemantics.semantics.lambda.*;
+import main.InputOutputProcessor;
 import main.Settings;
 import org.jgrapht.Graph;
 import org.jgrapht.alg.connectivity.GabowStrongConnectivityInspector;
@@ -33,6 +34,22 @@ import java.io.IOException;
 import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import com.mxgraph.layout.hierarchical.mxHierarchicalLayout;
+import com.mxgraph.layout.mxGraphLayout;
+import com.mxgraph.model.mxCell;
+import com.mxgraph.model.mxIGraphModel;
+import com.mxgraph.swing.mxGraphComponent;
+import com.mxgraph.util.mxConstants;
+import com.mxgraph.view.mxGraph;
+import org.jgrapht.ext.JGraphXAdapter;
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.util.List;
+
 
 public class LLProver1 extends LLProver {
 
@@ -209,8 +226,8 @@ public class LLProver1 extends LLProver {
             }
             else
             {
+            	//Inside an scc
 
-                //Inside an scc
                 List<CGNode> outputNodes = new ArrayList<>();
                 List<CGNode> inputNodes = new ArrayList<>();
                 Set<History> sccHistories = new HashSet<>();
@@ -274,11 +291,10 @@ public class LLProver1 extends LLProver {
                 }
             }
         }
-
-
+        
         analysis = new GraphAnalysis(goalCategory,scc2);
-        //analysis.displayGraph();
-
+        //analysis.displayGraph();     
+        
         getLOGGER().fine("Starting semantic calculations...");
 
         StringBuilder resultBuilder = new StringBuilder();
@@ -290,6 +306,9 @@ public class LLProver1 extends LLProver {
             proofBuilder.append(resultBuilder.toString());
 
             getLOGGER().info("Found the following glue derivation(s):\n" + resultBuilder.toString());
+        
+
+        
         }
 
 
@@ -667,9 +686,9 @@ public class LLProver1 extends LLProver {
             //TODO sdout vs file
             if (true)
             {
-                proofBuilder.append("Combining " + f + " and " + a);
+                proofBuilder.append("Combining " + InputOutputProcessor.restoreBackLinearLogicSide(f) + " and " + InputOutputProcessor.restoreBackLinearLogicSide(a));
                 proofBuilder.append(System.lineSeparator());
-                proofBuilder.append("to: " + combined.toString());
+                proofBuilder.append("to: " + InputOutputProcessor.restoreBackLinearLogicSide(combined.toString()));
                 proofBuilder.append(System.lineSeparator());
             }
         }

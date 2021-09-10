@@ -212,6 +212,65 @@ public abstract class LLTerm {
         this.variableAssignment = variableAssignment;
     }
 
+    public String getReverseCompiledString() {
+
+    	String left = "";
+    	
+    	if(this instanceof LLAtom) {
+    		LinkedHashMap<Integer, Premise> hm = orderedDischarges;
+        	String toReturn = ((LLAtom)this).getName();
+            Set<Integer> keys = hm.keySet();
+            for(Integer k:keys){
+            	toReturn = "(" + hm.get(k).getReverseCompiledString() +  " ⊸ " + toReturn + ")";
+            }
+    		return toReturn;
+    	}
+    	
+    	Object l = ((LLFormula)this).getLhs();
+    	if(l != null) {
+    		if(l instanceof LLFormula)
+    			left = ((LLFormula)l).getReverseCompiledString();
+    		else if (l instanceof LLTerm)
+    			left = ((LLTerm)l).getReverseCompiledString();
+    	}
+    	String right = "";
+    	Object r = ((LLFormula)this).getRhs();
+    	if(r != null) {
+    		if(r instanceof LLFormula)
+    			right = ((LLFormula)r).getReverseCompiledString();
+    		else if (r instanceof LLTerm)
+    			right = ((LLTerm)r).getReverseCompiledString();
+    	}
+    	
+    	return "(" + left +  " ⊸ " + right + ")";
+    	
+    }
+    public void addSubscriptPremises(HashSet<Integer> hs ) {
+    	if(this instanceof LLAtom) {
+    		LinkedHashMap<Integer, Premise> hm = orderedDischarges;
+            Set<Integer> keys = hm.keySet();
+            for(Integer k:keys){
+            	hm.get(k).addSubscriptPremises(hs);
+            }
+    		return;
+    	}
+    	
+    	Object l = ((LLFormula)this).getLhs();
+    	if(l != null) {
+    		if(l instanceof LLFormula)
+    			((LLFormula)l).addSubscriptPremises(hs);
+    		else if (l instanceof LLTerm)
+    			((LLTerm)l).addSubscriptPremises(hs);
+    		}
+    	
+    	Object r = ((LLFormula)this).getRhs();
+    	if(r != null) {
+    		if(r instanceof LLFormula)
+    			((LLFormula)r).getReverseCompiledString();
+    		else if (r instanceof LLTerm)
+    			((LLTerm)r).getReverseCompiledString();
+    		}
+    }
 }
 
 

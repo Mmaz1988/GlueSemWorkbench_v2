@@ -30,6 +30,7 @@ public class Settings {
  //Outputnodes
     public static final int PLAIN = 0;
     public static final int PROLOG = 1;
+    public static final int NLTK = 3; 
     // TODO implement latex output
     //private final int LATEX = 2;
 
@@ -153,7 +154,6 @@ public class Settings {
     public void setProverType(int proverType) {
         Settings.proverType = proverType;
     }
-
     public static boolean isVisualize() {
         return visualize;
     }
@@ -161,6 +161,5 @@ public class Settings {
     public static void setVisualize(boolean visualize) {
         Settings.visualize = visualize;
     }
-
 
 }
