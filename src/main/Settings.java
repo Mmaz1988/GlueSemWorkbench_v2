@@ -162,13 +162,4 @@ public class Settings {
         Settings.visualize = visualize;
     }
 
-    public static boolean isVisualize() {
-        return visualize;
-    }
-
-    public static void setVisualize(boolean visualize) {
-        Settings.visualize = visualize;
-    }
-
-
 }

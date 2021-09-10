@@ -161,8 +161,9 @@ public class WorkbenchMain {
                         break;
                     }
                 }
-            }
-            String betaReduce = "on", outputMode = "plain";
+            
+            String betaReduce = "on";
+            String outputMode = "plain";
             if (!settings.isBetaReduce())
                 betaReduce = "off";
 
