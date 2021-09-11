@@ -19,16 +19,8 @@ import utilities.MyFormatter;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.nio.file.FileSystems;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.logging.Level;
@@ -192,7 +184,7 @@ public class WorkbenchMain {
 			if (!stdIn && inputFileName.equals("") || !stdOut && outputFileName.equals("")) {
 				try {
 					inputFileName = getFileName("Choose a file containing lexical entries");
-					outputFileName = getFileName("Choose an output file name");
+			//		outputFileName = getFileName("Choose an output file name");
 					stdIn = false;
 					stdOut = false;
 					// initiateManualMode();

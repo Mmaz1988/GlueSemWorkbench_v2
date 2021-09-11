@@ -1,13 +1,6 @@
 package prover;
 
 
-import com.mxgraph.layout.hierarchical.mxHierarchicalLayout;
-import com.mxgraph.layout.mxGraphLayout;
-import com.mxgraph.model.mxCell;
-import com.mxgraph.model.mxIGraphModel;
-import com.mxgraph.swing.mxGraphComponent;
-import com.mxgraph.util.mxConstants;
-import com.mxgraph.view.mxGraph;
 import glueSemantics.linearLogic.*;
 import glueSemantics.semantics.SemanticRepresentation;
 import glueSemantics.semantics.lambda.*;
@@ -16,7 +9,6 @@ import main.Settings;
 import org.jgrapht.Graph;
 import org.jgrapht.alg.connectivity.GabowStrongConnectivityInspector;
 import org.jgrapht.alg.interfaces.StrongConnectivityAlgorithm;
-import org.jgrapht.ext.JGraphXAdapter;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.traverse.TopologicalOrderIterator;
@@ -25,30 +17,9 @@ import prover.categoryGraph.History;
 import utilities.Debugging;
 import utilities.LexVariableHandler;
 
-import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import com.mxgraph.layout.hierarchical.mxHierarchicalLayout;
-import com.mxgraph.layout.mxGraphLayout;
-import com.mxgraph.model.mxCell;
-import com.mxgraph.model.mxIGraphModel;
-import com.mxgraph.swing.mxGraphComponent;
-import com.mxgraph.util.mxConstants;
-import com.mxgraph.view.mxGraph;
-import org.jgrapht.ext.JGraphXAdapter;
-import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.util.List;
 
 
 public class LLProver1 extends LLProver {
@@ -63,8 +34,9 @@ public class LLProver1 extends LLProver {
     public GraphAnalysis analysis;
 
     /**
-     * LLProver version 2.0
-     * Implements Lev's rather than Hepple's algorithm. Avoids need for accidental binding.
+     * LLProver1 implements a procedure for Glue semantics derivations based on Lev (2007), chapter 6
+     * It uses a cartography graph to order combination steps handling skeleton premises and a chart-based
+     * algorithm to deal with modifier premises, i.e. cyclic elements in a glue proof.
      *
      * @param settings
      */

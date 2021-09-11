@@ -42,7 +42,9 @@ public class LLProver2 extends LLProver{
 
     /**
      * LLProver version 2.0
-     * Implements Lev's rather than Hepple's algorithm. Avoids need for accidental binding.
+     * LLProver1 implements a procedure for Glue semantics derivations based on Lev (2007), chapter 5
+     * The original idea for this procedure has been described in Hepple (1996).
+     * The present version avoids the need for accidental binding.
      *
      * @param settings
      */
