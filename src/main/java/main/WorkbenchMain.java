@@ -28,7 +28,6 @@ import java.util.logging.Logger;
 import java.util.logging.StreamHandler;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.logging.FileHandler;
 import java.util.logging.Handler;
 
 public class WorkbenchMain {
