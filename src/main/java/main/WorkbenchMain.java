@@ -28,11 +28,12 @@ import java.util.logging.Logger;
 import java.util.logging.StreamHandler;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
+import java.util.logging.FileHandler;
+import java.util.logging.Handler;
 
 public class WorkbenchMain {
     // Initialize with default settings
-    public static Settings settings = new Settings();
+    public static main.Settings settings = new main.Settings();
     public static LinkedHashMap<Integer, List<Premise>> solutions = new LinkedHashMap<>();
     public static List<String> partial = new ArrayList<>();
     public static StringBuilder outputFileBuilder = new StringBuilder();
@@ -196,6 +197,14 @@ public class WorkbenchMain {
 				// Decide where to output
 				if (stdOut) {
 					w = new BufferedWriter(new OutputStreamWriter(System.out));
+					// After this operation, LOGGER is connected to stdout. So, 
+					// simply remove all handlers from the logger and restore stderr 
+					// connection back
+					Handler[] currentHandlers = LOGGER.getHandlers();
+					for(int i=0;i<currentHandlers.length;i++) {
+						LOGGER.removeHandler(currentHandlers[i]);
+					}
+					LOGGER.addHandler(new StreamHandler(System.err, new java.util.logging.SimpleFormatter()));
 				} else if (!outputFileName.equals("")) {
 					outFile = new File(outputFileName);
 					if (outFile.exists()) {
