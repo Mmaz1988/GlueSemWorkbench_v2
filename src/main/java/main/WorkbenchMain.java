@@ -28,7 +28,7 @@ import java.util.logging.Logger;
 import java.util.logging.StreamHandler;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
+import java.util.logging.Handler;
 
 public class WorkbenchMain {
     // Initialize with default settings
@@ -196,6 +196,14 @@ public class WorkbenchMain {
 				// Decide where to output
 				if (stdOut) {
 					w = new BufferedWriter(new OutputStreamWriter(System.out));
+					// Normally LOGGER is connected to stdout. So, 
+					// simply remove all handlers from the logger and restore stderr 
+					// connection back
+					Handler[] currentHandlers = LOGGER.getHandlers();
+					for(int i=0;i<currentHandlers.length;i++) {
+						LOGGER.removeHandler(currentHandlers[i]);
+					}
+					LOGGER.addHandler(new StreamHandler(System.err, new MyFormatter()));
 				} else if (!outputFileName.equals("")) {
 					outFile = new File(outputFileName);
 					if (outFile.exists()) {
