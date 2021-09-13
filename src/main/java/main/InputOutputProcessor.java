@@ -7,8 +7,6 @@ import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import main.InputOutputProcessor;
-
 public class InputOutputProcessor {
 	private static String names[];
 	private static String values[];

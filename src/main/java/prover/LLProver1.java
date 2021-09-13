@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
 public class LLProver1 extends LLProver {
 
 
-
     private Sequent currentSequent;
     private LinkedList<History> finalHistories = new LinkedList<>();
     private StringBuilder proofBuilder;

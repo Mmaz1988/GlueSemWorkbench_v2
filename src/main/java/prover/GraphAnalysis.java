@@ -1,5 +1,6 @@
 package prover;
 
+
 import com.mxgraph.layout.hierarchical.mxHierarchicalLayout;
 import com.mxgraph.layout.mxGraphLayout;
 import com.mxgraph.model.mxCell;

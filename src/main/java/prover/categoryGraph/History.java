@@ -3,7 +3,6 @@ package prover.categoryGraph;
 import glueSemantics.linearLogic.Category;
 import glueSemantics.linearLogic.Premise;
 import prover.LLProver;
-import prover.LLProver1;
 import prover.ProverException;
 import prover.VariableBindingException;
 

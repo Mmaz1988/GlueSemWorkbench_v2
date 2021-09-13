@@ -21,7 +21,6 @@ package glueSemantics.linearLogic;
 import glueSemantics.semantics.lambda.SemType;
 import prover.Equality;
 
-import javax.annotation.processing.ProcessingEnvironment;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;

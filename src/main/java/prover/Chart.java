@@ -3,7 +3,6 @@ package prover;
 import prover.categoryGraph.History;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Set;
 
 public class Chart {
