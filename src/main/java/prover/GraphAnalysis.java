@@ -8,6 +8,7 @@ import com.mxgraph.swing.mxGraphComponent;
 import com.mxgraph.util.mxConstants;
 import org.jgrapht.Graph;
 import org.jgrapht.ext.JGraphXAdapter;
+import org.jgrapht.graph.DefaultEdge;
 import prover.categoryGraph.CGNode;
 
 import javax.swing.*;
@@ -20,12 +21,12 @@ import java.util.stream.Collectors;
 
 public class GraphAnalysis {
 
-    private Graph stronglyConnectedGraph;
+    private Graph<Graph<CGNode,DefaultEdge>,DefaultEdge> stronglyConnectedGraph;
     private String goalCategory;
     private mxGraphComponent graphComponent;
     private HashMap<mxCell,mxGraphComponent> sccMap = new HashMap<>();
 
-    public GraphAnalysis(String goalCategory, Graph stronglyConnectedGraph)
+    public GraphAnalysis(String goalCategory, Graph<Graph<CGNode,DefaultEdge>,DefaultEdge> stronglyConnectedGraph)
     {
         this.goalCategory = goalCategory;
         this.stronglyConnectedGraph = stronglyConnectedGraph;
@@ -33,7 +34,7 @@ public class GraphAnalysis {
 
     public void displayGraph()
     {
-        JGraphXAdapter jGraphXAdapter = new JGraphXAdapter(stronglyConnectedGraph);
+        JGraphXAdapter<Graph<CGNode,DefaultEdge>, DefaultEdge> jGraphXAdapter = new JGraphXAdapter<>(stronglyConnectedGraph);
         jGraphXAdapter.getStylesheet().getDefaultEdgeStyle().put(mxConstants.STYLE_NOLABEL, "1");
         jGraphXAdapter.getModel().beginUpdate();
 
@@ -64,7 +65,7 @@ public class GraphAnalysis {
                     jGraphXAdapter.getModel().setStyle(jGraphXAdapter.getVertexToCellMap().get(g), "defaultVertex;fillColor=lightgreen;opacity=50");
                     mxCell mx = ((mxCell) jGraphXAdapter.getVertexToCellMap().get(g));
                     //TODO open strongly connected graph in new frame on click
-                    JGraphXAdapter jGraphXAdapter1 = new JGraphXAdapter((Graph) g);
+                    JGraphXAdapter<CGNode,DefaultEdge> jGraphXAdapter1 = new JGraphXAdapter<>((Graph<CGNode,DefaultEdge>) g);
                     jGraphXAdapter1.getStylesheet().getDefaultEdgeStyle().put(mxConstants.STYLE_NOLABEL, "1");
                     jGraphXAdapter1.getModel().beginUpdate();
 
@@ -102,7 +103,7 @@ public class GraphAnalysis {
                         @Override
                         public void mouseClicked(MouseEvent e) {
                             Object cell = graphComponent.getCellAt(e.getX(), e.getY());
-                            if (cell != null && cell instanceof mxCell) {
+                            if (cell instanceof mxCell) {
                                 if (sccMap.containsKey(cell)) {
 
                                     JDialog testFrame = new JDialog();

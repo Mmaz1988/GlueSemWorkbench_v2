@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-
 public class LLProver1 extends LLProver {
 
 
@@ -134,15 +133,15 @@ public class LLProver1 extends LLProver {
 
         Graph<CGNode, DefaultEdge> categoryGraph2 = calculateCategoryGraph2(copy,category2premiseMapping);
 
-        StrongConnectivityAlgorithm ins2 = new GabowStrongConnectivityInspector(categoryGraph2);
-        Graph scc2 = ins2.getCondensation();
+        StrongConnectivityAlgorithm<CGNode,DefaultEdge> ins2 = new GabowStrongConnectivityInspector<>(categoryGraph2);
+        Graph<Graph<CGNode,DefaultEdge>,DefaultEdge> scc2 = ins2.getCondensation();
 
-        TopologicalOrderIterator graphIter2 = new TopologicalOrderIterator(scc2);
+        TopologicalOrderIterator<Graph<CGNode,DefaultEdge>,DefaultEdge> graphIter2 = new TopologicalOrderIterator<>(scc2);
 
 
         while (graphIter2.hasNext())
         {
-            Graph sccKey = (Graph) graphIter2.next();
+            Graph<CGNode,DefaultEdge> sccKey = graphIter2.next();
             //Element is outside of an scc
             if (sccKey.vertexSet().size() == 1)
             {
@@ -152,7 +151,7 @@ public class LLProver1 extends LLProver {
 
                     for (Object edge : scc2.incomingEdgesOf(sccKey))
                         {
-                           CGNode parentConnectorNode = (CGNode) ((Graph) scc2.getEdgeSource(edge)).vertexSet().stream().findAny().get();
+                           CGNode parentConnectorNode = (CGNode) ((Graph) scc2.getEdgeSource((DefaultEdge) edge)).vertexSet().stream().findAny().get();
                            node.histories.addAll(parentConnectorNode.histories);
                            node.compressHistories();
 
@@ -162,8 +161,8 @@ public class LLProver1 extends LLProver {
                 //Element is a connector node
                 if (node.nodeType.equals(CGNode.type.CONNECTOR))
                 {
-                    Object childNodeGraph = categoryGraph2.outgoingEdgesOf(node).stream().findAny().get();
-                    CGNode childNode = (CGNode) scc2.getEdgeTarget(childNodeGraph);
+         //           Object childNodeGraph = categoryGraph2.outgoingEdgesOf(node).stream().findAny().get();
+         //           CGNode childNode = (CGNode) scc2.getEdgeTarget((CGNode) childNodeGraph);
 
                     List<CGNode> parents = new ArrayList<>();
                     for (Object edge : categoryGraph2.incomingEdgesOf(node)) {
