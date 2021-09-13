@@ -33,7 +33,7 @@ import java.util.logging.Handler;
 
 public class WorkbenchMain {
     // Initialize with default settings
-    public static main.Settings settings = new main.Settings();
+    public static Settings settings = new Settings();
     public static LinkedHashMap<Integer, List<Premise>> solutions = new LinkedHashMap<>();
     public static List<String> partial = new ArrayList<>();
     public static StringBuilder outputFileBuilder = new StringBuilder();
