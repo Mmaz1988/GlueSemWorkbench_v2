@@ -10,6 +10,13 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
 
+    <repositories>
+        <repository>
+            <id>resources</id>
+            <url>file:///${project.basedir}/resources</url>
+        </repository>
+    </repositories>
+
 
     <groupId>uni.kn.zymla</groupId>
     <artifactId>GlueSemWorkbench</artifactId>
@@ -64,8 +71,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.1</version>
                 <configuration>
-                    <source>11</source>
-                    <target>11</target>
+                    <source>8</source>
+                    <target>8</target>
                 </configuration>
             </plugin>
 
