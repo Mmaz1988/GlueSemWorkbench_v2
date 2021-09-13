@@ -196,14 +196,14 @@ public class WorkbenchMain {
 				// Decide where to output
 				if (stdOut) {
 					w = new BufferedWriter(new OutputStreamWriter(System.out));
-					// After this operation, LOGGER is connected to stdout. So, 
+					// Normally LOGGER is connected to stdout. So, 
 					// simply remove all handlers from the logger and restore stderr 
 					// connection back
 					Handler[] currentHandlers = LOGGER.getHandlers();
 					for(int i=0;i<currentHandlers.length;i++) {
 						LOGGER.removeHandler(currentHandlers[i]);
 					}
-					LOGGER.addHandler(new StreamHandler(System.err, new java.util.logging.SimpleFormatter()));
+					LOGGER.addHandler(new StreamHandler(System.err, new MyFormatter()));
 				} else if (!outputFileName.equals("")) {
 					outFile = new File(outputFileName);
 					if (outFile.exists()) {
