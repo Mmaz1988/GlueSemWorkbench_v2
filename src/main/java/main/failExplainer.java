@@ -22,8 +22,7 @@ public class failExplainer {
 	        return b.value - a.value;
 	    }
 	}
-	private static String lastExplanation="";
-	public static String getLastExplanation() {return lastExplanation;};
+
 	private static boolean intersects(boolean []indices, int[] nums) {
 		/*
 		 * This function checks if coverage nums intersects with the indices 
@@ -217,13 +216,12 @@ public class failExplainer {
     	 * Return the string that is built.
     	 * */
 		List<Integer> failExplainingList = failExplainer.findAnExplanation(nums);
-		lastExplanation = "";
+
 		Iterator<Integer> it = failExplainingList.iterator();
 		while (it.hasNext()) {
 			Integer arr = it.next();
-			String exp = InputOutputProcessor.restoreBackLinearLogicSide(str.get(arr)) + System.lineSeparator();
+			String exp = "% " + InputOutputProcessor.restoreBackLinearLogicSide(str.get(arr)) + System.lineSeparator();
 			explanationString.append(exp);
-			lastExplanation += "% " + exp;
 		}
 		return explanationString.toString();
     }
