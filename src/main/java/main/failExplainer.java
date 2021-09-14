@@ -217,13 +217,13 @@ public class failExplainer {
     	 * Return the string that is built.
     	 * */
 		List<Integer> failExplainingList = failExplainer.findAnExplanation(nums);
-		lastExplanation = "";
+		//lastExplanation = "";
 		Iterator<Integer> it = failExplainingList.iterator();
 		while (it.hasNext()) {
 			Integer arr = it.next();
-			String exp = InputOutputProcessor.restoreBackLinearLogicSide(str.get(arr)) + System.lineSeparator();
+			String exp = "% " + InputOutputProcessor.restoreBackLinearLogicSide(str.get(arr)) + System.lineSeparator();
 			explanationString.append(exp);
-			lastExplanation += "% " + exp;
+			//lastExplanation += "% " + exp;
 		}
 		return explanationString.toString();
     }
