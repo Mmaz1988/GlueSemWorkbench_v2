@@ -22,8 +22,7 @@ public class failExplainer {
 	        return b.value - a.value;
 	    }
 	}
-	private static String lastExplanation="";
-	public static String getLastExplanation() {return lastExplanation;};
+
 	private static boolean intersects(boolean []indices, int[] nums) {
 		/*
 		 * This function checks if coverage nums intersects with the indices 
