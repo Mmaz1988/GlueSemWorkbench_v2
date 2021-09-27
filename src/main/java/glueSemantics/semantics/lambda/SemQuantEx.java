@@ -29,6 +29,8 @@ import static glueSemantics.semantics.lambda.SemQuantEx.SemQuant.UNI;
 import static main.Settings.PROLOG;
 
 public class SemQuantEx extends SemanticExpression {
+
+
     private final SemQuant quantifier;
     private final SemAtom binder;
     private final SemanticRepresentation quantBody;
@@ -104,5 +106,9 @@ public class SemQuantEx extends SemanticExpression {
             else
                 return '\u03B9' + binder.toString() + "[" + quantBody.toString() + "]";
         }
+    }
+
+    public SemQuant getQuantifier() {
+        return quantifier;
     }
 }

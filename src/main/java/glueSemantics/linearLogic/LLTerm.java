@@ -32,6 +32,9 @@ public abstract class LLTerm {
         E, T,
     }
 
+    private boolean XtX;
+    private boolean XtXchecked;
+
     private boolean polarity;
     private SemType semType;
     //public Set<LLTerm> assumptions = new HashSet<>();
@@ -270,6 +273,31 @@ public abstract class LLTerm {
     			((LLTerm)r).getReverseCompiledString();
     		}
     }
+
+    /* The following adds optimization-1.
+     * This optimization is introduced in Lev(2007) section 6.4.4
+     *
+     * The following function checks if the linear logic side of the
+     * premise is of type X -o X as described in the section.
+     */
+    public boolean isXtX() {
+        if(this.XtXchecked) {
+            return this.XtX;
+        }
+
+        try {
+            LLFormula myObj = ((LLFormula)this);
+            this.XtX = myObj.getLhs().toString().equals(myObj.getRhs().toString());
+        }
+        catch(Exception e){
+            // Do nothing.
+        }
+        this.XtXchecked = true;
+        return this.XtX;
+    }
+    /* End of this code block added for optimization-1 */
+
+
 }
 
 

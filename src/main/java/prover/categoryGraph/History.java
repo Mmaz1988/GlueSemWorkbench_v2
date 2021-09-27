@@ -13,11 +13,19 @@ public class History {
     public LLProver prover;
     public Category category;
     public Set<Integer> indexSet;
+    public Integer mainIndex;
+    public Integer lastModifierMainIndex;
     public Set<Integer> requirements = new HashSet<>();
     public Set<Integer> discharges = new HashSet<>();
     //0 func //1 argument
     public Set<HashMap<Integer,History>> parents;
     public Premise p;
+    public QuantForce quantifierForce;
+    public enum QuantForce {
+        UNIVERSAL,
+        EXISTENTIAL,
+        OTHER
+    }
 
 
     public History(Category category, Set<Integer> indexSet, Set<HashMap<Integer,History>> parents, Premise p, LLProver prover)
@@ -27,6 +35,25 @@ public class History {
         this.indexSet = indexSet;
         this.parents = parents;
         this.p = p;
+        calculateMainIndex();
+
+        /*
+
+        if (p.getSemTerm() instanceof SemanticExpression)
+        {
+            if (p.getSemTerm() instanceof SemQuantEx) {
+                if (((SemQuantEx) p.getSemTerm()).getQuantifier() == SemQuantEx.SemQuant.UNI) {
+                    this.quantifierForce = QuantForce.UNIVERSAL;
+                } else if (((SemQuantEx) p.getSemTerm()).getQuantifier() == SemQuantEx.SemQuant.EX) {
+                    this.quantifierForce = QuantForce.EXISTENTIAL;
+                }
+            }
+            else{
+                this.quantifierForce = QuantForce.OTHER;
+                }
+            }
+
+*/
 
     }
 
@@ -36,6 +63,9 @@ public class History {
         this.category = category;
         this.indexSet = indexSet;
         this.parents = parents;
+        calculateMainIndex();
+
+        this.quantifierForce = this.parents.stream().findAny().get().get(0).quantifierForce;
     }
 
     @Override
@@ -88,5 +118,16 @@ public class History {
 
     }
 
+    public void calculateMainIndex()
+    {
+        if (indexSet.size() == 1)
+        {
+            this.mainIndex = indexSet.stream().findAny().get();
+        } else
+        {
+            this.mainIndex = parents.stream().findAny().get().get(0).mainIndex;
+        }
+
+    }
 
 }
