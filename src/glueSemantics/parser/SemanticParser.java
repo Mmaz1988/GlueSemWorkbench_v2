@@ -88,6 +88,7 @@ public class SemanticParser extends StringParser {
        testFormulas.add("John");
        testFormulas.add("x_e");
         testFormulas.add("love(John,and(Jean,Paul))");
+        testFormulas.add("{[/t_s.[/t2_s.before(t,t2)]], [/t_s.[/t2_s.overlap(t,t2)]]}");
 
         Settings s = new Settings();
         s.setSemanticOutputStyle(0);
