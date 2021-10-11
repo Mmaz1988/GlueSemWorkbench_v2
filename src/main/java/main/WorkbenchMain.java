@@ -251,7 +251,15 @@ public class WorkbenchMain {
 
 				if (!solutions.keySet().isEmpty()) {
 					if (onlyMeaningSide) {
-						w.append("% Proof(s) found." + System.lineSeparator());
+						int nProofs = 0;
+						for (Integer key : solutions.keySet()) 
+							for (int i = 0; i < solutions.get(key).size(); i++) 
+								nProofs ++;
+
+						if (nProofs == 1) 
+							w.append("% 1 proof found." + System.lineSeparator());
+						else 
+							w.append("% " + Integer.toString(nProofs) + " proofs found." + System.lineSeparator());
 					}
 					for (Integer key : solutions.keySet()) {
 						for (int i = 0; i < solutions.get(key).size(); i++) {
