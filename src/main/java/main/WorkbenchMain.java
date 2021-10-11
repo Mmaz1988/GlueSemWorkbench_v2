@@ -41,6 +41,7 @@ public class WorkbenchMain {
     
     private static String explanation = "";
     private static boolean explainFail = false;
+    private static boolean assureGlueParsing = false;
 
     
 
@@ -146,6 +147,11 @@ public class WorkbenchMain {
                     case("-writeStdOut"):
                     {
                     	stdOut = true;
+                    	break;
+                    }
+                    case("-assureGlueParsing"):
+                    {
+                    	assureGlueParsing = true;
                     	break;
                     }
                     case ("-vis"):
@@ -380,6 +386,10 @@ public class WorkbenchMain {
                 singleSet.add(parser.parseMeaningConstructor(s));
             } catch (ParserInputException e) {
                 LOGGER.warning(String.format("Error: glue parser could not parse line %d of input file. Skipping this line.",formulas.indexOf(s)));
+                if(assureGlueParsing) {
+                    LOGGER.warning("Exiting due to glue parsing assurence requirement.");
+                	System.exit(1);
+                }
             }
         }
         if (singleSet.isEmpty()) {
