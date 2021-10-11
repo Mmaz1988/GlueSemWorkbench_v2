@@ -451,19 +451,36 @@ public class LLProver1 extends LLProver {
     }
 
 
+    /**
+     * chartDeduce2 uses Hepple's chart algorithm to calculate histories inside an SCC within a category graph.
+     * This variant does not distinguish between compiled and uncompiled premises to account for non-atomic arguments
+     * that may occur when modifiers are not fully compiled.
+     * @param histories
+     * @return
+     * @throws VariableBindingException
+     * @throws ProverException
+     */
+
     public List<History> chartDeduce2(List<History> histories) throws VariableBindingException, ProverException {
         getLOGGER().finer("Beginning a partial chart derivation...");
 
+        //The agenda contains all histories that take part in the calculation of the histories within the SCC
         List<History> agenda = new ArrayList<>(histories);
+        //In the beginning the chart is empty
         List<History> chart = new ArrayList<>();
 
         while (!agenda.isEmpty()) {
+
             ListIterator<History> agendaIterator = agenda.listIterator();
 
             while (agendaIterator.hasNext()) {
                 History current = agendaIterator.next();
                 agendaIterator.remove();
 
+                /*each element in the agenda is checked for compatibility with each element on the chart to see if a new
+                resource can be produced.
+                If so, it is added to the agenda
+                 */
 
                 for (History h : chart) {
                     if (h.category.left != null) {
