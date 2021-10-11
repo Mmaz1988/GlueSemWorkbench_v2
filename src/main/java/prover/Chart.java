@@ -10,7 +10,7 @@ public class Chart {
     HashMap<String, Set<History>> atomicChart = new HashMap<>();
     HashMap<String, Set<History>> nonAtomicChart = new HashMap<>();
 
-    HashMap<String, Set<History>> modifierChart = new HashMap<>();
+    HashMap<String, Set<History>> chart = new HashMap<>();
 
     public Chart(){}
 }

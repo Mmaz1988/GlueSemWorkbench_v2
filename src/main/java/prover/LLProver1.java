@@ -362,6 +362,12 @@ public class LLProver1 extends LLProver {
                 //Apply Hepple algorithm to histories collected from the scc
                 List<History> sccAgenda = new ArrayList<>();
                 sccAgenda.addAll(sccHistories);
+
+                /*
+                Original chart deduce call
+                 */
+
+                /*
                 Chart c = chartDeduce(sccAgenda);
 
 
@@ -377,6 +383,27 @@ public class LLProver1 extends LLProver {
                 }
                     outputNode.compressHistories();
                 }
+
+                 */
+
+                /*
+                Modified chartDeduce call
+                 */
+
+                List<History> histories = chartDeduce2(sccAgenda);
+
+                for (CGNode outputNode : outputNodes)
+                {
+                    for (History h : histories){
+                        if (h.category.toString().equals(outputNode.category))
+                        {
+                            outputNode.histories.add(h);
+                        }
+                    }
+                    outputNode.compressHistories();
+                }
+
+
             }
         }
 
@@ -423,6 +450,49 @@ public class LLProver1 extends LLProver {
         proofBuilder.append(System.lineSeparator());
     }
 
+
+    public List<History> chartDeduce2(List<History> histories) throws VariableBindingException, ProverException {
+        getLOGGER().finer("Beginning a partial chart derivation...");
+
+        List<History> agenda = new ArrayList<>(histories);
+        List<History> chart = new ArrayList<>();
+
+        while (!agenda.isEmpty()) {
+            ListIterator<History> agendaIterator = agenda.listIterator();
+
+            while (agendaIterator.hasNext()) {
+                History current = agendaIterator.next();
+                agendaIterator.remove();
+
+
+                for (History h : chart) {
+                    if (h.category.left != null) {
+                        if (h.category.left.toString().equals(current.category.toString())) {
+                            History combined = combineHistories(h, current);
+                            if (combined != null) {
+                                agendaIterator.add(combined);
+                            }
+                        }
+                    }
+                    if (current.category.left != null) {
+                        if (current.category.left.toString().equals(h.category.toString())) {
+                            History combined = combineHistories(current, h);
+                            if (combined != null) {
+                                agendaIterator.add(combined);
+                            }
+
+                        }
+                    }
+                    }
+                chart.add(current);
+                }
+
+
+            }
+        return chart;
+        }
+
+
     public Chart chartDeduce(List<History> histories) throws VariableBindingException, ProverException {
         getLOGGER().finer("Beginning a partial chart derivation...");
         Chart chart = new Chart();
@@ -436,8 +506,25 @@ public class LLProver1 extends LLProver {
                 History current = agendaIterator.next();
                 agendaIterator.remove();
 
+
+
+
                 //something has the form X -o X
+
+                /*
+
                 if (current.category.left.equals(current.category.right)) {
+
+                    if (chart.modifierChart.containsKey(current.category.left.toString())) {
+                        for (History h : chart.modifierChart.get(current.category.left.toString())) {
+                            History combined = combineHistories(current, h);
+                            if (combined != null) {
+                                agendaIterator.add(combined);
+
+                            }
+                        }
+                    }
+
                     if (chart.atomicChart.containsKey(current.category.left.toString())) {
                         for (History h : chart.atomicChart.get(current.category.left.toString())) {
                             History combined = combineHistories(current, h);
@@ -446,7 +533,6 @@ public class LLProver1 extends LLProver {
 
                             }
                         }
-                        continue;
                     }
 
                     if (chart.nonAtomicChart.containsKey(current.category.toString())) {
@@ -457,80 +543,77 @@ public class LLProver1 extends LLProver {
 
                             }
                         }
-                        continue;
                     }
 
-                if (chart.modifierChart.containsKey(current.category.left.toString())) {
-                    chart.modifierChart.get(current.category.left.toString()).add(current);
-                } else {
-                    Set<History> histories1 = new HashSet<>();
-                    histories1.add(current);
-                    chart.modifierChart.put(current.category.left.toString(), histories1);
+                    if (chart.modifierChart.containsKey(current.category.left.toString())) {
+                        chart.modifierChart.get(current.category.left.toString()).add(current);
+                    } else {
+                        Set<History> histories1 = new HashSet<>();
+                        histories1.add(current);
+                        chart.modifierChart.put(current.category.left.toString(), histories1);
+                    }
+                    continue;
                 }
-            }
-
+                 */
                 if (!current.category.atomic) {
 
-                    if (chart.atomicChart.containsKey(current.category.left.toString()))
-                    {
+                    if (chart.atomicChart.containsKey(current.category.left.toString())) {
                         for (History h : chart.atomicChart.get(current.category.left.toString())) {
-                                History combined = combineHistories(current,h);
-                                if (combined != null) {
-                                    agendaIterator.add(combined);
-                                }
+                            History combined = combineHistories(current, h);
+                            if (combined != null) {
+                                agendaIterator.add(combined);
+                            }
                         }
 
-
+/*
                         for (History h : chart.modifierChart.get(current.category.left.toString())) {
-                            History combined = combineHistories(current,h);
+                            History combined = combineHistories(current, h);
+                            if (combined != null) {
+                                agendaIterator.add(combined);
+                            }
+                        }
+
+ */
+                        chart.nonAtomicChart.get(current.category.left.toString()).add(current);
+                    } else {
+                        Set<History> histories1 = new HashSet<>();
+                        histories1.add(current);
+                        chart.nonAtomicChart.put(current.category.left.toString(), histories1);
+                    }
+
+                    
+
+                } else {
+
+
+                    if (chart.nonAtomicChart.containsKey(current.category.toString())) {
+                        for (History h : chart.nonAtomicChart.get(current.category.toString())) {
+                            History combined = combineHistories(h, current);
                             if (combined != null) {
                                 agendaIterator.add(combined);
                             }
                         }
                     }
-                    if (chart.nonAtomicChart.containsKey(current.category.left.toString()))
-                    {
-                        chart.nonAtomicChart.get(current.category.left.toString()).add(current);
-                    } else
-                    {
-                        Set<History> histories1 = new HashSet<>();
-                        histories1.add(current);
-                        chart.nonAtomicChart.put(current.category.left.toString(),histories1);
-                    }
 
-                } else {
-                    if (chart.nonAtomicChart.containsKey(current.category.toString()))
-                    {
-                        for (History h : chart.nonAtomicChart.get(current.category.toString()))
-                        {
-                                History combined = combineHistories(h,current);
-                                if (combined != null) {
-                                    agendaIterator.add(combined);
-                                }
-                           }
-                        }
-
-                    for (History h : chart.modifierChart.get(current.category.toString()))
-                    {
-                        History combined = combineHistories(current,h);
+                    /*
+                    for (History h : chart.modifierChart.get(current.category.toString())) {
+                        History combined = combineHistories(current, h);
                         if (combined != null) {
                             agendaIterator.add(combined);
                         }
                     }
-                }
+                     */
 
-
-                    if (chart.atomicChart.containsKey(current.category.toString()))
-                    {
+                    if (chart.atomicChart.containsKey(current.category.toString())) {
                         chart.atomicChart.get(current.category.toString()).add(current);
-                    } else
-                    {
+                    } else {
                         Set<History> histories1 = new HashSet<>();
                         histories1.add(current);
-                        chart.atomicChart.put(current.category.toString(),histories1);
+                        chart.atomicChart.put(current.category.toString(), histories1);
                     }
                 }
             }
+        }
 
         return chart;
     }
@@ -679,22 +762,27 @@ public class LLProver1 extends LLProver {
         Premise argumentClone = null;
 
         Boolean variableArgument = false;
-        if (((LLAtom)argument.getGlueTerm()).lltype.equals(LLAtom.LLType.VAR)) {
-            variableArgument = true;
 
-            if (((LLAtom)((LLFormula)  functor.getGlueTerm()).getLhs()).lltype.equals(LLAtom.LLType.CONST)) {
-                argumentClone = new Premise(argument.getPremiseIDs(), argument.getSemTerm().clone(),
-                        ((LLFormula) func.getGlueTerm()).getLhs().clone());
-                argumentClone.getGlueTerm().getAssumptions2().addAll(argument.getGlueTerm().getAssumptions2());
-            }else {
-                return null;
+        if (argument.getGlueTerm() instanceof LLAtom) {
+            if (((LLAtom) argument.getGlueTerm()).lltype.equals(LLAtom.LLType.VAR)) {
+                variableArgument = true;
+
+                if (((LLAtom) ((LLFormula) functor.getGlueTerm()).getLhs()).lltype.equals(LLAtom.LLType.CONST)) {
+                    argumentClone = new Premise(argument.getPremiseIDs(), argument.getSemTerm().clone(),
+                            ((LLFormula) func.getGlueTerm()).getLhs().clone());
+                    argumentClone.getGlueTerm().getAssumptions2().addAll(argument.getGlueTerm().getAssumptions2());
+                } else {
+                    return null;
+                }
             }
         }
-        else
-        {
-            argumentClone = new Premise(argument.getPremiseIDs(), argument.getSemTerm().clone(),
-                    argument.getGlueTerm().clone());
-        }
+
+            if (argumentClone == null)
+            {
+                argumentClone = new Premise(argument.getPremiseIDs(), argument.getSemTerm().clone(),
+                        argument.getGlueTerm().clone());
+            }
+
 
         LinkedHashSet<Equality> eqs = ((LLFormula) func.getGlueTerm()).getLhs().checkCompatibility(argument.getGlueTerm());
 
