@@ -1,8 +1,10 @@
 package prover;
 
+
 import glueSemantics.linearLogic.*;
 import glueSemantics.semantics.SemanticRepresentation;
 import glueSemantics.semantics.lambda.*;
+import main.InputOutputProcessor;
 import main.Settings;
 import org.jgrapht.Graph;
 import org.jgrapht.alg.connectivity.GabowStrongConnectivityInspector;
@@ -22,16 +24,17 @@ import java.util.stream.Collectors;
 public class LLProver1 extends LLProver {
 
 
-
     private Sequent currentSequent;
     private LinkedList<History> finalHistories = new LinkedList<>();
     private StringBuilder proofBuilder;
     private HashSet<Integer> goalIDs = new HashSet<>();
     public long startTime;
+    public GraphAnalysis analysis;
 
     /**
-     * LLProver version 2.0
-     * Implements Lev's rather than Hepple's algorithm. Avoids need for accidental binding.
+     * LLProver1 implements a procedure for Glue semantics derivations based on Lev (2007), chapter 6
+     * It uses a cartography graph to order combination steps handling skeleton premises and a chart-based
+     * algorithm to deal with modifier premises, i.e. cyclic elements in a glue proof.
      *
      * @param settings
      */
@@ -46,8 +49,6 @@ public class LLProver1 extends LLProver {
     }
 
     public void deduce(Sequent seq) throws ProverException, VariableBindingException {
-
-
 
         this.db = new Debugging();
         this.currentSequent = seq;
@@ -132,14 +133,15 @@ public class LLProver1 extends LLProver {
 
         Graph<CGNode, DefaultEdge> categoryGraph2 = calculateCategoryGraph2(copy,category2premiseMapping);
 
-        StrongConnectivityAlgorithm ins2 = new GabowStrongConnectivityInspector(categoryGraph2);
-        Graph scc2 = ins2.getCondensation();
+        StrongConnectivityAlgorithm<CGNode,DefaultEdge> ins2 = new GabowStrongConnectivityInspector<>(categoryGraph2);
+        Graph<Graph<CGNode,DefaultEdge>,DefaultEdge> scc2 = ins2.getCondensation();
 
-        TopologicalOrderIterator graphIter2 = new TopologicalOrderIterator(scc2);
+        TopologicalOrderIterator<Graph<CGNode,DefaultEdge>,DefaultEdge> graphIter2 = new TopologicalOrderIterator<>(scc2);
+
 
         while (graphIter2.hasNext())
         {
-            Graph sccKey = (Graph) graphIter2.next();
+            Graph<CGNode,DefaultEdge> sccKey = graphIter2.next();
             //Element is outside of an scc
             if (sccKey.vertexSet().size() == 1)
             {
@@ -149,7 +151,7 @@ public class LLProver1 extends LLProver {
 
                     for (Object edge : scc2.incomingEdgesOf(sccKey))
                         {
-                           CGNode parentConnectorNode = (CGNode) ((Graph) scc2.getEdgeSource(edge)).vertexSet().stream().findAny().get();
+                           CGNode parentConnectorNode = (CGNode) ((Graph) scc2.getEdgeSource((DefaultEdge) edge)).vertexSet().stream().findAny().get();
                            node.histories.addAll(parentConnectorNode.histories);
                            node.compressHistories();
 
@@ -159,8 +161,8 @@ public class LLProver1 extends LLProver {
                 //Element is a connector node
                 if (node.nodeType.equals(CGNode.type.CONNECTOR))
                 {
-                    Object childNodeGraph = categoryGraph2.outgoingEdgesOf(node).stream().findAny().get();
-                    CGNode childNode = (CGNode) scc2.getEdgeTarget(childNodeGraph);
+         //           Object childNodeGraph = categoryGraph2.outgoingEdgesOf(node).stream().findAny().get();
+         //           CGNode childNode = (CGNode) scc2.getEdgeTarget((CGNode) childNodeGraph);
 
                     List<CGNode> parents = new ArrayList<>();
                     for (Object edge : categoryGraph2.incomingEdgesOf(node)) {
@@ -194,6 +196,8 @@ public class LLProver1 extends LLProver {
             }
             else
             {
+            	//Inside an scc
+
                 List<CGNode> outputNodes = new ArrayList<>();
                 List<CGNode> inputNodes = new ArrayList<>();
                 Set<History> sccHistories = new HashSet<>();
@@ -257,17 +261,27 @@ public class LLProver1 extends LLProver {
                 }
             }
         }
+        
+        analysis = new GraphAnalysis(goalCategory,scc2);
+        //analysis.displayGraph();     
+        
         getLOGGER().fine("Starting semantic calculations...");
 
         StringBuilder resultBuilder = new StringBuilder();
 
-        for (History solution : finalHistories)
-        {
-          getSolutions().addAll(solution.calculateSolutions(resultBuilder));
-        }
-        proofBuilder.append(resultBuilder.toString());
+        if (!finalHistories.isEmpty()) {
+            for (History solution : finalHistories) {
+                getSolutions().addAll(solution.calculateSolutions(resultBuilder));
+            }
+            proofBuilder.append(resultBuilder.toString());
 
-        getLOGGER().info("Found the following glue derivation(s):\n" + resultBuilder.toString());
+            getLOGGER().info("Found the following glue derivation(s):\n" + resultBuilder.toString());
+        
+
+        
+        }
+
+
 
        // System.out.println(resultBuilder);
         // System.out.println(System.lineSeparator());
@@ -642,9 +656,9 @@ public class LLProver1 extends LLProver {
             //TODO sdout vs file
             if (true)
             {
-                proofBuilder.append("Combining " + f + " and " + a);
+                proofBuilder.append("Combining " + InputOutputProcessor.restoreBackLinearLogicSide(f) + " and " + InputOutputProcessor.restoreBackLinearLogicSide(a));
                 proofBuilder.append(System.lineSeparator());
-                proofBuilder.append("to: " + combined.toString());
+                proofBuilder.append("to: " + InputOutputProcessor.restoreBackLinearLogicSide(combined.toString()));
                 proofBuilder.append(System.lineSeparator());
             }
         }

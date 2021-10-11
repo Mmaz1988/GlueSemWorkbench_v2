@@ -3,6 +3,7 @@ package prover;
 import glueSemantics.linearLogic.*;
 import glueSemantics.semantics.SemanticRepresentation;
 import glueSemantics.semantics.lambda.*;
+import main.InputOutputProcessor;
 import main.Settings;
 import utilities.Debugging;
 import utilities.LexVariableHandler;
@@ -41,7 +42,9 @@ public class LLProver2 extends LLProver{
 
     /**
      * LLProver version 2.0
-     * Implements Lev's rather than Hepple's algorithm. Avoids need for accidental binding.
+     * LLProver1 implements a procedure for Glue semantics derivations based on Lev (2007), chapter 5
+     * The original idea for this procedure has been described in Hepple (1996).
+     * The present version avoids the need for accidental binding.
      *
      * @param settings
      */
@@ -467,9 +470,9 @@ public class LLProver2 extends LLProver{
             //TODO sdout vs file
             if (true)
             {
-                proofBuilder.append("Combining " + f + " and " + a);
+                proofBuilder.append("Combining " + InputOutputProcessor.restoreBackLinearLogicSide(f) + " and " + InputOutputProcessor.restoreBackLinearLogicSide(a));
                 proofBuilder.append(System.lineSeparator());
-                proofBuilder.append("to: " + combined.toString());
+                proofBuilder.append("to: " + InputOutputProcessor.restoreBackLinearLogicSide(combined.toString()));
                 proofBuilder.append(System.lineSeparator());
             }
 
@@ -741,6 +744,13 @@ public class LLProver2 extends LLProver{
         }
     }
 
+    public HashMap<String, List<Premise>> getAtomicChart() {
+    	return atomicChart;
+    }
+    public HashMap<String, List<Premise>> getNonAtomicChart() {
+    	return nonAtomicChart;
+    }
+    
     /*
     public void updateVariableDependencies(List<Premise> compiled)
     {

@@ -1,6 +1,5 @@
 package prover.categoryGraph;
 
-import glueSemantics.linearLogic.LLTerm;
 import prover.LLProver;
 
 import java.util.*;

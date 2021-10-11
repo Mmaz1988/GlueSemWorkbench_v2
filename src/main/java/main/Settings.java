@@ -30,6 +30,7 @@ public class Settings {
  //Outputnodes
     public static final int PLAIN = 0;
     public static final int PROLOG = 1;
+    public static final int NLTK = 3; 
     // TODO implement latex output
     //private final int LATEX = 2;
 
@@ -45,8 +46,9 @@ public class Settings {
     private static boolean multipleEntries;
     private static boolean outputFile;
     private static boolean parseSemantics = false;
-    private static Boolean solutionOnly = false;
-    private static Boolean testExpression = false;
+    private static boolean solutionOnly = false;
+    private static boolean testExpression = false;
+    private static boolean visualize = false;
     private static int proverType = HEPPLE;
 
     public Settings() {
@@ -152,6 +154,12 @@ public class Settings {
     public void setProverType(int proverType) {
         Settings.proverType = proverType;
     }
+    public static boolean isVisualize() {
+        return visualize;
+    }
 
+    public static void setVisualize(boolean visualize) {
+        Settings.visualize = visualize;
+    }
 
 }

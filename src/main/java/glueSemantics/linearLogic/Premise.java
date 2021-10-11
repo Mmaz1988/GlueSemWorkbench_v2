@@ -22,7 +22,9 @@ import glueSemantics.semantics.SemanticRepresentation;
 import glueSemantics.semantics.lambda.SemAtom;
 import glueSemantics.semantics.lambda.SemanticExpression;
 
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 
 public class Premise {
@@ -153,5 +155,44 @@ public class Premise {
     public void setBinderVars(LinkedList<SemAtom> binderVars) {
         this.binderVars = binderVars;
     }
-
+    /* This function returns the premise string as if it was not compiled (decompiled form).
+     * This is useful when listing the premises on the list of explanation. */
+    public String getReverseCompiledString() {
+        return glueTerm.getReverseCompiledString();
+    }
+    
+    /* This function returns a list of premise IDs (Subscript coverage) in string.*/
+    public String getReverseCompiledPremiseIds(int [] coverage) {
+        String toReturn = "";
+        for (int a = 0; a < coverage.length; a++ ) {
+        	toReturn += ", " + Integer.toString(coverage[a]);
+        }
+    	return "{" + toReturn.substring(2) + "}";
+    }
+    
+    /* This function is called recursively to add the premise IDs of ordered discharges
+     * of a premise. 
+     */
+    public void addSubscriptPremises(HashSet<Integer> hs ) {
+        Iterator<Integer> it = premiseIDs.iterator();
+        while(it.hasNext()){
+        	hs.add(it.next());
+        }
+    	glueTerm.addSubscriptPremises(hs);
+    }
+    
+    /* This function returns a list of premise IDs (Subscript coverage) in string array.*/
+    public int[] getNumbersOfThisObject() {
+    	HashSet<Integer> coverageSet = new HashSet<Integer>();
+    	addSubscriptPremises(coverageSet);
+    	int [] coverage = new int[coverageSet.size()];
+    	int pointer = 0;
+        Iterator<Integer> it = coverageSet.iterator();
+        while(it.hasNext()){
+        	coverage[pointer] = it.next();
+        	pointer ++;
+        }
+        Arrays.sort(coverage);
+        return coverage;
+    }
 }
