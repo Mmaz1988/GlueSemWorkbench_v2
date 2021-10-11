@@ -453,7 +453,7 @@ public class LLProver1 extends LLProver {
 
     /**
      * chartDeduce2 uses Hepple's chart algorithm to calculate histories inside an SCC within a category graph.
-     * This variant does not distinguish between compiled and uncompiled premises to account for non-atomic arguments
+     * This variant does not distinguish between atomic and non-atomic premises to account for non-atomic arguments
      * that may occur when modifiers are not fully compiled.
      * @param histories
      * @return
