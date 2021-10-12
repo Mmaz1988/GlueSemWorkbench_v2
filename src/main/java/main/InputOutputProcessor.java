@@ -254,6 +254,6 @@ public class InputOutputProcessor {
 			
 			}
 		}
-	return r.strip().replace("-o", " -o ");
+	return r.trim().replace("-o", " -o ");
 	}
 }
