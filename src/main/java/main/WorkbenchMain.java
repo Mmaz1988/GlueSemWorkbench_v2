@@ -387,7 +387,7 @@ public class WorkbenchMain {
             } catch (ParserInputException e) {
                 LOGGER.warning(String.format("Error: glue parser could not parse line %d of input file. Skipping this line.",formulas.indexOf(s)));
                 if(assureGlueParsing) {
-                    LOGGER.warning("Skipping this set of premises since all premises in this set could not be parsed properly.");
+                    LOGGER.warning("Skipping this set of premises since some premises in this set could not be parsed properly.");
                 	singleSet.clear();
                 	break;
                 }
