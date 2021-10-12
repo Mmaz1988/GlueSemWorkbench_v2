@@ -48,7 +48,7 @@ Omitting an input file allows you to run a file chooser. When no output file is 
 | `-explainFail` | `Include an explanation of failing cases (potantially non-cobining premises) in the output. This option only works with Hepple-style algorithm.  ` |
 | `-readStdIn` | `Read the input from Stdin. If a filename is given by -i, the file is ignored` |
 | `-writeStdOut` | `Write the output to Stdout. If a filename is given by -o, the file is ignored` |
-| `-assureGlueParsing` | `Assure glue parsing. Terminate on parsing error.` |
+| `-assureGlueParsing` | `Assure glue parsing. Skip the set of premises in case of a parse error in that set.` |
 
 *in development.
 
