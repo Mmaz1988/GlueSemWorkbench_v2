@@ -194,9 +194,8 @@ public class LLProver1 extends LLProver {
                     node.compressHistories();
                 }
             }
-            else
-            {
-            	//Inside an scc
+            else {
+                //Inside an scc
 
                 //check if scc is a basic scc (exactly one atomic category and exactly one connector node)
                 Boolean basicScc = false;
@@ -204,14 +203,13 @@ public class LLProver1 extends LLProver {
                 CGNode modifierNode = null;
 
                 //basic sccs contain exactly two elements
-                if (sccKey.vertexSet().size() == 2)
-                {
+                if (sccKey.vertexSet().size() == 2) {
                     List<CGNode> nodes = new ArrayList<>(sccKey.vertexSet());
                     CGNode atomicCategory = null;
                     Iterator<CGNode> iter = nodes.iterator();
                     while (iter.hasNext()) {
                         CGNode node = iter.next();
-                        if ( node.nodeType.equals(CGNode.type.CATEGORY) && !node.category.contains("-o") ) {
+                        if (node.nodeType.equals(CGNode.type.CATEGORY) && !node.category.contains("-o")) {
                             //Exactly one incoming node
                             if (categoryGraph2.incomingEdgesOf(node).size() <= 2) {
                                 atomicCategory = node;
@@ -221,31 +219,27 @@ public class LLProver1 extends LLProver {
                         }
                     }
 
-                    if (atomicCategory != null){
+                    if (atomicCategory != null) {
                         CGNode node = nodes.stream().findAny().get();
-                    if (node.nodeType == CGNode.type.CONNECTOR)
-                    {
-                        List<DefaultEdge> incomingEdges = new ArrayList<>(categoryGraph2.incomingEdgesOf(node));
-                        Iterator<DefaultEdge> outIter = incomingEdges.iterator();
-                        while (outIter.hasNext())
-                        {
-                            DefaultEdge e = outIter.next();
-                            if (categoryGraph2.getEdgeSource(e).equals(atomicCategory))
-                            {
-                                outIter.remove();
-                            }
-                            else
-                            {
-                                //Check if second parent of connector node is a modifier of the atomic category
-                                if (categoryGraph2.getEdgeSource(e).category.equals(atomicCategory + " -o " + atomicCategory));
-                                {
-                                    basicScc = true;
-                                    modifierNode = categoryGraph2.getEdgeSource(e);
+                        if (node.nodeType == CGNode.type.CONNECTOR) {
+                            List<DefaultEdge> incomingEdges = new ArrayList<>(categoryGraph2.incomingEdgesOf(node));
+                            Iterator<DefaultEdge> outIter = incomingEdges.iterator();
+                            while (outIter.hasNext()) {
+                                DefaultEdge e = outIter.next();
+                                if (categoryGraph2.getEdgeSource(e).equals(atomicCategory)) {
                                     outIter.remove();
+                                } else {
+                                    //Check if second parent of connector node is a modifier of the atomic category
+                                    if (categoryGraph2.getEdgeSource(e).category.equals(atomicCategory + " -o " + atomicCategory))
+                                        ;
+                                    {
+                                        basicScc = true;
+                                        modifierNode = categoryGraph2.getEdgeSource(e);
+                                        outIter.remove();
+                                    }
                                 }
                             }
                         }
-                    }
                     }
                 }
 
@@ -254,13 +248,11 @@ public class LLProver1 extends LLProver {
                 List<CGNode> inputNodes = new ArrayList<>();
                 Set<History> sccHistories = new HashSet<>();
 
-                for (CGNode node : sccKey.vertexSet())
-                {
+                for (CGNode node : sccKey.vertexSet()) {
 
                     if (node.nodeType.equals(CGNode.type.CATEGORY)) {
 
-                        for (Object edge : categoryGraph2.incomingEdgesOf(node))
-                        {
+                        for (Object edge : categoryGraph2.incomingEdgesOf(node)) {
                             CGNode parentConnectorNode = (CGNode) categoryGraph2.getEdgeSource((DefaultEdge) edge);
                             node.histories.addAll(parentConnectorNode.histories);
                             node.compressHistories();
@@ -268,7 +260,7 @@ public class LLProver1 extends LLProver {
                     }
 
 
-                  // inputNodes.add((CGNode) node);
+                    // inputNodes.add((CGNode) node);
                     sccHistories.addAll(((CGNode) node).histories);
 
                     boolean input = true;
@@ -286,29 +278,26 @@ public class LLProver1 extends LLProver {
                         }
                     }
 
-                        if (input)
-                        {
-                            inputNodes.add((CGNode) node);
-     //                       sccHistories.addAll(((CGNode) node).histories);
-                        }
+                    if (input) {
+                        inputNodes.add((CGNode) node);
+                        //                       sccHistories.addAll(((CGNode) node).histories);
+                    }
 
 
                     //Search output nodes
-                    if (categoryGraph2.outgoingEdgesOf((CGNode) node).size() > 0)
-                    {
-                        for (Object edge : categoryGraph2.outgoingEdgesOf((CGNode) node))
-                        {
+                    if (categoryGraph2.outgoingEdgesOf((CGNode) node).size() > 0) {
+                        for (Object edge : categoryGraph2.outgoingEdgesOf((CGNode) node)) {
                             if (!(sccKey.vertexSet().contains(categoryGraph2.getEdgeTarget((DefaultEdge) edge)))
-                            && categoryGraph2.getEdgeTarget((DefaultEdge) edge).nodeType.equals(CGNode.type.CONNECTOR) )
-                            {
+                                    && categoryGraph2.getEdgeTarget((DefaultEdge) edge).nodeType.equals(CGNode.type.CONNECTOR)) {
                                 outputNodes.add((CGNode) node);
                                 break;
                             }
-                        }}
-
-                        if (((CGNode) node).category.equals(goalCategory)) {
-                            outputNodes.add((CGNode) node);
                         }
+                    }
+
+                    if (((CGNode) node).category.equals(goalCategory)) {
+                        outputNodes.add((CGNode) node);
+                    }
 
                 }
 
@@ -321,36 +310,29 @@ public class LLProver1 extends LLProver {
 
                     List<Set<Integer>> lists = new ArrayList<>();
 
-                    for (History h : output.histories)
-                    {
+                    for (History h : output.histories) {
                         lists.add(new HashSet<>(h.indexSet));
                     }
                     Collections.sort(lists, (Comparator<Set>) (a1, a2) -> a2.size() - a1.size());
                     Set<Integer> commons = lists.get(0);
-                    for (ListIterator<Set<Integer>> iter = lists.listIterator(1);iter.hasNext();)
-                    {
+                    for (ListIterator<Set<Integer>> iter = lists.listIterator(1); iter.hasNext(); ) {
                         commons.retainAll(iter.next());
                     }
 
-                    if (!commons.isEmpty())
-                    {
+                    if (!commons.isEmpty()) {
                         Iterator<History> outputIter = output.histories.iterator();
-                        while (outputIter.hasNext())
-                        {
+                        while (outputIter.hasNext()) {
                             History ch = outputIter.next();
 
                             Boolean includesMainindex = false;
-                            for (History h : modifierNode.histories)
-                            {
-                                if (ch.indexSet.contains(h.mainIndex))
-                                {
+                            for (History h : modifierNode.histories) {
+                                if (ch.indexSet.contains(h.mainIndex)) {
                                     includesMainindex = true;
                                     break;
                                 }
                             }
 
-                            if (!includesMainindex)
-                            {
+                            if (!includesMainindex) {
                                 outputIter.remove();
                                 db.discardedHistories++;
                             }
@@ -367,7 +349,7 @@ public class LLProver1 extends LLProver {
                 Original chart deduce call
                  */
 
-                /*
+
                 Chart c = chartDeduce(sccAgenda);
 
 
@@ -384,12 +366,13 @@ public class LLProver1 extends LLProver {
                     outputNode.compressHistories();
                 }
 
-                 */
+
 
                 /*
                 Modified chartDeduce call
                  */
 
+                /*
                 List<History> histories = chartDeduce2(sccAgenda);
 
                 for (CGNode outputNode : outputNodes)
@@ -400,10 +383,24 @@ public class LLProver1 extends LLProver {
                             outputNode.histories.add(h);
                         }
                     }
+
+                    List<History> sortedHistories = new ArrayList<>(outputNode.histories);
+
+                    sortedHistories.sort(new Comparator<History>() {
+                        @Override
+                        public int compare(History o1, History o2) {
+                            return Integer.valueOf(o1.indexSet.size()).compareTo(o2.indexSet.size());
+                        }
+                    });
+
+
+
                     outputNode.compressHistories();
                 }
 
+            }
 
+                 */
             }
         }
 
@@ -469,6 +466,7 @@ public class LLProver1 extends LLProver {
         //In the beginning the chart is empty
         List<History> chart = new ArrayList<>();
 
+
         while (!agenda.isEmpty()) {
 
             ListIterator<History> agendaIterator = agenda.listIterator();
@@ -481,6 +479,7 @@ public class LLProver1 extends LLProver {
                 resource can be produced.
                 If so, it is added to the agenda
                  */
+
 
                 for (History h : chart) {
                     if (h.category.left != null) {
@@ -523,115 +522,51 @@ public class LLProver1 extends LLProver {
                 History current = agendaIterator.next();
                 agendaIterator.remove();
 
-
-
-
-                //something has the form X -o X
-
-                /*
-
-                if (current.category.left.equals(current.category.right)) {
-
-                    if (chart.modifierChart.containsKey(current.category.left.toString())) {
-                        for (History h : chart.modifierChart.get(current.category.left.toString())) {
-                            History combined = combineHistories(current, h);
-                            if (combined != null) {
-                                agendaIterator.add(combined);
-
-                            }
-                        }
-                    }
-
-                    if (chart.atomicChart.containsKey(current.category.left.toString())) {
-                        for (History h : chart.atomicChart.get(current.category.left.toString())) {
-                            History combined = combineHistories(current, h);
-                            if (combined != null) {
-                                agendaIterator.add(combined);
-
-                            }
-                        }
-                    }
-
-                    if (chart.nonAtomicChart.containsKey(current.category.toString())) {
-                        for (History h : chart.nonAtomicChart.get(current.category.toString())) {
-                            History combined = combineHistories(current, h);
-                            if (combined != null) {
-                                agendaIterator.add(combined);
-
-                            }
-                        }
-                    }
-
-                    if (chart.modifierChart.containsKey(current.category.left.toString())) {
-                        chart.modifierChart.get(current.category.left.toString()).add(current);
-                    } else {
-                        Set<History> histories1 = new HashSet<>();
-                        histories1.add(current);
-                        chart.modifierChart.put(current.category.left.toString(), histories1);
-                    }
-                    continue;
-                }
-                 */
                 if (!current.category.atomic) {
 
-                    if (chart.atomicChart.containsKey(current.category.left.toString())) {
+                    if (chart.atomicChart.containsKey(current.category.left.toString()))
+                    {
                         for (History h : chart.atomicChart.get(current.category.left.toString())) {
-                            History combined = combineHistories(current, h);
+                            History combined = combineHistories(current,h);
                             if (combined != null) {
                                 agendaIterator.add(combined);
                             }
                         }
-
-/*
-                        for (History h : chart.modifierChart.get(current.category.left.toString())) {
-                            History combined = combineHistories(current, h);
-                            if (combined != null) {
-                                agendaIterator.add(combined);
-                            }
-                        }
-
- */
+                    }
+                    if (chart.nonAtomicChart.containsKey(current.category.left.toString()))
+                    {
                         chart.nonAtomicChart.get(current.category.left.toString()).add(current);
-                    } else {
+                    } else
+                    {
                         Set<History> histories1 = new HashSet<>();
                         histories1.add(current);
-                        chart.nonAtomicChart.put(current.category.left.toString(), histories1);
+                        chart.nonAtomicChart.put(current.category.left.toString(),histories1);
                     }
-
-                    
 
                 } else {
-
-
-                    if (chart.nonAtomicChart.containsKey(current.category.toString())) {
-                        for (History h : chart.nonAtomicChart.get(current.category.toString())) {
-                            History combined = combineHistories(h, current);
+                    if (chart.nonAtomicChart.containsKey(current.category.toString()))
+                    {
+                        for (History h : chart.nonAtomicChart.get(current.category.toString()))
+                        {
+                            History combined = combineHistories(h,current);
                             if (combined != null) {
                                 agendaIterator.add(combined);
                             }
                         }
                     }
 
-                    /*
-                    for (History h : chart.modifierChart.get(current.category.toString())) {
-                        History combined = combineHistories(current, h);
-                        if (combined != null) {
-                            agendaIterator.add(combined);
-                        }
-                    }
-                     */
-
-                    if (chart.atomicChart.containsKey(current.category.toString())) {
+                    if (chart.atomicChart.containsKey(current.category.toString()))
+                    {
                         chart.atomicChart.get(current.category.toString()).add(current);
-                    } else {
+                    } else
+                    {
                         Set<History> histories1 = new HashSet<>();
                         histories1.add(current);
-                        chart.atomicChart.put(current.category.toString(), histories1);
+                        chart.atomicChart.put(current.category.toString(),histories1);
                     }
                 }
             }
         }
-
         return chart;
     }
 
@@ -1017,11 +952,15 @@ public class LLProver1 extends LLProver {
          * Here if the glue term of the premise is in form of X -o X
          * then we don't compile it, but we directly add it to the agenda.
          */
+
+        /*
         if(p.getGlueTerm().isXtX()) {
             Premise q = new Premise(p.getPremiseIDs(), p.getSemTerm(),p.getGlueTerm());
             compiled.add(q);
             return compiled;
         }
+
+         */
         /* End of this code block added for optimization-1 */
 
 

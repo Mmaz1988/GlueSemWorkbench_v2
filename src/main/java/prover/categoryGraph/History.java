@@ -72,7 +72,7 @@ public class History {
     public String toString() {
 
 
-        return category.toString() + indexSet + "(" + parents + ")";
+        return category.toString() + " " + indexSet + " (" + parents + ")";
     }
 
     public List<Premise> calculateSolutions(StringBuilder resultBuilder) throws VariableBindingException, ProverException {

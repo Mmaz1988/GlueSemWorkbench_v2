@@ -167,7 +167,11 @@ public class LinearLogicParser {
                             pos++;
                             return new LLAtom(glueIdentifier,
                                     new SemType(SemType.AtomicType.V), LLAtom.LLType.CONST, polarity);
-                        }
+                        }else if (unparsedInput.charAt(pos) == 'p') {
+                            pos++;
+                            return new LLAtom(glueIdentifier,
+                                    new SemType(SemType.AtomicType.P), LLAtom.LLType.CONST, polarity);
+                    }
                     }
                     else
                         throw new ParserInputException(pos,"Type identifier expected (e,s,v,t or t)");
@@ -226,7 +230,11 @@ public class LinearLogicParser {
                     pos++;
                     return new LLAtom(glueIdentifier,
                             new SemType(SemType.AtomicType.V), LLAtom.LLType.CONST, polarity);
-                }
+                }else if (unparsedInput.charAt(pos) == 'p') {
+                        pos++;
+                        return new LLAtom(glueIdentifier,
+                                new SemType(SemType.AtomicType.P), LLAtom.LLType.CONST, polarity);
+                    }
                     else
                         throw new ParserInputException(pos,"Type identifier expected (e or t)");
                 }
