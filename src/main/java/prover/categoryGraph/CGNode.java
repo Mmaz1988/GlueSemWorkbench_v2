@@ -77,7 +77,7 @@ public class CGNode {
 
     public void compressHistories()
     {
-        Set<History> chart = new HashSet<>();
+        List<History> chart = new ArrayList<>();
         if (histories.size() > 1) {
             List<History> agenda = new ArrayList<>(histories);
 
@@ -88,10 +88,10 @@ public class CGNode {
                     iter.remove();
 
                     Boolean added = false;
-                    if (chart.isEmpty()) {
-                        Iterator<History> chartIter = chart.iterator();
+                    if (!chart.isEmpty()) {
+                        ListIterator<History> chartIter = chart.listIterator();
                         while (chartIter.hasNext()) {
-                            History h2 = iter.next();
+                            History h2 = chartIter.next();
 
                             if (!(h1.equals(h2)) && h1.category.toString().equals(h2.category.toString()) &&
                                     h1.indexSet.equals(h2.indexSet) && h1.discharges.equals(h2.discharges) && (h1.requirements.equals(h2.requirements))) {
@@ -106,8 +106,10 @@ public class CGNode {
 
 
                                 added = true;
-                                chart.add(h3);
-                                iter.remove();
+                                chartIter.remove();
+                                chartIter.add(h3);
+
+                                break;
                             }
 
                         }
@@ -123,7 +125,7 @@ public class CGNode {
             if (!chart.isEmpty())
             {
                 prover.db.discardedHistories = prover.db.discardedHistories + this.histories.size() - chart.size();
-                this.histories = chart;
+                this.histories = new HashSet<>(chart);
             }
         }
     }
