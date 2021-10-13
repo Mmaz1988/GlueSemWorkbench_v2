@@ -13,7 +13,6 @@ public class InputOutputProcessor {
 	private static String values[];
 	private static int size;
 	private static int reserved;
-	private static int lastInteger;
 
 	private static final String regex1 = "[a-zA-Z]+\\([0-9]+\\)";
 	private static final String regex2 = "[a-zA-Z]+\\(\'[0-9]+\'\\)";
@@ -23,6 +22,11 @@ public class InputOutputProcessor {
 	
 	
 	private static void add(String s1) {
+		String original = new String(s1);
+		s1 = s1.replace("'", "");
+		String val = s1.substring(s1.indexOf('(')+1, s1.indexOf(')')) + "_" +s1.substring(0,s1.indexOf('('));
+		
+		
 		for (int i = 0; i < size; i++) {
 			if (names[i].equals(s1)) {
 				return;
@@ -38,10 +42,9 @@ public class InputOutputProcessor {
 			}
 			reserved = newSize;
 		}
-		InputOutputProcessor.names[size] = s1;
-		InputOutputProcessor.values[size] = Integer.toString(lastInteger);
+		InputOutputProcessor.names[size] = original;
+		InputOutputProcessor.values[size] = val;
 		InputOutputProcessor.size++;
-		InputOutputProcessor.lastInteger++;
 	}
 
 	public static void resetInputProcessor() {
@@ -76,7 +79,6 @@ public class InputOutputProcessor {
 		values = new String[20];
 		reserved = 20;
 		size = 0;
-		lastInteger = 1;
 	}
 
 	public static String translate(String s) {
@@ -254,6 +256,6 @@ public class InputOutputProcessor {
 			
 			}
 		}
-	return r.replace("-o", " -o ");
+	return r.trim().replace("-o", " -o ");
 	}
 }
