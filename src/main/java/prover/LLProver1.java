@@ -31,6 +31,9 @@ public class LLProver1 extends LLProver {
     public long startTime;
     public GraphAnalysis analysis;
 
+
+
+
     /**
      * LLProver1 implements a procedure for Glue semantics derivations based on Lev (2007), chapter 6
      * It uses a cartography graph to order combination steps handling skeleton premises and a chart-based
@@ -349,6 +352,7 @@ public class LLProver1 extends LLProver {
                 Original chart deduce call
                  */
 
+                /*
 
                 Chart c = chartDeduce(sccAgenda);
 
@@ -363,16 +367,18 @@ public class LLProver1 extends LLProver {
                     } else if (c.nonAtomicChart.containsKey(outputNode.category)) {
                         outputNode.histories.addAll(c.nonAtomicChart.get(outputNode.category));
                 }
-                    outputNode.compressHistories();
+             //     outputNode.compressHistories();
                 }
 
+
+                 */
 
 
                 /*
                 Modified chartDeduce call
                  */
 
-                /*
+
                 List<History> histories = chartDeduce2(sccAgenda);
 
                 for (CGNode outputNode : outputNodes)
@@ -383,7 +389,8 @@ public class LLProver1 extends LLProver {
                             outputNode.histories.add(h);
                         }
                     }
-
+                   outputNode.compressHistories();
+                    /*
                     List<History> sortedHistories = new ArrayList<>(outputNode.histories);
 
                     sortedHistories.sort(new Comparator<History>() {
@@ -394,13 +401,21 @@ public class LLProver1 extends LLProver {
                     });
 
 
+                     */
 
-                    outputNode.compressHistories();
-                }
+           //         compressedHistories.add(CGNode.compressHistories(new ArrayList<>(outputNode.histories)));
+
+                    /*
+                    List<History> compressedFinalHistories = CGNode.compressHistories(new ArrayList<>(outputNode.histories));
+                    outputNode.histories = new HashSet<>(compressedFinalHistories);
+
+
+                     */
+           //
 
             }
 
-                 */
+
             }
         }
 
@@ -417,6 +432,15 @@ public class LLProver1 extends LLProver {
                }
             }
         }
+
+
+/*
+
+        Set<History> compressedFinalHistories = CGNode.compressHistories(finalHistories);
+        setFinalHistories(new LinkedList<>(compressedFinalHistories));
+*/
+
+
 
         analysis = new GraphAnalysis(goalCategory,scc2);
         //analysis.displayGraph();
@@ -953,14 +977,14 @@ public class LLProver1 extends LLProver {
          * then we don't compile it, but we directly add it to the agenda.
          */
 
-        /*
+
         if(p.getGlueTerm().isXtX()) {
             Premise q = new Premise(p.getPremiseIDs(), p.getSemTerm(),p.getGlueTerm());
             compiled.add(q);
             return compiled;
         }
 
-         */
+
         /* End of this code block added for optimization-1 */
 
 
