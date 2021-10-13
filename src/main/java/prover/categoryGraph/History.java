@@ -72,16 +72,19 @@ public class History {
     public String toString() {
 
 
-        return category.toString() + indexSet + "(" + parents + ")";
+        return category.toString() + " " + indexSet + " (" + parents + ")";
     }
 
     public List<Premise> calculateSolutions(StringBuilder resultBuilder) throws VariableBindingException, ProverException {
-        Set<Premise> func = new HashSet<>();
-        Set<Premise> arg = new HashSet<>();
+
         List<Premise> results = new ArrayList<>();
 
         for (HashMap<Integer,History> parentLinks : parents)
         {
+            Set<Premise> func = new HashSet<>();
+            Set<Premise> arg = new HashSet<>();
+
+
             if (parentLinks.get(0).p != null)
             {
                 func.add(parentLinks.get(0).p);
@@ -98,20 +101,27 @@ public class History {
                 arg.addAll(parentLinks.get(1).calculateSolutions(resultBuilder));
             }
 
-
-        }
-        for (Premise p : func)
-        {
-            for (Premise q : arg)
+            for (Premise p : func)
             {
-                Premise r = prover.combinePremises(p,q,resultBuilder);
-                if (r != null)
+
+
+                for (Premise q : arg)
                 {
-                    prover.db.combinations++;
-                    results.add(r);
+
+                    Premise r = prover.combinePremises(p,q,resultBuilder);
+                    if (r != null)
+                    {
+                        prover.db.combinations++;
+                        results.add(r);
+                    }
                 }
             }
+
         }
+
+
+
+
         return results;
 
 
@@ -128,6 +138,11 @@ public class History {
             this.mainIndex = parents.stream().findAny().get().get(0).mainIndex;
         }
 
+    }
+
+    public String printParentGraph() {
+
+return null;
     }
 
 }
