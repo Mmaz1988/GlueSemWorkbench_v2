@@ -10,6 +10,7 @@ import java.util.List;
 import glueSemantics.linearLogic.Premise;
 
 public class failExplainer {
+	private static StringBuilder explanationString = new StringBuilder();
 
 	private static class structToKeepIntValue {
 		public int index;
@@ -153,6 +154,28 @@ public class failExplainer {
 			return explanation;
 		return res;
 	}
+	
+	public static void addInitialNonCompiledPremise(Object notCompiled) {
+		
+		explanationString.append("% ");
+		explanationString.append(System.lineSeparator());
+		explanationString.append("% The input premise ");
+		explanationString.append(InputOutputProcessor.restoreBackLinearLogicSide(notCompiled.toString()));
+		explanationString.append(" is compiled into:");
+		explanationString.append(System.lineSeparator());
+	}
+	public static void addCompiledPremises(List<Premise> compiled) {
+		
+		Iterator<Premise> it = compiled.iterator();
+        while (it.hasNext()) {
+        	Premise p = it.next();
+        	explanationString.append("% ");
+        	explanationString.append(p.getPremiseIDs());
+        	explanationString.append(" : ");
+        	explanationString.append(InputOutputProcessor.restoreBackLinearLogicSide(p.toString()));
+        	explanationString.append(System.lineSeparator());
+        }
+	}
 
     public static String explain( HashMap nonAtomicChart, HashMap atomicChart) {
     	List<String> str = new LinkedList<String>();
@@ -208,14 +231,16 @@ public class failExplainer {
     		}
 
     	}
-    	StringBuilder explanationString = new StringBuilder();
     	
     	/* Get a list of premises that are scored the topmost. 
     	 * build a string by concatenating their representative strings.
     	 * 
     	 * Return the string that is built.
     	 * */
-		List<Integer> failExplainingList = failExplainer.findAnExplanation(nums);
+    	explanationString.append("% "+ System.lineSeparator());
+    	explanationString.append("% Could not combine the following:"+ System.lineSeparator());
+    	
+    	List<Integer> failExplainingList = failExplainer.findAnExplanation(nums);
 
 		Iterator<Integer> it = failExplainingList.iterator();
 		while (it.hasNext()) {
