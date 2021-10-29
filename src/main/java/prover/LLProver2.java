@@ -483,6 +483,8 @@ public class LLProver2 extends LLProver{
 
     }
 
+
+
     public static SemanticRepresentation combine(Premise func, Premise argument) throws ProverException
     {
         SemanticRepresentation reducedSem;
@@ -775,6 +777,14 @@ public class LLProver2 extends LLProver{
         this.outputFileBuilder = outputFileBuilder;
     }
 */
-}
+    @Override
+    public StringBuilder getProofBuilder() {
+        return outputFileBuilder;
+    }
+
+    @Override
+    public void setProofBuilder(StringBuilder proofBuilder) {
+    }
+    }
 
 

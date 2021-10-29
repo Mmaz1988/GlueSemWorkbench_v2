@@ -43,5 +43,8 @@ public abstract class LLProver {
         return LOGGER;
     }
 
+    public abstract StringBuilder getProofBuilder();
+
+    public abstract void setProofBuilder(StringBuilder proofBuilder);
 
 }
