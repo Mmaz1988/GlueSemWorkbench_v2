@@ -84,7 +84,12 @@ public class LLProver2 extends LLProver{
 
         getLOGGER().fine("Starting compilation process...");
         for (Premise p : currentSequent.getLhs()) {
+            main.failExplainer.addInitialNonCompiledPremise(p);
+
             List<Premise> compiled = convert(p);
+            
+            main.failExplainer.addCompiledPremises(compiled);
+
             agenda.addAll(compiled);
         }
 
