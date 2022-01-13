@@ -287,7 +287,7 @@ public abstract class LLTerm {
 
         try {
             LLFormula myObj = ((LLFormula)this);
-            this.XtX = myObj.getLhs().toString().equals(myObj.getRhs().toString());
+            this.XtX = myObj.getLhs().toString().equals(myObj.getRhs().toString()) && !myObj.getLhs().isHigherOrderTerm();
         }
         catch(Exception e){
             // Do nothing.
@@ -296,6 +296,9 @@ public abstract class LLTerm {
         return this.XtX;
     }
     /* End of this code block added for optimization-1 */
+
+
+    public abstract boolean isHigherOrderTerm();
 
 
 }

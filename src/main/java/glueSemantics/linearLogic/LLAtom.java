@@ -203,6 +203,11 @@ public class LLAtom extends LLTerm {
     }
 
     @Override
+    public boolean isHigherOrderTerm() {
+        return false;
+    }
+
+    @Override
     public boolean isModifier() {
         return false;
     }

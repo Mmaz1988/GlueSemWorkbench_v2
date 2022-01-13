@@ -225,15 +225,15 @@ public class LinearLogicParser {
                     else if (unparsedInput.charAt(pos) == 'i') {
                     pos++;
                     return new LLAtom(glueIdentifier,
-                            new SemType(SemType.AtomicType.I), LLAtom.LLType.CONST, polarity);
+                            new SemType(SemType.AtomicType.I), LLAtom.LLType.VAR, polarity);
                 } else if (unparsedInput.charAt(pos) == 'v') {
                     pos++;
                     return new LLAtom(glueIdentifier,
-                            new SemType(SemType.AtomicType.V), LLAtom.LLType.CONST, polarity);
+                            new SemType(SemType.AtomicType.V), LLAtom.LLType.VAR, polarity);
                 }else if (unparsedInput.charAt(pos) == 'p') {
                         pos++;
                         return new LLAtom(glueIdentifier,
-                                new SemType(SemType.AtomicType.P), LLAtom.LLType.CONST, polarity);
+                                new SemType(SemType.AtomicType.P), LLAtom.LLType.VAR, polarity);
                     }
                     else
                         throw new ParserInputException(pos,"Type identifier expected (e or t)");

@@ -92,6 +92,10 @@ public class LLQuantEx extends LLTerm {
         scope.updateBoundVariables(var);
     }
 
+    @Override
+    public boolean isHigherOrderTerm() {
+        return scope.isHigherOrderTerm();
+    }
 
 
     public LLAtom getVar() {

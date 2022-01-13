@@ -180,6 +180,17 @@ public class LLFormula extends LLTerm {
         this.boundVariables.put(var, bvl);
     }
 
+    @Override
+    public boolean isHigherOrderTerm() {
+        if (this.lhs instanceof LLFormula)
+        {
+            return true;
+        } else
+        {
+            return this.rhs.isHigherOrderTerm();
+        }
+    }
+
     //Checks to which quantifier a specific variable belongs
     public boolean isInstance(LLAtom var){
 
