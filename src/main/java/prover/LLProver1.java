@@ -85,6 +85,14 @@ public class LLProver1 extends LLProver {
             agenda.addAll(compiled);
         }
 
+        StringBuilder agendaString = new StringBuilder();
+        for (Premise p : agenda)
+        {
+            agendaString.append(p.toString() + "\n");
+        }
+
+        getLOGGER().fine(agendaString.toString());
+
         String goalCategory = findAtomicGoal(agenda);
         getLOGGER().fine("Automatically detected goal category: " + goalCategory);
 
@@ -306,42 +314,50 @@ public class LLProver1 extends LLProver {
 
 
                 //Basic optimization (252)
-                if (basicScc) {
-                    Boolean shared = false;
-                    //There should only be one ouput node in a basic scc
-                    CGNode output = outputNodes.stream().findAny().get();
 
-                    List<Set<Integer>> lists = new ArrayList<>();
+                try {
 
-                    for (History h : output.histories) {
-                        lists.add(new HashSet<>(h.indexSet));
-                    }
-                    Collections.sort(lists, (Comparator<Set>) (a1, a2) -> a2.size() - a1.size());
-                    Set<Integer> commons = lists.get(0);
-                    for (ListIterator<Set<Integer>> iter = lists.listIterator(1); iter.hasNext(); ) {
-                        commons.retainAll(iter.next());
-                    }
+                    if (basicScc) {
+                        Boolean shared = false;
+                        //There should only be one ouput node in a basic scc
+                        CGNode output = outputNodes.stream().findAny().get();
 
-                    if (!commons.isEmpty()) {
-                        Iterator<History> outputIter = output.histories.iterator();
-                        while (outputIter.hasNext()) {
-                            History ch = outputIter.next();
+                        List<Set<Integer>> lists = new ArrayList<>();
 
-                            Boolean includesMainindex = false;
-                            for (History h : modifierNode.histories) {
-                                if (ch.indexSet.contains(h.mainIndex)) {
-                                    includesMainindex = true;
-                                    break;
+                        for (History h : output.histories) {
+                            lists.add(new HashSet<>(h.indexSet));
+                        }
+                        Collections.sort(lists, (Comparator<Set>) (a1, a2) -> a2.size() - a1.size());
+                        Set<Integer> commons = lists.get(0);
+                        for (ListIterator<Set<Integer>> iter = lists.listIterator(1); iter.hasNext(); ) {
+                            commons.retainAll(iter.next());
+                        }
+
+                        if (!commons.isEmpty()) {
+                            Iterator<History> outputIter = output.histories.iterator();
+                            while (outputIter.hasNext()) {
+                                History ch = outputIter.next();
+
+                                Boolean includesMainindex = false;
+                                for (History h : modifierNode.histories) {
+                                    if (ch.indexSet.contains(h.mainIndex)) {
+                                        includesMainindex = true;
+                                        break;
+                                    }
+                                }
+
+                                if (!includesMainindex) {
+                                    outputIter.remove();
+                                    db.discardedHistories++;
                                 }
                             }
-
-                            if (!includesMainindex) {
-                                outputIter.remove();
-                                db.discardedHistories++;
-                            }
                         }
+
                     }
 
+                }catch(Exception e)
+                {
+                    getLOGGER().warning("Failed to apply optimization for modifiers (252)");
                 }
 
                 //Apply Hepple algorithm to histories collected from the scc
