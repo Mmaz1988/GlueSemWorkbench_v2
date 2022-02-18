@@ -24,9 +24,9 @@ public class InputOutputProcessor {
 	private static void add(String s1) {
 		String original = new String(s1);
 		s1 = s1.replace("'", "");
-		String val = s1.substring(s1.indexOf('(')+1, s1.indexOf(')')) + "_" +s1.substring(0,s1.indexOf('('));
-		
-		
+		String myNumber=Integer.toString(InputOutputProcessor.size + 1);
+		String val = myNumber + "_" +s1.substring(0,s1.indexOf('('));
+				
 		for (int i = 0; i < size; i++) {
 			if (names[i].equals(s1)) {
 				return;
