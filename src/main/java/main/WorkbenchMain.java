@@ -452,6 +452,7 @@ public class WorkbenchMain {
                 else
                 {
                     solutions.put(key,new ArrayList<>(Arrays.asList(sol)));
+                    System.out.println("Here");
                 }
         //        sol.setSemTerm((SemanticExpression) sol.getSemTerm().betaReduce());
             }
