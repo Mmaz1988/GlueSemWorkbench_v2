@@ -29,6 +29,7 @@ import java.util.logging.StreamHandler;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.logging.Handler;
+import main.NaturalDeductionProof;
 
 public class WorkbenchMain {
     // Initialize with default settings
@@ -451,6 +452,7 @@ public class WorkbenchMain {
                 }
                 else
                 {
+                	NaturalDeductionProof naturalDeductionProof = NaturalDeductionProof.createTree(sol);
                     solutions.put(key,new ArrayList<>(Arrays.asList(sol)));
                     System.out.println("Here");
                 }

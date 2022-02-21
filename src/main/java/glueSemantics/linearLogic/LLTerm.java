@@ -220,11 +220,16 @@ public abstract class LLTerm {
     	
     	if(this instanceof LLAtom) {
     		LinkedHashMap<Integer, Premise> hm = orderedDischarges;
-        	String toReturn = ((LLAtom)this).getName();
-            Set<Integer> keys = hm.keySet();
+            List<Integer> keys = new ArrayList<Integer>(hm.keySet());
+            boolean thereIsMore = false;
+            String toReturn ="(";
             for(Integer k:keys){
-            	toReturn = "(" + hm.get(k).getReverseCompiledString() +  " ⊸ " + toReturn + ")";
+            	toReturn += hm.get(k).getReverseCompiledString() + " ⊸ ";
+            	thereIsMore = true;
             }
+            if (!thereIsMore)
+            	return ((LLAtom)this).getName() ;
+            toReturn += ((LLAtom)this).getName()  + ")";
     		return toReturn;
     	}
     	
