@@ -452,7 +452,8 @@ public class WorkbenchMain {
                 }
                 else
                 {
-                	NaturalDeductionProof naturalDeductionProof = NaturalDeductionProof.createTree(sol);
+                	
+                	NaturalDeductionProof naturalDeductionProof = NaturalDeductionProof.getNaturalDeductionProof(sol);
                     solutions.put(key,new ArrayList<>(Arrays.asList(sol)));
                     System.out.println("Here");
                 }
