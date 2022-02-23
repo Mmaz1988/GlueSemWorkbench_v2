@@ -193,7 +193,7 @@ public class failExplainer {
 	public static String explain(HashMap nonAtomicChart, HashMap atomicChart) {
 		List<String> str = new LinkedList<String>();
 		List<int[]> nums = new ArrayList<int[]>();
-
+		List<Premise> premises = new ArrayList<Premise>();
 		/* For all non-atomic chart elements */
 		for (Object key : nonAtomicChart.keySet()) {
 
@@ -216,6 +216,7 @@ public class failExplainer {
 
 				/* Add numbers of this object to int[] list. */
 				nums.add(nmbrs);
+				premises.add((Premise)temp);
 			}
 		}
 
@@ -241,6 +242,9 @@ public class failExplainer {
 
 				/* Add numbers of this object to int[] list. */
 				nums.add(nmbrs);
+
+				premises.add((Premise)temp);
+
 			}
 
 		}
@@ -262,6 +266,13 @@ public class failExplainer {
 			String exp = "% " + InputOutputProcessor.restoreBackLinearLogicSide(str.get(arr)) + System.lineSeparator();
 			explanationString.append(exp);
 		}
+		
+		it = failExplainingList.iterator();
+		while (it.hasNext()) {
+			Integer arr = it.next();
+			explanationString.append(NaturalDeductionProof.getNaturalDeductionProof(premises.get(arr))+ System.lineSeparator()+ System.lineSeparator());
+		}
+		
 		return explanationString.toString();
 	}
 }
