@@ -168,11 +168,11 @@ public class LinearLogicParser {
                             return new LLAtom(glueIdentifier,
                                     new SemType(SemType.AtomicType.V), LLAtom.LLType.CONST, polarity);
                         }
-                     else if (unparsedInput.charAt(pos) == 'x') {
-                        pos++;
-                        return new LLAtom(glueIdentifier,
-                                new SemType(SemType.AtomicType.X), LLAtom.LLType.CONST, polarity);
-                    }
+                        else if (unparsedInput.charAt(pos) == 'x') {
+                        	pos++;
+                        	return new LLAtom(glueIdentifier,
+                            new SemType(SemType.AtomicType.X), LLAtom.LLType.CONST, polarity);
+                        }
                         else if (unparsedInput.charAt(pos) == 'p') {
                             pos++;
                             return new LLAtom(glueIdentifier,
