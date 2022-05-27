@@ -273,6 +273,7 @@ public class WorkbenchMain {
 							Premise solution = solutions.get(key).get(i);
 							if (onlyMeaningSide) {
 								w.append(solution.getSemTerm().toString() + System.lineSeparator());
+								w.append(NaturalDeductionProof.getNaturalDeductionProof(solution));
 							} else if (settings.getSemanticOutputStyle() == 1) {
 								w.append("solution" + "(" + key.toString() + i + ",");
 								w.append(solution.getSemTerm().toString());
