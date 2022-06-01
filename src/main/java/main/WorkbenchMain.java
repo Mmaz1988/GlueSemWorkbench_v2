@@ -43,6 +43,7 @@ public class WorkbenchMain {
     private static String explanation = "";
     private static boolean explainFail = false;
     private static boolean assureGlueParsing = false;
+    private static String searchForGoal = "";
 
     
 
@@ -122,7 +123,13 @@ public class WorkbenchMain {
                         }
                         break;
                         }
-
+                    case ("-proveGoal"): {
+                    	if (i+1>=args.length)
+                    		searchForGoal="";
+                    	else 
+                    		searchForGoal = args[i+1];
+                        break;
+                        }
                     case ("-test"):
                     {
                         SemanticParser semParser = new SemanticParser();
@@ -252,6 +259,7 @@ public class WorkbenchMain {
     		String input = InputOutputProcessor.translate(inputStringBuilder.toString()) ;
 
        		String lines[] = input.split("\\r?\\n|\\r");
+       		
 
 			try {
 				initiateManualMode(Arrays.asList(lines));
@@ -286,7 +294,7 @@ public class WorkbenchMain {
 						}
 					}
 				} else {
-					if (explainFail && !explanation.equals("")) {
+					if (explainFail && !explanation.equals("")&& searchForGoal=="") {
 						w.append("% No proof. Explanation: " + System.lineSeparator());
 						w.append(explanation);
 					}
@@ -469,7 +477,13 @@ public class WorkbenchMain {
                     }
                 } else
                 {
-                if(explainFail && prover instanceof LLProver2)
+                if(searchForGoal!=""  && prover instanceof LLProver2) {
+                	/* Write the output to STDERR */
+                	explanation = failExplainer.getLargestGoalPremiseCombination(searchForGoal, ((LLProver2)prover).getNonAtomicChart(), ((LLProver2)prover).getAtomicChart());
+                	System.err.println(explanation);
+                
+                }
+                else if(explainFail && prover instanceof LLProver2)
                 	{
                 		explanation = failExplainer.explain( ((LLProver2)prover).getNonAtomicChart(), ((LLProver2)prover).getAtomicChart());
                 	}
