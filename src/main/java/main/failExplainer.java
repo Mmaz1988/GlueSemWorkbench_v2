@@ -165,7 +165,7 @@ public class failExplainer {
 		structToKeepIntValue.multiplier=max;
 		Arrays.sort(sizes, new sortDescendingByValue());
 		if(!hasGoalPremise)
-			explanationString.append("% WARNING: There is no goal premise matching the given goal.\n");
+			explanationString.append("% WARNING: There is no goal premise matching the given goal." + System.lineSeparator());
 		
 		/* create a boolean array to keep track of consumed premises */
 		boolean used[] = new boolean[nums.size()];
@@ -260,14 +260,14 @@ public class failExplainer {
 	 * look for a partial proof of the goal. This function is called when the actual
 	 * algorithm is done.
 	 * */
-	public static String getLargestGoalPremiseCombination(String goal, HashMap nonAtomicChart, HashMap atomicChart) {
+	public static String getLargestGoalPremiseCombination(String goal, HashMap nonAtomicChart, HashMap atomicChart, boolean naturalDeduction) {
 		List<String> str = new LinkedList<String>();
 		List<int[]> nums = new ArrayList<int[]>();
 		List<Premise> premises = new ArrayList<Premise>();
 		List<Boolean> hasGoal = new ArrayList<Boolean>();
 		
 		goal = goal.trim();
-		explanationString.append("% Searching for goal: " + goal + "\n");
+		explanationString.append("% Searching for goal: " + goal + System.lineSeparator());
 
 		/* For all non-atomic chart elements */
 		for (Object key : nonAtomicChart.keySet()) {
@@ -354,17 +354,20 @@ public class failExplainer {
 		 * dirty solution to use the output of this function. */
 		
 		System.out.println(toReturnString);
-		
-		it = failExplainingList.iterator();
-		while (it.hasNext()) {
-			Integer arr = it.next();
-			explanationString.append(NaturalDeductionProof.getNaturalDeductionProof(premises.get(arr))+ System.lineSeparator()+ System.lineSeparator());
+		if(naturalDeduction) {
+			it = failExplainingList.iterator();
+			while (it.hasNext()) {
+				Integer arr = it.next();
+				explanationString.append(NaturalDeductionProof.getNaturalDeductionProof(premises.get(arr))+ System.lineSeparator()+ System.lineSeparator());
+			}
 		}
+		
+		explanationString.append("The following is returned as the proof for this process:" + System.lineSeparator() + toReturnString + System.lineSeparator());
 		
 		return explanationString.toString();
 	}
 
-	public static String explain(HashMap nonAtomicChart, HashMap atomicChart) {
+	public static String explain(HashMap nonAtomicChart, HashMap atomicChart, boolean naturalDeduction) {
 		
 		List<String> str = new LinkedList<String>();
 		List<int[]> nums = new ArrayList<int[]>();
@@ -442,10 +445,12 @@ public class failExplainer {
 			explanationString.append(exp);
 		}
 		
-		it = failExplainingList.iterator();
-		while (it.hasNext()) {
-			Integer arr = it.next();
-			explanationString.append(NaturalDeductionProof.getNaturalDeductionProof(premises.get(arr))+ System.lineSeparator()+ System.lineSeparator());
+		if (naturalDeduction) {
+			it = failExplainingList.iterator();
+			while (it.hasNext()) {
+				Integer arr = it.next();
+				explanationString.append(NaturalDeductionProof.getNaturalDeductionProof(premises.get(arr))+ System.lineSeparator()+ System.lineSeparator());
+			}
 		}
 		
 		return explanationString.toString();

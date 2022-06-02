@@ -43,6 +43,7 @@ public class WorkbenchMain {
     private static String explanation = "";
     private static boolean explainFail = false;
     private static boolean assureGlueParsing = false;
+    private static boolean naturalDeduction = false;
     private static String searchForGoal = "";
 
     
@@ -162,8 +163,12 @@ public class WorkbenchMain {
                     	assureGlueParsing = true;
                     	break;
                     }
-                    case ("-vis"):
-                        settings.setVisualize(true);
+                    case("-naturalDeduction"):
+                    {
+                    	naturalDeduction = true;
+                    	break;
+                    }                    case ("-vis"):
+                    settings.setVisualize(true);
                         break;
                     }
                 }
@@ -479,13 +484,13 @@ public class WorkbenchMain {
                 {
                 if(searchForGoal!=""  && prover instanceof LLProver2) {
                 	/* Write the output to STDERR */
-                	explanation = failExplainer.getLargestGoalPremiseCombination(searchForGoal, ((LLProver2)prover).getNonAtomicChart(), ((LLProver2)prover).getAtomicChart());
+                	explanation = failExplainer.getLargestGoalPremiseCombination(searchForGoal, ((LLProver2)prover).getNonAtomicChart(), ((LLProver2)prover).getAtomicChart(), naturalDeduction);
                 	System.err.println(explanation);
                 
                 }
                 else if(explainFail && prover instanceof LLProver2)
                 	{
-                		explanation = failExplainer.explain( ((LLProver2)prover).getNonAtomicChart(), ((LLProver2)prover).getAtomicChart());
+                		explanation = failExplainer.explain( ((LLProver2)prover).getNonAtomicChart(), ((LLProver2)prover).getAtomicChart(), naturalDeduction);
                 	}
                     solutionBuilder.append("None!");
                 }
