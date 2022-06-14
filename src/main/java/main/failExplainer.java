@@ -162,10 +162,16 @@ public class failExplainer {
 					max = numsInThis[j];
 		}
 		max++;
-		structToKeepIntValue.multiplier=max;
-		Arrays.sort(sizes, new sortDescendingByValue());
 		if(!hasGoalPremise)
 			explanationString.append("% WARNING: There is no goal premise matching the given goal." + System.lineSeparator());
+		else
+			{
+			structToKeepIntValue.multiplier=max;
+			Arrays.sort(sizes, new sortDescendingByValue());
+			explanation.add(sizes[0].index);
+			return explanation;
+			}
+		Arrays.sort(sizes, new sortDescendingByValue());
 		
 		/* create a boolean array to keep track of consumed premises */
 		boolean used[] = new boolean[nums.size()];
@@ -180,7 +186,11 @@ public class failExplainer {
 		for (i = 0; i < used.length; i++) {
 			used[i] = false;
 		}
-		List<Integer> res = tryToAddNew(nums, explanation, used, indices, sizes, max);
+
+		List<Integer> res = null;
+		if(hasGoalPremise)
+			res = tryToAddNew(nums, explanation, used, indices, sizes, max);
+
 		if (res == null)
 			return explanation;
 		return res;
@@ -268,7 +278,7 @@ public class failExplainer {
 		
 		goal = goal.trim();
 		explanationString.append("% Searching for goal: " + goal + System.lineSeparator());
-
+		
 		/* For all non-atomic chart elements */
 		for (Object key : nonAtomicChart.keySet()) {
 
@@ -338,7 +348,7 @@ public class failExplainer {
 
 		List<Integer> failExplainingList = failExplainer.findAnExplanationWithAGoal(nums, hasGoal);
 
-		String toReturnString=null;
+		String toReturnString="";
 		Iterator<Integer> it = failExplainingList.iterator();
 		while (it.hasNext()) {
 			Integer arr = it.next();
@@ -350,10 +360,10 @@ public class failExplainer {
 			explanationString.append(exp);
 		}
 		
-		/*Here we directly stdout the semantic side of the result. This is a quick and 
+		/* Here we directly stdout the semantic side of the result. This is a quick and 
 		 * dirty solution to use the output of this function. */
-		
 		System.out.println(toReturnString);
+		
 		if(naturalDeduction) {
 			it = failExplainingList.iterator();
 			while (it.hasNext()) {
