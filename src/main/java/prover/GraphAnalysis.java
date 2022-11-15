@@ -6,16 +6,20 @@ import com.mxgraph.layout.mxGraphLayout;
 import com.mxgraph.model.mxCell;
 import com.mxgraph.swing.mxGraphComponent;
 import com.mxgraph.util.mxConstants;
+import glueSemantics.linearLogic.Premise;
 import org.jgrapht.Graph;
 import org.jgrapht.ext.JGraphXAdapter;
 import org.jgrapht.graph.DefaultEdge;
 import prover.categoryGraph.CGNode;
+import prover.categoryGraph.History;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -97,7 +101,7 @@ public class GraphAnalysis {
                     mxGraphLayout layout = new mxHierarchicalLayout(jGraphXAdapter);
                     layout.execute(jGraphXAdapter.getDefaultParent());
                     jGraphXAdapter.getModel().endUpdate();
-                    mxGraphComponent graphComponent = new mxGraphComponent(jGraphXAdapter);
+                    graphComponent = new mxGraphComponent(jGraphXAdapter);
 
                     graphComponent.getGraphControl().addMouseListener(new MouseAdapter() {
                         @Override
@@ -115,10 +119,52 @@ public class GraphAnalysis {
                                     testFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
 // your function
+                                } else {
+                                    JDialog testFrame = new JDialog();
+                                    testFrame.setSize(1200, 800);
+                                    testFrame.setModalityType(Dialog.DEFAULT_MODALITY_TYPE);
+
+                                    StringBuilder intermediateResultBuilder = new StringBuilder();
+                                    List<Premise> solutions = new ArrayList();
+
+                                    for (History h : ((CGNode) ((Graph) ((mxCell) cell).getValue()).vertexSet().stream().findAny().get()).histories)
+                                    {
+
+                                        if (h.parents.size() == 1 && h.parents.stream().findAny().get().isEmpty())
+                                        {
+                                            solutions.add(h.p);
+                                        }
+                                        else {
+                                            try {
+                                                solutions.addAll(h.calculateSolutions());
+                                            } catch (VariableBindingException ex) {
+                                                throw new RuntimeException(ex);
+                                            } catch (ProverException ex) {
+                                                throw new RuntimeException(ex);
+                                            }
+                                        }
+                                    }
+
+                                    for (Premise h : solutions) {
+                                        intermediateResultBuilder.append(h.toString() + " " + h.getPremiseIDs().toString());
+                                        intermediateResultBuilder.append("<br>");
+
+                                    }
+
+                                    JLabel solutionLabel = new JLabel();
+                                    solutionLabel.setText("<html><body>" + intermediateResultBuilder.toString() + "</body></html>" );
+
+                                    testFrame.getContentPane().add(solutionLabel);
+                                    testFrame.pack();
+                                    testFrame.setVisible(true);
+                                    testFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
                                 }
                             }
                         }
                     });
+
+                //    graphComponent.getGraphControl().addMouseListener();
+
 
                     JDialog testFrame = new JDialog();
                     testFrame.setSize(1200, 800);

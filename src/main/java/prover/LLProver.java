@@ -22,7 +22,7 @@ public abstract class LLProver {
     public abstract void  deduce(Sequent seq) throws ProverException, VariableBindingException;
 
     public abstract Premise combinePremises(Premise functor, Premise argument, StringBuilder proofBuilder) throws VariableBindingException, ProverException;
-
+    public abstract Premise combinePremises(Premise functor, Premise argument) throws VariableBindingException, ProverException;
     public LinkedList<Premise> getSolutions() {
         return solutions;
     }

@@ -1,4 +1,4 @@
-every : ((b_e -o (b_s -o b_t)) -o AX_t.(a_e -o (d_s -o X_t)) -o (d_s -o X_t))
+every : ((b_e -o (b_s -o b_t)) -o AX_t.((a_e -o (d_s -o X_t)) -o (d_s -o X_t)))
 try : ((a_e -o (c_s -o h_t)) -o (a_e -o (d_s -o f_t)))
 girl : (b_e -o (b_s -o b_t))
 love : (g_e -o (a_e -o (c_s -o h_t)))

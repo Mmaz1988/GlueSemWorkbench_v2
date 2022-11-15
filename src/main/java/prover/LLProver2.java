@@ -347,9 +347,7 @@ public class LLProver2 extends LLProver{
 
                 if (variableArgument && combined != null)
                 {
-
                     newTerm.getVariableAssignment().put((LLAtom) argument.getGlueTerm(), (LLAtom) argumentClone.getGlueTerm());
-
                     newTerm.getVariableAssignment().putAll(functor.getGlueTerm().getVariableAssignment());
                 }
 
@@ -488,7 +486,217 @@ public class LLProver2 extends LLProver{
 
     }
 
+    @Override
+    public Premise combinePremises(Premise functor, Premise argument) throws VariableBindingException, ProverException {
 
+        Premise func = new Premise(functor.getPremiseIDs(), functor.getSemTerm().clone(), functor.getGlueTerm().clone());
+        Premise argumentClone = null;
+
+
+        Boolean variableArgument = false;
+        if (((LLAtom)argument.getGlueTerm()).lltype.equals(LLAtom.LLType.VAR)) {
+            variableArgument = true;
+
+            if (((LLAtom)((LLFormula)  functor.getGlueTerm()).getLhs()).lltype.equals(LLAtom.LLType.CONST)) {
+                argumentClone = new Premise(argument.getPremiseIDs(), argument.getSemTerm().clone(),
+                        ((LLFormula) func.getGlueTerm()).getLhs().clone());
+                argumentClone.getGlueTerm().getAssumptions2().addAll(argument.getGlueTerm().getAssumptions2());
+            }else {
+                return null;
+            }
+
+        }
+        else
+        {
+            argumentClone = new Premise(argument.getPremiseIDs(), argument.getSemTerm().clone(),
+                    argument.getGlueTerm().clone());
+        }
+
+        LinkedHashSet<Equality> eqs = ((LLFormula) func.getGlueTerm()).getLhs().checkCompatibility(argument.getGlueTerm());
+
+        if (eqs == null) {
+            return null;
+        }
+
+        if (eqs.size() > 0) {
+
+            //If there are duplicate bindings no valid proof can be reached.
+            if (LLProver2.checkDuplicateBinding(eqs)) {
+                throw new VariableBindingException();
+            } else {
+                //instantiates variables with constants (i.e. skolemizes the formula so it can take a constant)
+
+                for (Equality eq : eqs) {
+                    ((LLFormula) func.getGlueTerm()).instantiateVariables(eq);
+                }
+            }
+        }
+
+        Premise combined = null;
+
+        HashSet<Integer> combined_IDs = new HashSet<>();
+        if (((LLFormula) func.getGlueTerm()).getLhs().checkEquivalence(argumentClone.getGlueTerm())
+                && Collections.disjoint(func.getPremiseIDs(), argument.getPremiseIDs())) {
+            combined_IDs.addAll(func.getPremiseIDs());
+            combined_IDs.addAll(argument.getPremiseIDs());
+
+
+            if (((LLFormula) func.getGlueTerm()).getLhs().getOrderedDischarges().isEmpty()) {
+
+                SemanticRepresentation reducedSem = null;
+                try {
+                    reducedSem = combine(func, argumentClone).betaReduce();
+                } catch(Exception e)
+                {
+                    getLOGGER().warning("Failed to combine functor: " + func.toString() + " and argument: " +
+                            argumentClone.toString());
+                    return null;
+                }
+
+                LLTerm newTerm = ((LLFormula) func.getGlueTerm()).getRhs();
+                if (func.getGlueTerm().getVariable() != null) {
+                    newTerm.setVariable(func.getGlueTerm().getVariable());
+                    if (newTerm instanceof LLFormula) {
+                        for (LLAtom var : newTerm.getVariable()) {
+                            newTerm.updateBoundVariables(var);
+                        }
+                    }
+                }
+
+                combined = new Premise(combined_IDs, reducedSem, newTerm);
+
+                if (variableArgument && combined != null)
+                {
+                    newTerm.getVariableAssignment().put((LLAtom) argument.getGlueTerm(), (LLAtom) argumentClone.getGlueTerm());
+                    newTerm.getVariableAssignment().putAll(functor.getGlueTerm().getVariableAssignment());
+                }
+
+            }
+            else {
+                if (checkDischarges(func, argument)) {
+
+                    if (!func.getGlueTerm().getVariableAssignment().keySet().isEmpty() && !argumentClone.getGlueTerm().getVariableAssignment().keySet().isEmpty())
+                    {
+                        boolean subset = false;
+
+                        for (LLAtom funcCategory : functor.getGlueTerm().getVariableAssignment().keySet())
+                        {
+                            if (argumentClone.getGlueTerm().getVariableAssignment().containsKey(funcCategory))
+                            {
+                                if (functor.getGlueTerm().getVariableAssignment().get(funcCategory).
+                                        equals(argumentClone.getGlueTerm().getVariableAssignment().get(funcCategory)));
+                                subset = true;
+                                break;
+                            }
+                        }
+
+                        if (!subset)
+                        {return  null;}
+                    }
+
+                    if (!argument.getGlueTerm().getVariableAssignment().keySet().isEmpty())
+                    {
+                        LinkedHashSet<Equality> eqs2 =   new LinkedHashSet<>();
+
+                        for (LLAtom key : argument.getGlueTerm().getVariableAssignment().keySet())
+                        {
+                            for (LLAtom key2 : ((LLFormula) func.getGlueTerm()).getBoundVariables().keySet())
+                            {
+                                if (key2.category().equals(key.category()))
+                                {
+                                    for (LLAtom key3 : ((LLFormula) func.getGlueTerm()).getBoundVariables().get(key2))
+                                    {
+                                        eqs2.add(new Equality(key3,argument.getGlueTerm().getVariableAssignment().get(key)));
+                                    }
+                                }
+                            }
+
+
+                        }
+
+                        for (Equality eq : eqs2) {
+                            ((LLFormula) func.getGlueTerm()).instantiateVariables(eq);
+                        }
+
+                    }
+
+                    SemanticRepresentation temp = argument.getSemTerm().clone();
+
+                    //LinkedHashMap<Integer,Premise> discharges =  ((LLFormula) func.getGlueTerm()).getLhs().getOrderedDischarges();
+                    LinkedList<Map.Entry<Integer, Premise>> discharges = new LinkedList<>(((LLFormula) func.getGlueTerm()).getLhs().getOrderedDischarges().entrySet());
+
+
+                    LLTerm argumentGlueClone = argument.getGlueTerm().clone();
+
+                    while (!discharges.isEmpty())
+                    {
+                        Premise p = discharges.removeLast().getValue();
+                        temp = new SemFunction((SemAtom) p.getSemTerm(),temp);
+                        argumentGlueClone.getAssumptions2().remove(p);
+
+                    }
+
+                    argumentClone = new Premise(argument.getPremiseIDs(),temp,argumentGlueClone);
+
+                    SemanticRepresentation reducedSem = null;
+                    try {
+                        reducedSem = combine(func, argumentClone).betaReduce();
+                    } catch(Exception e)
+                    {
+                        getLOGGER().warning("Failed to combine functor: " + func.toString() + " and argument: " +
+                                argumentClone.toString());
+                        return null;
+                    }
+
+                    LLTerm newTerm = ((LLFormula) func.getGlueTerm()).getRhs();
+                    if (func.getGlueTerm().getVariable() != null) {
+                        newTerm.setVariable(func.getGlueTerm().getVariable());
+                        if (newTerm instanceof LLFormula) {
+                            for (LLAtom var : newTerm.getVariable()) {
+                                newTerm.updateBoundVariables(var);
+                            }
+                        }
+                    }
+
+                    combined = new Premise(combined_IDs, reducedSem,  newTerm);
+
+                }
+
+            }
+
+            if (combined != null) {
+                combined.getGlueTerm().assumptions2.addAll(func.getGlueTerm().assumptions2);
+                combined.getGlueTerm().assumptions2.addAll(argumentClone.getGlueTerm().assumptions2);
+            }
+
+
+        }
+
+        if (combined != null)
+        {
+            String f = "";
+            String a = "";
+            if (getSettings().isGlueOnly())
+            {
+                f = functor.getGlueTerm().toPlainString();
+                a = argument.getGlueTerm().toPlainString();
+            }
+            else
+            {
+                f = functor.toString();
+                a = argument.toString();
+            }
+
+            //  System.out.println("Combining " + f + " and " + a);
+            // System.out.println("to: " + combined.toString());
+
+            //TODO sdout vs file
+
+        }
+
+        return combined;
+
+    }
 
     public static SemanticRepresentation combine(Premise func, Premise argument) throws ProverException
     {

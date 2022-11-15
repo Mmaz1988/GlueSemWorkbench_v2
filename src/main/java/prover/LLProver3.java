@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class LLProver1 extends LLProver {
+public class LLProver3 extends LLProver {
 
 
     private Sequent currentSequent;
@@ -41,12 +41,12 @@ public class LLProver1 extends LLProver {
      *
      * @param settings
      */
-    public LLProver1(Settings settings) {
+    public LLProver3(Settings settings) {
         setSettings(settings);
         this.proofBuilder = new StringBuilder();
     }
 
-    public LLProver1(Settings settings, StringBuilder proofBuilder) {
+    public LLProver3(Settings settings, StringBuilder proofBuilder) {
         this.proofBuilder = proofBuilder;
         setSettings(settings);
     }
@@ -785,7 +785,7 @@ public class LLProver1 extends LLProver {
         if (eqs.size() > 0) {
 
             //If there are duplicate bindings no valid proof can be reached.
-            if (LLProver1.checkDuplicateBinding(eqs)) {
+            if (LLProver3.checkDuplicateBinding(eqs)) {
                 throw new VariableBindingException();
             } else {
                 //instantiates variables with constants (i.e. skolemizes the formula so it can take a constant)
@@ -956,7 +956,6 @@ public class LLProver1 extends LLProver {
         return combined;
     }
 
-
     @Override
     public Premise combinePremises(Premise functor, Premise argument) throws VariableBindingException, ProverException {
 
@@ -985,6 +984,7 @@ public class LLProver1 extends LLProver {
                     argument.getGlueTerm().clone());
         }
 
+
         LinkedHashSet<Equality> eqs = ((LLFormula) func.getGlueTerm()).getLhs().checkCompatibility(argument.getGlueTerm());
 
         if (eqs == null) {
@@ -994,7 +994,7 @@ public class LLProver1 extends LLProver {
         if (eqs.size() > 0) {
 
             //If there are duplicate bindings no valid proof can be reached.
-            if (LLProver1.checkDuplicateBinding(eqs)) {
+            if (LLProver3.checkDuplicateBinding(eqs)) {
                 throw new VariableBindingException();
             } else {
                 //instantiates variables with constants (i.e. skolemizes the formula so it can take a constant)
@@ -1094,6 +1094,7 @@ public class LLProver1 extends LLProver {
                     //LinkedHashMap<Integer,Premise> discharges =  ((LLFormula) func.getGlueTerm()).getLhs().getOrderedDischarges();
                     LinkedList<Map.Entry<Integer, Premise>> discharges = new LinkedList<>(((LLFormula) func.getGlueTerm()).getLhs().getOrderedDischarges().entrySet());
 
+
                     LLTerm argumentGlueClone = argument.getGlueTerm().clone();
 
                     while (!discharges.isEmpty())
@@ -1153,7 +1154,7 @@ public class LLProver1 extends LLProver {
             System.out.println("to: " + combined.toString());
 */
             //TODO sdout vs file
-          }
+        }
         return combined;
     }
 

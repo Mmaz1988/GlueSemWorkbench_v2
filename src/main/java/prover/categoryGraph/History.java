@@ -128,6 +128,46 @@ public class History {
 
     }
 
+    public List<Premise> calculateSolutions() throws VariableBindingException, ProverException {
+
+        List<Premise> results = new ArrayList<>();
+
+        for (HashMap<Integer,History> parentLinks : parents)
+        {
+            Set<Premise> func = new HashSet<>();
+            Set<Premise> arg = new HashSet<>();
+
+            if (parentLinks.get(0).p != null)
+            {
+                func.add(parentLinks.get(0).p);
+            } else
+            {
+                func.addAll(parentLinks.get(0).calculateSolutions());
+            }
+            if (parentLinks.get(1).p != null)
+            {
+                arg.add(parentLinks.get(1).p);
+            } else
+            {
+                arg.addAll(parentLinks.get(1).calculateSolutions());
+            }
+            for (Premise p : func)
+            {
+                for (Premise q : arg)
+                {
+                    Premise r = prover.combinePremises(p,q);
+                    if (r != null)
+                    {
+                        prover.db.combinations++;
+                        results.add(r);
+                    }
+                }
+            }
+        }
+        return results;
+    }
+
+
     public void calculateMainIndex()
     {
         if (indexSet.size() == 1)
