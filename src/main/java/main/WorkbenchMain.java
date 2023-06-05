@@ -187,12 +187,12 @@ public class WorkbenchMain {
             File outFile = null;
             
             // If no output or input method is defined, or one of them is missing then initiate manual mode
-			if (!stdIn && inputFileName.equals("") || !stdOut && outputFileName.equals("")) {
+			if (!stdIn && inputFileName.equals("")) {
 				try {
 					inputFileName = getFileName("Choose a file containing lexical entries");
 			//		outputFileName = getFileName("Choose an output file name");
 					stdIn = false;
-					stdOut = false;
+					// stdOut = false;
 					// initiateManualMode();
 				} catch (Exception e) {
 					e.printStackTrace();
