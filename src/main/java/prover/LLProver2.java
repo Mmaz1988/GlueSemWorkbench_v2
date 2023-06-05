@@ -250,6 +250,29 @@ public class LLProver2 extends LLProver{
         outputFileBuilder.append(proofBuilder);
 
 
+        if (this.getSolutions().isEmpty())
+        {
+            // print elements of partialSolutions and sort based on premiseIDs.size()
+
+            List<Premise> sortedSolutions = partialSolutions.stream().sorted(Comparator.comparingInt(o -> o.getPremiseIDs().size())).collect(Collectors.toList());
+
+            getLOGGER().info("Input premises:");
+
+            for (Premise p : currentSequent.getLhs())
+            {
+                getLOGGER().info(p + " " + p.getPremiseIDs());
+            }
+
+            getLOGGER().info("Partial solutions:");
+
+            for (Premise p : sortedSolutions)
+            {
+                getLOGGER().info(p + " " + p.getPremiseIDs());
+            }
+
+        }
+
+
     }
 
 
