@@ -25,11 +25,11 @@ public class GswbPreferences {
 
     }
 
-    public GswbPreferences(int prover, int outputstyle, boolean solutionOnly, boolean debugging)
+    public GswbPreferences(int prover, int outputstyle, boolean solutionOnly, boolean parseSem, boolean debugging)
     {
         this.prover = prover;
         this.outputstyle = outputstyle;
-        this.parseSem = false;
+        this.parseSem = parseSem;
         this.noreduce = false;
         this.glueOnly = false;
         this.meaningOnly = false;

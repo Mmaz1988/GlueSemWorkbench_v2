@@ -1,5 +1,6 @@
 package webservice.rest;
 
+import glueSemantics.linearLogic.Premise;
 import glueSemantics.parser.GlueParser;
 import glueSemantics.parser.ParserInputException;
 import glueSemantics.semantics.MeaningConstructor;
@@ -14,6 +15,7 @@ import prover.LLProver1;
 import prover.LLProver2;
 import webservice.rest.dtos.GswbRequest;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -29,7 +31,7 @@ public class GswbController {
     @CrossOrigin
     //(origins = "http://localhost:63342")
     @PostMapping(value = "/deduce", produces = "application/json", consumes = "application/json")
-    public String applyRuleRequestXLE2(@RequestBody GswbRequest request) throws ParserInputException {
+    public List<String> applyRuleRequestXLE2(@RequestBody GswbRequest request) throws ParserInputException {
 
 
         //    public GswbPreferences(int prover, int outputstyle, boolean solutionOnly, boolean debugging, boolean explainFail)
@@ -38,8 +40,9 @@ public class GswbController {
         settings.setProverType(request.gswbPreferences.prover);
         settings.setDebugging(request.gswbPreferences.debugging);
         settings.setSolutionOnly(request.gswbPreferences.solutionOnly);
+        settings.setParseSemantics(request.gswbPreferences.parseSem);
 
-        GlueParser gp = new GlueParser();
+        GlueParser gp = new GlueParser(settings.isParseSemantics());
 
         LinkedHashMap<Integer, List<MeaningConstructor>> mcs = gp.parseMeaningConstructorString(request.premises);
 
@@ -53,9 +56,22 @@ public class GswbController {
         }
 
 
+        for (Integer key : mcs.keySet()) {
+            try {
+                List<Premise> solutions = prover.searchProof(key,mcs);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
 
 
-        return null;
+        //transform list of premises into list of strings
+        List<String> output = new ArrayList<>();
+        for (Premise p : prover.getSolutions()) {
+            output.add(p.toString());
+        }
+
+        return output;
     }
 
 
