@@ -18,22 +18,23 @@
 package glueSemantics.parser;
 
 
-
 import glueSemantics.linearLogic.LLTerm;
 import glueSemantics.semantics.LexicalEntry;
 import glueSemantics.semantics.MeaningRepresentation;
 import glueSemantics.semantics.SemanticRepresentation;
 import prover.VariableBindingException;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class GlueParser {
     private LinearLogicParser llparser = new LinearLogicParser();
     private SemanticParser semParser = new SemanticParser();
     public static final MeaningRepresentation emptyMeaning = new MeaningRepresentation("<empty>");
     // TODO add semantic parser here
-
+    private final static Logger LOGGER = Logger.getLogger(GlueParser.class.getName());
     private boolean PARSESEMANTCS;
 
     public GlueParser() {
@@ -70,6 +71,77 @@ public class GlueParser {
         entry.setSem(sem);
 
         return entry;
+    }
+
+
+    public LinkedHashMap<Integer,List<LexicalEntry>> parseMeaningConstructorString(String mc) throws ParserInputException {
+        List<String> formulas = Arrays.asList(mc.split("\n"));
+        return parseMeaningConstructorList(formulas);
+    }
+
+    public LinkedHashMap<Integer,List<LexicalEntry>> parseMeaningConstructorList(List<String> formulas) throws ParserInputException {
+
+        //Split string into lines
+
+
+        LinkedHashMap<Integer, List<LexicalEntry>> lexicalEntries = new LinkedHashMap<>();
+        Integer sets = 0;
+        Pattern wrapperStart = Pattern.compile("\\t*\\{\\t*");
+        Pattern wrapperEnd = Pattern.compile("\\t*\\}\\t*");
+
+        LOGGER.info("Now parsing input premises...");
+
+        List<LexicalEntry> ungroupedEntries = new ArrayList<>();
+
+        for (int i = 0; i < formulas.size(); i++) {
+            Matcher startMatcher = wrapperStart.matcher(formulas.get(i));
+
+            if (startMatcher.matches()) {
+                sets++;
+                List<LexicalEntry> currentLexicalEntries = new LinkedList<>();
+                i++;
+                Boolean newEntry = true;
+                while (newEntry) {
+                    Matcher endMatcher = wrapperEnd.matcher(formulas.get(i));
+
+                    if (endMatcher.matches()) {
+                        newEntry = false;
+                        lexicalEntries.put(sets, currentLexicalEntries);
+
+                        break;
+                    }
+                    try {
+                        LOGGER.finer("Now parsing meaning constructor at position " + i + " in premise list...");
+                        currentLexicalEntries.add(parseMeaningConstructor(formulas.get(i)));
+                    } catch (ParserInputException e) {
+                        LOGGER.warning(String.format("Error: " +
+                                "glue parser could not parse line %d of input file. " +
+                                "Skipping this line.", formulas.indexOf(formulas.get(i))));
+                    }
+                    i++;
+                }
+
+                lexicalEntries.put(sets, currentLexicalEntries);
+
+            } else
+            {
+            try {
+                    LOGGER.finer("Now parsing meaning constructor at position " + i + " in premise list...");
+                    ungroupedEntries.add(parseMeaningConstructor(formulas.get(i)));
+                } catch (ParserInputException e) {
+                    LOGGER.warning(String.format("Error: " +
+                            "glue parser could not parse line %d of input file. " +
+                            "Skipping this line.", formulas.indexOf(formulas.get(i))));
+                }
+            }
+        }
+
+        if (!ungroupedEntries.isEmpty())
+        {
+            lexicalEntries.put(0, ungroupedEntries);
+        }
+
+        return lexicalEntries;
     }
 
     public static void main(String[] args) throws VariableBindingException {

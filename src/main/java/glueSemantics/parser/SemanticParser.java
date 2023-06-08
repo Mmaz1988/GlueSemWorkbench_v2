@@ -62,7 +62,7 @@ public class SemanticParser extends StringParser {
 
         List<String> testFormulas = new ArrayList<>();
 
-
+/*
         testFormulas.add("[/P_<e,t>.[/x_e.[/y_e.P(x)(y)]]]");
         testFormulas.add("[/x_e.[/y_e.sleep(a(x,y),b(y,x))]]");
         testFormulas.add("[/x_e.[/y_e.sleep(a(x),b(y))]]");
@@ -89,6 +89,11 @@ public class SemanticParser extends StringParser {
        testFormulas.add("x_e");
         testFormulas.add("love(John,and(Jean,Paul))");
         testFormulas.add("{[/t_s.[/t2_s.before(t,t2)]], [/t_s.[/t2_s.overlap(t,t2)]]}");
+        testFormulas.add("[/x_e.[/V_<<v,t>,t>.[/f_<v,t>.[V(/e_v.[agent(e,x) & f(e)])]]]]");
+
+ */
+        testFormulas.add("[/x_e.[/V_<<v,t>,t>.[/f_<v,t>.V([/e_v.(agent(e,x) & f(e))])]]]");
+        testFormulas.add("(/x_e.(/V_<<v,t>,t>.(/f_<v,t>.(V((/e_v.(agent(e,x)&f(e))))))))");
 
         Settings s = new Settings();
         s.setSemanticOutputStyle(0);
@@ -328,6 +333,7 @@ public class SemanticParser extends StringParser {
                 if (c == '(') {
                     //TODO or instance of semfunction
                     if (semRep instanceof SemAtom && ((SemAtom) semRep).getSort().equals(SemAtom.SemSort.VAR)) {
+                      //  System.out.println(input.substring(pos,input.length()-1));
                         pos++;
                         SemanticRepresentation semRep2 = parseExpression(input);
                         pos++;

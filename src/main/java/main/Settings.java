@@ -51,6 +51,10 @@ public class Settings {
     private static boolean visualize = false;
     private static int proverType = HEPPLE;
 
+
+
+    private static boolean webService = false;
+
     public Settings() {
     }
 
@@ -162,4 +166,12 @@ public class Settings {
         Settings.visualize = visualize;
     }
 
+    public static boolean isWebService() {
+        return webService;
+    }
+
+    public static void setWebService(boolean webService) {
+        Settings.webService = webService;
+    }
 }
+

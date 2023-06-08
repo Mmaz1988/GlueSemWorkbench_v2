@@ -36,6 +36,12 @@ public class GraphAnalysis {
         this.stronglyConnectedGraph = stronglyConnectedGraph;
     }
 
+
+    public void returnJSONGraph()
+    {
+
+    }
+
     public void displayGraph()
     {
         JGraphXAdapter<Graph<CGNode,DefaultEdge>, DefaultEdge> jGraphXAdapter = new JGraphXAdapter<>(stronglyConnectedGraph);

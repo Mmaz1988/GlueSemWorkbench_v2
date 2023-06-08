@@ -1194,13 +1194,15 @@ public class LLProver1 extends LLProver {
          * then we don't compile it, but we directly add it to the agenda.
          */
 
-
+    /*
         if(p.getGlueTerm().isXtX()) {
             Premise q = new Premise(p.getPremiseIDs(), p.getSemTerm(),p.getGlueTerm());
             compiled.add(q);
             return compiled;
         }
 
+
+     */
 
         /* End of this code block added for optimization-1 */
 
