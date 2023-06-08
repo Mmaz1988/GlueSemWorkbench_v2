@@ -19,7 +19,7 @@ package test;
 
 import glueSemantics.parser.GlueParser;
 import glueSemantics.parser.ParserInputException;
-import glueSemantics.semantics.LexicalEntry;
+import glueSemantics.semantics.MeaningConstructor;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -53,13 +53,13 @@ class WorkbenchMainTest {
      */
     void testManualMode() {
         List<String> lines = new LinkedList<>();
-        List<LexicalEntry> lexicalEntries = new LinkedList<>();
+        List<MeaningConstructor> lexicalEntries = new LinkedList<>();
 
         // Test bad formulas file
         String bad_formulas = "C:\\Users\\User\\IdeaProjects\\glueSemWorkbench\\src\\test\\bad_formulas.txt";
         lines = loadTestFormulas(bad_formulas);
         try {
-            LexicalEntry f1 = parser.parseMeaningConstructor(lines.get(0));
+            MeaningConstructor f1 = parser.parseMeaningConstructor(lines.get(0));
             assertEquals("/x.dog(x)",f1.getSem().toString());
             // Test glue side
 
@@ -76,7 +76,7 @@ class WorkbenchMainTest {
         String intrans_quant_adj = "C:\\Users\\User\\IdeaProjects\\glueSemWorkbench\\src\\test\\intrans_quant_adj.txt";
         lines = loadTestFormulas(bad_formulas);
         try {
-            LexicalEntry f1 = parser.parseMeaningConstructor(lines.get(0));
+            MeaningConstructor f1 = parser.parseMeaningConstructor(lines.get(0));
             assertEquals("/x.dog(x)",f1.getSem().toString());
             // Test glue side
 

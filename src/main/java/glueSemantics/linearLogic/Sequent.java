@@ -18,7 +18,7 @@
 package glueSemantics.linearLogic;
 
 
-import glueSemantics.semantics.LexicalEntry;
+import glueSemantics.semantics.MeaningConstructor;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -46,7 +46,7 @@ public class Sequent {
     }
 
 
-     public Sequent(List<LexicalEntry> lexEn) {
+     public Sequent(List<MeaningConstructor> lexEn) {
          lhs = new ArrayList<>();
          for (idCounter = 0; idCounter < lexEn.size(); idCounter++) {
              HashSet<Integer> idSet = new HashSet<>();

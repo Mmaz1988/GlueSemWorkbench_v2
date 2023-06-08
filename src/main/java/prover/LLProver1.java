@@ -1157,7 +1157,7 @@ public class LLProver1 extends LLProver {
         return combined;
     }
 
-    public static SemanticRepresentation combine(Premise func, Premise argument) throws ProverException
+    public SemanticRepresentation combine(Premise func, Premise argument) throws ProverException
     {
         SemanticRepresentation reducedSem;
         if (getSettings().isBetaReduce()) {

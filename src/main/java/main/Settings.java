@@ -30,7 +30,7 @@ public class Settings {
  //Outputnodes
     public static final int PLAIN = 0;
     public static final int PROLOG = 1;
-    public static final int NLTK = 3; 
+    public static final int NLTK = 3;
     // TODO implement latex output
     //private final int LATEX = 2;
 
@@ -38,140 +38,166 @@ public class Settings {
     public static  final int HEPPLE = 0;
     public static final int LEV = 1;
 
-    private static boolean betaReduce = true;
-    private static int semanticOutputStyle = PLAIN;
-    private static boolean debugging = false;
-    private static boolean partial = false;
-    private static boolean glueOnly = false;
-    private static boolean multipleEntries;
-    private static boolean outputFile;
-    private static boolean parseSemantics = false;
-    private static boolean solutionOnly = false;
-    private static boolean testExpression = false;
-    private static boolean visualize = false;
-    private static int proverType = HEPPLE;
+    private boolean betaReduce = true;
+    private int semanticOutputStyle = PLAIN;
+    private boolean debugging = false;
+    private boolean partial = false;
+    private boolean glueOnly = false;
+    private boolean multipleEntries;
+    private boolean outputFile;
+    private boolean parseSemantics = false;
+    private boolean solutionOnly = false;
+    private boolean testExpression = false;
+    private boolean visualize = false;
+    private int proverType = HEPPLE;
 
 
+    private String explanation = "";
+    private boolean explainFail = false;
+    private boolean assureGlueParsing = false;
 
-    private static boolean webService = false;
+
+    private boolean webService = false;
 
     public Settings() {
     }
 
     public Settings (boolean betaReduce, int semanticOutputStyle) {
-        Settings.betaReduce = betaReduce;
-        Settings.semanticOutputStyle = semanticOutputStyle;
-        debugging = false;
-        partial = false;
-        glueOnly = false;
-        parseSemantics = false;
-        solutionOnly = false;
-        testExpression = false;
-        proverType = HEPPLE;
+        this.betaReduce = betaReduce;
+        this.semanticOutputStyle = semanticOutputStyle;
+        this.debugging = false;
+        this.partial = false;
+        this.glueOnly = false;
+        this.parseSemantics = false;
+        this.solutionOnly = false;
+        this.testExpression = false;
+        this.proverType = HEPPLE;
     }
 
     public boolean isBetaReduce() {
-        return betaReduce;
+        return this.betaReduce;
     }
 
-    public void setBetaReduce(boolean betaReduce) {
-        Settings.betaReduce = betaReduce;
+    public void setBetaReduce(boolean betaReduce) {this.betaReduce = betaReduce;
     }
 
     public int getSemanticOutputStyle() {
-        return semanticOutputStyle;
+        return this.semanticOutputStyle;
     }
 
     public void setSemanticOutputStyle(int semanticOutputStyle) {
-        Settings.semanticOutputStyle = semanticOutputStyle;
+        this.semanticOutputStyle = semanticOutputStyle;
     }
 
     public boolean isDebugging() {
-        return debugging;
+        return this.debugging;
     }
 
     public void setDebugging(boolean debugging) {
-        Settings.debugging = debugging;
+        this.debugging = debugging;
     }
 
     public boolean isPartial() {
-        return partial;
+        return this.partial;
     }
 
     public void setPartial(boolean partial) {
-        Settings.partial = partial;
+        this.partial = partial;
     }
 
     public boolean isGlueOnly() {
-        return glueOnly;
+        return this.glueOnly;
     }
 
     public void setGlueOnly(boolean glueOnly) {
-        Settings.glueOnly = glueOnly;
+        glueOnly = this.glueOnly;
     }
 
     public boolean isMultipleEntries() {
-        return multipleEntries;
+        return this.multipleEntries;
     }
 
     public void setMultipleEntries(boolean multipleEntries) {
-        Settings.multipleEntries = multipleEntries;
+        this.multipleEntries = multipleEntries;
     }
 
     public boolean isOutputFile() {
-        return outputFile;
+        return this.outputFile;
     }
 
     public void setOutputFile(boolean outputFile) {
-        Settings.outputFile = outputFile;
+        this.outputFile = outputFile;
     }
 
     public boolean isParseSemantics() {
-        return parseSemantics;
+        return this.parseSemantics;
     }
 
     public void setParseSemantics(boolean parseSemantics) {
-        Settings.parseSemantics = parseSemantics;
+        this.parseSemantics = parseSemantics;
     }
 
 
     public Boolean getSolutionOnly() {
-        return solutionOnly;
+        return this.solutionOnly;
     }
 
     public void setSolutionOnly(Boolean solutionOnly) {
-        Settings.solutionOnly = solutionOnly;
+        this.solutionOnly = solutionOnly;
     }
 
     public Boolean getTestExpression() {
-        return testExpression;
+        return this.testExpression;
     }
 
     public void setTestExpression(Boolean testExpression) {
-        Settings.testExpression = testExpression;
+        this.testExpression = testExpression;
     }
 
     public int getProverType() {
-        return proverType;
+        return this.proverType;
     }
 
     public void setProverType(int proverType) {
-        Settings.proverType = proverType;
+        this.proverType = proverType;
     }
-    public static boolean isVisualize() {
-        return visualize;
-    }
-
-    public static void setVisualize(boolean visualize) {
-        Settings.visualize = visualize;
+    public boolean isVisualize() {
+        return this.visualize;
     }
 
-    public static boolean isWebService() {
-        return webService;
+    public void setVisualize(boolean visualize) {this.visualize = visualize;
     }
 
-    public static void setWebService(boolean webService) {
-        Settings.webService = webService;
+    public boolean isWebService() {
+        return this.webService;
+    }
+
+    public void setWebService(boolean webService) {
+        this.webService = webService;
+    }
+
+    public String getExplanation() {
+        return this.explanation;
+    }
+
+    public void setExplanation(String explanation) {
+        this.explanation = explanation;
+    }
+
+    public boolean isExplainFail() {
+        return this.explainFail;
+    }
+
+    public void setExplainFail(boolean explainFail) {
+        this.explainFail = explainFail;
+    }
+
+    public boolean isAssureGlueParsing() {
+        return this.assureGlueParsing;
+    }
+
+    public void setAssureGlueParsing(boolean assureGlueParsing) {
+        this.assureGlueParsing = assureGlueParsing;
     }
 }
 

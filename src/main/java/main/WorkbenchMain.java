@@ -12,7 +12,7 @@ import glueSemantics.linearLogic.Sequent;
 import glueSemantics.parser.GlueParser;
 import glueSemantics.parser.ParserInputException;
 import glueSemantics.parser.SemanticParser;
-import glueSemantics.semantics.LexicalEntry;
+import glueSemantics.semantics.MeaningConstructor;
 import prover.*;
 import utilities.LexicalParserException;
 import utilities.MyFormatter;
@@ -38,9 +38,6 @@ public class WorkbenchMain {
     public static List<Premise> result = new ArrayList<>();
     private final static Logger LOGGER = Logger.getLogger(WorkbenchMain.class.getName());
     
-    private static String explanation = "";
-    private static boolean explainFail = false;
-    private static boolean assureGlueParsing = false;
 
     
 
@@ -130,7 +127,7 @@ public class WorkbenchMain {
                     break;
                 }
                 case ("-explainFail"): {
-                    explainFail = true;
+                    settings.setExplainFail(true);
                     break;
                 }
                 case ("-readStdIn"): {
@@ -142,7 +139,7 @@ public class WorkbenchMain {
                     break;
                 }
                 case ("-assureGlueParsing"): {
-                    assureGlueParsing = true;
+                    settings.setAssureGlueParsing(true);
                     break;
                 }
                 case ("-vis"):
@@ -284,9 +281,9 @@ public class WorkbenchMain {
                             }
                         }
                     } else {
-                        if (explainFail && !explanation.equals("")) {
+                        if (settings.isExplainFail() && !settings.getExplanation().equals("")) {
                             w.append("% No proof. Explanation: " + System.lineSeparator());
-                            w.append(explanation);
+                            w.append(settings.getExplanation());
                         }
                         LOGGER.info("No solutions found for given input.");
                     }
@@ -347,7 +344,7 @@ public class WorkbenchMain {
 
             GlueParser parser = new GlueParser(settings.isParseSemantics());
 
-            LinkedHashMap<Integer, List<LexicalEntry>> lexicalEntries = parser.parseMeaningConstructorList(formulas);
+            LinkedHashMap<Integer, List<MeaningConstructor>> lexicalEntries = parser.parseMeaningConstructorList(formulas);
 
                 //TODO fix output to accomodate for multiple entries
                 LOGGER.info(String.format("Found %d different proof(s) in input file.", lexicalEntries.size()));
@@ -368,7 +365,7 @@ public class WorkbenchMain {
     }
     */
 
-    public static void searchProof(Integer key, List<LexicalEntry> lexicalEntries) throws VariableBindingException {
+    public static void searchProof(Integer key, List<MeaningConstructor> lexicalEntries) throws VariableBindingException {
 
         LOGGER.info(String.format("Found %d lexical entries for proof with id S%d",lexicalEntries.size(),key));
 
@@ -415,9 +412,9 @@ public class WorkbenchMain {
                     }
                 } else
                 {
-                if(explainFail && prover instanceof LLProver2)
+                if(settings.isExplainFail() && prover instanceof LLProver2)
                 	{
-                		explanation = failExplainer.explain( ((LLProver2)prover).getNonAtomicChart(), ((LLProver2)prover).getAtomicChart());
+                		settings.setExplanation(failExplainer.explain( ((LLProver2)prover).getNonAtomicChart(), ((LLProver2)prover).getAtomicChart()));
                 	}
                     solutionBuilder.append("None!");
                 }

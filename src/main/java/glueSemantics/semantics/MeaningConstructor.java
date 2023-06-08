@@ -19,7 +19,7 @@ package glueSemantics.semantics;
 
 import glueSemantics.linearLogic.LLTerm;
 
-public class LexicalEntry {
+public class MeaningConstructor {
 
     String identifier;
     private LLTerm llTerm;

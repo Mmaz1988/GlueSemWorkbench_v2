@@ -17,7 +17,7 @@
 
 package glueSemantics.linearLogic;
 
-import glueSemantics.semantics.LexicalEntry;
+import glueSemantics.semantics.MeaningConstructor;
 import glueSemantics.semantics.SemanticRepresentation;
 import glueSemantics.semantics.lambda.SemAtom;
 import glueSemantics.semantics.lambda.SemanticExpression;
@@ -88,7 +88,7 @@ public class Premise {
     }
 
     //For work with Lexicon
-    public Premise(HashSet<Integer> premiseIDs, LexicalEntry lexEn) {
+    public Premise(HashSet<Integer> premiseIDs, MeaningConstructor lexEn) {
         this.premiseIDs = premiseIDs;
         this.glueTerm = lexEn.getLlTerm();
         this.semTerm = lexEn.getSem();

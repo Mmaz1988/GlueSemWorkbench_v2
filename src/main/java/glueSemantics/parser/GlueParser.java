@@ -19,7 +19,7 @@ package glueSemantics.parser;
 
 
 import glueSemantics.linearLogic.LLTerm;
-import glueSemantics.semantics.LexicalEntry;
+import glueSemantics.semantics.MeaningConstructor;
 import glueSemantics.semantics.MeaningRepresentation;
 import glueSemantics.semantics.SemanticRepresentation;
 import prover.VariableBindingException;
@@ -46,13 +46,13 @@ public class GlueParser {
         this.PARSESEMANTCS = parseSemantics;
     }
 
-    public LexicalEntry parseMeaningConstructor(String mc) throws ParserInputException {
+    public MeaningConstructor parseMeaningConstructor(String mc) throws ParserInputException {
         String[] mcList = mc.split(":");
         if (mcList.length != 2) {
             throw new ParserInputException("Error parsing formula '" + mc + "'. " +
                     "Meaning side and glue side need to be separated with a ':'");
         }
-        LexicalEntry entry = new LexicalEntry();
+        MeaningConstructor entry = new MeaningConstructor();
         LLTerm glue = llparser.callParser(mcList[1].trim());
         SemanticRepresentation sem = null;
         if (!PARSESEMANTCS) {
@@ -74,31 +74,31 @@ public class GlueParser {
     }
 
 
-    public LinkedHashMap<Integer,List<LexicalEntry>> parseMeaningConstructorString(String mc) throws ParserInputException {
+    public LinkedHashMap<Integer,List<MeaningConstructor>> parseMeaningConstructorString(String mc) throws ParserInputException {
         List<String> formulas = Arrays.asList(mc.split("\n"));
         return parseMeaningConstructorList(formulas);
     }
 
-    public LinkedHashMap<Integer,List<LexicalEntry>> parseMeaningConstructorList(List<String> formulas) throws ParserInputException {
+    public LinkedHashMap<Integer,List<MeaningConstructor>> parseMeaningConstructorList(List<String> formulas) throws ParserInputException {
 
         //Split string into lines
 
 
-        LinkedHashMap<Integer, List<LexicalEntry>> lexicalEntries = new LinkedHashMap<>();
+        LinkedHashMap<Integer, List<MeaningConstructor>> lexicalEntries = new LinkedHashMap<>();
         Integer sets = 0;
         Pattern wrapperStart = Pattern.compile("\\t*\\{\\t*");
         Pattern wrapperEnd = Pattern.compile("\\t*\\}\\t*");
 
         LOGGER.info("Now parsing input premises...");
 
-        List<LexicalEntry> ungroupedEntries = new ArrayList<>();
+        List<MeaningConstructor> ungroupedEntries = new ArrayList<>();
 
         for (int i = 0; i < formulas.size(); i++) {
             Matcher startMatcher = wrapperStart.matcher(formulas.get(i));
 
             if (startMatcher.matches()) {
                 sets++;
-                List<LexicalEntry> currentLexicalEntries = new LinkedList<>();
+                List<MeaningConstructor> currentLexicalEntries = new LinkedList<>();
                 i++;
                 Boolean newEntry = true;
                 while (newEntry) {

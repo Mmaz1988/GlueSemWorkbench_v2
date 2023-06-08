@@ -22,7 +22,7 @@ import glueSemantics.linearLogic.Sequent;
 import glueSemantics.parser.GlueParser;
 import glueSemantics.parser.LinearLogicParser;
 import glueSemantics.parser.ParserInputException;
-import glueSemantics.semantics.LexicalEntry;
+import glueSemantics.semantics.MeaningConstructor;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -39,7 +39,7 @@ class LLProverTest {
 
     private Sequent loadAndParseTestFormulas(String path) {
         List<String> lines = new LinkedList<>();
-        List<LexicalEntry> lexicalEntries = new LinkedList<>();
+        List<MeaningConstructor> lexicalEntries = new LinkedList<>();
         try {
             lines = Files.readAllLines(Paths.get(path));
         } catch (IOException e) {
