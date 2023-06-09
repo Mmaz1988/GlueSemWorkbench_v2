@@ -28,7 +28,7 @@ public class LLProver2 extends LLProver{
     // A chart that associates variables that are compiled out with their original formula.
     // This is necessary to instantiate variables that are atmoic elements rather than variables that occur in formulas.
 
-    private LinkedList<Premise> agenda;
+    private LinkedList<Premise> agenda = new LinkedList<>();
 
     private StringBuilder outputFileBuilder;
 
@@ -59,7 +59,13 @@ public class LLProver2 extends LLProver{
     }
 
     public void deduce(Sequent seq) throws ProverException, VariableBindingException {
-        LinkedList<Premise> agenda = new LinkedList<>();
+
+        //Clear charts before new deduce call
+        atomicChart.clear();
+        nonAtomicChart.clear();
+        agenda.clear();
+        goalIDs.clear();
+        getSolutions().clear();
 
         this.db = new Debugging();
 

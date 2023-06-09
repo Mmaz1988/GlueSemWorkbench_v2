@@ -467,7 +467,7 @@ public class LLProver3 extends LLProver {
 
         if (!finalHistories.isEmpty()) {
             for (History solution : finalHistories) {
-                getSolutions().addAll(solution.calculateSolutions(resultBuilder));
+                getSolutions().addAll(solution.calculateSolutions());
             }
             proofBuilder.append(resultBuilder.toString());
 

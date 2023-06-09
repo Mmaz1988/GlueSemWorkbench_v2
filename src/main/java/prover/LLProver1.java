@@ -28,7 +28,6 @@ public class LLProver1 extends LLProver {
     private LinkedList<History> finalHistories = new LinkedList<>();
     private StringBuilder proofBuilder;
     private HashSet<Integer> goalIDs = new HashSet<>();
-    public long startTime;
     public GraphAnalysis analysis;
 
 
@@ -53,11 +52,16 @@ public class LLProver1 extends LLProver {
 
     public void deduce(Sequent seq) throws ProverException, VariableBindingException {
 
+        //clear field variables for new deduction
+        this.finalHistories.clear();
+        this.goalIDs.clear();
+        this.getSolutions().clear();
+
         this.db = new Debugging();
         this.currentSequent = seq;
         LinkedList<Premise> agenda = new LinkedList<>();
 
-        startTime = System.nanoTime();
+        long startTime = System.nanoTime();
 
 
         StringBuilder sb = new StringBuilder();
@@ -467,7 +471,7 @@ public class LLProver1 extends LLProver {
 
         if (!finalHistories.isEmpty()) {
             for (History solution : finalHistories) {
-                getSolutions().addAll(solution.calculateSolutions(resultBuilder));
+                getSolutions().addAll(solution.calculateSolutions());
             }
             proofBuilder.append(resultBuilder.toString());
 
@@ -713,6 +717,7 @@ public class LLProver1 extends LLProver {
                         return null;
                     }
                      */
+
                     Set<Integer> union = new HashSet<>();
                     union.addAll(h1.indexSet);
                     union.addAll(h2.indexSet);

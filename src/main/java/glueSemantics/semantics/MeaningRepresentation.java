@@ -68,6 +68,16 @@ public class MeaningRepresentation implements SemanticRepresentation{
     }
 
     @Override
+    public boolean bindsVar(SemAtom var) {
+        return false;
+    }
+
+    @Override
+    public boolean containsQuantExpression() {
+        return false;
+    }
+
+    @Override
     public String toString() {
         return formula;
     }

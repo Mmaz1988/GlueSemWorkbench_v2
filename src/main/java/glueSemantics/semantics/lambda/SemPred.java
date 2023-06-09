@@ -29,6 +29,8 @@ import static glueSemantics.semantics.lambda.SemType.AtomicType.T;
 public class SemPred extends SemanticExpression {
 
     private final String predForm;
+
+
     // Does a stack make sense here? We always want to have the same number of args!
     // Maybe a Hashmap is better
     private ArrayList<SemanticRepresentation> argList = new ArrayList<>();
@@ -132,6 +134,28 @@ public class SemPred extends SemanticExpression {
     }
 
     @Override
+    public boolean bindsVar(SemAtom var) {
+        for (SemanticRepresentation arg : this.argList)
+        {
+            if (arg.bindsVar(var))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean containsQuantExpression() {
+        for (SemanticRepresentation arg : this.argList)
+        {
+            if (arg.containsQuantExpression())
+            {return true;}
+        }
+        return false;
+    }
+
+    @Override
     public Set<SemAtom> findBoundVariables() {
         Set<SemAtom> out = new HashSet<>();
         for (SemanticRepresentation sr : argList)
@@ -140,4 +164,13 @@ public class SemPred extends SemanticExpression {
         }
         return out;
     }
+
+    public ArrayList<SemanticRepresentation> getArgList() {
+        return argList;
+    }
+
+    public void setArgList(ArrayList<SemanticRepresentation> argList) {
+        this.argList = argList;
+    }
+
 }

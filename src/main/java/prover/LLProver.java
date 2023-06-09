@@ -58,7 +58,7 @@ public abstract class LLProver {
             Sequent testseq = new Sequent(lexicalEntries.get(key));
 
             deduce(testseq);
-            List<Premise> result = getSolutions();
+            List<Premise> result = new ArrayList<>(getSolutions());
 
 
             // LOGGER.info("Found the following deduction(s):\n");

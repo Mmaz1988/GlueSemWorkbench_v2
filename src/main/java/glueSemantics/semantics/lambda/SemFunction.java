@@ -102,11 +102,22 @@ public class SemFunction extends SemanticExpression implements FunctionalAbstrac
     }
 
     @Override
+    public boolean bindsVar(SemAtom var) {
+      return  this.funcBody.bindsVar(var);
+    }
+
+    @Override
+    public boolean containsQuantExpression() {
+        return this.funcBody.containsQuantExpression();
+    }
+
+    @Override
     public Set<SemAtom> findBoundVariables() {
         Set<SemAtom> out = new HashSet<>();
         out.add(binder);
         out.addAll(funcBody.findBoundVariables());
         return out;
     }
+
 
 }

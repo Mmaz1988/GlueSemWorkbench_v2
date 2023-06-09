@@ -155,6 +155,25 @@ public class History {
             {
                 for (Premise q : arg)
                 {
+                    /* TODO this optimization only applies inside an SCC. To do this, we need to calculate solutions of histories that go into an SCC?
+                    Premise r = null;
+                    if (this.prover.getSettings().isParseSemantics())
+                    {
+                        if (SemanticExpression.nonScopingQuantifiers((SemanticExpression) p.getSemTerm(), (SemanticExpression) q.getSemTerm()))
+                        {
+                            if (parentLinks.get(0).mainIndex < parentLinks.get(1).mainIndex)
+                            {
+                                r = prover.combinePremises(p,q);
+                            }
+                        } else
+                        {
+                            r = prover.combinePremises(p,q);
+                        }
+                    } else {
+                        r = prover.combinePremises(p, q);
+                    }
+
+                     */
                     Premise r = prover.combinePremises(p,q);
                     if (r != null)
                     {

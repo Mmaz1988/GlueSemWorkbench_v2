@@ -87,6 +87,16 @@ public class BinaryTerm extends SemanticExpression {
     }
 
     @Override
+    public boolean bindsVar(SemAtom var) {
+        return this.left.bindsVar(var) || this.right.bindsVar(var);
+    }
+
+    @Override
+    public boolean containsQuantExpression() {
+        return this.left.containsQuantExpression() ||this.right.containsQuantExpression();
+    }
+
+    @Override
     public Set<SemAtom> findBoundVariables() {
         Set<SemAtom> out = new HashSet<>();
         out.addAll(left.findBoundVariables());

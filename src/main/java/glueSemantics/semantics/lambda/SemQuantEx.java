@@ -78,6 +78,16 @@ public class SemQuantEx extends SemanticExpression {
     }
 
     @Override
+    public boolean bindsVar(SemAtom var) {
+        return this.quantBody.bindsVar(var);
+    }
+
+    @Override
+    public boolean containsQuantExpression() {
+        return true;
+    }
+
+    @Override
     public Set<SemAtom> findBoundVariables() {
         Set<SemAtom> out = new HashSet<>();
         out.add(binder);

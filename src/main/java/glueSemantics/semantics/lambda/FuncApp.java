@@ -234,6 +234,16 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
     }
 
     @Override
+    public boolean bindsVar(SemAtom var) {
+        return this.functor.bindsVar(var) || this.argument.bindsVar(var);
+    }
+
+    @Override
+    public boolean containsQuantExpression() {
+        return this.functor.containsQuantExpression() || this.argument.containsQuantExpression();
+    }
+
+    @Override
     public Set<SemAtom> findBoundVariables() {
         Set<SemAtom> out = new HashSet<>();
         out.addAll(functor.findBoundVariables());

@@ -89,6 +89,30 @@ public class SemSet extends SemanticExpression {
     }
 
     @Override
+    public boolean bindsVar(SemAtom var) {
+        for (SemanticRepresentation member : this.members)
+        {
+            if (member.bindsVar(var))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean containsQuantExpression() {
+        for (SemanticRepresentation member : this.members)
+        {
+            if (member.containsQuantExpression())
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
     public Set<SemAtom> findBoundVariables() {
         Set<SemAtom> out = new HashSet<>();
         for (SemanticRepresentation sr : members)

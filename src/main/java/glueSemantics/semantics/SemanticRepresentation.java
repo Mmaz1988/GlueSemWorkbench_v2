@@ -34,4 +34,8 @@ public interface SemanticRepresentation {
     public SemanticRepresentation clone();
 
     public Set<SemAtom> findBoundVariables();
+
+    public boolean bindsVar(SemAtom var);
+
+    public boolean containsQuantExpression();
 }

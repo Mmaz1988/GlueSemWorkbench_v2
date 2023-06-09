@@ -81,6 +81,16 @@ public class SemAtom extends SemanticExpression {
     }
 
     @Override
+    public boolean bindsVar(SemAtom var) {
+        return this == var;
+    }
+
+    @Override
+    public boolean containsQuantExpression() {
+        return false;
+    }
+
+    @Override
     public Set<SemAtom> findBoundVariables() {
         if (sort == SemSort.VAR)
         {
@@ -135,5 +145,7 @@ public class SemAtom extends SemanticExpression {
     	else 
     		return name + "_" + getType().toString();
     }
+
+
 
 }
