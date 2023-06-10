@@ -29,6 +29,7 @@ import java.util.logging.StreamHandler;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.logging.Handler;
+import main.NaturalDeductionProof;
 
 public class WorkbenchMain {
     // Initialize with default settings
@@ -42,6 +43,8 @@ public class WorkbenchMain {
     private static String explanation = "";
     private static boolean explainFail = false;
     private static boolean assureGlueParsing = false;
+    private static boolean naturalDeduction = false;
+    private static String searchForGoal = "";
 
     
 
@@ -121,7 +124,13 @@ public class WorkbenchMain {
                         }
                         break;
                         }
-
+                    case ("-proveGoal"): {
+                    	if (i+1>=args.length)
+                    		searchForGoal="";
+                    	else 
+                    		searchForGoal = args[i+1];
+                        break;
+                        }
                     case ("-test"):
                     {
                         SemanticParser semParser = new SemanticParser();
@@ -154,8 +163,12 @@ public class WorkbenchMain {
                     	assureGlueParsing = true;
                     	break;
                     }
-                    case ("-vis"):
-                        settings.setVisualize(true);
+                    case("-naturalDeduction"):
+                    {
+                    	naturalDeduction = true;
+                    	break;
+                    }                    case ("-vis"):
+                    settings.setVisualize(true);
                         break;
                     }
                 }
@@ -251,6 +264,7 @@ public class WorkbenchMain {
     		String input = InputOutputProcessor.translate(inputStringBuilder.toString()) ;
 
        		String lines[] = input.split("\\r?\\n|\\r");
+       		
 
 			try {
 				initiateManualMode(Arrays.asList(lines));
@@ -272,19 +286,22 @@ public class WorkbenchMain {
 							Premise solution = solutions.get(key).get(i);
 							if (onlyMeaningSide) {
 								w.append(solution.getSemTerm().toString() + System.lineSeparator());
+								if(naturalDeduction)w.append(NaturalDeductionProof.getNaturalDeductionProof(solution));
 							} else if (settings.getSemanticOutputStyle() == 1) {
 								w.append("solution" + "(" + key.toString() + i + ",");
 								w.append(solution.getSemTerm().toString());
 								w.append(").");
 								w.append(System.lineSeparator());
+								if(naturalDeduction)w.append(NaturalDeductionProof.getNaturalDeductionProof(solution));
 							} else {
 								w.append(InputOutputProcessor.restoreBackLinearLogicSide(solution.toString()));
 								w.append(System.lineSeparator());
+								if(naturalDeduction)w.append(NaturalDeductionProof.getNaturalDeductionProof(solution));
 							}
 						}
 					}
 				} else {
-					if (explainFail && !explanation.equals("")) {
+					if (explainFail && !explanation.equals("")&& searchForGoal=="") {
 						w.append("% No proof. Explanation: " + System.lineSeparator());
 						w.append(explanation);
 					}
@@ -451,6 +468,7 @@ public class WorkbenchMain {
                 }
                 else
                 {
+                	
                     solutions.put(key,new ArrayList<>(Arrays.asList(sol)));
                 }
         //        sol.setSemTerm((SemanticExpression) sol.getSemTerm().betaReduce());
@@ -466,9 +484,15 @@ public class WorkbenchMain {
                     }
                 } else
                 {
-                if(explainFail && prover instanceof LLProver2)
+                if(searchForGoal!=""  && prover instanceof LLProver2) {
+                	/* Write the output to STDERR */
+                	explanation = failExplainer.getLargestGoalPremiseCombination(searchForGoal, ((LLProver2)prover).getNonAtomicChart(), ((LLProver2)prover).getAtomicChart(), naturalDeduction);
+                	System.err.println(explanation);
+                
+                }
+                else if(explainFail && prover instanceof LLProver2)
                 	{
-                		explanation = failExplainer.explain( ((LLProver2)prover).getNonAtomicChart(), ((LLProver2)prover).getAtomicChart());
+                		explanation = failExplainer.explain( ((LLProver2)prover).getNonAtomicChart(), ((LLProver2)prover).getAtomicChart(), naturalDeduction);
                 	}
                     solutionBuilder.append("None!");
                 }
