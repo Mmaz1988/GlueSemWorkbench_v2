@@ -40,6 +40,8 @@ public class InputOutputProcessor {
 				namesNew[i] = names[i];
 				valuesNew[i] = values[i];
 			}
+			InputOutputProcessor.names=namesNew;
+			InputOutputProcessor.values=valuesNew;
 			reserved = newSize;
 		}
 		InputOutputProcessor.names[size] = original;

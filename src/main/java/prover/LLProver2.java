@@ -500,6 +500,9 @@ public class LLProver2 extends LLProver{
                 proofBuilder.append(System.lineSeparator());
                 proofBuilder.append("to: " + InputOutputProcessor.restoreBackLinearLogicSide(combined.toString()));
                 proofBuilder.append(System.lineSeparator());
+                combined.comb_a = functor;
+                combined.comb_b = argument;
+                
             }
 
 
