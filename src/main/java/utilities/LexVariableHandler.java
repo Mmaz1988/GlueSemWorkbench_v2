@@ -36,6 +36,7 @@ public abstract class LexVariableHandler {
         SemVarW,
         SemVarI,
         SemVarV,
+        SemVarX,
         SemVarComp,
         SentenceID,
         connectorNode

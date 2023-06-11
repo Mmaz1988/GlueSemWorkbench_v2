@@ -6,10 +6,12 @@ import glueSemantics.semantics.MeaningConstructor;
 import main.InputOutputProcessor;
 import main.Settings;
 import main.WorkbenchMain;
-import main.failExplainer;
 import utilities.Debugging;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Logger;
 
 public abstract class LLProver {
@@ -74,11 +76,13 @@ public abstract class LLProver {
 
             }
 
+                /*
                 if(this.settings.isExplainFail() && this instanceof LLProver2)
                 {
-                    settings.setExplanation(failExplainer.explain( ((LLProver2) this).getNonAtomicChart(), ((LLProver2) this).getAtomicChart()));
+                    settings.setExplanation(failExplainer.explain( ((LLProver2) this).getNonAtomicChart(), ((LLProver2) this).getAtomicChart(),true));
                 solutionBuilder.append("None!");
             }
+                 */
 
             LOGGER.info(solutionBuilder.toString());
 

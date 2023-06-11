@@ -37,9 +37,10 @@ public class WorkbenchMain {
     public static StringBuilder outputFileBuilder = new StringBuilder();
     public static List<Premise> result = new ArrayList<>();
     private final static Logger LOGGER = Logger.getLogger(WorkbenchMain.class.getName());
-    
 
-    
+
+    private static boolean naturalDeduction = false;
+    private static String searchForGoal = "";
 
     public static void main(String[] args) {
         /*
@@ -115,6 +116,13 @@ public class WorkbenchMain {
                     }
                     break;
                 }
+                case ("-proveGoal"): {
+                    if (i + 1 >= args.length)
+                        searchForGoal = "";
+                    else
+                        searchForGoal = args[i + 1];
+                    break;
+                }
 
                 case ("-test"): {
                     SemanticParser semParser = new SemanticParser();
@@ -142,6 +150,10 @@ public class WorkbenchMain {
                     settings.setAssureGlueParsing(true);
                     break;
                 }
+                case ("-naturalDeduction"): {
+                    naturalDeduction = true;
+                    break;
+                }
                 case ("-vis"):
                     settings.setVisualize(true);
                     break;
@@ -151,195 +163,201 @@ public class WorkbenchMain {
             }
         }
 
-            if (settings.isWebService()) {
+        if (settings.isWebService()) {
 
-                LOGGER.info("Running system as web service ...");
-                WebApplication web = new WebApplication();
-                web.main(new String[0]);
-            } else {
+            LOGGER.info("Running system as web service ...");
+            WebApplication web = new WebApplication();
+            web.main(new String[0]);
+        } else {
 
-                String betaReduce = "on";
-                String outputMode = "plain";
-                if (!settings.isBetaReduce())
-                    betaReduce = "off";
+            String betaReduce = "on";
+            String outputMode = "plain";
+            if (!settings.isBetaReduce())
+                betaReduce = "off";
 
-                if (settings.getSemanticOutputStyle() == 1)
-                    outputMode = "prolog";
+            if (settings.getSemanticOutputStyle() == 1)
+                outputMode = "prolog";
 
-                if (settings.getSemanticOutputStyle() == 2)
-                    outputMode = "json";
+            if (settings.getSemanticOutputStyle() == 2)
+                outputMode = "json";
 
-                if (settings.getSemanticOutputStyle() == 3)
-                    outputMode = "nltk";
-                String outputSides = "meaning and linear logic sides";
-                if (onlyMeaningSide) {
-                    outputSides = "only meaning side";
-                }
+            if (settings.getSemanticOutputStyle() == 3)
+                outputMode = "nltk";
+            String outputSides = "meaning and linear logic sides";
+            if (onlyMeaningSide) {
+                outputSides = "only meaning side";
+            }
 
 
-                LOGGER.config(String.format("Current settings: automatic beta reduction: %s\t\toutput mode: %s\t\toutput: %s", betaReduce, outputMode, outputSides));
+            LOGGER.config(String.format("Current settings: automatic beta reduction: %s\t\toutput mode: %s\t\toutput: %s", betaReduce, outputMode, outputSides));
 
-                InputStream inputFileStream = null;
-                StringBuilder inputStringBuilder = new StringBuilder();
-                BufferedWriter w = null;
-                File outFile = null;
+            InputStream inputFileStream = null;
+            StringBuilder inputStringBuilder = new StringBuilder();
+            BufferedWriter w = null;
+            File outFile = null;
 
-                // If no output or input method is defined, or one of them is missing then initiate manual mode
-                if (!stdIn && inputFileName.equals("")) {
-                    try {
-                        inputFileName = getFileName("Choose a file containing lexical entries");
-                        //		outputFileName = getFileName("Choose an output file name");
-                        stdIn = false;
-                        // stdOut = false;
-                        // initiateManualMode();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
+            // If no output or input method is defined, or one of them is missing then initiate manual mode
+            if (!stdIn && inputFileName.equals("")) {
                 try {
-                    // Decide where to output
-                    if (stdOut) {
-                        w = new BufferedWriter(new OutputStreamWriter(System.out));
-                        // Normally LOGGER is connected to stdout. So,
-                        // simply remove all handlers from the logger and restore stderr
-                        // connection back
-                        Handler[] currentHandlers = LOGGER.getHandlers();
-                        for (int i = 0; i < currentHandlers.length; i++) {
-                            LOGGER.removeHandler(currentHandlers[i]);
-                        }
-                        LOGGER.addHandler(new StreamHandler(System.err, new MyFormatter()));
-                    } else if (!outputFileName.equals("")) {
-                        outFile = new File(outputFileName);
-                        if (outFile.exists()) {
-                            outFile.delete();
-                            outFile.createNewFile();
-                        } else {
-                            outFile.createNewFile();
-                        }
-                        if (outFile.exists()) {
-                            w = new BufferedWriter(new FileWriter(outFile, true));
-                        }
-                    }
-                    // Decide from where to read the input
-                    if (stdIn) {
-                        inputFileStream = System.in;
-                    } else if (!inputFileName.equals("")) {
-                        inputFileStream = new FileInputStream(new File(inputFileName));
-                    }
+                    inputFileName = getFileName("Choose a file containing lexical entries");
+                    //		outputFileName = getFileName("Choose an output file name");
+                    stdIn = false;
+                    // stdOut = false;
+                    // initiateManualMode();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-
-                /* Read the input */
-                Scanner scanner = null;
-                try {
-                    scanner = new Scanner(inputFileStream);
-                    while (scanner.hasNextLine()) {
-                        inputStringBuilder.append(scanner.nextLine() + System.lineSeparator());
+            }
+            try {
+                // Decide where to output
+                if (stdOut) {
+                    w = new BufferedWriter(new OutputStreamWriter(System.out));
+                    // Normally LOGGER is connected to stdout. So,
+                    // simply remove all handlers from the logger and restore stderr
+                    // connection back
+                    Handler[] currentHandlers = LOGGER.getHandlers();
+                    for (int i = 0; i < currentHandlers.length; i++) {
+                        LOGGER.removeHandler(currentHandlers[i]);
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                } finally {
-                    if (scanner != null)
-                        scanner.close();
-                }
-                InputOutputProcessor.process(inputStringBuilder.toString());
-                String input = InputOutputProcessor.translate(inputStringBuilder.toString());
-
-                String lines[] = input.split("\\r?\\n|\\r");
-
-                try {
-                    initiateManualMode(Arrays.asList(lines));
-
-                    //Writes solution to output (file, stdout) if it is not empty
-                    if (!solutions.keySet().isEmpty()) {
-                        if (onlyMeaningSide) {
-                            int nProofs = 0;
-                            for (Integer key : solutions.keySet())
-                                for (int i = 0; i < solutions.get(key).size(); i++)
-                                    nProofs++;
-
-                            if (nProofs == 1)
-                                w.append("% 1 proof found." + System.lineSeparator());
-                            else
-                                w.append("% " + Integer.toString(nProofs) + " proofs found." + System.lineSeparator());
-                        }
-                        for (Integer key : solutions.keySet()) {
-                            for (int i = 0; i < solutions.get(key).size(); i++) {
-                                Premise solution = solutions.get(key).get(i);
-                                if (onlyMeaningSide) {
-                                    w.append(solution.getSemTerm().toString() + System.lineSeparator());
-                                } else if (settings.getSemanticOutputStyle() == 1) {
-                                    w.append("solution" + "(" + key.toString() + i + ",");
-                                    w.append(solution.getSemTerm().toString());
-                                    w.append(").");
-                                    w.append(System.lineSeparator());
-                                } else {
-                                    w.append(InputOutputProcessor.restoreBackLinearLogicSide(solution.toString()));
-                                    w.append(System.lineSeparator());
-                                }
-                            }
-                        }
+                    LOGGER.addHandler(new StreamHandler(System.err, new MyFormatter()));
+                } else if (!outputFileName.equals("")) {
+                    outFile = new File(outputFileName);
+                    if (outFile.exists()) {
+                        outFile.delete();
+                        outFile.createNewFile();
                     } else {
-                        if (settings.isExplainFail() && !settings.getExplanation().equals("")) {
-                            w.append("% No proof. Explanation: " + System.lineSeparator());
-                            w.append(settings.getExplanation());
-                        }
-                        LOGGER.info("No solutions found for given input.");
+                        outFile.createNewFile();
                     }
+                    if (outFile.exists()) {
+                        w = new BufferedWriter(new FileWriter(outFile, true));
+                    }
+                }
+                // Decide from where to read the input
+                if (stdIn) {
+                    inputFileStream = System.in;
+                } else if (!inputFileName.equals("")) {
+                    inputFileStream = new FileInputStream(new File(inputFileName));
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
-                    if (!settings.getSolutionOnly()) {
-                        if (!onlyMeaningSide) {
-                            w.append(System.lineSeparator());
-                            w.append("Proof:");
-                            w.append(System.lineSeparator());
+            /* Read the input */
+            Scanner scanner = null;
+            try {
+                scanner = new Scanner(inputFileStream);
+                while (scanner.hasNextLine()) {
+                    inputStringBuilder.append(scanner.nextLine() + System.lineSeparator());
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                if (scanner != null)
+                    scanner.close();
+            }
+            InputOutputProcessor.process(inputStringBuilder.toString());
+            String input = InputOutputProcessor.translate(inputStringBuilder.toString());
 
-                            w.append(outputFileBuilder.toString());
+            String lines[] = input.split("\\r?\\n|\\r");
 
-                            if (settings.isPartial()) {
-                                w.append("The following partial solutions were found:");
+            try {
+                initiateManualMode(Arrays.asList(lines));
+
+                //Writes solution to output (file, stdout) if it is not empty
+                if (!solutions.keySet().isEmpty()) {
+                    if (onlyMeaningSide) {
+                        int nProofs = 0;
+                        for (Integer key : solutions.keySet())
+                            for (int i = 0; i < solutions.get(key).size(); i++)
+                                nProofs++;
+
+                        if (nProofs == 1)
+                            w.append("% 1 proof found." + System.lineSeparator());
+                        else
+                            w.append("% " + Integer.toString(nProofs) + " proofs found." + System.lineSeparator());
+                    }
+                    for (Integer key : solutions.keySet()) {
+                        for (int i = 0; i < solutions.get(key).size(); i++) {
+                            Premise solution = solutions.get(key).get(i);
+                            if (onlyMeaningSide) {
+                                w.append(solution.getSemTerm().toString() + System.lineSeparator());
+                                if (naturalDeduction)
+                                    w.append(NaturalDeductionProof.getNaturalDeductionProof(solution));
+                            } else if (settings.getSemanticOutputStyle() == 1) {
+                                w.append("solution" + "(" + key.toString() + i + ",");
+                                w.append(solution.getSemTerm().toString());
+                                w.append(").");
                                 w.append(System.lineSeparator());
-
-                                for (String partialSol : partial) {
-                                    w.append(partialSol);
-                                    w.append(System.lineSeparator());
-                                }
+                                if (naturalDeduction)
+                                    w.append(NaturalDeductionProof.getNaturalDeductionProof(solution));
+                            } else {
+                                w.append(InputOutputProcessor.restoreBackLinearLogicSide(solution.toString()));
+                                w.append(System.lineSeparator());
+                                if (naturalDeduction)
+                                    w.append(NaturalDeductionProof.getNaturalDeductionProof(solution));
                             }
                         }
                     }
-                    w.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                System.exit(0);
-            }
-            }
-
-            public static String getFileName (String message){
-                File f = null;
-                final JFileChooser fc = new JFileChooser();
-                fc.setDialogTitle(message);
-                fc.addChoosableFileFilter(
-                        new FileNameExtensionFilter("Text files", "txt"));
-                int returnVal = fc.showOpenDialog(null);
-                if (returnVal == JFileChooser.APPROVE_OPTION) {
-                    LOGGER.info("Selected file " + fc.getSelectedFile().getName());
-                    f = fc.getSelectedFile();
                 } else {
-                    LOGGER.info("No file selected");
+                    if (settings.isExplainFail() && !settings.getExplanation().equals("")) {
+                        w.append("% No proof. Explanation: " + System.lineSeparator());
+                        w.append(settings.getExplanation());
+                    }
+                    LOGGER.info("No solutions found for given input.");
                 }
-                Path p = null;
-                if (f != null) {
-                    p = FileSystems.getDefault().getPath(f.getAbsolutePath());
+
+                if (!settings.getSolutionOnly()) {
+                    if (!onlyMeaningSide) {
+                        w.append(System.lineSeparator());
+                        w.append("Proof:");
+                        w.append(System.lineSeparator());
+
+                        w.append(outputFileBuilder.toString());
+
+                        if (settings.isPartial()) {
+                            w.append("The following partial solutions were found:");
+                            w.append(System.lineSeparator());
+
+                            for (String partialSol : partial) {
+                                w.append(partialSol);
+                                w.append(System.lineSeparator());
+                            }
+                        }
+                    }
                 }
-                if (p == null)
-                    return "";
-                return p.toString();
+                w.close();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
+            System.exit(0);
+        }
+    }
+
+    public static String getFileName(String message) {
+        File f = null;
+        final JFileChooser fc = new JFileChooser();
+        fc.setDialogTitle(message);
+        fc.addChoosableFileFilter(
+                new FileNameExtensionFilter("Text files", "txt"));
+        int returnVal = fc.showOpenDialog(null);
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            LOGGER.info("Selected file " + fc.getSelectedFile().getName());
+            f = fc.getSelectedFile();
+        } else {
+           LOGGER.info("No file selected");
+        }
+        Path p=null;
+        if (f != null) {
+            p = FileSystems.getDefault().getPath(f.getAbsolutePath());
+            }
+        if (p == null)
+        	return "";
+       	return p.toString();
+    }
 
 
 
-        public static void initiateManualMode (List < String > formulas) throws
+        public static void initiateManualMode(List<String> formulas) throws
                 LexicalParserException, VariableBindingException, ParserInputException {
 
             GlueParser parser = new GlueParser(settings.isParseSemantics());
@@ -412,9 +430,14 @@ public class WorkbenchMain {
                     }
                 } else
                 {
-                if(settings.isExplainFail() && prover instanceof LLProver2)
+                    if(searchForGoal!=""  && prover instanceof LLProver2) {
+                        /* Write the output to STDERR */
+                        settings.setExplanation(failExplainer.getLargestGoalPremiseCombination(searchForGoal, ((LLProver2)prover).getNonAtomicChart(), ((LLProver2)prover).getAtomicChart(), naturalDeduction));
+                        System.err.println(settings.getExplanation());
+
+                    } else if(settings.isExplainFail() && prover instanceof LLProver2)
                 	{
-                		settings.setExplanation(failExplainer.explain( ((LLProver2)prover).getNonAtomicChart(), ((LLProver2)prover).getAtomicChart()));
+                		settings.setExplanation(failExplainer.explain( ((LLProver2)prover).getNonAtomicChart(), ((LLProver2)prover).getAtomicChart(), true));
                 	}
                     solutionBuilder.append("None!");
                 }

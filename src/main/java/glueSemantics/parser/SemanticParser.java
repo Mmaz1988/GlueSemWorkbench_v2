@@ -425,6 +425,10 @@ public class SemanticParser extends StringParser {
                                             LexVariableHandler.getUsedVariables().
                                             get(LexVariableHandler.variableType.SemVarE).add(newVar.getName());
                                             break;
+                                    case X:
+                                        LexVariableHandler.getUsedVariables().
+                                        get(LexVariableHandler.variableType.SemVarX).add(newVar.getName());
+                                        break;
                                     case V:
                                         LexVariableHandler.getUsedVariables().
                                                 get(LexVariableHandler.variableType.SemVarV).add(newVar.getName());

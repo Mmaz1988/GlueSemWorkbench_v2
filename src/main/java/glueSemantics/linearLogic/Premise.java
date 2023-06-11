@@ -195,7 +195,6 @@ public class Premise {
         Arrays.sort(coverage);
         return coverage;
     }
-
-
-
+    public Premise comb_a;
+    public Premise comb_b;
 }
