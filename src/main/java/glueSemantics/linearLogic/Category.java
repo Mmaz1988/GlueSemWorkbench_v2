@@ -70,5 +70,13 @@ public class Category {
     }
 
 
-
+    public int getSize() {
+        if (atomic)
+        {
+            return 1;
+        } else
+        {
+            return left.getSize() + right.getSize();
+        }
+    }
 }

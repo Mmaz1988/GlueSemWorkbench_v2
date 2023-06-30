@@ -25,6 +25,9 @@ public class MeaningConstructor {
     private LLTerm llTerm;
     private SemanticRepresentation sem;
 
+    private boolean isNonscope;
+
+
     public LLTerm getLlTerm() {
         return llTerm;
     }
@@ -61,6 +64,14 @@ public class MeaningConstructor {
         //modifiers
         MOD
 
+    }
+
+    public boolean isNonscope() {
+        return isNonscope;
+    }
+
+    public void setNonscope(boolean nonscope) {
+        isNonscope = nonscope;
     }
 
 }

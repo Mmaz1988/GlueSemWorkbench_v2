@@ -1,6 +1,7 @@
 package prover;
 
 
+
 import glueSemantics.linearLogic.*;
 import glueSemantics.semantics.SemanticRepresentation;
 import glueSemantics.semantics.lambda.*;
@@ -17,6 +18,7 @@ import prover.categoryGraph.History;
 import utilities.Debugging;
 import utilities.LexVariableHandler;
 
+import javax.naming.InsufficientResourcesException;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -25,6 +27,8 @@ public class LLProver1 extends LLProver {
 
 
     private Sequent currentSequent;
+
+    private Set<Integer> nonScopingModifiers;
     private LinkedList<History> finalHistories = new LinkedList<>();
     private StringBuilder proofBuilder;
     private HashSet<Integer> goalIDs = new HashSet<>();
@@ -56,6 +60,8 @@ public class LLProver1 extends LLProver {
         this.finalHistories.clear();
         this.goalIDs.clear();
         this.getSolutions().clear();
+
+        this.nonScopingModifiers = new HashSet<>();
 
         this.db = new Debugging();
         this.currentSequent = seq;
@@ -398,8 +404,94 @@ public class LLProver1 extends LLProver {
                 Modified chartDeduce call
                  */
 
+                //filter out all scoping histories
 
-                List<History> histories = chartDeduce2(sccAgenda);
+
+
+
+
+
+                /*
+                //Sort nonscopingAgenda by size of Category
+                nonscopingAgenda.sort(new Comparator<History>() {
+                    @Override
+                    public int compare(History o1, History o2) {
+                        return Integer.valueOf(o1.category.getSize()).compareTo(o2.category.getSize());
+                    }
+                });
+                // revert nonscopingAgenda
+                Collections.reverse(nonscopingAgenda);
+
+                 */
+
+                List<History> histories = new ArrayList<>();
+
+                if (!nonScopingModifiers.isEmpty())
+                {
+                    List<History> scopingModifiers = sccAgenda.stream().filter(h -> !this.nonScopingModifiers.contains(h.mainIndex) && h.category.left != null).collect(Collectors.toList());
+                    // sccAgenda minus scopingModifiers
+                    List<History> nonscopingAgenda =  sccAgenda.stream().filter(h -> !scopingModifiers.contains(h)).collect(Collectors.toList());
+
+
+                // List<History> histories = chartDeduce2(sccAgenda);
+
+                histories = chartDeduce2(nonscopingAgenda);
+
+
+                //Remove duplicates based on mainindex
+
+                /**
+                 * Noscope optimization
+                 */
+
+                    HashMap<History, Set<Integer>[]> indexSetComparison = new HashMap<>();
+
+                    for (History h : histories) {
+
+                        Set<Integer>[] indices = new Set[2];
+                        Set<Integer> nonScopingIndices = new HashSet<>(h.indexSet);
+                        nonScopingIndices.retainAll(this.nonScopingModifiers);
+
+                        indices[0] = nonScopingIndices;
+
+                        Set<Integer> otherIndices = new HashSet<>(h.indexSet);
+                        otherIndices.stream().filter(i -> !nonScopingIndices.contains(i)).collect(Collectors.toList());
+
+                        indices[1] = otherIndices;
+
+                        if (!indices[0].isEmpty() && !indices[1].isEmpty()) {
+                            indexSetComparison.put(h, indices);
+                        }
+                    }
+                    //Remove all key/value pairs for which indices[0] are equal and indices[1] are equal with lambda expression
+                    indexSetComparison.entrySet().removeIf(entry -> indexSetComparison.entrySet().stream().anyMatch(entry2 -> entry2.getKey() != entry.getKey() &&
+                            entry2.getValue()[0].equals(entry.getValue()[0]) && entry2.getValue()[1].equals(entry.getValue()[1])));
+
+
+                    if (!indexSetComparison.keySet().isEmpty()) {
+                        List<History> outputHistories = new ArrayList<>();
+
+                        for (CGNode outputNode : outputNodes) {
+                            for (History h : indexSetComparison.keySet()) {
+                                if (h.category.toString().equals(outputNode.category)) {
+                                    outputHistories.add(h);
+                                }
+                            }
+                        }
+
+
+                        outputHistories.addAll(scopingModifiers);
+                        histories = outputHistories;
+
+                        histories = chartDeduce2(histories);
+
+                    }
+                } else {
+                        histories = chartDeduce2(sccAgenda);
+                    }
+
+
+                //End of noscope optimization
 
                 for (CGNode outputNode : outputNodes)
                 {
@@ -410,6 +502,8 @@ public class LLProver1 extends LLProver {
                         }
                     }
                    outputNode.compressHistories();
+
+
                     /*
                     List<History> sortedHistories = new ArrayList<>(outputNode.histories);
 
@@ -552,6 +646,60 @@ public class LLProver1 extends LLProver {
         return chart;
         }
 
+        /*
+    public List<History> nonScopechartDeduce(List<History> histories) throws VariableBindingException, ProverException {
+        getLOGGER().finer("Beginning a partial chart derivation...");
+
+        //The agenda contains all histories that take part in the calculation of the histories within the SCC
+        //In the beginning the chart is empty
+        List<History> atomicChart = new ArrayList<>();
+        List<History> nonAtomicChart = new ArrayList<>();
+
+        for (History h : histories)
+        {
+            if (h.category.left != null)
+            {
+                nonAtomicChart.add(h);
+                continue;
+            } else
+            {
+                atomicChart.add(h);
+            }
+        }
+
+        List<History> agenda = new ArrayList<>(atomicChart);
+
+        while (!nonAtomicChart.isEmpty()) {
+
+            List<History> newAgenda = new ArrayList<>();
+
+            ListIterator<History> agendaIterator = agenda.listIterator();
+
+            ListIterator<History> nonAtomicChartIterator = nonAtomicChart.listIterator();
+
+            while (nonAtomicChartIterator.hasNext()) {
+                History chartHis = nonAtomicChartIterator.next();
+
+                while (agendaIterator.hasNext()) {
+                    History agendaHis = agendaIterator.next();
+                    agendaIterator.remove();
+
+                    if (agendaHis.category.toString().equals(chartHis.category.left.toString())) {
+                        History combined = combineHistories(chartHis,agendaHis);
+                        if (combined != null) {
+                            newAgenda.add(combined);
+                        }
+                    }
+
+
+                }
+            }
+        }
+        return atomicChart;
+    }
+
+         */
+
 
     public Chart chartDeduce(List<History> histories) throws VariableBindingException, ProverException {
         getLOGGER().finer("Beginning a partial chart derivation...");
@@ -641,6 +789,11 @@ public class LLProver1 extends LLProver {
                     if (p.getGlueTerm() instanceof LLFormula) {
                         h.discharges.addAll(((LLFormula) p.getGlueTerm()).getLhs().orderedDischarges.keySet());
                         h.requirements.addAll(((LLFormula) p.getGlueTerm()).getRhs().category().dischargeRequirements());
+
+                        if (p.getGlueTerm() instanceof LLFormula && p.isNonScoping())
+                        {
+                            this.nonScopingModifiers.add(h.mainIndex);
+                        }
                     }
                     currentNode.histories.add(h);
                 }
@@ -732,6 +885,8 @@ public class LLProver1 extends LLProver {
                     if (!h1.category.right.atomic) {
                         result.discharges = h1.category.right.left.discharges;
                         result.requirements = h1.category.right.right.dischargeRequirements();
+
+
                     }
 
                     getLOGGER().finer("Now combining " + h1.category.toString() +
@@ -1312,6 +1467,15 @@ public class LLProver1 extends LLProver {
                 compiled.addAll(recurseCompiled);
                 compiled.addAll(recurseAssumption);
 
+                for (Premise premise : compiled) {
+                    if (p.isNonScoping()) {
+                        if (!(p.getGlueTerm() instanceof LLAtom)) {
+                            premise.setNonScoping(true);
+                        }
+
+                    }
+                }
+
                 return compiled;
 
             } else if (f.isNested() && !f.isModifier()) {
@@ -1337,6 +1501,15 @@ public class LLProver1 extends LLProver {
             }
         }
         compiled.addFirst(p);
+
+        for (Premise premise : compiled) {
+            if (p.isNonScoping()) {
+                if (!(p.getGlueTerm() instanceof LLAtom)) {
+                    premise.setNonScoping(true);
+                }
+
+            }
+        }
         return compiled;
     }
 

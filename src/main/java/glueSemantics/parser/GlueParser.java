@@ -19,6 +19,7 @@ package glueSemantics.parser;
 
 
 import glueSemantics.linearLogic.LLTerm;
+import glueSemantics.linearLogic.Premise;
 import glueSemantics.semantics.MeaningConstructor;
 import glueSemantics.semantics.MeaningRepresentation;
 import glueSemantics.semantics.SemanticRepresentation;
@@ -52,8 +53,34 @@ public class GlueParser {
             throw new ParserInputException("Error parsing formula '" + mc + "'. " +
                     "Meaning side and glue side need to be separated with a ':'");
         }
+
+
+        boolean noscope = false;
+        String glueString = "";
+
+        try {
+            String[] glueSide = mcList[1].split("\\|\\|.");
+
+            if (glueSide.length == 2 && glueSide[1].trim().equals("noscope"))
+            {
+                noscope = true;
+                glueString = glueSide[0];
+            }
+            else
+            {
+                glueString = mcList[1];
+            }
+
+        } catch (Exception e)
+        {
+         System.out.println("Error parsing formula '" + mc + "'. " +
+                    "Glue modifiers need to be specified after a '..'");
+        }
+
+
+
         MeaningConstructor entry = new MeaningConstructor();
-        LLTerm glue = llparser.callParser(mcList[1].trim());
+        LLTerm glue = llparser.callParser(glueString.trim());
         SemanticRepresentation sem = null;
         if (!PARSESEMANTCS) {
             sem = new MeaningRepresentation(mcList[0].trim());
@@ -69,6 +96,8 @@ public class GlueParser {
 
         entry.setLlTerm(glue);
         entry.setSem(sem);
+
+        entry.setNonscope(noscope);
 
         return entry;
     }
@@ -144,6 +173,7 @@ public class GlueParser {
         return lexicalEntries;
     }
 
+    /*
     public static void main(String[] args) throws VariableBindingException {
         String test1 = "AX_t.(g_e -o X_t) -o X_t";
         String test2 = "AY_t.(h_e -o Y_t) -o Y_t";
@@ -180,6 +210,24 @@ public class GlueParser {
 
         LinearLogicParser parser = new LinearLogicParser(testquant);
         System.out.println("Parsed terms: " + parser.premises.toString());
+
+    }
+
+     */
+
+     public static void main(String[] args) throws ParserInputException {
+         //Read input from console
+
+
+            System.out.println("Enter a formula to parse:");
+            Scanner scanner = new Scanner(System.in);
+
+            GlueParser parser = new GlueParser();
+            MeaningConstructor mc = parser.parseMeaningConstructor(scanner.nextLine());
+
+            System.out.println("Parsed meaning constructor: " + mc.getSem().toString() + ", " + mc.getLlTerm().toString() + ", " + mc.isNonscope());
+
+
 
     }
 

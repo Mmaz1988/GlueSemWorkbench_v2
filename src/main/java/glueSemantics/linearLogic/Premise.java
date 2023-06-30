@@ -45,6 +45,16 @@ public class Premise {
     private Object arg;
     public boolean used;
 
+    public boolean isNonScoping() {
+        return nonScoping;
+    }
+
+    public void setNonScoping(boolean nonScoping) {
+        this.nonScoping = nonScoping;
+    }
+
+    private boolean nonScoping;
+
     public HashSet<Integer> getPremiseIDs() {
         return premiseIDs;
     }

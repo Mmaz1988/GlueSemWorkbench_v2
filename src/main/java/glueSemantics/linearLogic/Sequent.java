@@ -35,23 +35,17 @@ public class Sequent {
     }
 
 
-
-    public Sequent(List<LLTerm> parsedTerms,String msg) {
-        lhs = new ArrayList<>();
-        for (idCounter = 0; idCounter < parsedTerms.size(); idCounter++) {
-            HashSet<Integer> idSet = new HashSet<>();
-            idSet.add(idCounter);
-            lhs.add(new Premise(idSet, parsedTerms.get(idCounter)));
-        }
-    }
-
-
      public Sequent(List<MeaningConstructor> lexEn) {
          lhs = new ArrayList<>();
          for (idCounter = 0; idCounter < lexEn.size(); idCounter++) {
              HashSet<Integer> idSet = new HashSet<>();
              idSet.add(idCounter);
-             lhs.add(new Premise(idSet, lexEn.get(idCounter)));
+             Premise p = new Premise(idSet, lexEn.get(idCounter));
+
+             if (lexEn.get(idCounter).isNonscope()) {
+                 p.setNonScoping(true);
+             }
+             lhs.add(p);
          }
      }
 
