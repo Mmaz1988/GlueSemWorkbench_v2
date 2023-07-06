@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import prover.LLProver;
 import prover.LLProver1;
 import prover.LLProver2;
+import utilities.LexVariableHandler;
 import webservice.rest.dtos.GswbOutput;
 import webservice.rest.dtos.GswbRequest;
 
@@ -108,7 +109,7 @@ public class GswbController {
                 }
             }
 
-            if (allSolutions.get(key).isEmpty())
+            if (allSolutions.get(key).isEmpty() && settings.getProverType() == 0)
             {
                 try {
                     explainBuilder.append(failExplainer.explain(((LLProver2) prover).getNonAtomicChart(), ((LLProver2) prover).getAtomicChart(), true));
@@ -120,10 +121,19 @@ public class GswbController {
 
         }
 
-        String derivation = explainBuilder.toString();
+        Object derivation = null;
+
+        if (settings.getProverType() == 0) {
+            derivation = explainBuilder.toString();
+        } else if (prover instanceof LLProver1)
+        {
+            derivation = ((LLProver1) prover).analysis.returnJSONGraph();
+        }
+
+        LexVariableHandler.resetVars();
 
         //transform list of premises into list of strings
-        return new GswbOutput(solutions, derivation);
+        return new GswbOutput(solutions, sb.toString(), derivation);
     }
 
 

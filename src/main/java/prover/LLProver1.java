@@ -1,7 +1,6 @@
 package prover;
 
 
-
 import glueSemantics.linearLogic.*;
 import glueSemantics.semantics.SemanticRepresentation;
 import glueSemantics.semantics.lambda.*;
@@ -18,7 +17,6 @@ import prover.categoryGraph.History;
 import utilities.Debugging;
 import utilities.LexVariableHandler;
 
-import javax.naming.InsufficientResourcesException;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -557,6 +555,7 @@ public class LLProver1 extends LLProver {
 
 
         analysis = new GraphAnalysis(goalCategory,scc2);
+        analysis.returnJSONGraph();
         //analysis.displayGraph();
 
         getLOGGER().fine("Starting semantic calculations...");

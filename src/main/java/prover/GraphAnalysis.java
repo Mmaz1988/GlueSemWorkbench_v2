@@ -12,15 +12,17 @@ import org.jgrapht.ext.JGraphXAdapter;
 import org.jgrapht.graph.DefaultEdge;
 import prover.categoryGraph.CGNode;
 import prover.categoryGraph.History;
+import webservice.rest.dtos.GswbEdge;
+import webservice.rest.dtos.GswbGraph;
+import webservice.rest.dtos.GswbGraphComponent;
+import webservice.rest.dtos.GswbNode;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class GraphAnalysis {
@@ -37,9 +39,79 @@ public class GraphAnalysis {
     }
 
 
-    public void returnJSONGraph()
+    public GswbGraph returnJSONGraph()
     {
+        List<GswbGraphComponent> graphComponents = new ArrayList<>();
 
+        //Create Gswbgraph nodes
+        for (Graph<CGNode,DefaultEdge> g : this.stronglyConnectedGraph.vertexSet())
+        {
+            GswbNode gswbNode = new GswbNode();
+            gswbNode.data = new HashMap<>();
+            gswbNode.data.put("id",g.toString());
+            if (g.edgeSet().isEmpty())
+            {
+                CGNode currentNode = g.vertexSet().stream().findAny().get();
+
+                if (currentNode.toString().equals(goalCategory))
+                {
+                    gswbNode.data.put("color", "yellow");
+                } else  if (currentNode.histories.isEmpty())
+                {
+                    gswbNode.data.put("color", "red");
+                } else
+                {
+                    gswbNode.data.put("color", "blue");
+                }
+            } else
+            {
+                gswbNode.data.put("color", "green");
+                //g is a strongly connected component: Create subraph
+                Set<CGNode> nodes = new HashSet<>(g.vertexSet());
+                List<GswbGraphComponent> subGraphList = new ArrayList<>();
+
+
+                //subgraph nodes
+                for (CGNode node : nodes)
+                {
+                    GswbNode subGraphNode = new GswbNode();
+                    subGraphNode.data = new HashMap<>();
+
+                    subGraphNode.data.put("id",node.toString());
+
+                    if (node.toString().equals(goalCategory))
+                    {
+                        subGraphNode.data.put("color", "yellow");
+                    }
+                    else
+                    {
+                        subGraphNode.data.put("color", "blue");
+                    }
+
+                    subGraphList.add(subGraphNode);
+                }
+                //Create subgraph Edges
+                for (DefaultEdge e : g.edgeSet())
+                {
+                    GswbEdge ge = new GswbEdge(g.getEdgeSource(e).toString(),
+                            g.getEdgeTarget(e).toString());
+                    subGraphList.add(ge);
+                }
+                gswbNode.data.put("subgraph",new GswbGraph(subGraphList));
+            }
+
+            graphComponents.add(gswbNode);
+        }
+
+        //create gswbGraph edges
+        for (DefaultEdge e : this.stronglyConnectedGraph.edgeSet())
+        {
+            GswbEdge ge = new GswbEdge(stronglyConnectedGraph.getEdgeSource(e).toString(),
+                                        stronglyConnectedGraph.getEdgeTarget(e).toString());
+            graphComponents.add(ge);
+        }
+
+        return new GswbGraph(graphComponents);
     }
 
     public void displayGraph()
