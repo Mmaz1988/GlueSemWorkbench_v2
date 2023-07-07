@@ -20,7 +20,8 @@ package utilities;
 import java.util.*;
 
 public abstract class LexVariableHandler {
-    private static final int MAXINDEX = 100;
+    //TODO reset indices when max is reached
+    private static final int MAXINDEX = 1000;
 
     private static Integer sentenceID;
     private static Integer connectorID;

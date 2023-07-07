@@ -28,6 +28,8 @@ import java.util.stream.Collectors;
 public class GraphAnalysis {
 
     private Graph<Graph<CGNode,DefaultEdge>,DefaultEdge> stronglyConnectedGraph;
+
+    private Graph<CGNode,DefaultEdge> currentGraph;
     private String goalCategory;
     private mxGraphComponent graphComponent;
     private HashMap<mxCell,mxGraphComponent> sccMap = new HashMap<>();
@@ -38,6 +40,12 @@ public class GraphAnalysis {
         this.stronglyConnectedGraph = stronglyConnectedGraph;
     }
 
+    public GraphAnalysis(String goalCategory, Graph<Graph<CGNode,DefaultEdge>,DefaultEdge> stronglyConnectedGraph, Graph<CGNode,DefaultEdge> currentGraph)
+    {
+        this.goalCategory = goalCategory;
+        this.stronglyConnectedGraph = stronglyConnectedGraph;
+        this.currentGraph = currentGraph;
+    }
 
     public GswbGraph returnJSONGraph()
     {
@@ -56,6 +64,7 @@ public class GraphAnalysis {
                 if (currentNode.toString().equals(goalCategory))
                 {
                     gswbNode.data.put("color", "yellow");
+
                 } else  if (currentNode.histories.isEmpty())
                 {
                     gswbNode.data.put("color", "red");
@@ -63,13 +72,30 @@ public class GraphAnalysis {
                 {
                     gswbNode.data.put("color", "blue");
                 }
+
+                List<String> solutions = new ArrayList<>();
+
+                if (currentNode.histories != null && !currentNode.histories.isEmpty())
+                {
+                    for (History h : currentNode.histories)
+                    {
+                        try {
+                            solutions.addAll(h.calculateSolutions().stream().map(Premise::toString).collect(Collectors.toList()));
+                        } catch(Exception e)
+                        {
+                            System.out.println("No solutions to calculate.");
+                        }}
+                }
+                if (!solutions.isEmpty()) {
+                    gswbNode.data.put("solutions", solutions);
+                }
+
             } else
             {
                 gswbNode.data.put("color", "green");
                 //g is a strongly connected component: Create subraph
                 Set<CGNode> nodes = new HashSet<>(g.vertexSet());
                 List<GswbGraphComponent> subGraphList = new ArrayList<>();
-
 
                 //subgraph nodes
                 for (CGNode node : nodes)
@@ -85,7 +111,23 @@ public class GraphAnalysis {
                     }
                     else
                     {
-                        subGraphNode.data.put("color", "blue");
+                        subGraphNode.data.put("color", "green");
+                    }
+
+                    List<String> solutions = new ArrayList<>();
+                    if (node.histories != null && !node.histories.isEmpty())
+                    {
+                        for (History h : node.histories)
+                        {
+                            try {
+                                solutions.addAll(h.calculateSolutions().stream().map(Premise::toString).collect(Collectors.toList()));
+                            } catch(Exception e)
+                            {
+                                System.out.println("No solutions to calculate.");
+                            }}
+                    }
+                    if (!solutions.isEmpty()) {
+                        subGraphNode.data.put("solutions", solutions);
                     }
 
                     subGraphList.add(subGraphNode);
@@ -95,8 +137,57 @@ public class GraphAnalysis {
                 {
                     GswbEdge ge = new GswbEdge(g.getEdgeSource(e).toString(),
                             g.getEdgeTarget(e).toString());
+                    ge.data.put("edge_type","default");
                     subGraphList.add(ge);
                 }
+
+                Set<DefaultEdge> incomingEdges = this.stronglyConnectedGraph.incomingEdgesOf(g);
+
+                for (DefaultEdge e : incomingEdges)
+                {
+                 Set<CGNode> sourceSet = this.stronglyConnectedGraph.getEdgeSource(e).vertexSet();
+                 Set<CGNode> targetSet = this.stronglyConnectedGraph.getEdgeTarget(e).vertexSet();
+
+                 for (CGNode currentSource : sourceSet)
+                 {
+
+                    Set<DefaultEdge> outSet = this.currentGraph.outgoingEdgesOf(currentSource);
+                    outSet = outSet.stream().filter(x -> targetSet.contains(this.currentGraph.getEdgeTarget(x))).collect(Collectors.toSet());
+
+                    if (!outSet.isEmpty()) {
+                        for (DefaultEdge e1 : outSet) {
+                            GswbEdge ge = new GswbEdge(this.currentGraph.getEdgeSource(e1).toString(),
+                                    this.currentGraph.getEdgeTarget(e1).toString());
+                            ge.data.put("edge_type","external");
+                            subGraphList.add(ge);
+                        }
+                        GswbNode subgraphNode = new GswbNode();
+                        subgraphNode.data = new HashMap<>();
+                        subgraphNode.data.put("id",currentSource.toString());
+                        subgraphNode.data.put("color","blue");
+
+                        List<String> solutions = new ArrayList<>();
+                        if (currentSource.histories != null && !currentSource.histories.isEmpty())
+                        {
+                            for (History h : currentSource.histories)
+                            {
+                                try {
+                                    solutions.addAll(h.calculateSolutions().stream().map(Premise::toString).collect(Collectors.toList()));
+                                } catch(Exception exc)
+                                {
+                                    System.out.println("No solutions to calculate.");
+                                }}
+                        }
+
+                        if (!solutions.isEmpty()) {
+                            subgraphNode.data.put("solutions", solutions);
+                        }
+
+                        subGraphList.add(subgraphNode);
+                    }
+                    }
+                }
+
                 gswbNode.data.put("subgraph",new GswbGraph(subGraphList));
             }
 
@@ -108,8 +199,11 @@ public class GraphAnalysis {
         {
             GswbEdge ge = new GswbEdge(stronglyConnectedGraph.getEdgeSource(e).toString(),
                                         stronglyConnectedGraph.getEdgeTarget(e).toString());
+            ge.data.put("edge_type","default");
             graphComponents.add(ge);
         }
+
+
 
         return new GswbGraph(graphComponents);
     }

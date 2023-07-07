@@ -11,7 +11,7 @@ public class Debugging {
     public Integer compilations = 0;
     public Integer discardedHistories = 0;
 
-
+    public Integer noScopedHistories = 0;
     @Override
     public String toString() {
 
@@ -33,6 +33,8 @@ public class Debugging {
         if (discardedHistories > 0)
         {
             sb.append("Number of histories discared during derivation: " + discardedHistories);
+            sb.append(System.lineSeparator());
+            sb.append("Histories deleted based on noScope flag: " + noScopedHistories);
             sb.append(System.lineSeparator());
         }
 

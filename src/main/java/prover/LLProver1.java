@@ -461,12 +461,18 @@ public class LLProver1 extends LLProver {
                             indexSetComparison.put(h, indices);
                         }
                     }
+
+                    int previousHistories = indexSetComparison.keySet().size();
                     //Remove all key/value pairs for which indices[0] are equal and indices[1] are equal with lambda expression
                     indexSetComparison.entrySet().removeIf(entry -> indexSetComparison.entrySet().stream().anyMatch(entry2 -> entry2.getKey() != entry.getKey() &&
                             entry2.getValue()[0].equals(entry.getValue()[0]) && entry2.getValue()[1].equals(entry.getValue()[1])));
 
 
                     if (!indexSetComparison.keySet().isEmpty()) {
+
+                        int removedHistories = previousHistories - indexSetComparison.keySet().size();
+                        db.noScopedHistories += removedHistories;
+
                         List<History> outputHistories = new ArrayList<>();
 
                         for (CGNode outputNode : outputNodes) {
@@ -554,7 +560,7 @@ public class LLProver1 extends LLProver {
 
 
 
-        analysis = new GraphAnalysis(goalCategory,scc2);
+        analysis = new GraphAnalysis(goalCategory,scc2, categoryGraph2);
         analysis.returnJSONGraph();
         //analysis.displayGraph();
 
@@ -564,7 +570,7 @@ public class LLProver1 extends LLProver {
 
         if (!finalHistories.isEmpty()) {
             for (History solution : finalHistories) {
-                getSolutions().addAll(solution.calculateSolutions());
+                getSolutions().addAll(solution.calculateSolutions(resultBuilder));
             }
             proofBuilder.append(resultBuilder.toString());
 

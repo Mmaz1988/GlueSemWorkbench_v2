@@ -132,8 +132,15 @@ public class GswbController {
 
         LexVariableHandler.resetVars();
 
+        String log = sb.toString().toString();
+
+        if (settings.isDebugging())
+        {
+            log = prover.db.toString() + "\n" + log;
+        }
+
         //transform list of premises into list of strings
-        return new GswbOutput(solutions, sb.toString(), derivation);
+        return new GswbOutput(solutions, log, derivation);
     }
 
 
