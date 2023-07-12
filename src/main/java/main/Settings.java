@@ -38,6 +38,12 @@ public class Settings {
     public static  final int HEPPLE = 0;
     public static final int LEV = 1;
 
+
+    //naturaldeduction output
+    public static final int NDFULL = 0;
+    public static final int NDREDUCED = 1;
+    public static final int NOSEM = 2;
+
     private boolean betaReduce = true;
     private int semanticOutputStyle = PLAIN;
     private boolean debugging = false;
@@ -50,6 +56,8 @@ public class Settings {
     private boolean testExpression = false;
     private boolean visualize = false;
     private int proverType = HEPPLE;
+
+    private int naturalDeductionOutput = NDFULL;
 
 
     private String explanation = "";
@@ -198,6 +206,14 @@ public class Settings {
 
     public void setAssureGlueParsing(boolean assureGlueParsing) {
         this.assureGlueParsing = assureGlueParsing;
+    }
+
+    public int getNaturalDeductionOutput() {
+        return naturalDeductionOutput;
+    }
+
+    public void setNaturalDeductionOutput(int naturalDeductionOutput) {
+        this.naturalDeductionOutput = naturalDeductionOutput;
     }
 }
 

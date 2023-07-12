@@ -11,6 +11,8 @@ public class GswbPreferences {
     public boolean meaningOnly;
     public boolean explainFail;
 
+    public int naturalDeductionStyle;
+
 
     public GswbPreferences(){
         this.prover = 1;
@@ -22,10 +24,11 @@ public class GswbPreferences {
         this.solutionOnly = false;
         this.debugging = false;
         this.explainFail = false;
+        this.naturalDeductionStyle = 0;
 
     }
 
-    public GswbPreferences(int prover, int outputstyle, boolean explain, boolean parseSem, boolean debugging)
+    public GswbPreferences(int prover, int outputstyle, boolean explain, boolean parseSem, boolean debugging, Integer naturalDeductionStyle)
     {
         this.prover = prover;
         this.outputstyle = outputstyle;
@@ -35,6 +38,7 @@ public class GswbPreferences {
         this.meaningOnly = false;
         this.explainFail = explain;
         this.debugging = debugging;
+        this.naturalDeductionStyle = naturalDeductionStyle;
       }
 
 }

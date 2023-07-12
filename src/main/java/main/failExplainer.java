@@ -363,7 +363,7 @@ public class failExplainer {
 			it = failExplainingList.iterator();
 			while (it.hasNext()) {
 				Integer arr = it.next();
-				explanationString.append(NaturalDeductionProof.getNaturalDeductionProof(premises.get(arr))+ System.lineSeparator()+ System.lineSeparator());
+				explanationString.append(NaturalDeductionProof.getNaturalDeductionProof(premises.get(arr),0)+ System.lineSeparator()+ System.lineSeparator());
 			}
 		}
 		
@@ -454,7 +454,7 @@ public class failExplainer {
 			it = failExplainingList.iterator();
 			while (it.hasNext()) {
 				Integer arr = it.next();
-				explanationString.append(NaturalDeductionProof.getNaturalDeductionProof(premises.get(arr))+ System.lineSeparator()+ System.lineSeparator());
+				explanationString.append(NaturalDeductionProof.getNaturalDeductionProof(premises.get(arr),0)+ System.lineSeparator()+ System.lineSeparator());
 			}
 		}
 		

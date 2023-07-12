@@ -45,6 +45,7 @@ public class GswbController {
         settings.setDebugging(request.gswbPreferences.debugging);
         settings.setExplainFail(request.gswbPreferences.explainFail);
         settings.setParseSemantics(request.gswbPreferences.parseSem);
+        settings.setNaturalDeductionOutput(request.gswbPreferences.naturalDeductionStyle);
 
         GlueParser gp = new GlueParser(settings.isParseSemantics());
 
@@ -101,7 +102,7 @@ public class GswbController {
                 if (settings.isExplainFail())
                 {
                     try {
-                        explainBuilder.append(NaturalDeductionProof.getNaturalDeductionProof(allSolutions.get(key).get(i)));
+                        explainBuilder.append(NaturalDeductionProof.getNaturalDeductionProof(allSolutions.get(key).get(i), settings.getNaturalDeductionOutput()));
                     } catch(Exception e)
                     {
                         System.out.println("Failed to print natural deduction proof.");

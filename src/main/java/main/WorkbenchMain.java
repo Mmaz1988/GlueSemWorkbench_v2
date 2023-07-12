@@ -282,19 +282,19 @@ public class WorkbenchMain {
                             if (onlyMeaningSide) {
                                 w.append(solution.getSemTerm().toString() + System.lineSeparator());
                                 if (naturalDeduction)
-                                    w.append(NaturalDeductionProof.getNaturalDeductionProof(solution));
+                                    w.append(NaturalDeductionProof.getNaturalDeductionProof(solution,0));
                             } else if (settings.getSemanticOutputStyle() == 1) {
                                 w.append("solution" + "(" + key.toString() + i + ",");
                                 w.append(solution.getSemTerm().toString());
                                 w.append(").");
                                 w.append(System.lineSeparator());
                                 if (naturalDeduction)
-                                    w.append(NaturalDeductionProof.getNaturalDeductionProof(solution));
+                                    w.append(NaturalDeductionProof.getNaturalDeductionProof(solution,0));
                             } else {
                                 w.append(InputOutputProcessor.restoreBackLinearLogicSide(solution.toString()));
                                 w.append(System.lineSeparator());
                                 if (naturalDeduction)
-                                    w.append(NaturalDeductionProof.getNaturalDeductionProof(solution));
+                                    w.append(NaturalDeductionProof.getNaturalDeductionProof(solution,0));
                             }
                         }
                     }

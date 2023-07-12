@@ -87,10 +87,19 @@ public class LLProver1 extends LLProver {
             proofBuilder.append(System.lineSeparator());
         }
 
+        HashMap<Premise,Set<String>> categoryToPremiseMapping = new HashMap<>();
+
         getLOGGER().fine("Starting compilation process...");
         for (Premise p : currentSequent.getLhs()) {
             List<Premise> compiled = convert(p);
             agenda.addAll(compiled);
+
+            Set<String> compiledCategory = new HashSet<>();
+            for (Premise c : compiled)
+            {
+                compiledCategory.addAll(compiled.stream().map(x -> x.getGlueTerm().category().toString()).collect(Collectors.toSet()));
+            }
+            categoryToPremiseMapping.put(p,compiledCategory);
         }
 
         StringBuilder agendaString = new StringBuilder();
@@ -560,7 +569,7 @@ public class LLProver1 extends LLProver {
 
 
 
-        analysis = new GraphAnalysis(goalCategory,scc2, categoryGraph2);
+        analysis = new GraphAnalysis(goalCategory,scc2, categoryGraph2,categoryToPremiseMapping);
         analysis.returnJSONGraph();
         //analysis.displayGraph();
 

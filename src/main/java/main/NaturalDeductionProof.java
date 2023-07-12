@@ -1,6 +1,8 @@
 package main;
 
 import glueSemantics.linearLogic.Premise;
+import glueSemantics.semantics.lambda.SemFunction;
+import glueSemantics.semantics.lambda.SemanticExpression;
 
 import java.util.*;
 
@@ -200,25 +202,33 @@ public class NaturalDeductionProof {
 		if (node1!=null) return node1;
 		return find(node.subproof2,idd);
 		}
-	public static String getNaturalDeductionProof(Premise p) {
+	public static String getNaturalDeductionProof(Premise p, Integer setting) {
 
-		NaturalDeductionProof algorithmStyle = createTree( p );
+		NaturalDeductionProof algorithmStyle = createTree( p, setting );
 		
 		NaturalDeductionProof natural = new NaturalDeductionProof();
 		
 		natural.subproof1 = algorithmStyle;
 		
- 		while(NaturalDeductionProof.convert(algorithmStyle,natural,0)) {};
-		return  natural.subproof1.prettyPrint(); 
+ 		while(NaturalDeductionProof.convert(algorithmStyle,natural,0, setting)) {};
+		return  natural.subproof1.prettyPrint(setting);
 		
 	}
-	public PrintStructure getPrintStructure() {
+	public PrintStructure getPrintStructure(Integer setting) {
 		String semanticRep = "";
 		if (this.subproof1==null&&this.subproof2==null) {
 			if(this.myId!=-1)
 				semanticRep = "  [" + this.semanticSide + " : " + this.linearLogicSide + "]"+makeSubscript(Integer.toString(this.myId)) + "   ";
+				if (setting == 2)
+				{
+					semanticRep = "  [" + this.linearLogicSide + "]"+makeSubscript(Integer.toString(this.myId)) + "   ";
+				}
 			else
 				semanticRep = "  " + this.semanticSide + " : " + this.linearLogicSide + "   ";
+			if (setting == 2)
+			{
+				semanticRep = "  " + this.linearLogicSide + "   ";
+			}
 		return new PrintStructure(semanticRep);
 		}
 		
@@ -229,16 +239,16 @@ public class NaturalDeductionProof {
 		PrintStructure right = null;
 		PrintStructure left = null;
 		if (this.subproof2!=null)
-			right = this.subproof2.getPrintStructure();
+			right = this.subproof2.getPrintStructure(setting);
 		if (this.subproof1!=null)
-			left = this.subproof1.getPrintStructure();
+			left = this.subproof1.getPrintStructure(setting);
 		return new PrintStructure(left,right,bottom, this.type);
 	}
-	public String prettyPrint() {
+	public String prettyPrint(Integer setting) {
 		
-		return this.getPrintStructure().toString();
+		return this.getPrintStructure(setting).toString();
 	}
-	private static boolean convert(NaturalDeductionProof node, NaturalDeductionProof parent, int which) {
+	private static boolean convert(NaturalDeductionProof node, NaturalDeductionProof parent, int which, Integer setting) {
 		if (node==null)
 			return false;
 		Iterator<Integer> it = node.assumptions.iterator();
@@ -252,7 +262,15 @@ public class NaturalDeductionProof {
 				myNewProof.subproof1 = node;
 				myNewProof.subproof2 = null;
 				myNewProof.myId = -1;
-				myNewProof.semanticSide = "\\" + item.semanticSide + ".(" + node.semanticSide + ")";
+
+				if (setting == 2)
+				{
+					myNewProof.semanticSide = "";
+				} else
+				{
+					myNewProof.semanticSide = "\\" + item.semanticSide + ".(" + node.semanticSide + ")";
+				}
+				//myNewProof.semanticSide = "";
 				myNewProof.linearLogicSide = item.linearLogicSide + " -o " + node.linearLogicSide;
 				myNewProof.linearLogicSide = myNewProof.linearLogicSide;
 				myNewProof.type = "I" + makeSubscript(Integer.toString(thisId));
@@ -265,22 +283,32 @@ public class NaturalDeductionProof {
 				return true;
 				}
 			}
-		if(convert(node.subproof1,node,0))
+		if(convert(node.subproof1,node,0, setting))
 			return true;
-		if(convert(node.subproof2,node,1))
+		if(convert(node.subproof2,node,1, setting))
 			return true;
 		return false;
 	}
-	public static NaturalDeductionProof createTree(Premise p) {
+	public static NaturalDeductionProof createTree(Premise p, Integer setting) {
 		if (p==null)return null;
 		NaturalDeductionProof myProof = new NaturalDeductionProof();
-		myProof.semanticSide = p.getSemTerm().toString();
+		//myProof.semanticSide = p.getSemTerm().toString();
+
+		if (setting == 0)
+		{
+			myProof.semanticSide = p.getSemTerm().toString();
+		} else if (setting == 1) {
+			myProof.semanticSide = NaturalDeductionProof.reduceSemanticSide(p);
+		} else if (setting == 2) {
+			myProof.semanticSide = "";
+		}
+
 		myProof.linearLogicSide = InputOutputProcessor.translateBack(p.getGlueTerm().getReverseCompiledString()).replace("⊸", "-o");;
 		myProof.type="E";
 
 
-		myProof.subproof1=createTree(p.comb_a);
-		myProof.subproof2=createTree(p.comb_b);
+		myProof.subproof1=createTree(p.comb_a, setting);
+		myProof.subproof2=createTree(p.comb_b, setting);
 		List<Premise> list = p.getGlueTerm().assumptions2;
 		Iterator<Premise> it = list.iterator();
 		myProof.assumptions = new java.util.LinkedList<Integer>();
@@ -327,10 +355,31 @@ public class NaturalDeductionProof {
 		
 	}
 	public String semanticSide;
+
+	public static String reduceSemanticSide(Premise p)
+	{
+		String reducedString = p.getSemTerm().toString();
+
+		if (p.getSemTerm() instanceof SemanticExpression) {
+			SemanticExpression short_p = (SemanticExpression) p.getSemTerm();
+
+			while (short_p instanceof SemFunction) {
+				short_p = (SemanticExpression) ((SemFunction) short_p).getFuncBody();
+			}
+			reducedString = short_p.toString();
+		}
+
+	//if reduced String is longer than 10 characters, then replace all characters beyond the 10th with ...
+		if (reducedString.length() > 10) {
+			reducedString = reducedString.substring(0, 10) + "...";
+		}
+		return reducedString;
+	}
 	public String linearLogicSide;
 	public String type;
 	public NaturalDeductionProof subproof1;
 	public NaturalDeductionProof subproof2;
 	public java.util.LinkedList<Integer> assumptions;
 	public int myId;
+
 }
