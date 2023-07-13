@@ -217,22 +217,31 @@ public class NaturalDeductionProof {
 	public PrintStructure getPrintStructure(Integer setting) {
 		String semanticRep = "";
 		if (this.subproof1==null&&this.subproof2==null) {
-			if(this.myId!=-1)
+			if(this.myId!=-1){
 				semanticRep = "  [" + this.semanticSide + " : " + this.linearLogicSide + "]"+makeSubscript(Integer.toString(this.myId)) + "   ";
 				if (setting == 2)
 				{
 					semanticRep = "  [" + this.linearLogicSide + "]"+makeSubscript(Integer.toString(this.myId)) + "   ";
 				}
-			else
+			}
+			else {
 				semanticRep = "  " + this.semanticSide + " : " + this.linearLogicSide + "   ";
-			if (setting == 2)
-			{
-				semanticRep = "  " + this.linearLogicSide + "   ";
+				if (setting == 2) {
+					semanticRep = "  " + this.linearLogicSide + "   ";
+				}
 			}
 		return new PrintStructure(semanticRep);
 		}
-		
-		PrintStructure bottom = new PrintStructure("  " + this.semanticSide + " : " + this.linearLogicSide + "   ");
+
+		String semanticRep1 = "";
+		semanticRep1 = "  " + this.semanticSide + " : " + this.linearLogicSide + "   ";
+
+		if (setting == 2)
+		{
+			semanticRep1 = "  " + this.linearLogicSide + "   ";
+		}
+
+		PrintStructure bottom = new PrintStructure(semanticRep1);
 		
 		
 		
