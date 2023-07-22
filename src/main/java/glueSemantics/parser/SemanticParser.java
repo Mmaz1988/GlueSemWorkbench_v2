@@ -34,6 +34,10 @@ public class SemanticParser extends StringParser {
 
     }
 
+    public SemanticParser(Settings settings) {
+    SemanticParser.settings = settings;
+    }
+
     @Test
     void testParseExpression() {
 

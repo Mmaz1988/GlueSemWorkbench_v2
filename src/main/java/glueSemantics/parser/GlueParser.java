@@ -23,6 +23,7 @@ import glueSemantics.linearLogic.Premise;
 import glueSemantics.semantics.MeaningConstructor;
 import glueSemantics.semantics.MeaningRepresentation;
 import glueSemantics.semantics.SemanticRepresentation;
+import main.Settings;
 import prover.VariableBindingException;
 
 import java.util.*;
@@ -45,6 +46,11 @@ public class GlueParser {
     public GlueParser(Boolean parseSemantics)
     {
         this.PARSESEMANTCS = parseSemantics;
+    }
+
+    public GlueParser(Settings settings) {
+        this.PARSESEMANTCS = settings.isParseSemantics();
+        this.semParser = new SemanticParser(settings);
     }
 
     public MeaningConstructor parseMeaningConstructor(String mc) throws ParserInputException {
