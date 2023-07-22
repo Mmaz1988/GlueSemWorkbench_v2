@@ -152,6 +152,14 @@ public class GswbController {
             if (!tmpDir.exists())
             {
                 tmpDir.mkdir();
+            } else {
+                //delete all files in tmpDir and tmpDir itself
+                File[] files = tmpDir.listFiles();
+                for (File file : files)
+                {
+                    file.delete();
+                }
+                tmpDir.delete();
             }
 
             File gswbFile = new File("gswb_resources/tmp/gswbFile.txt");
