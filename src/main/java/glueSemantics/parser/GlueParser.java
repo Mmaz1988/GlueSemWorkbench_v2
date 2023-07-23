@@ -124,11 +124,17 @@ public class GlueParser {
         Pattern wrapperStart = Pattern.compile("\\t*\\{\\t*");
         Pattern wrapperEnd = Pattern.compile("\\t*\\}\\t*");
 
+
         LOGGER.info("Now parsing input premises...");
 
         List<MeaningConstructor> ungroupedEntries = new ArrayList<>();
 
         for (int i = 0; i < formulas.size(); i++) {
+
+            String current = formulas.get(i);
+
+
+
             Matcher startMatcher = wrapperStart.matcher(formulas.get(i));
 
             if (startMatcher.matches()) {
@@ -139,6 +145,7 @@ public class GlueParser {
                 while (newEntry) {
                     Matcher endMatcher = wrapperEnd.matcher(formulas.get(i));
 
+
                     if (endMatcher.matches()) {
                         newEntry = false;
                         lexicalEntries.put(sets, currentLexicalEntries);
@@ -146,6 +153,13 @@ public class GlueParser {
                         break;
                     }
                     try {
+
+                        if (formulas.get(i).startsWith("//"))
+                        {
+                            i++;
+                            continue;
+                        }
+
                         LOGGER.finer("Now parsing meaning constructor at position " + i + " in premise list...");
                         currentLexicalEntries.add(parseMeaningConstructor(formulas.get(i)));
                     } catch (ParserInputException e) {

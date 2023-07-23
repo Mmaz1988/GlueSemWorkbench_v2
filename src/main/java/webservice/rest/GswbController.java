@@ -152,9 +152,10 @@ public class GswbController {
         }
 
 
-        LOGGER.info("Pretty printing DRT structures ...");
+
         if (displayDRT)
         {
+            LOGGER.info("Pretty printing DRT structures ...");
             List<String> drtSolutions = new ArrayList<>();
             //create a file that includes all Strings in solutions line  by line
             //run swipl with the file as input
