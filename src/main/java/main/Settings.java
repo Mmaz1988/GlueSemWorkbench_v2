@@ -38,6 +38,8 @@ public class Settings {
     public static  final int HEPPLE = 0;
     public static final int LEV = 1;
 
+    //resources
+    public String resources = "gswb_resources/";
 
     //naturaldeduction output
     public static final int NDFULL = 0;

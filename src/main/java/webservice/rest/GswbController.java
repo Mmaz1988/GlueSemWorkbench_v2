@@ -6,6 +6,7 @@ import glueSemantics.parser.ParserInputException;
 import glueSemantics.semantics.MeaningConstructor;
 import main.NaturalDeductionProof;
 import main.Settings;
+import main.WorkbenchMain;
 import main.failExplainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -25,6 +26,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.logging.Logger;
 
 @CrossOrigin
 @RestController
@@ -32,6 +34,7 @@ public class GswbController {
 
     @Autowired
     private GswbService gswbService;
+    private final static Logger LOGGER = Logger.getLogger(GswbController.class.getName());
 
     public GswbController(){}
 
@@ -44,6 +47,8 @@ public class GswbController {
         boolean displayDRT = false;
         //    public GswbPreferences(int prover, int outputstyle, boolean solutionOnly, boolean debugging, boolean explainFail)
         Settings settings = new Settings();
+
+        LOGGER.info("Received request: " + request.toString() + "\n" + "Applying settings...");
 
         if (request.gswbPreferences.outputstyle == 4)
         {
@@ -68,6 +73,8 @@ public class GswbController {
         LLProver prover = null;
         StringBuilder sb = new StringBuilder();
 
+        LOGGER.info("Running prover...");
+
         if (settings.getProverType() == 0) {
         prover = new LLProver2(settings,sb);
         } else {
@@ -91,6 +98,7 @@ public class GswbController {
 
                  */
 
+        LOGGER.info("Formatting output...");
 
         List<String> solutions = new ArrayList<>();
         StringBuilder explainBuilder = new StringBuilder();
@@ -124,10 +132,12 @@ public class GswbController {
                         explainBuilder.append(System.lineSeparator());
                     } catch(Exception e)
                     {
-                        System.out.println("Failed to print natural deduction proof.");
+                        LOGGER.warning("Failed to print natural deduction proof.");
                     }
                 }
             }
+
+            LOGGER.info("Preparing explanation of failure...");
 
             if (allSolutions.get(key).isEmpty() && settings.getProverType() == 0)
             {
@@ -135,24 +145,25 @@ public class GswbController {
                     explainBuilder.append(failExplainer.explain(((LLProver2) prover).getNonAtomicChart(), ((LLProver2) prover).getAtomicChart(), true));
                 } catch(Exception e)
                 {
-                    System.out.println("Failed to calculate explanation.");
+                    LOGGER.warning("Failed to calculate explanation.");
                 }
             }
 
         }
 
+
+        LOGGER.info("Pretty printing DRT structures ...");
         if (displayDRT)
         {
             List<String> drtSolutions = new ArrayList<>();
             //create a file that includes all Strings in solutions line  by line
             //run swipl with the file as input
 
+            LOGGER.fine("Creating temporary files...");
             //create temporary directory gswb_resources/tmp
             File tmpDir = new File("gswb_resources/tmp");
-            if (!tmpDir.exists())
+            if (tmpDir.exists())
             {
-                tmpDir.mkdir();
-            } else {
                 //delete all files in tmpDir and tmpDir itself
                 File[] files = tmpDir.listFiles();
                 for (File file : files)
@@ -162,16 +173,18 @@ public class GswbController {
                 tmpDir.delete();
             }
 
+            tmpDir.mkdir();
+
             File gswbFile = new File("gswb_resources/tmp/gswbFile.txt");
 
             try {
                 if (gswbFile.createNewFile()) {
-                    System.out.println("File created successfully!");
+                    LOGGER.fine("File created successfully!");
                 } else {
-                    System.out.println("File already exists!");
+                    LOGGER.warning("File already exists!");
                 }
             } catch (IOException e) {
-                System.out.println("An error occurred while creating the file: " + e.getMessage());
+                LOGGER.warning("An error occurred while creating the file: " + e.getMessage());
                 e.printStackTrace();
             }
 
@@ -207,8 +220,7 @@ public class GswbController {
                 // Java join command with white space
 
 
-                System.out.println("Prolog command: ");
-                Arrays.asList(command).stream().forEach(s -> System.out.print(s + " "));
+                LOGGER.info("Executing Prolog goal to pretty print DRT!");
 
                 processBuilder.redirectErrorStream(true);
 
@@ -225,7 +237,7 @@ public class GswbController {
                     }
                 }
 
-                System.out.println("Pretty DRT: " + prettyDRT.toString());
+                LOGGER.fine("Pretty DRT: " + prettyDRT.toString());
 
                 // Read and print the output of the external command
 
@@ -239,12 +251,12 @@ public class GswbController {
                 try {
                     int exitCode = task.get(5, TimeUnit.SECONDS);
                     if (exitCode != 0) {
-                        System.out.println("\nFailed to read output from lambdaDRT.pl!\n");
+                        LOGGER.warning("\nFailed to read output from lambdaDRT.pl!\n");
                     }
                 } catch (Exception e) {
                     // If the process takes more than 5 seconds, destroy it
                     process.destroyForcibly();
-                    System.out.println("\nProcess timed out and was forcibly terminated.\n");
+                    LOGGER.warning("\nProcess timed out and was forcibly terminated.\n");
                 }
 
                 executor.shutdown();

@@ -7,6 +7,7 @@ import com.mxgraph.model.mxCell;
 import com.mxgraph.swing.mxGraphComponent;
 import com.mxgraph.util.mxConstants;
 import glueSemantics.linearLogic.Premise;
+import main.WorkbenchMain;
 import org.jgrapht.Graph;
 import org.jgrapht.ext.JGraphXAdapter;
 import org.jgrapht.graph.DefaultEdge;
@@ -23,6 +24,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
 import java.util.*;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class GraphAnalysis {
@@ -35,6 +37,8 @@ public class GraphAnalysis {
     private String goalCategory;
     private mxGraphComponent graphComponent;
     private HashMap<mxCell,mxGraphComponent> sccMap = new HashMap<>();
+
+    private final static Logger LOGGER = Logger.getLogger(GraphAnalysis.class.getName());
 
     public GraphAnalysis(String goalCategory, Graph<Graph<CGNode,DefaultEdge>,DefaultEdge> stronglyConnectedGraph)
     {
@@ -121,7 +125,7 @@ public class GraphAnalysis {
                             solutions.addAll(h.calculateSolutions().stream().map(Premise::toString).collect(Collectors.toList()));
                         } catch(Exception e)
                         {
-                            System.out.println("No solutions to calculate.");
+                            LOGGER.fine("History with category " + h.category + "has no solutions to calculate.");
                         }}
                 }
                 if (!solutions.isEmpty()) {
