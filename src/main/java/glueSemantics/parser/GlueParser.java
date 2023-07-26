@@ -54,6 +54,10 @@ public class GlueParser {
     }
 
     public MeaningConstructor parseMeaningConstructor(String mc) throws ParserInputException {
+        return parseMeaningConstructor(mc, 0);
+    }
+
+    public MeaningConstructor parseMeaningConstructor(String mc, int stage) throws ParserInputException {
         String[] mcList = mc.split(":");
         if (mcList.length != 2) {
             throw new ParserInputException("Error parsing formula '" + mc + "'. " +
@@ -98,12 +102,10 @@ public class GlueParser {
 
         }
 
-
-
         entry.setLlTerm(glue);
         entry.setSem(sem);
-
         entry.setNonscope(noscope);
+        entry.setStage(stage);
 
         return entry;
     }
@@ -138,20 +140,33 @@ public class GlueParser {
             Matcher startMatcher = wrapperStart.matcher(formulas.get(i));
 
             if (startMatcher.matches()) {
+                int stage = 0;
                 sets++;
                 List<MeaningConstructor> currentLexicalEntries = new LinkedList<>();
                 i++;
                 Boolean newEntry = true;
                 while (newEntry) {
                     Matcher endMatcher = wrapperEnd.matcher(formulas.get(i));
+                    Matcher currentStartMatcher = wrapperStart.matcher(formulas.get(i));
 
 
                     if (endMatcher.matches()) {
-                        newEntry = false;
-                        lexicalEntries.put(sets, currentLexicalEntries);
-
-                        break;
+                        if (stage > 0) {
+                            stage = stage - 1;
+                        } else
+                        if (stage == 0) {
+                            newEntry = false;
+                            lexicalEntries.put(sets, currentLexicalEntries);
+                            break;
+                        }
                     }
+
+                    if (currentStartMatcher.matches())
+                    {
+                        i++;
+                        stage = stage + 1;
+                    }
+
                     try {
 
                         if (formulas.get(i).startsWith("//"))
@@ -161,7 +176,7 @@ public class GlueParser {
                         }
 
                         LOGGER.finer("Now parsing meaning constructor at position " + i + " in premise list...");
-                        currentLexicalEntries.add(parseMeaningConstructor(formulas.get(i)));
+                        currentLexicalEntries.add(parseMeaningConstructor(formulas.get(i),stage));
                     } catch (ParserInputException e) {
                         LOGGER.warning(String.format("Error: " +
                                 "glue parser could not parse line %d of input file. " +

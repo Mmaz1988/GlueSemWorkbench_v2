@@ -45,6 +45,10 @@ public class Sequent {
              if (lexEn.get(idCounter).isNonscope()) {
                  p.setNonScoping(true);
              }
+
+             if (!(p.getGlueTerm() instanceof LLAtom)) {
+                 p.stage = lexEn.get(idCounter).getStage();
+             }
              lhs.add(p);
          }
      }

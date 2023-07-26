@@ -27,6 +27,8 @@ public class MeaningConstructor {
 
     private boolean isNonscope;
 
+    private int stage = 0;
+
 
     public LLTerm getLlTerm() {
         return llTerm;
@@ -72,6 +74,14 @@ public class MeaningConstructor {
 
     public void setNonscope(boolean nonscope) {
         isNonscope = nonscope;
+    }
+
+    public int getStage() {
+        return stage;
+    }
+
+    public void setStage(int stage) {
+        this.stage = stage;
     }
 
 }

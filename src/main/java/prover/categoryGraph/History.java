@@ -27,6 +27,7 @@ public class History {
         OTHER
     }
 
+    public Integer stage;
 
     public History(Category category, Set<Integer> indexSet, Set<HashMap<Integer,History>> parents, Premise p, LLProver prover)
     {
@@ -35,6 +36,9 @@ public class History {
         this.indexSet = indexSet;
         this.parents = parents;
         this.p = p;
+        if (p != null && p.stage != null) {
+            this.stage = p.stage;
+        }
         calculateMainIndex();
 
         /*

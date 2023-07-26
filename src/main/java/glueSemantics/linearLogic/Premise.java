@@ -44,32 +44,8 @@ public class Premise {
     private Object func;
     private Object arg;
     public boolean used;
-
-    public boolean isNonScoping() {
-        return nonScoping;
-    }
-
-    public void setNonScoping(boolean nonScoping) {
-        this.nonScoping = nonScoping;
-    }
-
     private boolean nonScoping;
-
-    public HashSet<Integer> getPremiseIDs() {
-        return premiseIDs;
-    }
-
-    public LLTerm getGlueTerm() {
-        return glueTerm;
-    }
-
-    public void setGlueTerm(LLTerm glueTerm) {
-        this.glueTerm = glueTerm;
-    }
-
-    public SemanticRepresentation getSemTerm() { return semTerm; }
-
-    public void setSemTerm(SemanticExpression semTerm) { this.semTerm = semTerm; }
+    public Integer stage;
 
     private LinkedList<SemAtom> assumptionVars = new LinkedList<>();
     private LinkedList<SemAtom> binderVars = new LinkedList<>();
@@ -207,4 +183,28 @@ public class Premise {
     }
     public Premise comb_a;
     public Premise comb_b;
+
+    public boolean isNonScoping() {
+        return this.nonScoping;
+    }
+
+    public void setNonScoping(boolean nonScoping) {
+        this.nonScoping = nonScoping;
+    }
+
+    public HashSet<Integer> getPremiseIDs() {
+        return premiseIDs;
+    }
+
+    public LLTerm getGlueTerm() {
+        return glueTerm;
+    }
+
+    public void setGlueTerm(LLTerm glueTerm) {
+        this.glueTerm = glueTerm;
+    }
+
+    public SemanticRepresentation getSemTerm() { return semTerm; }
+
+    public void setSemTerm(SemanticExpression semTerm) { this.semTerm = semTerm; }
 }

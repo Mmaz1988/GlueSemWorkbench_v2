@@ -13,9 +13,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import prover.LLProver;
-import prover.LLProver1;
-import prover.LLProver2;
+import prover.*;
 import utilities.LexVariableHandler;
 import webservice.rest.dtos.GswbBatchOutput;
 import webservice.rest.dtos.GswbBatchRequest;
@@ -366,8 +364,12 @@ public class GswbController {
 
         if (settings.getProverType() == 0) {
         prover = new LLProver2(settings,sb);
-        } else {
+        } else if (settings.getProverType() == 1) {
             prover = new LLProver1(settings,sb);
+        } else if (settings.getProverType() == 2) {
+            prover = new LLProver3(settings,sb);
+        } else if (settings.getProverType() == 3) {
+            prover = new LLProver4(settings,sb);
         }
 
         for (Integer key : mcs.keySet()) {
