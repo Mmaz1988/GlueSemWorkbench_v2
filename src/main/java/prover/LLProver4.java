@@ -460,14 +460,17 @@ public class LLProver4 extends LLProver {
                 for (Integer key : stagedSccAgendaKeys) {
 
                     if (!nonScopingModifiers.isEmpty()) {
-                        List<History> scopingModifiers = sccAgenda.stream().filter(h -> !this.nonScopingModifiers.contains(h.mainIndex) && h.category.left != null).collect(Collectors.toList());
+                        List<History> scopingModifiers = stagedSccAgenda.get(key).stream().filter(h -> !this.nonScopingModifiers.contains(h.mainIndex) && h.category.left != null).collect(Collectors.toList());
                         // sccAgenda minus scopingModifiers
-                        List<History> nonscopingAgenda = sccAgenda.stream().filter(h -> !scopingModifiers.contains(h)).collect(Collectors.toList());
+                        List<History> nonscopingAgenda = stagedSccAgenda.get(key).stream().filter(h -> !scopingModifiers.contains(h)).collect(Collectors.toList());
 
+                        //
+                        Set<Integer> appliedModifiers = nonscopingAgenda.stream().map(h -> h.mainIndex).collect(Collectors.toSet());
 
+                        nonscopingAgenda.addAll(globalHistory);
                         // List<History> histories = chartDeduce2(sccAgenda);
 
-                        histories = chartDeduce2(nonscopingAgenda);
+                        histories.addAll(chartDeduce2(nonscopingAgenda));
 
 
                         //Remove duplicates based on mainindex
@@ -513,6 +516,9 @@ public class LLProver4 extends LLProver {
                                 for (History h : indexSetComparison.keySet()) {
                                     if (h.category.toString().equals(outputNode.category)) {
                                         outputHistories.add(h);
+                                    } else if (h.category.atomic)
+                                    {
+                                        outputHistories.add(h);
                                     }
                                 }
                             }
@@ -520,8 +526,24 @@ public class LLProver4 extends LLProver {
 
                             outputHistories.addAll(scopingModifiers);
                             histories = outputHistories;
-
                             histories = chartDeduce2(histories);
+
+                            List<History> newOutput = new ArrayList<>();
+                            for (CGNode outputNode : outputNodes) {
+                                for (History h : histories) {
+                                    if (h.category.toString().equals(outputNode.category)) {
+                                        newOutput.add(h);
+                                    }
+                                    /*
+                                    else if (h.category.atomic)
+                                    {
+                                        outputHistories.add(h);
+                                    }
+                                     */
+                                }
+                            }
+                            this.nonScopingModifiers.removeAll(appliedModifiers);
+                            histories = newOutput;
 
                         }
                     } else {

@@ -590,6 +590,9 @@ public class GswbController {
         } else if (prover instanceof LLProver1)
         {
             derivation = ((LLProver1) prover).analysis.returnJSONGraph();
+        } else if (prover instanceof LLProver4)
+        {
+            derivation = ((LLProver4) prover).analysis.returnJSONGraph();
         }
 
         LexVariableHandler.resetVars();
