@@ -427,7 +427,7 @@ public class LLProver4 extends LLProver {
 
                  */
 
-                HashMap<Integer,List<History>> stagedSccAgenda = new HashMap<>();
+                HashMap<String,List<History>> stagedSccAgenda = new HashMap<>();
                 List<History> globalHistory = new ArrayList<>();
 
                 for (History h : sccAgenda)
@@ -453,11 +453,11 @@ public class LLProver4 extends LLProver {
                 histories.addAll(globalHistory);
 
                 //sort stagedSccAgenda by key in descending order
-                List<Integer> stagedSccAgendaKeys = new ArrayList<>(stagedSccAgenda.keySet());
-                Collections.sort(stagedSccAgendaKeys);
+                List<String> stagedSccAgendaKeys = new ArrayList<>(stagedSccAgenda.keySet());
+                stageSort(stagedSccAgendaKeys);
                 Collections.reverse(stagedSccAgendaKeys);
 
-                for (Integer key : stagedSccAgendaKeys) {
+                for (String key : stagedSccAgendaKeys) {
 
                     if (!nonScopingModifiers.isEmpty()) {
                         List<History> scopingModifiers = stagedSccAgenda.get(key).stream().filter(h -> !this.nonScopingModifiers.contains(h.mainIndex) && h.category.left != null).collect(Collectors.toList());
@@ -969,11 +969,14 @@ public class LLProver4 extends LLProver {
 
                     }
 
-                    if (h1.stage != null)
+                    if (result.category.left != null) {
+                        if (h1.stage != null) {
+                            result.stage = h1.stage;
+                        }
+                    } else
                     {
-                        result.stage = h1.stage;
+                        result.stage = null;
                     }
-
                     getLOGGER().finer("Now combining " + h1.category.toString() +
                             " and " + h2.category.toString() +
                             " with result: " + result.category);
@@ -1703,6 +1706,28 @@ public class LLProver4 extends LLProver {
         this.proofBuilder = proofBuilder;
     }
 
+    public static void stageSort(List<String> stageList) {
+        Collections.sort(stageList, new Comparator<String>() {
+            @Override
+            public int compare(String s1, String s2) {
+                String[] parts1 = s1.split("\\+");
+                String[] parts2 = s2.split("\\+");
 
+                int first1 = Integer.parseInt(parts1[0]);
+                int first2 = Integer.parseInt(parts2[0]);
 
+                // Compare the first integers
+                int comp = Integer.compare(first1, first2);
+                if (comp != 0) {
+                    return comp;
+                }
+
+                // If the first integers are equal, compare the second integers
+                int second1 = Integer.parseInt(parts1[1]);
+                int second2 = Integer.parseInt(parts2[1]);
+
+                return Integer.compare(second1, second2);
+            }
+        });
+    }
 }

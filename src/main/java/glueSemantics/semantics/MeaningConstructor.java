@@ -27,7 +27,7 @@ public class MeaningConstructor {
 
     private boolean isNonscope;
 
-    private int stage = 0;
+    private String stage = "0";
 
 
     public LLTerm getLlTerm() {
@@ -76,11 +76,11 @@ public class MeaningConstructor {
         isNonscope = nonscope;
     }
 
-    public int getStage() {
+    public String getStage() {
         return stage;
     }
 
-    public void setStage(int stage) {
+    public void setStage(String stage) {
         this.stage = stage;
     }
 

@@ -54,10 +54,10 @@ public class GlueParser {
     }
 
     public MeaningConstructor parseMeaningConstructor(String mc) throws ParserInputException {
-        return parseMeaningConstructor(mc, 0);
+        return parseMeaningConstructor(mc, "0");
     }
 
-    public MeaningConstructor parseMeaningConstructor(String mc, int stage) throws ParserInputException {
+    public MeaningConstructor parseMeaningConstructor(String mc, String stage) throws ParserInputException {
         String[] mcList = mc.split(":");
         if (mcList.length != 2) {
             throw new ParserInputException("Error parsing formula '" + mc + "'. " +
@@ -135,16 +135,20 @@ public class GlueParser {
 
             String current = formulas.get(i);
 
-
-
             Matcher startMatcher = wrapperStart.matcher(formulas.get(i));
 
+
+            //sets corresponds to the number of individual proofs
             if (startMatcher.matches()) {
-                int stage = 0;
+                Integer stage = 0;
+                Integer sister = 0;
+                HashMap<Integer,Integer> sisters = new HashMap<>();
+                sisters.put(stage,sister);
                 sets++;
                 List<MeaningConstructor> currentLexicalEntries = new LinkedList<>();
                 i++;
                 Boolean newEntry = true;
+                //Here the mcs for one proof are calculated
                 while (newEntry) {
                     Matcher endMatcher = wrapperEnd.matcher(formulas.get(i));
                     Matcher currentStartMatcher = wrapperStart.matcher(formulas.get(i));
@@ -152,7 +156,9 @@ public class GlueParser {
 
                     if (endMatcher.matches()) {
                         if (stage > 0) {
+                            sisters.put(stage,sisters.get(stage) + 1);
                             stage = stage - 1;
+
                         } else
                         if (stage == 0) {
                             newEntry = false;
@@ -165,8 +171,11 @@ public class GlueParser {
                     {
                         i++;
                         stage = stage + 1;
+                        if (!sisters.containsKey(stage))
+                        {
+                            sisters.put(stage,0);
+                        }
                     }
-
                     try {
 
                         if (formulas.get(i).startsWith("//"))
@@ -176,7 +185,7 @@ public class GlueParser {
                         }
 
                         LOGGER.finer("Now parsing meaning constructor at position " + i + " in premise list...");
-                        currentLexicalEntries.add(parseMeaningConstructor(formulas.get(i),stage));
+                        currentLexicalEntries.add(parseMeaningConstructor(formulas.get(i),stage.toString() + "+" + sisters.get(stage)));
                     } catch (ParserInputException e) {
                         LOGGER.warning(String.format("Error: " +
                                 "glue parser could not parse line %d of input file. " +

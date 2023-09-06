@@ -27,7 +27,7 @@ public class History {
         OTHER
     }
 
-    public Integer stage;
+    public String stage;
 
     public History(Category category, Set<Integer> indexSet, Set<HashMap<Integer,History>> parents, Premise p, LLProver prover)
     {

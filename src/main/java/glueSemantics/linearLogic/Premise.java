@@ -45,7 +45,7 @@ public class Premise {
     private Object arg;
     public boolean used;
     private boolean nonScoping;
-    public Integer stage;
+    public String stage;
 
     private LinkedList<SemAtom> assumptionVars = new LinkedList<>();
     private LinkedList<SemAtom> binderVars = new LinkedList<>();
