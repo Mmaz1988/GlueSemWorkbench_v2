@@ -71,8 +71,12 @@ public class GswbController {
 
         if (settings.getProverType() == 0) {
             prover = new LLProver2(settings,sb);
-        } else {
+        } else if (settings.getProverType() == 1) {
             prover = new LLProver1(settings,sb);
+        } else if (settings.getProverType() == 2) {
+            prover = new LLProver3(settings,sb);
+        } else if (settings.getProverType() == 3) {
+            prover = new LLProver4(settings,sb);
         }
 
         HashMap<String,GswbOutput> analyses = new HashMap<>();
@@ -82,16 +86,38 @@ public class GswbController {
         reportBuilder.append(System.lineSeparator());
         reportBuilder.append("ID:     No of meaning constructors:     Solutions:\n");
 
-        for (String id : request.premises.keySet())
+
+        List<String> keys = new ArrayList<>(request.premises.keySet());
+
+        //sort keys by string final number
+        keys.sort(new Comparator<String>() {
+            @Override
+            public int compare(String s1, String s2) {
+                // Extract the numbers from the end of the strings
+                int num1 = Integer.parseInt(s1.replaceAll("\\D", ""));
+                int num2 = Integer.parseInt(s2.replaceAll("\\D", ""));
+
+                // Compare the numbers
+                return Integer.compare(num1, num2);
+            }
+        });
+
+
+        for (int i = 0; i < keys.size(); i++)
         {
+            String id = keys.get(i);
             LinkedHashMap<Integer, List<MeaningConstructor>> mcs = gp.parseMeaningConstructorString(request.premises.get(id));
-            Integer noOfMCs = mcs.size();
+
+
+
+            Integer noOfMCs = 0;
             LinkedHashMap<Integer, List<Premise>> allSolutions = new LinkedHashMap<>();
 
             Integer countSolutions = 0;
 
             for (Integer key : mcs.keySet()) {
                 try {
+                     noOfMCs = noOfMCs + mcs.get(key).size();
                     List<Premise> solutions = prover.searchProof(key,mcs);
                     allSolutions.put(key, solutions);
                     countSolutions = countSolutions + solutions.size();
@@ -99,8 +125,6 @@ public class GswbController {
                     e.printStackTrace();
                 }
             }
-
-
 
             LOGGER.info("Formatting output...");
 
@@ -111,10 +135,10 @@ public class GswbController {
 
 
 
-                for (int i = 0; i < allSolutions.get(key).size(); i++) {
+                for (int j = 0; j < allSolutions.get(key).size(); j++) {
                     StringBuilder solutionBuilder = new StringBuilder();
                     if (settings.getSemanticOutputStyle() == 1) {
-                        solutionBuilder.append("solution" + "(" + key.toString() + i + ",");
+                        solutionBuilder.append("solution" + "(" + key.toString() + j + ",");
                         solutionBuilder.append(allSolutions.get(key).get(i).getSemTerm().toString());
                         solutionBuilder.append(").");
 
@@ -122,7 +146,7 @@ public class GswbController {
 
 
                     } else if (settings.getSemanticOutputStyle() == 0) {
-                        solutionBuilder.append(key.toString() + i + ": " + allSolutions.get(key).get(i).getSemTerm().toString());
+                        solutionBuilder.append(key.toString() + j + ": " + allSolutions.get(key).get(j).getSemTerm().toString());
                     }
 
                     solutions.add(solutionBuilder.toString());
@@ -131,7 +155,7 @@ public class GswbController {
                     if (settings.isExplainFail())
                     {
                         try {
-                            explainBuilder.append(NaturalDeductionProof.getNaturalDeductionProof(allSolutions.get(key).get(i), settings.getNaturalDeductionOutput()));
+                            explainBuilder.append(NaturalDeductionProof.getNaturalDeductionProof(allSolutions.get(key).get(j), settings.getNaturalDeductionOutput()));
                             explainBuilder.append(System.lineSeparator());
                             explainBuilder.append(System.lineSeparator());
                         } catch(Exception e)
