@@ -343,7 +343,7 @@ public class GswbController {
 
 
 
-            reportBuilder.append(String.format("%s\t\t%s\t\t%s", id, noOfMCs, countSolutions));
+            reportBuilder.append(String.format("%s\t\t%s\t\t\t%s", id, noOfMCs, countSolutions));
             reportBuilder.append(System.lineSeparator());
         }
         return new GswbBatchOutput(analyses,reportBuilder.toString());
