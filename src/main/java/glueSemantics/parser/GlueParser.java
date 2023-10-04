@@ -25,9 +25,12 @@ import glueSemantics.semantics.MeaningRepresentation;
 import glueSemantics.semantics.SemanticRepresentation;
 import main.Settings;
 import prover.VariableBindingException;
+import utilities.MyFormatter;
 
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.logging.StreamHandler;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,6 +40,16 @@ public class GlueParser {
     public static final MeaningRepresentation emptyMeaning = new MeaningRepresentation("<empty>");
     // TODO add semantic parser here
     private final static Logger LOGGER = Logger.getLogger(GlueParser.class.getName());
+
+    static {
+        LOGGER.setUseParentHandlers(false);
+        StreamHandler handler = new StreamHandler(System.out, new MyFormatter());
+        //   handler.setFormatter(new MyFormatter());
+        handler.setLevel(Level.FINE);
+        LOGGER.addHandler(handler);
+
+        LOGGER.setLevel(Level.ALL);
+    }
     private boolean PARSESEMANTCS;
 
     public GlueParser() {

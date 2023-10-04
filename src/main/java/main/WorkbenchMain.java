@@ -22,6 +22,7 @@ import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.*;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.logging.Handler;
@@ -113,8 +114,13 @@ public class WorkbenchMain {
                         settings.setProverType(0);
                     } else if (arg2.equals("1") || arg2.equals("LEV")) {
                         settings.setProverType(1);
+                    } else if (arg2.equals("2")) {
+                        settings.setProverType(2);
+                    } else if (arg2.equals("3")) {
+                        settings.setProverType(3);
                     }
                     break;
+
                 }
                 case ("-proveGoal"): {
                     if (i + 1 >= args.length)
@@ -236,7 +242,7 @@ public class WorkbenchMain {
                 if (stdIn) {
                     inputFileStream = System.in;
                 } else if (!inputFileName.equals("")) {
-                    inputFileStream = new FileInputStream(new File(inputFileName));
+                    inputFileStream = Files.newInputStream(new File(inputFileName).toPath());
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -390,15 +396,17 @@ public class WorkbenchMain {
         LLProver prover;
 
         if (settings.getProverType() == 1) {
-            prover = new LLProver1(settings, outputFileBuilder);
+            prover = new LLProver1(settings,outputFileBuilder);
+        } else if (settings.getProverType() == 2) {
+            prover = new LLProver3(settings,outputFileBuilder);
+        } else if (settings.getProverType() == 3) {
+            prover = new LLProver4(settings,outputFileBuilder);
         } else
         {
-        prover = new LLProver2(settings,outputFileBuilder);
+            prover = new LLProver2(settings,outputFileBuilder);
         }
+
         try {
-
-
-
             Sequent testseq = new Sequent(lexicalEntries);
 
             prover.deduce(testseq);

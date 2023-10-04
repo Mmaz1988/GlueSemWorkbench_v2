@@ -1,6 +1,6 @@
 /*************************************************************************
 
-    File: mergeDRT.pl
+    File: presupTestSuite.pl
     Copyright (C) 2004,2006 Patrick Blackburn & Johan Bos
 
     This file is part of BB2, version 2.0 (November 2006).
@@ -18,52 +18,33 @@
     You should have received a copy of the GNU General Public License
     along with BB2; if not, write to the Free Software Foundation, Inc., 
     59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+	
+	
+	editiert: eigene Testsätze
 
 *************************************************************************/
 
-:- module(mergeDRT,[mergeDrs/2]).
-
-:- use_module(comsemPredicates,[appendLists/3]).
+:- module(presupTestSuite,[discourse/2]).
 
 
 /*========================================================================
-   DRS-merge
+    Example Discourses
 ========================================================================*/
+discourse([a,dragon,sleeps,in,a,cave,the,dragon,dreams],2).
 
-mergeDrs(drs(D,C1),drs(D,C2)):-
-   mergeDrs(C1,C2).
+discourse([the,dragon,sleeps],1).
 
-mergeDrs(lam(X,B1),lam(X,B2)):-
-   mergeDrs(B1,B2).
+discourse([the,dragon,does,not,sleep],1).
 
-mergeDrs(merge(B1,B2),drs(D3,C3)):-
-   mergeDrs(B1,drs(D1,C1)),
-   mergeDrs(B2,drs(D2,C2)),
-   appendLists(D1,D2,D3),
-   appendLists(C1,C2,C3).
+discourse([a,dragon,sleeps,in,a,cave,it,dreams],1).
 
-mergeDrs([imp(B1,B2)|C1],[imp(B3,B4)|C2]):-
-   mergeDrs(B1,B3),
-   mergeDrs(B2,B4),
-   mergeDrs(C1,C2).
+discourse([it,sleeps],0).
 
-mergeDrs([or(B1,B2)|C1],[or(B3,B4)|C2]):-
-   mergeDrs(B1,B3),
-   mergeDrs(B2,B4),
-   mergeDrs(C1,C2).
+discourse([if,a,viking,meets,a,dragon,he,tames,the,dragon],2).
 
-mergeDrs([not(B1)|C1],[not(B2)|C2]):-
-   mergeDrs(B1,B2),
-   mergeDrs(C1,C2).
+discourse([if,a,viking,meets,a,dragon,he,tames,it],1).
 
-mergeDrs([pred(Sym,X)|C1],[pred(Sym,X)|C2]):-
-   mergeDrs(C1,C2).
+discourse([every,viking,who,meets,a,dragon,tames,the,dragon],2).
 
-mergeDrs([rel(Sym,X,Y)|C1],[rel(Sym,X,Y)|C2]):-
-   mergeDrs(C1,C2).
-
-mergeDrs([eq(X,Y)|C1],[eq(X,Y)|C2]):-
-   mergeDrs(C1,C2).
-
-mergeDrs([],[]).
+discourse([a,viking,meets,a,big,dragon,and,a,small,dragon,the,dragon,roars],0).
 

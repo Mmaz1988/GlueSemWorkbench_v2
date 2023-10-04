@@ -19,8 +19,6 @@
     along with BB2; if not, write to the Free Software Foundation, Inc., 
     59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    Small modifications 2018-2020 by Matthew Gotham, noted in comments
-	
 *************************************************************************/
 
 /*========================================================================
@@ -29,7 +27,7 @@
 
 :- module(printDrs,[printDrs/1]).
 
-:- use_module(library(lists),[append/3]). % MG added 2018
+:- use_module(comsemPredicates,[appendLists/3]).
 
 
 /*========================================================================
@@ -105,7 +103,7 @@ formatRefs([],[]).
 formatRefs([Ref|Rest],Out):-
    makeConstant(Ref,Code), 
    formatRefs(Rest,Temp),
-   append([32|Code],Temp,Out).
+   appendLists([32|Code],Temp,Out).
 
 
 /*========================================================================
@@ -157,8 +155,8 @@ formatConds([imp(Drs1,Drs2)|Rest],L1-L2,N0-N4):-!,
    formatDrs(Drs1,Lines1,N1),
    formatDrs(Drs2,Lines2,N2),
    M is N1 + 7,
-   combLinesConds(Lines1,Lines2,Lines3,' ==> ',M), % Unicode decimal: [32,8658,32]
-   append(Lines3,Lines,L2),
+   combLinesConds(Lines1,Lines2,Lines3,' ==> ',M),
+   appendLists(Lines3,Lines,L2),
    Length is N1 + N2 + 10,
    (Length > N3, !, N4 = Length; N4 = N3).
 
@@ -167,95 +165,28 @@ formatConds([or(Drs1,Drs2)|Rest],L1-L2,N0-N4):-!,
    formatDrs(Drs1,Lines1,N1),
    formatDrs(Drs2,Lines2,N2),
    M is N1 + 5,
-   combLinesConds(Lines1,Lines2,Lines3,' V ',M), % Unicode decimal: [32,8744,32]
-   append(Lines3,Lines,L2),
+   combLinesConds(Lines1,Lines2,Lines3,' V ',M),
+   appendLists(Lines3,Lines,L2),
    Length is N1 + N2 + 8,
    (Length > N3, !, N4 = Length; N4 = N3).
 
-formatConds([duplex(Det,Drs1,Var,Drs2)|Rest],L1-L2,N0-N4):-!, % MG added 2020
-   formatConds(Rest,L1-Lines,N0-N3),
-   formatDrs(Drs1,Lines1,N1),
-   formatDrs(Drs2,Lines2,N2),
-   atom_concat(' <',Det,Op1),
-   atom_concat(Op1,' ',Op2),
-   makeConstant(Var,VarCodes),
-   atom_codes(Marker,VarCodes),
-   atom_concat(Op2,Marker,Op3),
-   atom_concat(Op3,'> ',Op),
-   write_length(Op,Len,[]),
-   M is N1 + Len + 2,
-   combLinesConds(Lines1,Lines2,Lines3,Op,M),
-   append(Lines3,Lines,L2),
-   Length is N1 + N2 + Len + 5,
-   (Length > N3, !, N4 = Length; N4 = N3).
-
-formatConds([not(Drs)|Rest],L1-L2,N0-N3):-!, % MG modified 2020
+formatConds([not(Drs)|Rest],L1-L2,N0-N3):-!,
    formatConds(Rest,L1-Lines,N0-N1),
    formatDrs(Drs,[A,B,C,D|Lines1],N2),
-   combLinesConds2([],Lines1,Lines2,3,''),
-   append([[124,32,32,32|A],
-                [124,32,32,32|B],
-                [124,32,32,32|C],
-                [124,32,172,32|D]|Lines2],Lines,L2), % ¬ is 172, ~ is 126
-   Length is N2 + 6,
-   (Length > N1, !, N3 = Length; N3 = N1).
-
-formatConds([nec(Drs)|Rest],L1-L2,N0-N3):-!, % MG added 2020
-   formatConds(Rest,L1-Lines,N0-N1),
-   formatDrs(Drs,[A,B,C,D|Lines1],N2),
-   combLinesConds2([],Lines1,Lines2,4,''),
-   append([[124,32,32,32,32|A],
-                [124,32,32,32,32|B],
-                [124,32,32,32,32|C],
-                [124,32,91,93,32|D]|Lines2],Lines,L2),
-   Length is N2 + 7,
-   (Length > N1, !, N3 = Length; N3 = N1).
-
-formatConds([pos(Drs)|Rest],L1-L2,N0-N3):-!, % MG added 2020
-   formatConds(Rest,L1-Lines,N0-N1),
-   formatDrs(Drs,[A,B,C,D|Lines1],N2),
-   combLinesConds2([],Lines1,Lines2,4,''),
-   append([[124,32,32,32,32|A],
-                [124,32,32,32,32|B],
-                [124,32,32,32,32|C],
-                [124,32,60,62,32|D]|Lines2],Lines,L2),
-   Length is N2 + 7,
-   (Length > N1, !, N3 = Length; N3 = N1).
-
-formatConds([prop(Marker,Drs)|Rest],L1-L2,N0-N3):-!, % MG added 2018
-   formatConds(Rest,L1-Lines,N0-N1),
-   formatDrs(Drs,[A,B,C|Lines1],N2),
-   combLinesConds2([],Lines1,Lines2,6,''),
-   makeConstant(Marker,Var),
-   append([[124,32,32,32,32,32,32|A],		% | ...
-                [124,32,32,32,32,32,32|B],	% | ...
-                Prelist|Lines2],Lines,L2),	% | xN : ...
-	append([124,32|Var],[32,58,32|C],Prelist), % (makes the line above)
-   Length is N2 + 9,
+   combLinesConds2([],Lines1,Lines2,5,''),
+   appendLists([[124,32,32,32,32,32|A],
+                [124,32,32,32,32,32|B],
+                [124,32,95,95,32,32|C],
+                [124,32,32,32,124,32|D]|Lines2],Lines,L2),
+   Length is N2 + 8,
    (Length > N1, !, N3 = Length; N3 = N1).
 
 formatConds([eq(A,B)|Rest],In-[[124,32|Line]|Out],N0-N2):-!,
    formatConds(Rest,In-Out,N0-N1),
    makeConstant(A,L1),
    makeConstant(B,L2),
-   append(L1,[32,61,32|L2],Line), % =
+   appendLists(L1,[32,61,32|L2],Line),
    length([_,_,_|Line],Length),
-   (Length > N1, !, N2 is Length; N2 = N1).
-
-formatConds([leq(A,B)|Rest],In-[[124,32|Line]|Out],N0-N2):-!,	% MG added 2018, modified 2020
-   formatConds(Rest,In-Out,N0-N1),
-   makeConstant(A,L1),
-   makeConstant(B,L2),
-   append(L1,[32,8804,32|L2],Line), % Unicode decimal, =< is 61,60
-   length([_,_,_|Line],Length),
-   (Length > N1, !, N2 is Length; N2 = N1).
-
-formatConds([sub(A,B)|Rest],In-[[124,32|Line]|Out],N0-N2):-!, %  MG added 2018, modified 2020
-   formatConds(Rest,In-Out,N0-N1),
-   makeConstant(A,L1),
-   makeConstant(B,L2),
-   append(L1,[32,8838,32|L2],Line), % Unicode decimal, C is 67
-   length([_,_,_,_|Line],Length),
    (Length > N1, !, N2 is Length; N2 = N1).
 
 formatConds([Basic|Rest],In-[[124,32|Line]|Out],N0-N2):-
@@ -272,20 +203,6 @@ formatConds([Basic|Rest],In-[[124,32|Line]|Out],N0-N2):-
    length([_,_,_|Line],Length),
    (Length > N1, !, N2 is Length; N2 = N1).
 
-formatConds([Basic|Rest],In-[[124,32|Line]|Out],N0-N2):- % MG added 2020
-   Basic=rel(_,_,_,_),
-   formatConds(Rest,In-Out,N0-N1),
-   formatBasic(Basic,Line),
-   length([_,_,_|Line],Length),
-   (Length > N1, !, N2 is Length; N2 = N1).
-
-formatConds([Basic|Rest],In-[[124,32|Line]|Out],N0-N2):-
-   Basic=named(_,_),
-   formatConds(Rest,In-Out,N0-N1),
-   formatBasic(Basic,Line),
-   length([_,_,_|Line],Length),
-   (Length > N1, !, N2 is Length; N2 = N1).
-
 
 /*========================================================================
      Formatting Basic Conditions
@@ -294,34 +211,17 @@ formatConds([Basic|Rest],In-[[124,32|Line]|Out],N0-N2):-
 formatBasic(pred(Functor,Arg),Line):-
    name(Functor,F),
    makeConstant(Arg,A),   
-   append(F,[40|A],T),
-   append(T,[41],Line).
+   appendLists(F,[40|A],T),
+   appendLists(T,[41],Line).
    
 formatBasic(rel(Functor,Arg1,Arg2),Line):-
    name(Functor,F),
    makeConstant(Arg1,A1),
    makeConstant(Arg2,A2),
-   append(F,[40|A1],T1),
-   append(T1,[44|A2],T2),
-   append(T2,[41],Line).
+   appendLists(F,[40|A1],T1),
+   appendLists(T1,[44|A2],T2),
+   appendLists(T2,[41],Line).
  
-formatBasic(rel(Functor,Arg1,Arg2,Arg3),Line):- % MG added 2020
-   name(Functor,F),
-   makeConstant(Arg1,A1),
-   makeConstant(Arg2,A2),
-   makeConstant(Arg3,A3),
-   append(F,[40|A1],T1),
-   append(T1,[44|A2],T2),
-   append(T2,[44|A3],T3),
-   append(T3,[41],Line).
- 
-formatBasic(named(Var,Name),Line):- % MG added 2018
-	string_codes("Named",NamedList),
-   name(Name,N),
-   makeConstant(Var,V),
-   append(NamedList,[40|V],T1),
-   append(T1,[44|N],T2),
-   append(T2,[41],Line).
 
 /*========================================================================
    Combining Lines of Characters (Complex DRS-Conditions)
@@ -330,38 +230,34 @@ formatBasic(named(Var,Name),Line):- % MG added 2018
 combLinesConds([A1,B1,C1,D1|Rest1],[A2,B2,C2,D2|Rest2],Result,Op,N):-
    combLinesConds2([A1,B1,C1],[A2,B2,C2],Firsts,N,Op),
    name(Op,Code),
-   append(Code,D2,T),
-   append([124,32|D1],T,D),
+   appendLists(Code,D2,T),
+   appendLists([124,32|D1],T,D),
    combLinesConds2(Rest1,Rest2,Rest,N,Op),
-   append(Firsts,[D|Rest],Result).
+   appendLists(Firsts,[D|Rest],Result).
 
 
 /*========================================================================
    Combining Lines of Characters (Complex DRS-Conditions)
 ========================================================================*/
 
-times(0,_,[]). % MG added 2020
-
-times(M,X,[X|L]) :- M > 0, N is M - 1, times(N,X,L). % MG added 2020
-
 combLinesConds2([],[],[],_,_).
 
 combLinesConds2([],[A2|Rest2],[A|Rest],N,Op):-
    closeLine([124],A1,N,[]),
-   append(A1,A2,A),
+   appendLists(A1,A2,A),
    combLinesConds2([],Rest2,Rest,N,Op).
 
 combLinesConds2([A1|Rest1],[],[[124,32|A1]|Rest],N,Op):-
    combLinesConds2(Rest1,[],Rest,N,Op).
 
-combLinesConds2([A1|Rest1],[A2|Rest2],[A|Rest],N,Op):- % MG modified 2020
-   write_length(Op,Len,[]),
-   times(Len,32,Blanks),
-   append(Blanks,A2,A3),
-   append([124,32|A1],A3,A),
-   combLinesConds2(Rest1,Rest2,Rest,N,Op).
+combLinesConds2([A1|Rest1],[A2|Rest2],[A|Rest],N,' ==> '):-
+   appendLists([124,32|A1],[32,32,32,32,32|A2],A),
+   combLinesConds2(Rest1,Rest2,Rest,N,' ==> ').
 
-% The above replaces special case definitions for ==> and V 
+combLinesConds2([A1|Rest1],[A2|Rest2],[A|Rest],N,' V '):-
+   appendLists([124,32|A1],[32,32,32|A2],A),
+   combLinesConds2(Rest1,Rest2,Rest,N,' V ').
+
 
 /*========================================================================
    Combining Lines of Characters (Complex DRSs)
@@ -370,18 +266,18 @@ combLinesConds2([A1|Rest1],[A2|Rest2],[A|Rest],N,Op):- % MG modified 2020
 combLinesDrs([A1,B1,C1,D1|Rest1],[A2,B2,C2,D2|Rest2],Result,Op,N1,N2):-
    combLinesDrs([A1,B1,C1],[A2,B2,C2],Firsts,N1,N2),
    name(Op,Code),
-   append(Code,D2,T1),
-   append(T1,[41],T2),
-   append([40|D1],T2,D),
+   appendLists(Code,D2,T1),
+   appendLists(T1,[41],T2),
+   appendLists([40|D1],T2,D),
    combLinesDrs(Rest1,Rest2,Rest,N1,N2),
-   append(Firsts,[D|Rest],Result).
+   appendLists(Firsts,[D|Rest],Result).
 
 combLinesDrs([],[],[],_,_).
 
 combLinesDrs([],[A2|Rest2],[A3|Rest],N1,N2):-
    closeLine([],A1,N1,[]),
-   append(A1,A2,A0),
-   append(A0,[32],A3),
+   appendLists(A1,A2,A0),
+   appendLists(A0,[32],A3),
    combLinesDrs([],Rest2,Rest,N1,N2).
 
 combLinesDrs([A1|Rest1],[],[Closed|Rest],N1,N2):-
@@ -389,8 +285,8 @@ combLinesDrs([A1|Rest1],[],[Closed|Rest],N1,N2):-
    closeLine([32|A1],Closed,N2,[]).
 
 combLinesDrs([A1|Rest1],[A2|Rest2],[A3|Rest],N1,N2):-
-   append([32|A1],[32|A2],A0),
-   append(A0,[32],A3),
+   appendLists([32|A1],[32|A2],A0),
+   appendLists(A0,[32],A3),
    combLinesDrs(Rest1,Rest2,Rest,N1,N2).
 
 
@@ -414,7 +310,7 @@ closeConds([Line|Rest1],[New|Rest2],Length):-
 
 closeLine(Line,New,N,Accu):- 
    N < 1, !, 
-   append(Line,Accu,New).
+   appendLists(Line,Accu,New).
 
 closeLine(Line,New,N,Accu):- 
    M is N - 1, 

@@ -1,6 +1,6 @@
 /*************************************************************************
 
-    File: betaConversionDRT.pl
+    File: freeVarCheck.pl
     Copyright (C) 2004,2006 Patrick Blackburn & Johan Bos
 
     This file is part of BB2, version 2.0 (November 2006).
@@ -21,76 +21,86 @@
 
 *************************************************************************/
 
-:- module(betaConversionDRT,[betaConvert/2]).
+:- module(freeVarCheck,[freeVarCheckDrs/1]).
 
-:- use_module(comsemPredicates,[compose/3,substitute/4]).
-
-:- use_module(alphaConversionDRT,[alphaConvertDRS/2]).
+:- use_module(comsemPredicates,[memberList/2]).
 
 
 /*========================================================================
-   Beta-Conversion (introducing stack)
+   Free Variable Check (main predicate)
 ========================================================================*/
 
-betaConvert(X,Y):-
-   betaConvert(X,Y,[]).
+freeVarCheckDrs(Drs):-
+   freeVarCheckDrs(Drs,[]-_).
 
 
 /*========================================================================
-   Beta-Conversion (core stuff)
+   Free Variable Check (DRSs)
 ========================================================================*/
 
-betaConvert(X,Y,[]):-
+freeVarCheckDrs(drs([X|D],C),L1-L2):-
+   freeVarCheckDrs(drs(D,C),[X|L1]-L2).
+
+freeVarCheckDrs(drs([],C),L-L):-
+   freeVarCheckConds(C,L).
+
+freeVarCheckDrs(merge(B1,B2),L1-L3):-
+   freeVarCheckDrs(B1,L1-L2),
+   freeVarCheckDrs(B2,L2-L3).
+
+freeVarCheckDrs(alfa(_,B1,B2),L1-L3):-
+   freeVarCheckDrs(B1,L1-L2),
+   freeVarCheckDrs(B2,L2-L3).
+
+
+/*========================================================================
+   Free Variable Check (List of conditions)
+========================================================================*/
+
+freeVarCheckConds([],_).
+
+freeVarCheckConds([X|C],L):-
+   freeVarCheckCond(X,L),
+   freeVarCheckConds(C,L).
+
+
+/*========================================================================
+   Free Variable Check (Conditions)
+========================================================================*/
+
+freeVarCheckCond(not(B),L):-
+   freeVarCheckDrs(B,L-_).
+
+freeVarCheckCond(imp(B1,B2),L1):-
+   freeVarCheckDrs(B1,L1-L2),
+   freeVarCheckDrs(B2,L2-_).
+
+freeVarCheckCond(or(B1,B2),L):-
+   freeVarCheckDrs(B1,L-_),
+   freeVarCheckDrs(B2,L-_).
+
+freeVarCheckCond(pred(_,Arg),L):-
+   checkTerms([Arg],L).
+
+freeVarCheckCond(rel(_,Arg1,Arg2),L):-
+   checkTerms([Arg1,Arg2],L).
+
+freeVarCheckCond(eq(Arg1,Arg2),L):-
+   checkTerms([Arg1,Arg2],L).
+
+
+/*========================================================================
+   Check Terms
+========================================================================*/
+
+checkTerms([],_).
+
+checkTerms([X|T],L):-
    var(X),
-   Y=X.
+   memberList(Y,L),
+   X==Y,
+   checkTerms(T,L).
 
-betaConvert(Expression,Result,Stack):- 
-   nonvar(Expression),
-   Expression = app(Functor,Argument),
-   nonvar(Functor),
-   alphaConvertDRS(Functor,Converted),
-   betaConvert(Converted,Result,[Argument|Stack]).
-
-betaConvert(Expression,Result,[X|Stack]):-
-   nonvar(Expression),
-   Expression = lam(X,Formula),
-   betaConvert(Formula,Result,Stack).
-
-betaConvert(Formula,Result,[]):-
-   nonvar(Formula),
-   \+ (Formula = app(X,_), nonvar(X)),
-   compose(Formula,Functor,Formulas),
-   betaConvertList(Formulas,ResultFormulas),
-   compose(Result,Functor,ResultFormulas).
-
-
-/*========================================================================
-   Beta-Convert a list
-========================================================================*/
-
-betaConvertList([],[]).
-
-betaConvertList([Formula|Others],[Result|ResultOthers]):-
-   betaConvert(Formula,Result),
-   betaConvertList(Others,ResultOthers).
-
-
-/*========================================================================
-   Info
-========================================================================*/
-/*
-info:-
-   format('~n> ------------------------------------------------------------------- <',[]),
-   format('~n> betaConversion.pl, by Patrick Blackburn and Johan Bos               <',[]),
-   format('~n>                                                                     <',[]),
-   format('~n> ?- betaConvert(F,C).         - beta-convert a formula               <',[]),
-   format('~n> ------------------------------------------------------------------- <',[]),
-   format('~n~n',[]).
-*/
-
-/*========================================================================
-   Display info at start
-========================================================================*/
-/*
-:- info.
-*/
+checkTerms([X|T],L):-
+   atom(X),
+   checkTerms(T,L).
