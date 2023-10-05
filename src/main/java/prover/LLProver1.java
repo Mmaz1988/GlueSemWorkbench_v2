@@ -435,7 +435,8 @@ public class LLProver1 extends LLProver {
 
                 if (!nonScopingModifiers.isEmpty())
                 {
-                    List<History> scopingModifiers = sccAgenda.stream().filter(h -> !this.nonScopingModifiers.contains(h.mainIndex) && h.category.left != null).collect(Collectors.toList());
+                    List<History> scopingModifiers = sccAgenda.stream().filter(h -> !this.nonScopingModifiers.contains(h.mainIndex) && h.category.left != null &&
+                            h.category.left.toString().equals(h.category.right.toString())).collect(Collectors.toList());
                     // sccAgenda minus scopingModifiers
                     List<History> nonscopingAgenda =  sccAgenda.stream().filter(h -> !scopingModifiers.contains(h)).collect(Collectors.toList());
 
@@ -453,6 +454,9 @@ public class LLProver1 extends LLProver {
 
                     HashMap<History, Set<Integer>[]> indexSetComparison = new HashMap<>();
 
+
+                 Set<Integer> usedNonScopingModifiers = new HashSet<>();
+
                     for (History h : histories) {
 
                         Set<Integer>[] indices = new Set[2];
@@ -460,6 +464,8 @@ public class LLProver1 extends LLProver {
                         nonScopingIndices.retainAll(this.nonScopingModifiers);
 
                         indices[0] = nonScopingIndices;
+
+                        usedNonScopingModifiers.addAll(nonScopingIndices);
 
                         Set<Integer> otherIndices = new HashSet<>(h.indexSet);
                         otherIndices.stream().filter(i -> !nonScopingIndices.contains(i)).collect(Collectors.toList());
@@ -470,6 +476,8 @@ public class LLProver1 extends LLProver {
                             indexSetComparison.put(h, indices);
                         }
                     }
+
+                    this.nonScopingModifiers.removeAll(usedNonScopingModifiers);
 
                     int previousHistories = indexSetComparison.keySet().size();
                     //Remove all key/value pairs for which indices[0] are equal and indices[1] are equal with lambda expression
@@ -492,12 +500,12 @@ public class LLProver1 extends LLProver {
                             }
                         }
 
-
-                        outputHistories.addAll(scopingModifiers);
                         histories = outputHistories;
 
-                        histories = chartDeduce2(histories);
-
+                        if (!scopingModifiers.isEmpty()) {
+                            histories.addAll(scopingModifiers);
+                            histories = chartDeduce2(histories);
+                        }
                     }
                 } else {
                         histories = chartDeduce2(sccAgenda);
