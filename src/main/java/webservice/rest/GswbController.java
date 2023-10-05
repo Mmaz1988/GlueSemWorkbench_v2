@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import prover.*;
 import utilities.LexVariableHandler;
+import utilities.PrintDRT;
 import webservice.rest.dtos.GswbBatchOutput;
 import webservice.rest.dtos.GswbBatchRequest;
 import webservice.rest.dtos.GswbOutput;
@@ -467,145 +468,10 @@ public class GswbController {
 
         }
 
-
-
         if (displayDRT)
         {
-            LOGGER.info("Pretty printing DRT structures ...");
-            List<String> drtSolutions = new ArrayList<>();
-            //create a file that includes all Strings in solutions line  by line
-            //run swipl with the file as input
-
-            LOGGER.fine("Creating temporary files...");
-            //create temporary directory gswb_resources/tmp
-            File tmpDir = new File("gswb_resources/tmp");
-            if (tmpDir.exists())
-            {
-                //delete all files in tmpDir and tmpDir itself
-                File[] files = tmpDir.listFiles();
-                for (File file : files)
-                {
-                    file.delete();
-                }
-                tmpDir.delete();
-            }
-
-            tmpDir.mkdir();
-
-            File gswbFile = new File("gswb_resources/tmp/gswbFile.txt");
-
-            try {
-                if (gswbFile.createNewFile()) {
-                    LOGGER.fine("File created successfully!");
-                } else {
-                    LOGGER.warning("File already exists!");
-                }
-            } catch (IOException e) {
-                LOGGER.warning("An error occurred while creating the file: " + e.getMessage());
-                e.printStackTrace();
-            }
-
-            File drtOutputFile = new File("gswb_resources/tmp/drtOutputFile.txt");
-            try {
-                BufferedWriter writer = new BufferedWriter(new FileWriter(gswbFile));
-                for (String solution : solutions) {
-                    writer.write(solution);
-                    writer.newLine();
-                }
-                writer.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-
-
-            try {
-                String[] command = {
-                        "swipl",
-                        "-q",
-                        "-f",
-                        "gswb_resources/lambdaDRT.pl",
-                        "-t",
-                        "main.",
-                        "--",
-                        gswbFile.getAbsolutePath(),
-                        drtOutputFile.getAbsolutePath()
-                };
-
-                ProcessBuilder processBuilder = new ProcessBuilder(command);
-
-                // Java join command with white space
-
-
-                LOGGER.info("Executing Prolog goal to pretty print DRT!");
-
-                processBuilder.redirectErrorStream(true);
-
-                Process process = processBuilder.start();
-
-                StringBuilder prettyDRT = new StringBuilder();
-
-                // Get the input stream to read the process output
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        prettyDRT.append(line);
-                        prettyDRT.append(System.lineSeparator());
-                    }
-                }
-
-                LOGGER.fine("Pretty DRT: " + prettyDRT.toString());
-
-                // Read and print the output of the external command
-
-                // Wait for the process to complete
-                // Create a separate thread to wait for the process to finish
-                FutureTask<Integer> task = new FutureTask<>(process::waitFor);
-                ExecutorService executor = Executors.newFixedThreadPool(1);
-                executor.execute(task);
-
-                // Wait for 5 seconds for the process to finish
-                try {
-                    int exitCode = task.get(5, TimeUnit.SECONDS);
-                    if (exitCode != 0) {
-                        LOGGER.warning("\nFailed to read output from lambdaDRT.pl!\n");
-                    }
-                } catch (Exception e) {
-                    // If the process takes more than 5 seconds, destroy it
-                    process.destroyForcibly();
-                    LOGGER.warning("\nProcess timed out and was forcibly terminated.\n");
-                }
-
-                executor.shutdown();
-
-                //Kill process if it takes longer than 10 seconds
-
-
-
-
-                //create a new arraylist with prettyDRT as content
-                drtSolutions.add(prettyDRT.toString());
-                solutions = drtSolutions;
-
-
-                //delete temporary files
-                gswbFile.delete();
-                drtOutputFile.delete();
-                tmpDir.delete();
-
-
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            solutions = PrintDRT.printDRT(solutions);
         }
-
-        /*
-        for (String solution : solutions)
-        {
-            System.out.println(solution);
-        }
-         */
 
         Object derivation = null;
 

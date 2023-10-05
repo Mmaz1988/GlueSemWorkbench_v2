@@ -24,7 +24,8 @@
 
 *************************************************************************/
 
-:- module(presupDRT,[presupDRT/0,
+:- module(presupDRT,[resolveDrs/2,
+                    presupDRT/0,
                      presupDRT/3,
                      presupDRTTestSuite/0,
                      infix/0,

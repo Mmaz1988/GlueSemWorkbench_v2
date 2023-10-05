@@ -16,6 +16,7 @@ import glueSemantics.semantics.MeaningConstructor;
 import prover.*;
 import utilities.LexicalParserException;
 import utilities.MyFormatter;
+import utilities.PrintDRT;
 import webservice.WebApplication;
 
 import javax.swing.*;
@@ -87,6 +88,10 @@ public class WorkbenchMain {
                 }
                 case ("-outputStyle"):
                     settings.setSemanticOutputStyle(Integer.parseInt(args[i + 1]));
+                    break;
+
+                case ("-drt"):
+                    settings.setDrt(true);
                     break;
                 case ("-noreduce"):
                     settings.setBetaReduce(false);
@@ -294,6 +299,22 @@ public class WorkbenchMain {
                                 w.append(solution.getSemTerm().toString());
                                 w.append(").");
                                 w.append(System.lineSeparator());
+
+                                if (settings.isDrt()) {
+                                    List<String> sl = new ArrayList<>();
+                                    sl.add(solution.getSemTerm().toString());
+                                    List<String> prettyDRTlist = PrintDRT.printDRT(sl);
+                                    if (!prettyDRTlist.isEmpty())
+                                    {
+                                        for (String drt : prettyDRTlist)
+                                        {
+                                            w.append(drt);
+                                            w.append(System.lineSeparator());
+                                        }
+                                    }
+                                }
+
+
                                 if (naturalDeduction)
                                     w.append(NaturalDeductionProof.getNaturalDeductionProof(solution,0));
                             } else {

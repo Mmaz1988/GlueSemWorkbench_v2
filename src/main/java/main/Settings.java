@@ -66,8 +66,8 @@ public class Settings {
     private boolean explainFail = false;
     private boolean assureGlueParsing = false;
 
-
     private boolean webService = false;
+    private boolean drt = false;
 
     public Settings() {
     }
@@ -75,6 +75,7 @@ public class Settings {
     public Settings (boolean betaReduce, int semanticOutputStyle) {
         this.betaReduce = betaReduce;
         this.semanticOutputStyle = semanticOutputStyle;
+        this.drt = false;
         this.debugging = false;
         this.partial = false;
         this.glueOnly = false;
@@ -216,6 +217,14 @@ public class Settings {
 
     public void setNaturalDeductionOutput(int naturalDeductionOutput) {
         this.naturalDeductionOutput = naturalDeductionOutput;
+    }
+
+    public boolean isDrt() {
+        return drt;
+    }
+
+    public void setDrt(boolean drt) {
+        this.drt = drt;
     }
 }
 
