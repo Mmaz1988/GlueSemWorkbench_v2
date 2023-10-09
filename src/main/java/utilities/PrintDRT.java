@@ -49,7 +49,9 @@ public class PrintDRT {
 
         tmpDir.mkdir();
 
-        File gswbFile = new File("gswb_resources/tmp/gswbFile.txt");
+        LOGGER.fine("Created temporary directory: " + tmpDir.getAbsolutePath());
+
+        File gswbFile = new File( tmpDir.getAbsolutePath() + "/gswbFile.txt");
 
         try {
             if (gswbFile.createNewFile()) {
@@ -63,7 +65,6 @@ public class PrintDRT {
             e.printStackTrace();
         }
 
-        File drtOutputFile = new File("gswb_resources/tmp/drtOutputFile.txt");
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter(gswbFile));
             for (String solution : solutions) {
@@ -74,7 +75,13 @@ public class PrintDRT {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
         try {
+
+            File drtOutputFile = new File(tmpDir.getAbsolutePath() + "/drtOutputFile.txt");
+            LOGGER.info("Created DRT output file: " + drtOutputFile.getAbsolutePath());
+
+
             String[] command = {
                     "swipl",
                     "-q",

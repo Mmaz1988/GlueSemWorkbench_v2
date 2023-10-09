@@ -289,19 +289,25 @@ public class WorkbenchMain {
                     }
                     for (Integer key : solutions.keySet()) {
                         for (int i = 0; i < solutions.get(key).size(); i++) {
+                            List<String> sl = new ArrayList<>();
                             Premise solution = solutions.get(key).get(i);
                             if (onlyMeaningSide) {
                                 w.append(solution.getSemTerm().toString() + System.lineSeparator());
                                 if (naturalDeduction)
                                     w.append(NaturalDeductionProof.getNaturalDeductionProof(solution,0));
                             } else if (settings.getSemanticOutputStyle() == 1) {
-                                w.append("solution" + "(" + key.toString() + i + ",");
-                                w.append(solution.getSemTerm().toString());
-                                w.append(").");
-                                w.append(System.lineSeparator());
+
+                                StringBuilder currentSolutionBuilder = new StringBuilder();
+
+                                currentSolutionBuilder.append("solution" + "(" + key.toString() + i + ",");
+                                currentSolutionBuilder.append(solution.getSemTerm().toString());
+                                currentSolutionBuilder.append(").");
+                                currentSolutionBuilder.append(System.lineSeparator());
+
+                                sl.add(currentSolutionBuilder.toString());
+                                w.append(currentSolutionBuilder.toString());
 
                                 if (settings.isDrt()) {
-                                    List<String> sl = new ArrayList<>();
                                     sl.add(solution.getSemTerm().toString());
                                     List<String> prettyDRTlist = PrintDRT.printDRT(sl);
                                     if (!prettyDRTlist.isEmpty())
@@ -387,7 +393,7 @@ public class WorkbenchMain {
         public static void initiateManualMode(List<String> formulas) throws
                 LexicalParserException, VariableBindingException, ParserInputException {
 
-            GlueParser parser = new GlueParser(settings.isParseSemantics());
+            GlueParser parser = new GlueParser(settings);
 
             LinkedHashMap<Integer, List<MeaningConstructor>> lexicalEntries = parser.parseMeaningConstructorList(formulas);
 
