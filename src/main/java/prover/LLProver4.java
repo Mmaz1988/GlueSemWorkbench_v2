@@ -461,12 +461,13 @@ public class LLProver4 extends LLProver {
 
                     if (!nonScopingModifiers.isEmpty()) {
                         List<History> scopingModifiers = sccAgenda.stream().filter(h -> !this.nonScopingModifiers.contains(h.mainIndex) && h.category.left != null &&
-                                h.category.left.toString().equals(h.category.right.toString())).collect(Collectors.toList());
+                                h.category.left.toString().equals(h.category.right.toString()) &&
+                                h.stage.equals(key)).collect(Collectors.toList());
                         // sccAgenda minus scopingModifiers
                         List<History> nonscopingAgenda = stagedSccAgenda.get(key).stream().filter(h -> !scopingModifiers.contains(h)).collect(Collectors.toList());
 
                         //
-                        Set<Integer> appliedModifiers = nonscopingAgenda.stream().map(h -> h.mainIndex).collect(Collectors.toSet());
+                      //  Set<Integer> appliedModifiers = nonscopingAgenda.stream().map(h -> h.mainIndex).collect(Collectors.toSet());
 
                         nonscopingAgenda.addAll(globalHistory);
                         // List<History> histories = chartDeduce2(sccAgenda);
@@ -505,32 +506,34 @@ public class LLProver4 extends LLProver {
 
                         this.nonScopingModifiers.removeAll(usedNonScopingModifiers);
 
-                        int previousHistories = indexSetComparison.keySet().size();
-                        //Remove all key/value pairs for which indices[0] are equal and indices[1] are equal with lambda expression
-                        indexSetComparison.entrySet().removeIf(entry -> indexSetComparison.entrySet().stream().anyMatch(entry2 -> entry2.getKey() != entry.getKey() &&
-                                entry2.getValue()[0].equals(entry.getValue()[0]) && entry2.getValue()[1].equals(entry.getValue()[1])));
+                        if (usedNonScopingModifiers.size() > 0) {
+
+                            int previousHistories = indexSetComparison.keySet().size();
+                            //Remove all key/value pairs for which indices[0] are equal and indices[1] are equal with lambda expression
+                            indexSetComparison.entrySet().removeIf(entry -> indexSetComparison.entrySet().stream().anyMatch(entry2 -> entry2.getKey() != entry.getKey() &&
+                                    entry2.getValue()[0].equals(entry.getValue()[0]) && entry2.getValue()[1].equals(entry.getValue()[1])));
 
 
-                        if (!indexSetComparison.keySet().isEmpty()) {
+                            if (!indexSetComparison.keySet().isEmpty()) {
 
-                            int removedHistories = previousHistories - indexSetComparison.keySet().size();
-                            db.noScopedHistories += removedHistories;
+                                int removedHistories = previousHistories - indexSetComparison.keySet().size();
+                                db.noScopedHistories += removedHistories;
 
-                            List<History> outputHistories = new ArrayList<>();
+                                List<History> outputHistories = new ArrayList<>();
 
-                            for (CGNode outputNode : outputNodes) {
-                                for (History h : indexSetComparison.keySet()) {
-                                    if (h.category.toString().equals(outputNode.category)) {
-                                        outputHistories.add(h);
-                                    } else if (h.category.atomic)
-                                    {
-                                        outputHistories.add(h);
+                                for (CGNode outputNode : outputNodes) {
+                                    for (History h : indexSetComparison.keySet()) {
+                                        if (h.category.toString().equals(outputNode.category)) {
+                                            outputHistories.add(h);
+                                        } else if (h.category.atomic) {
+                                            outputHistories.add(h);
+                                        }
                                     }
                                 }
+                                histories = outputHistories;
+
                             }
-
-
-                            histories = outputHistories;
+                        }
 
                             if (!scopingModifiers.isEmpty()) {
                                 histories.addAll(scopingModifiers);
@@ -551,10 +554,10 @@ public class LLProver4 extends LLProver {
                                      */
                                 }
                             }
-                            this.nonScopingModifiers.removeAll(appliedModifiers);
+                          //  this.nonScopingModifiers.removeAll(appliedModifiers);
                             histories = newOutput;
 
-                        }
+
                     } else {
                         stagedSccAgenda.get(key).addAll(histories);
 

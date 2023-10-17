@@ -477,36 +477,43 @@ public class LLProver1 extends LLProver {
                         }
                     }
 
-                    this.nonScopingModifiers.removeAll(usedNonScopingModifiers);
-
-                    int previousHistories = indexSetComparison.keySet().size();
-                    //Remove all key/value pairs for which indices[0] are equal and indices[1] are equal with lambda expression
-                    indexSetComparison.entrySet().removeIf(entry -> indexSetComparison.entrySet().stream().anyMatch(entry2 -> entry2.getKey() != entry.getKey() &&
-                            entry2.getValue()[0].equals(entry.getValue()[0]) && entry2.getValue()[1].equals(entry.getValue()[1])));
+                   this.nonScopingModifiers.removeAll(usedNonScopingModifiers);
 
 
-                    if (!indexSetComparison.keySet().isEmpty()) {
+                    //Only try to optimize if any non-scoping modifiers have been used
+                    if (usedNonScopingModifiers.size() > 0) {
 
-                        int removedHistories = previousHistories - indexSetComparison.keySet().size();
-                        db.noScopedHistories += removedHistories;
+                        int previousHistories = indexSetComparison.keySet().size();
+                        //Remove all key/value pairs for which indices[0] are equal and indices[1] are equal
+                        indexSetComparison.entrySet().removeIf(entry -> indexSetComparison.entrySet().stream().anyMatch(entry2 -> entry2.getKey() != entry.getKey() &&
+                                entry2.getValue()[0].equals(entry.getValue()[0]) && entry2.getValue()[1].equals(entry.getValue()[1])));
 
-                        List<History> outputHistories = new ArrayList<>();
 
-                        for (CGNode outputNode : outputNodes) {
-                            for (History h : indexSetComparison.keySet()) {
-                                if (h.category.toString().equals(outputNode.category)) {
-                                    outputHistories.add(h);
+                        if (!indexSetComparison.keySet().isEmpty()) {
+
+                            int removedHistories = previousHistories - indexSetComparison.keySet().size();
+                            db.noScopedHistories += removedHistories;
+
+                            List<History> outputHistories = new ArrayList<>();
+
+                            for (CGNode outputNode : outputNodes) {
+                                for (History h : indexSetComparison.keySet()) {
+                                    if (h.category.toString().equals(outputNode.category)) {
+                                        outputHistories.add(h);
+                                    }
                                 }
                             }
+                            histories = outputHistories;
                         }
+                    }
 
-                        histories = outputHistories;
+                    //Histories now either is optimized or we basically use the original sccAgenda.
 
                         if (!scopingModifiers.isEmpty()) {
                             histories.addAll(scopingModifiers);
                             histories = chartDeduce2(histories);
                         }
-                    }
+
                 } else {
                         histories = chartDeduce2(sccAgenda);
                     }
