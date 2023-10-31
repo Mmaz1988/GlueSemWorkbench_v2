@@ -150,6 +150,11 @@ public class GlueParser {
 
             Matcher startMatcher = wrapperStart.matcher(formulas.get(i));
 
+            if (formulas.get(i).startsWith("//"))
+            {
+                i++;
+                continue;
+            }
 
             //sets corresponds to the number of individual proofs
             if (startMatcher.matches()) {
@@ -169,14 +174,15 @@ public class GlueParser {
 
                     if (endMatcher.matches()) {
                         if (stage > 0) {
+                            i++;
                             sisters.put(stage,sisters.get(stage) + 1);
                             stage = stage - 1;
-
+                            continue;
                         } else
                         if (stage == 0) {
                             newEntry = false;
                             lexicalEntries.put(sets, currentLexicalEntries);
-                            break;
+                            continue;
                         }
                     }
 
@@ -188,6 +194,7 @@ public class GlueParser {
                         {
                             sisters.put(stage,0);
                         }
+                        continue;
                     }
                     try {
 

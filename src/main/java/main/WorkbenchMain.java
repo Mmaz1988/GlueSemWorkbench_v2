@@ -242,6 +242,16 @@ public class WorkbenchMain {
                     if (outFile.exists()) {
                         w = new BufferedWriter(new FileWriter(outFile, true));
                     }
+                } else {
+                    w = new BufferedWriter(new OutputStreamWriter(System.out));
+                    // Normally LOGGER is connected to stdout. So,
+                    // simply remove all handlers from the logger and restore stderr
+                    // connection back
+                    Handler[] currentHandlers = LOGGER.getHandlers();
+                    for (int i = 0; i < currentHandlers.length; i++) {
+                        LOGGER.removeHandler(currentHandlers[i]);
+                    }
+                    LOGGER.addHandler(new StreamHandler(System.err, new MyFormatter()));
                 }
                 // Decide from where to read the input
                 if (stdIn) {
@@ -308,7 +318,7 @@ public class WorkbenchMain {
                                 w.append(currentSolutionBuilder.toString());
 
                                 if (settings.isDrt()) {
-                                    sl.add(solution.getSemTerm().toString());
+                                    sl.add(solution.getSemTerm().toString() + "." + System.lineSeparator());
                                     List<String> prettyDRTlist = PrintDRT.printDRT(sl);
                                     if (!prettyDRTlist.isEmpty())
                                     {

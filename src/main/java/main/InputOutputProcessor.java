@@ -100,10 +100,14 @@ public class InputOutputProcessor {
 		if (update) {
 			String toReturn = "";
 			for (int j = 0; j<lines.length; j++) {
-				String semSide =lines[j].substring(0,lines[j].indexOf(':'));
-				String linSide = lines[j].substring(lines[j].indexOf(':')+ 1);
-				linSide = processPharanthesing(linSide);
-				toReturn +=  semSide + " : " + linSide + "\n";
+				if(!(lines[j].strip().startsWith("}") || lines[j].strip().startsWith("{"))) {
+					String semSide = lines[j].substring(0, lines[j].indexOf(':'));
+					String linSide = lines[j].substring(lines[j].indexOf(':') + 1);
+					linSide = processPharanthesing(linSide);
+					toReturn += semSide + " : " + linSide + "\n";
+				} else {
+					toReturn += lines[j].strip() + "\n";
+				}
 			}
 			return toReturn;
 		}

@@ -214,7 +214,7 @@ public class GraphAnalysis {
                             try {
                                 solutions.addAll(h.calculateSolutions().stream().map(Premise::toString).collect(Collectors.toList()));
                             } catch (Exception e) {
-                                System.out.println("No solutions to calculate.");
+                                LOGGER.fine("History with category " + h.category + "has no solutions to calculate.");
                             }
                         }
                     }
@@ -283,7 +283,7 @@ public class GraphAnalysis {
                                     solutions.addAll(h.calculateSolutions().stream().map(Premise::toString).collect(Collectors.toList()));
                                 } catch(Exception exc)
                                 {
-                                    System.out.println("No solutions to calculate.");
+                                    LOGGER.fine("History with category " + h.category + "has no solutions to calculate.");
                                 }}
                         }
 

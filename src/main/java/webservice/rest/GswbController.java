@@ -4,10 +4,7 @@ import glueSemantics.linearLogic.Premise;
 import glueSemantics.parser.GlueParser;
 import glueSemantics.parser.ParserInputException;
 import glueSemantics.semantics.MeaningConstructor;
-import main.NaturalDeductionProof;
-import main.Settings;
-import main.WorkbenchMain;
-import main.failExplainer;
+import main.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -379,7 +376,10 @@ public class GswbController {
 
         GlueParser gp = new GlueParser(settings);
 
-        LinkedHashMap<Integer, List<MeaningConstructor>> mcs = gp.parseMeaningConstructorString(request.premises);
+        InputOutputProcessor.process(request.premises);
+        String input = InputOutputProcessor.translate(request.premises);
+
+        LinkedHashMap<Integer, List<MeaningConstructor>> mcs = gp.parseMeaningConstructorString(input);
         LinkedHashMap<Integer, List<Premise>> allSolutions = new LinkedHashMap<>();
 
         LLProver prover = null;

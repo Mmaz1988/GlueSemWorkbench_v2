@@ -42,7 +42,7 @@ public class LLProver2 extends LLProver{
 
     /**
      * LLProver version 2.0
-     * LLProver1 implements a procedure for Glue semantics derivations based on Lev (2007), chapter 5
+     * LLProver2 implements a procedure for Glue semantics derivations based on Lev (2007), chapter 5
      * The original idea for this procedure has been described in Hepple (1996).
      * The present version avoids the need for accidental binding.
      *
@@ -499,7 +499,11 @@ public class LLProver2 extends LLProver{
           //  System.out.println("Combining " + f + " and " + a);
             // System.out.println("to: " + combined.toString());
 
+
             //TODO sdout vs file
+
+          //  System.out.println("Now combining " + f + " and " +  a);
+
             if (true)
             {
                 proofBuilder.append("Combining " + InputOutputProcessor.restoreBackLinearLogicSide(f) + " and " + InputOutputProcessor.restoreBackLinearLogicSide(a));
@@ -510,6 +514,7 @@ public class LLProver2 extends LLProver{
                 combined.comb_b = argument;
                 
             }
+
 
 
         }

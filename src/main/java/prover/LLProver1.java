@@ -76,7 +76,7 @@ public class LLProver1 extends LLProver {
             sb.append(System.lineSeparator());
         }
 
-        String inputPremises = currentSequent.getLhs().stream().map(Objects::toString).collect(Collectors.joining(", "));
+        String inputPremises = currentSequent.getLhs().stream().map(Objects::toString).collect(Collectors.joining("\n"));
 
         getLOGGER().fine("List of current premises: " + inputPremises);
 
