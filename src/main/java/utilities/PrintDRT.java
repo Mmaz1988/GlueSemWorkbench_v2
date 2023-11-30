@@ -37,7 +37,7 @@ public class PrintDRT {
 
         LOGGER.fine("Creating temporary files...");
         //create temporary directory gswb_resources/tmp
-        File tmpDir = new File("gswb_resources2/tmp");
+        File tmpDir = new File("gswb_resources/tmp");
         if (tmpDir.exists()) {
             //delete all files in tmpDir and tmpDir itself
             File[] files = tmpDir.listFiles();
@@ -86,7 +86,7 @@ public class PrintDRT {
                     "swipl",
                     "-q",
                     "-f",
-                    "gswb_resources2/lambdaDRT.pl",
+                    "gswb_resources/lambdaDRT.pl",
                     "-t",
                     "main.",
                     "--",
