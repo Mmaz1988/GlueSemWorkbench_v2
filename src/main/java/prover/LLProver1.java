@@ -583,10 +583,11 @@ public class LLProver1 extends LLProver {
 */
 
 
-
-        analysis = new GraphAnalysis(goalCategory,scc2, categoryGraph2,categoryToPremiseMapping);
-        analysis.returnJSONGraph();
-        //analysis.displayGraph();
+        if (getSettings().isExplainFail()) {
+            analysis = new GraphAnalysis(goalCategory, scc2, categoryGraph2, categoryToPremiseMapping);
+            analysis.returnJSONGraph();
+            //analysis.displayGraph();
+        }
 
         getLOGGER().fine("Starting semantic calculations...");
 

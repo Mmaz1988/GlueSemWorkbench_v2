@@ -475,14 +475,14 @@ public class GswbController {
 
         Object derivation = null;
 
-        if (settings.getProverType() == 0) {
-            derivation = explainBuilder.toString();
-        } else if (prover instanceof LLProver1)
-        {
-            derivation = ((LLProver1) prover).analysis.returnJSONGraph();
-        } else if (prover instanceof LLProver4)
-        {
-            derivation = ((LLProver4) prover).analysis.returnJSONGraph();
+        if (settings.isExplainFail()) {
+            if (settings.getProverType() == 0) {
+                derivation = explainBuilder.toString();
+            } else if (prover instanceof LLProver1) {
+                derivation = ((LLProver1) prover).analysis.returnJSONGraph();
+            } else if (prover instanceof LLProver4) {
+                derivation = ((LLProver4) prover).analysis.returnJSONGraph();
+            }
         }
 
         LexVariableHandler.resetVars();
@@ -492,7 +492,9 @@ public class GswbController {
         if (settings.isDebugging())
         {
             log = prover.db.toString() + "\n" + log;
+            LOGGER.info("Debugging output: \n" + prover.db.toString());
         }
+
 
         //transform list of premises into list of strings
         return new GswbOutput(solutions, log, derivation);

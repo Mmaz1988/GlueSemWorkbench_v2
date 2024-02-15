@@ -8,10 +8,15 @@ public class Debugging {
     public Long computationTime;
     public Integer allIterations = 0;
     public Integer combinations = 0;
+
+    public Integer attemptedCombination = 0;
     public Integer compilations = 0;
     public Integer discardedHistories = 0;
-
     public Integer noScopedHistories = 0;
+
+
+    public Integer chartSize = 0;
+
     @Override
     public String toString() {
 
@@ -27,6 +32,8 @@ public class Debugging {
         }
         sb.append("Number of combination steps: " + combinations);
         sb.append(System.lineSeparator());
+        sb.append("Number of attempted combinations: " + attemptedCombination);
+        sb.append(System.lineSeparator());
         sb.append("Number of proper compilation steps: " + compilations);
         sb.append(System.lineSeparator());
 
@@ -38,6 +45,7 @@ public class Debugging {
             sb.append(System.lineSeparator());
         }
 
+        sb.append("Chart size: " + chartSize);
 
         return sb.toString();
     }

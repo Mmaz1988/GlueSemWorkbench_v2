@@ -147,6 +147,7 @@ public class LLProver2 extends LLProver{
                         for (String category : nonAtomicChart.keySet()) {
 
                             for (Premise q : nonAtomicChart.get(category)) {
+                                db.attemptedCombination++;
                                 combined = combinePremises(p, q,proofBuilder);
                                 if (combined != null && validPremise(combined)) {
                                     db.combinations++;
@@ -159,6 +160,7 @@ public class LLProver2 extends LLProver{
 
                         if (nonAtomicChart.containsKey(p.getGlueTerm().category().toString())) {
                             for (Premise q : nonAtomicChart.get(p.getGlueTerm().category().toString())) {
+                                db.attemptedCombination++;
                                 combined = combinePremises(q, p,proofBuilder);
                                 if (combined != null && validPremise(combined)) {
                                     db.combinations++;
@@ -172,6 +174,7 @@ public class LLProver2 extends LLProver{
                     for (String key : nonAtomicChart.keySet()) {
                         if (isVar(key)) {
                             for (Premise q : nonAtomicChart.get(key)) {
+                                db.attemptedCombination++;
                                 combined = combinePremises(q, p,proofBuilder);
                                 if (combined != null && validPremise(combined)) {
                                     db.combinations++;
@@ -189,6 +192,7 @@ public class LLProver2 extends LLProver{
                         for (String key : atomicChart.keySet()) {
 
                             for (Premise q : atomicChart.get(key)) {
+                                db.attemptedCombination++;
                                 combined = combinePremises(p, q,proofBuilder);
                                 if (combined != null && validPremise(combined)) {
                                     iter.add(combined);
@@ -199,6 +203,7 @@ public class LLProver2 extends LLProver{
                     } else {
                         if (atomicChart.containsKey(((LLFormula) p.getGlueTerm()).getLhs().category().toString())) {
                             for (Premise q : atomicChart.get(((LLFormula) p.getGlueTerm()).getLhs().category().toString())) {
+                                db.attemptedCombination++;
                                 combined = combinePremises(p, q,proofBuilder);
                                 if (combined != null && validPremise(combined)) {
                                     iter.add(combined);
@@ -210,6 +215,7 @@ public class LLProver2 extends LLProver{
                         for (String category : atomicChart.keySet()) {
                             if (Character.isUpperCase(category.charAt(0))) {
                                 for (Premise q : atomicChart.get(category)) {
+                                    db.attemptedCombination++;
                                     combined = combinePremises(p, q,proofBuilder);
                                     if (combined != null && validPremise(combined)) {
                                         iter.add(combined);
@@ -248,6 +254,9 @@ public class LLProver2 extends LLProver{
         long endTime = System.nanoTime();
 
         db.computationTime = endTime - startTime;
+
+        //Calculate number of all values of all keys in atomicChart and nonAtomicChart
+        db.chartSize = atomicChart.values().stream().mapToInt(List::size).sum() + nonAtomicChart.values().stream().mapToInt(List::size).sum();
 
         getLOGGER().info("Found the following glue derivation(s):\n" + proofBuilder.toString());
 
@@ -804,6 +813,15 @@ public class LLProver2 extends LLProver{
                 atomicChart.put(p.getGlueTerm().category().toString(), premises);
 
             }
+        } else if (p.getGlueTerm() instanceof LLQuantEx) {
+            String category = ((LLFormula) ((LLQuantEx) p.getGlueTerm()).getScope()).getLhs().category().toString();
+            if (nonAtomicChart.containsKey(category)) {
+                nonAtomicChart.get(category).add(p);
+            } else {
+                List<Premise> premises = new ArrayList<>();
+                premises.add(p);
+                nonAtomicChart.put(category, premises);
+            }
         }
     }
 
@@ -950,6 +968,12 @@ public class LLProver2 extends LLProver{
                 LLFormula newLogic = new LLFormula(f.getLhs(), tempList.getFirst().getGlueTerm(),
                         tempList.getFirst().getGlueTerm().isPolarity(), f.getVariable());
                 p.setGlueTerm(newLogic);
+            } else if (p.getGlueTerm() instanceof LLQuantEx) {
+                //Case for uncompiled quantifiers
+                LLTerm temp = ((LLQuantEx) p.getGlueTerm()).getScope();
+                Premise tempPremise = new Premise(p.getPremiseIDs(), p.getSemTerm(), temp);
+                LinkedList<Premise> tempList = convert(tempPremise);
+                return tempList;
             }
         }
         compiled.addFirst(p);

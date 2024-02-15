@@ -14,6 +14,7 @@ EXPOSE 8081
 RUN apt-get update && apt-get install --yes --no-install-recommends libjemalloc2
 RUN apt-get install --yes swi-prolog
 
+
 # set jemalloc as default malloc in env variable
 ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
 

@@ -29,6 +29,7 @@ public class History {
 
     public String stage;
 
+    public List<Premise> results;
     public History(Category category, Set<Integer> indexSet, Set<HashMap<Integer,History>> parents, Premise p, LLProver prover)
     {
         this.prover = prover;
@@ -81,6 +82,11 @@ public class History {
 
     public List<Premise> calculateSolutions(StringBuilder resultBuilder) throws VariableBindingException, ProverException {
 
+        if (results != null)
+        {
+            return results;
+        }
+
         List<Premise> results = new ArrayList<>();
 
         for (HashMap<Integer,History> parentLinks : parents)
@@ -112,11 +118,13 @@ public class History {
                 for (Premise q : arg)
                 {
 
-                    Premise r = prover.combinePremises(p,q,resultBuilder);
-                    if (r != null)
-                    {
-                        prover.db.combinations++;
-                        results.add(r);
+                    prover.db.attemptedCombination++;
+                    Premise r = prover.combinePremises(p,q);
+                    if (r != null ) {
+                        if (r.getPremiseIDs().equals(this.indexSet)) {
+                            prover.db.combinations++;
+                            results.add(r);
+                        }
                     }
                 }
             }
@@ -124,7 +132,10 @@ public class History {
         }
 
 
-
+        if (!results.isEmpty())
+        {
+            this.results = results;
+        }
 
         return results;
 
@@ -178,11 +189,13 @@ public class History {
                     }
 
                      */
+                    prover.db.attemptedCombination++;
                     Premise r = prover.combinePremises(p,q);
-                    if (r != null)
-                    {
-                        prover.db.combinations++;
-                        results.add(r);
+                    if (r != null ) {
+                        if (r.getPremiseIDs().equals(this.indexSet)) {
+                            prover.db.combinations++;
+                            results.add(r);
+                        }
                     }
                 }
             }
