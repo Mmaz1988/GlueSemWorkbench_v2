@@ -7,6 +7,7 @@ import prover.ProverException;
 import prover.VariableBindingException;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class History {
 
@@ -202,6 +203,40 @@ public class History {
         }
 
     }
+
+    public static List<History> categorySort(List<History> histories){
+        List<History> output = new ArrayList<>();
+        HashMap<Integer,List<History>> sortByDepth = new HashMap<>();
+
+        for (History h : histories)
+        {
+            Integer depthCounter = 0;
+            Category current = h.category;
+
+            while(current.left != null)
+            {
+                depthCounter++;
+                current = current.right;
+            }
+
+            sortByDepth.computeIfAbsent(depthCounter, k -> new ArrayList<>());
+            sortByDepth.get(depthCounter).add(h);
+        }
+
+        //sort keys of sortByDepth inascending order
+        List<Integer> sortedKeys = new ArrayList<>(sortByDepth.keySet());
+        Collections.sort(sortedKeys);
+
+        for (Integer i : sortedKeys)
+        {
+            //sort histories in sortByDepth.get(i) by mainIndex
+            output.addAll(sortByDepth.get(i).stream().sorted(Comparator.comparingInt(o -> o.mainIndex)).collect(Collectors.toList()));
+        }
+
+        return output;
+
+    }
+
 
     public String printParentGraph() {
 
