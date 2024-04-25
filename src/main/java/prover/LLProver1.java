@@ -441,9 +441,10 @@ public class LLProver1 extends LLProver {
                     List<History> nonscopingAgenda =  sccAgenda.stream().filter(h -> !scopingModifiers.contains(h)).collect(Collectors.toList());
 
 
-                // List<History> histories = chartDeduce2(sccAgenda);
+                // List<History> histories =
+                    // (sccAgenda);
 
-                histories = chartDeduce2(nonscopingAgenda);
+                histories = chartDeduce2(nonscopingAgenda,true);
 
 
                 //Remove duplicates based on mainindex
@@ -511,11 +512,11 @@ public class LLProver1 extends LLProver {
 
                         if (!scopingModifiers.isEmpty()) {
                             histories.addAll(scopingModifiers);
-                            histories = chartDeduce2(histories);
+                            histories = chartDeduce2(histories,false);
                         }
 
                 } else {
-                        histories = chartDeduce2(sccAgenda);
+                        histories = chartDeduce2(sccAgenda,false);
                     }
 
 
@@ -626,14 +627,89 @@ public class LLProver1 extends LLProver {
      * @throws ProverException
      */
 
-    public List<History> chartDeduce2(List<History> histories) throws VariableBindingException, ProverException {
+    public List<History> chartDeduce2(List<History> histories, boolean noscope) throws VariableBindingException, ProverException {
         getLOGGER().finer("Beginning a partial chart derivation...");
 
+
+        if (noscope) {
+
+            HashMap<String,LinkedList<History>> atomicChart = new HashMap<>();
+            List<History> nonatomicChart = new ArrayList();
+
+
+
+
+            //The agenda contains all histories that take part in the calculation of the histories within the SCC
+            List<History> agenda = History.categorySort(histories);
+
+            for (History h : agenda)
+            {
+                if (h.category.left == null)
+                {
+                    if (!atomicChart.containsKey(h.category.toString()))
+                    {
+                        atomicChart.put(h.category.toString(),new LinkedList<>());
+                    }
+                    atomicChart.get(h.category.toString()).add(h);
+
+                } else{
+                    nonatomicChart.add(h);
+                }
+            }
+
+            History.categorySort(nonatomicChart);
+            Collections.reverse(nonatomicChart);
+
+
+            ListIterator<History> nonAtomicIterator = nonatomicChart.listIterator();
+
+            while (nonAtomicIterator.hasNext()) {
+                History currentHistory = nonAtomicIterator.next();
+                nonAtomicIterator.remove();
+                if (atomicChart.containsKey(currentHistory.category.left.toString()))
+                {
+                    ListIterator<History> atomicIterator = atomicChart.get(currentHistory.category.left.toString()).listIterator();
+                    LinkedList<History> newChart = new LinkedList<>();
+
+                    while (atomicIterator.hasNext())
+                    {
+                        //Argument that is combined with currentHistory
+                        History currentArg = atomicIterator.next();
+                        atomicIterator.remove();
+
+                        History combined = combineHistories(currentHistory, currentArg);
+                        if (combined != null) {
+                            newChart.add(combined);
+                            if (combined.category.left != null)
+                            {
+                                nonAtomicIterator.add(combined);
+                            }
+                        }
+
+                    }
+
+                    atomicChart.put(currentHistory.category.left.toString(),newChart);
+
+                }
+            }
+
+            //add all values of atomicChart to one list and return that list
+            return atomicChart.values().stream().flatMap(List::stream).collect(Collectors.toList());
+
+        }
+
+        List<History> agenda = History.categorySort(histories);
+
+        //In the beginning the chart is empty
+        List<History> chart = new ArrayList<>();
+
+
+/*
         //The agenda contains all histories that take part in the calculation of the histories within the SCC
         List<History> agenda = new ArrayList<>(histories);
         //In the beginning the chart is empty
         List<History> chart = new ArrayList<>();
-
+*/
 
         while (!agenda.isEmpty()) {
 

@@ -72,7 +72,7 @@ public class LLProver4 extends LLProver {
             sb.append(System.lineSeparator());
         }
 
-        String inputPremises = currentSequent.getLhs().stream().map(Objects::toString).collect(Collectors.joining(", "));
+        String inputPremises = currentSequent.getLhs().stream().map(Objects::toString).collect(Collectors.joining("\n"));
 
         getLOGGER().fine("List of current premises: " + inputPremises);
 
@@ -792,6 +792,7 @@ public class LLProver4 extends LLProver {
 
          */
 
+/*
 
     public Chart chartDeduce(List<History> histories) throws VariableBindingException, ProverException {
         getLOGGER().finer("Beginning a partial chart derivation...");
@@ -853,6 +854,7 @@ public class LLProver4 extends LLProver {
         }
         return chart;
     }
+*/
 
 
     public Graph<CGNode,DefaultEdge> calculateCategoryGraph2(List<LLTerm> initialPremises,HashMap<String,List<Premise>> category2premiseMapping)
