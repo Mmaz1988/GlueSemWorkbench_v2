@@ -56,7 +56,10 @@ public class LLProver1 extends LLProver {
     public void deduce(Sequent seq) throws ProverException, VariableBindingException {
 
         //clear field variables for new deduction
+        this.proofBuilder = new StringBuilder();
+
         this.finalHistories.clear();
+        this.finalPartialHistories.clear();
         this.goalIDs.clear();
         this.getSolutions().clear();
 
@@ -445,7 +448,7 @@ public class LLProver1 extends LLProver {
                 // List<History> histories =
                     // (sccAgenda);
 
-                histories = chartDeduce2(nonscopingAgenda,true);
+                histories = chartDeduce2(nonscopingAgenda,false);
 
 
                 //Remove duplicates based on mainindex
@@ -580,15 +583,10 @@ public class LLProver1 extends LLProver {
             }
         }
 
-
 /*
-
         Set<History> compressedFinalHistories = CGNode.compressHistories(finalHistories);
         setFinalHistories(new LinkedList<>(compressedFinalHistories));
 */
-
-
-
 
         getLOGGER().fine("Starting semantic calculations...");
 
@@ -619,7 +617,7 @@ public class LLProver1 extends LLProver {
             analysis.returnJSONGraph();
             //analysis.displayGraph();
 
-            if (!finalPartialHistories.isEmpty())
+            if (getSolutions().isEmpty() && !finalPartialHistories.isEmpty())
             {
              proofBuilder.append("Found the following partial solutions: ...");
 

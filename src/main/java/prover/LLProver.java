@@ -67,6 +67,8 @@ public abstract class LLProver {
             StringBuilder resultBuilder = new StringBuilder();
 
 
+            LOGGER.info(this.getProofBuilder().toString());
+
 
             StringBuilder solutionBuilder = new StringBuilder();
             solutionBuilder.append(String.format("Found the following solutions for proof with id S%d:\n",key));
