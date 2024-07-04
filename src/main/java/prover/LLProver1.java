@@ -28,6 +28,7 @@ public class LLProver1 extends LLProver {
 
     private Set<Integer> nonScopingModifiers;
     private LinkedList<History> finalHistories = new LinkedList<>();
+    private LinkedList<History> finalPartialHistories = new LinkedList<>();
     private StringBuilder proofBuilder;
     private HashSet<Integer> goalIDs = new HashSet<>();
     public GraphAnalysis analysis;
@@ -571,6 +572,9 @@ public class LLProver1 extends LLProver {
                    if (h.indexSet.equals(goalIDs))
                    {
                        finalHistories.add(h);
+                   } else
+                   {
+                       finalPartialHistories.add(h);
                    }
                }
             }
@@ -584,11 +588,7 @@ public class LLProver1 extends LLProver {
 */
 
 
-        if (getSettings().isExplainFail()) {
-            analysis = new GraphAnalysis(goalCategory, scc2, categoryGraph2, categoryToPremiseMapping);
-            analysis.returnJSONGraph();
-            //analysis.displayGraph();
-        }
+
 
         getLOGGER().fine("Starting semantic calculations...");
 
@@ -606,14 +606,41 @@ public class LLProver1 extends LLProver {
 
         }
 
-
-
        // System.out.println(resultBuilder);
         // System.out.println(System.lineSeparator());
 
         long endTime = System.nanoTime();
         db.computationTime = endTime - startTime;
         proofBuilder.append(System.lineSeparator());
+
+
+        if (getSettings().isExplainFail()) {
+            analysis = new GraphAnalysis(goalCategory, scc2, categoryGraph2, categoryToPremiseMapping);
+            analysis.returnJSONGraph();
+            //analysis.displayGraph();
+
+            if (!finalPartialHistories.isEmpty())
+            {
+             proofBuilder.append("Found the following partial solutions: ...");
+
+             for (History h : finalPartialHistories){
+                 // Calculate symmetric difference
+                 Set<Integer> symmetricDifference = new HashSet<>(goalIDs);
+                 symmetricDifference.addAll(h.indexSet);
+
+                 Set<Integer> tmp = new HashSet<>(goalIDs);
+                 tmp.retainAll(h.indexSet);
+
+                 symmetricDifference.removeAll(tmp);
+
+                 proofBuilder.append("For solution " + h.mainIndex.toString() + ", the followind indices are missing: " + symmetricDifference.toString() + "\n");
+
+
+             }
+
+            }
+        }
+
     }
 
 

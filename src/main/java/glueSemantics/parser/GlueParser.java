@@ -152,7 +152,6 @@ public class GlueParser {
 
             if (formulas.get(i).startsWith("//"))
             {
-                i++;
                 continue;
             }
 
