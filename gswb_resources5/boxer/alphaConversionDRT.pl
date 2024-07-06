@@ -38,9 +38,6 @@ alphaConvertDRS(B1,B2):-
    Alpha Conversion (term)
 ========================================================================*/
 
-alphaConvertTermList([],_,[]).
-alphaConvertTermList([H|T],Vars,[New|T1]) :- alphaConvertTerm(H,Vars,New), alphaConvertTermList(T,Vars,T1).
-
 alphaConvertTerm(X,Vars,New):-
    var(X),
    alphaConvertVar(X,Vars,New).
@@ -49,12 +46,6 @@ alphaConvertTerm(X,_Vars,New):-
    atom(X),
    New = X.
 
-alphaConvertTerm(X,Vars,New) :-
-   \+ var(X),
-   \+ atom(X),
-   X =.. [Func|Args],
-   alphaConvertTermList(Args,Vars,NewArgs),
-   New =.. [Func|NewArgs].
 
 /*========================================================================
    Alpha Conversion (variables)
@@ -125,15 +116,6 @@ alphaConvertDRS(Exp,Vars-Vars,app(E3,E4)):-
 alphaConvertCondition(not(B1),Vars,not(B2)):-
    alphaConvertDRS(B1,Vars-_,B2).
 
-alphaConvertCondition(try(B1),Vars,try(B2)):-
-   alphaConvertDRS(B1,Vars-_,B2).
-
-alphaConvertCondition(say(B1),Vars,say(B2)):-
-   alphaConvertDRS(B1,Vars-_,B2).
-
-alphaConvertCondition(seem(B1),Vars,seem(B2)):-
-   alphaConvertDRS(B1,Vars-_,B2).
-
 alphaConvertCondition(imp(B1,B2),Vars,imp(B3,B4)):-
     alphaConvertDRS(B1,Vars-Vars1,B3),
     alphaConvertDRS(B2,Vars1-_,B4).
@@ -155,4 +137,3 @@ alphaConvertCondition(rel(Sym,X1,Y1),Vars,rel(Sym,X2,Y2)):-
 alphaConvertCondition(eq(X1,Y1),Vars,eq(X2,Y2)):-
    alphaConvertTerm(X1,Vars,X2),
    alphaConvertTerm(Y1,Vars,Y2).
-

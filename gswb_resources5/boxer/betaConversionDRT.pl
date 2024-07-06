@@ -53,13 +53,6 @@ betaConvert(Expression,Result,Stack):-
 
 betaConvert(Expression,Result,[X|Stack]):-
    nonvar(Expression),
-   atom(X),
-   Expression = lam(V,Formula),
-   betaConvert(Formula,Result,Stack),
-   V = X.
-
-betaConvert(Expression,Result,[X|Stack]):-
-   nonvar(Expression),
    Expression = lam(X,Formula),
    betaConvert(Formula,Result,Stack).
 

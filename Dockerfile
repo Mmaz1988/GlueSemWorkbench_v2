@@ -22,7 +22,7 @@ ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
 COPY --from=build /home/gswb/src/target/GlueSemWorkbench-1.0-SNAPSHOT.jar app.jar
 
 # copy necessary resource files
-COPY gswb_resources gswb_resources
+COPY gswb_resources5 gswb_resources
 
 ## ENTRYPOINT ["java", "-jar", "/app.jar"]
 ENTRYPOINT exec java -jar /app.jar -web

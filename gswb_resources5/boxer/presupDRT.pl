@@ -150,12 +150,6 @@ findAlfaConds([or(B,B1)|C],[or(B,B2)|C],Alfa,Ac,Bi1-Bi2):-
 findAlfaConds([not(B1)|C],[not(B2)|C],Alfa,Ac,Bi1-Bi2):-
    findAlfaDrs(B1,B2,Alfa,Ac,Bi1-Bi2), !.
 
-findAlfaConds([try(B1)|C],[try(B2)|C],Alfa,Ac,Bi1-Bi2):-
-   findAlfaDrs(B1,B2,Alfa,Ac,Bi1-Bi2), !.
-
-findAlfaConds([say(B1)|C],[say(B2)|C],Alfa,Ac,Bi1-Bi2):-
-   findAlfaDrs(B1,B2,Alfa,Ac,Bi1-Bi2), !.
-
 findAlfaConds([X|C1],[X|C2],Alfa,Ac,Bi1-Bi2):-
    findAlfaConds(C1,C2,Alfa,Ac,Bi1-Bi2).
 

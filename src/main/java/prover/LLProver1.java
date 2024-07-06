@@ -23,18 +23,13 @@ import java.util.stream.Collectors;
 
 public class LLProver1 extends LLProver {
 
-
     private Sequent currentSequent;
-
     private Set<Integer> nonScopingModifiers;
     private LinkedList<History> finalHistories = new LinkedList<>();
     private LinkedList<History> finalPartialHistories = new LinkedList<>();
     private StringBuilder proofBuilder;
     private HashSet<Integer> goalIDs = new HashSet<>();
     public GraphAnalysis analysis;
-
-
-
 
     /**
      * LLProver1 implements a procedure for Glue semantics derivations based on Lev (2007), chapter 6
@@ -57,20 +52,18 @@ public class LLProver1 extends LLProver {
 
         //clear field variables for new deduction
         this.proofBuilder = new StringBuilder();
-
         this.finalHistories.clear();
         this.finalPartialHistories.clear();
         this.goalIDs.clear();
         this.getSolutions().clear();
-
         this.nonScopingModifiers = new HashSet<>();
-
         this.db = new Debugging();
         this.currentSequent = seq;
+
         LinkedList<Premise> agenda = new LinkedList<>();
 
+        //For calculating processing time
         long startTime = System.nanoTime();
-
 
         StringBuilder sb = new StringBuilder();
         sb.append("Input premises:");
@@ -80,60 +73,50 @@ public class LLProver1 extends LLProver {
             sb.append(System.lineSeparator());
         }
 
-        String inputPremises = currentSequent.getLhs().stream().map(Objects::toString).collect(Collectors.joining("\n"));
-
-        getLOGGER().fine("List of current premises: " + inputPremises);
+        //String inputPremises = currentSequent.getLhs().stream().map(Objects::toString).collect(Collectors.joining("\n"));
+        getLOGGER().fine("List of current premises: \n" + sb.toString());
 
         //TODO insert boolean for distinguishing between sdout and file
-        if (true) {
-            proofBuilder.append(sb.toString());
-            proofBuilder.append(System.lineSeparator());
-            proofBuilder.append(System.lineSeparator());
-        }
+
+        proofBuilder.append(sb.toString());
+        proofBuilder.append(System.lineSeparator());
+        proofBuilder.append(System.lineSeparator());
 
         HashMap<Premise,Set<String>> categoryToPremiseMapping = new HashMap<>();
+
+        //Compilation refers to the process of creating first-order LL terms from higher order terms
+        //EX: (a -o b) -o c --> {[a], b -o c}
 
         getLOGGER().fine("Starting compilation process...");
         for (Premise p : currentSequent.getLhs()) {
             List<Premise> compiled = convert(p);
             agenda.addAll(compiled);
 
-            Set<String> compiledCategory = new HashSet<>();
-            for (Premise c : compiled)
-            {
-                compiledCategory.addAll(compiled.stream().map(x -> x.getGlueTerm().category().toString()).collect(Collectors.toSet()));
-            }
+            Set<String> compiledCategory = compiled.stream().map(x ->
+                    x.getGlueTerm().category().toString()).collect(Collectors.toSet());
+
+            //Store original mapping
             categoryToPremiseMapping.put(p,compiledCategory);
         }
 
-        StringBuilder agendaString = new StringBuilder();
-        for (Premise p : agenda)
-        {
-            agendaString.append(p.toString() + "\n");
-        }
-
-        getLOGGER().fine(agendaString.toString());
-
-        String goalCategory = findAtomicGoal(agenda);
-        getLOGGER().fine("Automatically detected goal category: " + goalCategory);
-
-
-        getLOGGER().fine("Starting deduction procedure...");
         StringBuilder ab = new StringBuilder();
-        ab.append("Agenda:");
+        ab.append("Compiled premises:");
         ab.append(System.lineSeparator());
         for (Premise p : agenda) {
             ab.append(p);
             ab.append(System.lineSeparator());
         }
 
+        getLOGGER().fine(ab.toString());
 
-        //TODO insert boolean for distinguishing between sdout and file
-        if (true) {
-            proofBuilder.append(ab.toString());
-            proofBuilder.append(System.lineSeparator());
-            proofBuilder.append(System.lineSeparator());
-        }
+        proofBuilder.append(ab.toString());
+        proofBuilder.append(System.lineSeparator());
+        proofBuilder.append(System.lineSeparator());
+
+        String goalCategory = findAtomicGoal(agenda);
+        getLOGGER().fine("Automatically detected goal category: " + goalCategory);
+
+        getLOGGER().fine("Starting deduction procedure...");
 
         List<LLTerm> initialCategories = new ArrayList<>();
         HashMap<String,List<Premise>> category2premiseMapping = new HashMap<>();
@@ -149,7 +132,7 @@ public class LLProver1 extends LLProver {
             }
             category2premiseMapping.get(p.getGlueTerm().category().toString()).add(p);
 
-            Boolean contains = false;
+            boolean contains = false;
                 for (LLTerm glue : initialCategories) {
                     if (p.getGlueTerm().category().equals(glue.category())) {
                         contains = true;

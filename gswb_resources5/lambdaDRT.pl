@@ -40,5 +40,5 @@ drt2file(L,F) :- betaConvertList(L,L2),
 betaConvertList([],[]).
   betaConvertList([H1|T1],[H2|T2]) :- betaConvert(H1,H2),resolveDrs(H2,H3),
   printDrs(H3),
-  betaConvertList(T1,T2),halt. 
+  betaConvertList(T1,T2). 
 
