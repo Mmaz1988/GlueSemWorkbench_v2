@@ -18,6 +18,7 @@ import utilities.Debugging;
 import utilities.LexVariableHandler;
 
 import java.io.IOException;
+import java.lang.reflect.Member;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -1165,7 +1166,19 @@ public class LLProver1 extends LLProver {
                     while (!discharges.isEmpty())
                     {
                         Premise p = discharges.removeLast().getValue();
-                        temp = new SemFunction((SemAtom) p.getSemTerm(),temp);
+
+                        if (temp instanceof SemSet)
+                        {
+                            List<SemanticRepresentation> newSem = new ArrayList<>();
+                            for (SemanticRepresentation m : ((SemSet) temp).getMembers())
+                            {
+                                newSem.add(new SemFunction((SemAtom) p.getSemTerm(),m));
+                            }
+
+                            temp = new SemSet(newSem,newSem.get(0).getType());
+                        } else {
+                            temp = new SemFunction((SemAtom) p.getSemTerm(), temp);
+                        }
                         argumentGlueClone.getAssumptions2().remove(p);
                        }
                     argumentClone = new Premise(argument.getPremiseIDs(),temp,argumentGlueClone);
@@ -1373,7 +1386,18 @@ public class LLProver1 extends LLProver {
                     while (!discharges.isEmpty())
                     {
                         Premise p = discharges.removeLast().getValue();
-                        temp = new SemFunction((SemAtom) p.getSemTerm(),temp);
+                        if (temp instanceof SemSet)
+                        {
+                            List<SemanticRepresentation> newSem = new ArrayList<>();
+                            for (SemanticRepresentation m : ((SemSet) temp).getMembers())
+                            {
+                                newSem.add(new SemFunction((SemAtom) p.getSemTerm(),m));
+                            }
+
+                            temp = new SemSet(newSem,newSem.get(0).getType());
+                        } else {
+                            temp = new SemFunction((SemAtom) p.getSemTerm(), temp);
+                        }
                         argumentGlueClone.getAssumptions2().remove(p);
                     }
                     argumentClone = new Premise(argument.getPremiseIDs(),temp,argumentGlueClone);

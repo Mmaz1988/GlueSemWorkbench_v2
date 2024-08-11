@@ -28,13 +28,13 @@ public class SemType {
     private SemType left;
     private SemType right;
     private AtomicType simple;
-    public static Set<String> typeStrings = new HashSet<String>(Arrays.asList("e","t","v","i","s","p","x","temp"));
+    public static Set<String> typeStrings = new HashSet<String>(Arrays.asList("e","t","v","i","s","d","p","x","temp","a"));
 
     // An enumeration of possible atomic types
     // TEMP is a special type used for variables introduced
     // during the compilation process
     public enum AtomicType {
-        E,T,V,I,S,P,X,TEMP
+        E,T,V,I,S,D,P,X,TEMP,ALT
     }
 
     public SemType getLeft() {
@@ -98,10 +98,16 @@ public class SemType {
                     return "i";
                 case V:
                     return "v";
+                case D:
+                    return "d";
                 case P:
                     return "p";
                 case X:
                     return "x";
+                case ALT:
+                    return "a";
+                case TEMP:
+                    return "u";
             }
             /*
             if (simple == E)

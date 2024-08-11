@@ -48,6 +48,15 @@ public class StringParser {
                     return new SemType(SemType.AtomicType.V);
                 }
 
+                if (c == 'x')
+                {
+                    return new SemType(SemType.AtomicType.X);
+                }
+
+                if (c == 'a')
+                {
+                    return new SemType(SemType.AtomicType.ALT);
+                }
 
                 if (c == '<')
                 {

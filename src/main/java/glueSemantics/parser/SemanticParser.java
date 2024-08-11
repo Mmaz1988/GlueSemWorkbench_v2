@@ -72,7 +72,7 @@ public class SemanticParser extends StringParser {
         testFormulas.add("[/x_e.[/y_e.sleep(a(x),b(y))]]");
         testFormulas.add("[/P_e.[/x_e.[/y_e.sleep(c(a(x),b(y),P(x),a(x,y)))]]]");
         testFormulas.add("[/P_e.[/Q_e.[/y_e.[P(y) & Q(y)]]]]");
-        testFormulas.add("[/P_<e,t>.[/Q_<e,t>.Ex_v[P(x) -> Q(x))]]]");
+
         testFormulas.add("[/R_<v,t>.[/x_e.[/y_e.Ee_v[R(e) & (agent(e,x) v theme(e,y))]]]]");
         testFormulas.add("[/R_<v,t>.[/x_e.[/y_e.Ee_v[R(e) & agent(e,x) & theme(e,y)]]]]");
         testFormulas.add("[/M_<s,<s,t>>.[/P_<s,t>.[/s_s.Az_s[M(s)(z) -> P(z)]]]]");
@@ -96,6 +96,7 @@ public class SemanticParser extends StringParser {
         testFormulas.add("[/x_e.[/V_<<v,t>,t>.[/f_<v,t>.[V(/e_v.[agent(e,x) & f(e)])]]]]");
 
  */
+        testFormulas.add("[/P_<e,t>.[/Q_<e,t>.Ex_v[P(x) -> Q(x))]]]");
         testFormulas.add("[/x_e.[/V_<<v,t>,t>.[/f_<v,t>.V([/e_v.(agent(e,x) & f(e))])]]]");
         testFormulas.add("(/x_e.(/V_<<v,t>,t>.(/f_<v,t>.(V((/e_v.(agent(e,x)&f(e))))))))");
 
@@ -211,14 +212,14 @@ public class SemanticParser extends StringParser {
                         pos++;
                         SemanticRepresentation right = parseExpression(input);
                         pos++;
-                        pos++;
+                        c = input.charAt(pos);
                         bracketCounter = bracketCounter - 1;
                         return new BinaryTerm(left, BinaryTerm.SemOperator.OR, right);
                     } else if (c == '-' & input.charAt(pos + 1) == '>') {
                         pos = pos + 2;
                         SemanticRepresentation right = parseExpression(input);
                         pos++;
-                        pos++;
+                        c = input.charAt(pos);
                         bracketCounter = bracketCounter - 1;
                         return new BinaryTerm(left, BinaryTerm.SemOperator.IMP, right);
                     }
@@ -447,11 +448,15 @@ public class SemanticParser extends StringParser {
                                         break;
                                     case T:
                                         LexVariableHandler.getUsedVariables().
-                                                get(LexVariableHandler.variableType.SemVar).add(newVar.getName());
+                                                get(LexVariableHandler.variableType.SemVarT).add(newVar.getName());
                                         break;
                                     case TEMP:
                                         LexVariableHandler.getUsedVariables().
-                                                get(LexVariableHandler.variableType.SemVar).add(newVar.getName());
+                                                get(LexVariableHandler.variableType.SemVarTemp).add(newVar.getName());
+                                        break;
+                                    case ALT:
+                                        LexVariableHandler.getUsedVariables().
+                                                get(LexVariableHandler.variableType.SemVarAlt).add(newVar.getName());
                                         break;
                                 }
 

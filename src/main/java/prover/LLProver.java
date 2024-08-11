@@ -52,10 +52,19 @@ public abstract class LLProver {
 
     public abstract void setProofBuilder(StringBuilder proofBuilder);
 
+
     public List<Premise> searchProof(Integer key, LinkedHashMap<Integer,List<MeaningConstructor>> lexicalEntries) throws VariableBindingException, ProverException {
+        return searchProof(key, lexicalEntries, false);
+    }
+
+    public List<Premise> searchProof(Integer key, LinkedHashMap<Integer,List<MeaningConstructor>> lexicalEntries, Boolean mute) throws VariableBindingException, ProverException {
 
         try {
-        LOGGER.info(String.format("Found %d lexical entries for proof with id S%d",lexicalEntries.get(key).size(),key));
+
+        if (!mute)
+        {
+            LOGGER.info(String.format("Found %d lexical entries for proof with id S%d",lexicalEntries.get(key).size(),key));
+        }
 
             Sequent testseq = new Sequent(lexicalEntries.get(key));
 
@@ -66,9 +75,9 @@ public abstract class LLProver {
             // LOGGER.info("Found the following deduction(s):\n");
             StringBuilder resultBuilder = new StringBuilder();
 
-
+        if (!mute) {
             LOGGER.info(this.getProofBuilder().toString());
-
+        }
 
             StringBuilder solutionBuilder = new StringBuilder();
             solutionBuilder.append(String.format("Found the following solutions for proof with id S%d:\n",key));
@@ -85,9 +94,9 @@ public abstract class LLProver {
                 solutionBuilder.append("None!");
             }
                  */
-
-            LOGGER.info(solutionBuilder.toString());
-
+            if (!mute) {
+                LOGGER.info(solutionBuilder.toString());
+            }
 
             //  LOGGER.info(String.format("Found %d solution(s) for derivation with id S%d",solutions.size(),key) );
 
@@ -113,7 +122,7 @@ public abstract class LLProver {
             */
 
 
-            if (settings.isDebugging()) {
+            if (settings.isDebugging() && !mute) {
                 LOGGER.info(String.format("Generated debugging report for proof with id S%d:\n" + db.toString(),key));
                 LOGGER.info(String.format("Finished glue derivation of proof with id S%d.",key));
             }

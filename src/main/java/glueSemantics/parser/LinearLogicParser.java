@@ -167,17 +167,23 @@ public class LinearLogicParser {
                             pos++;
                             return new LLAtom(glueIdentifier,
                                     new SemType(SemType.AtomicType.V), LLAtom.LLType.CONST, polarity);
-                        }
-                        else if (unparsedInput.charAt(pos) == 'x') {
-                        	pos++;
-                        	return new LLAtom(glueIdentifier,
-                            new SemType(SemType.AtomicType.X), LLAtom.LLType.CONST, polarity);
-                        }
-                        else if (unparsedInput.charAt(pos) == 'p') {
+                        } else if (unparsedInput.charAt(pos) == 'd') {
+                            pos++;
+                            return new LLAtom(glueIdentifier,
+                                    new SemType(SemType.AtomicType.D), LLAtom.LLType.CONST, polarity);
+                        } else if (unparsedInput.charAt(pos) == 'x') {
+                            pos++;
+                            return new LLAtom(glueIdentifier,
+                                    new SemType(SemType.AtomicType.X), LLAtom.LLType.CONST, polarity);
+                        } else if (unparsedInput.charAt(pos) == 'p') {
+                            pos++;
+                            return new LLAtom(glueIdentifier,
+                                    new SemType(SemType.AtomicType.ALT), LLAtom.LLType.CONST, polarity);
+                        } else if (unparsedInput.charAt(pos) == 'a') {
                             pos++;
                             return new LLAtom(glueIdentifier,
                                     new SemType(SemType.AtomicType.P), LLAtom.LLType.CONST, polarity);
-                    }
+                        }
                     }
                     else
                         throw new ParserInputException(pos,"Type identifier expected (e,s,v,x or t)");
@@ -236,12 +242,21 @@ public class LinearLogicParser {
                     pos++;
                     return new LLAtom(glueIdentifier,
                             new SemType(SemType.AtomicType.V), LLAtom.LLType.CONST, polarity);
-                }else if (unparsedInput.charAt(pos) == 'p') {
+                }else if (unparsedInput.charAt(pos) == 'd') {
+                        pos++;
+                        return new LLAtom(glueIdentifier,
+                                new SemType(SemType.AtomicType.D), LLAtom.LLType.CONST, polarity);
+                    }
+                    else if (unparsedInput.charAt(pos) == 'p') {
                         pos++;
                         return new LLAtom(glueIdentifier,
                                 new SemType(SemType.AtomicType.P), LLAtom.LLType.CONST, polarity);
                     }
-                    else
+                    else if (unparsedInput.charAt(pos) == 'a') {
+                        pos++;
+                        return new LLAtom(glueIdentifier,
+                                new SemType(SemType.AtomicType.ALT), LLAtom.LLType.CONST, polarity);
+                    }
                         throw new ParserInputException(pos,"Type identifier expected (e or t)");
                 }
             } catch (StringIndexOutOfBoundsException e) {

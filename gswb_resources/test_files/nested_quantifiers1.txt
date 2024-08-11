@@ -1,0 +1,13 @@
+{
+every : AX_t.((g_e -o g_t) -o ((g_e -o X_t) -o X_t))
+rep : (g_e -o g_t)
+of : ((g_e -o g_t) -o (g_e -o (j_e -o g_t)))
+a-company : AY_t.((j_e -o Y_t) -o Y_t)
+a-sample : AZ_t.((h_e -o Z_t) -o Z_t)
+see : (g_e -o (h_e -o f_t))
+}
+
+
+
+
+

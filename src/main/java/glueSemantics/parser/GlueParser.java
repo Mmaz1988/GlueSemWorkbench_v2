@@ -23,6 +23,7 @@ import glueSemantics.linearLogic.Premise;
 import glueSemantics.semantics.MeaningConstructor;
 import glueSemantics.semantics.MeaningRepresentation;
 import glueSemantics.semantics.SemanticRepresentation;
+import glueSemantics.semantics.lambda.SemSet;
 import main.Settings;
 import prover.VariableBindingException;
 import utilities.MyFormatter;
@@ -82,7 +83,7 @@ public class GlueParser {
         String glueString = "";
 
         try {
-            String[] glueSide = mcList[1].split("\\|\\|.");
+            String[] glueSide = mcList[1].split("\\|\\|");
 
             if (glueSide.length == 2 && glueSide[1].trim().equals("noscope"))
             {
@@ -113,6 +114,25 @@ public class GlueParser {
         {
            sem = semParser.parse(mcList[0].trim());
 
+        }
+
+        //TODO experiment
+
+
+
+
+        if (sem instanceof SemSet)
+        {
+            for (SemanticRepresentation m : ((SemSet) sem).getMembers())
+            {
+                if (m.getType().equals("u"))
+                {
+                    m.setType(glue.getType());
+                }
+            }
+        }
+        if (sem.getType().equals("u")){
+            sem.setType(glue.getType());
         }
 
         entry.setLlTerm(glue);

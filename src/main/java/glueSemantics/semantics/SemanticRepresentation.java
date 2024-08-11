@@ -31,6 +31,8 @@ public interface SemanticRepresentation {
 
     public SemType getType();
 
+    public void setType(SemType type);
+
     public SemanticRepresentation clone();
 
     public Set<SemAtom> findBoundVariables();

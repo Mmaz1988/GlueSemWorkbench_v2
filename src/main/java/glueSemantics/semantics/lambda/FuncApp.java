@@ -25,6 +25,7 @@ import main.Settings;
 import prover.ProverException;
 import utilities.LexVariableHandler;
 
+import java.lang.reflect.Member;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -84,22 +85,35 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
             for (SemanticRepresentation m : ((SemSet) functor).getMembers())
             {
                 FuncApp newFA = new FuncApp(m,argument);
-                newSet.add(newFA);
-            }
+                SemanticRepresentation msem = newFA.betaReduce();
+
+                if (msem instanceof SemSet){
+                    newSet.addAll(((SemSet) msem).getMembers());
+                } else {
+                    newSet.add(newFA);
+                }
+                }
 
             SemSet out = new SemSet(newSet,newSet.get(0).getType());
-            return out.betaReduce();
+            return out;
 
         } else if (argument instanceof SemSet)
         {
-            List<SemanticRepresentation> newSet = new ArrayList<>();
-            for (SemanticRepresentation m : ((SemSet) argument).getMembers())
-            {
-                FuncApp newFA = new FuncApp(functor,m);
-                newSet.add(newFA);
+
+            if (!(functor instanceof SemFunction && ((SemFunction) functor).getBinder().getType().equals("a"))) {
+                List<SemanticRepresentation> newSet = new ArrayList<>();
+                for (SemanticRepresentation m : ((SemSet) argument).getMembers()) {
+                    FuncApp newFA = new FuncApp(functor, m);
+                    SemanticRepresentation msem = newFA.betaReduce();
+                    if (msem instanceof SemSet) {
+                        newSet.addAll(((SemSet) msem).getMembers());
+                    } else {
+                        newSet.add(newFA);
+                    }
+                }
+                SemSet out = new SemSet(newSet, newSet.get(0).getType());
+                return out.betaReduce();
             }
-            SemSet out = new SemSet(newSet,newSet.get(0).getType());
-            return out.betaReduce();
         }
 
 
@@ -123,8 +137,11 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
             SemFunction lambda = (SemFunction) this.functor;
 
             //For end beta reduction
-
-            if (lambda.getBinder().getType().equals(arg.getType()) || arg.getType().getSimple().equals(SemType.AtomicType.TEMP) ) {
+            //TODO This crashes when the argument is a set with complex type
+            if (lambda.getBinder().getType().equals(arg.getType())  ||
+               lambda.getBinder().getType().getSimple().equals(SemType.AtomicType.ALT) ||
+                    arg.getType().getSimple().equals(SemType.AtomicType.TEMP)
+                ) {
                 SemanticRepresentation newBody = lambda.getFuncBody();
                 newBody = newBody.applyTo(lambda.getBinder(), arg);
                 newBody = newBody.betaReduce();
