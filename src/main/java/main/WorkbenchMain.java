@@ -513,6 +513,10 @@ public class WorkbenchMain {
 
             */
 
+            if (!settings.getSolutionOnly())
+            {
+                outputFileBuilder = prover.getProofBuilder();
+            }
 
             if (settings.isDebugging()) {
                 LOGGER.info(String.format("Generated debugging report for proof with id S%d:\n" + prover.db.toString(),key));

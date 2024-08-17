@@ -123,6 +123,7 @@ public class History {
                     Premise r = prover.combinePremises(p,q);
                     if (r != null ) {
                         if (r.getPremiseIDs().equals(this.indexSet)) {
+                            resultBuilder.append("Combining function " + p.toString() + " with argument " + q.toString() + " to get " + r.toString() + "\n");
                             prover.db.combinations++;
                             results.add(r);
                         }
