@@ -69,6 +69,16 @@ public class Settings {
     private boolean webService = false;
     private boolean drt = false;
 
+    private boolean onlyMeaningSide = false;
+    private boolean stdIn = false;
+    private boolean stdOut = false;
+    private String inputFileName = "";
+    private String outputFileName = "";
+
+    private Integer maxSolutions = 1000;
+
+    private Integer maxMsBeforeCalculatingDummy = 180000;
+
     public Settings() {
     }
 
@@ -83,6 +93,10 @@ public class Settings {
         this.solutionOnly = false;
         this.testExpression = false;
         this.proverType = HEPPLE;
+        this.explainFail = false;
+        this.onlyMeaningSide = false;
+        this.stdIn = false;
+        this.stdOut = false;
     }
 
     public boolean isBetaReduce() {
@@ -225,6 +239,62 @@ public class Settings {
 
     public void setDrt(boolean drt) {
         this.drt = drt;
+    }
+
+    public boolean isOnlyMeaningSide() {
+        return onlyMeaningSide;
+    }
+
+    public void setOnlyMeaningSide(boolean onlyMeaningSide) {
+        this.onlyMeaningSide = onlyMeaningSide;
+    }
+
+    public boolean isStdIn() {
+        return stdIn;
+    }
+
+    public void setStdIn(boolean stdIn) {
+        this.stdIn = stdIn;
+    }
+
+    public boolean isStdOut() {
+        return stdOut;
+    }
+
+    public void setStdOut(boolean stdOut) {
+        this.stdOut = stdOut;
+    }
+
+    public String getInputFileName() {
+        return inputFileName;
+    }
+
+    public void setInputFileName(String inputFileName) {
+        this.inputFileName = inputFileName;
+    }
+
+    public String getOutputFileName() {
+        return outputFileName;
+    }
+
+    public void setOutputFileName(String outputFileName) {
+        this.outputFileName = outputFileName;
+    }
+
+    public Integer getMaxSolutions() {
+        return maxSolutions;
+    }
+
+    public void setMaxSolutions(Integer maxSolutions) {
+        this.maxSolutions = maxSolutions;
+    }
+
+    public Integer getMaxMsBeforeCalculatingDummy() {
+        return maxMsBeforeCalculatingDummy;
+    }
+
+    public void setMaxMsBeforeCalculatingDummy(Integer maxMsBeforeCalculatingDummy) {
+        this.maxMsBeforeCalculatingDummy = maxMsBeforeCalculatingDummy;
     }
 }
 

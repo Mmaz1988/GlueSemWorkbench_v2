@@ -26,6 +26,7 @@ public class LLProver4 extends LLProver {
 
     private Set<Integer> nonScopingModifiers;
     private LinkedList<History> finalHistories = new LinkedList<>();
+    private LinkedList<History> finalPartialHistories = new LinkedList<>();
     private StringBuilder proofBuilder;
     private HashSet<Integer> goalIDs = new HashSet<>();
     public GraphAnalysis analysis;
@@ -51,16 +52,17 @@ public class LLProver4 extends LLProver {
     public void deduce(Sequent seq) throws ProverException, VariableBindingException {
 
         //clear field variables for new deduction
+        this.proofBuilder = new StringBuilder();
         this.finalHistories.clear();
+        this.finalPartialHistories.clear();
         this.goalIDs.clear();
         this.getSolutions().clear();
-
         this.nonScopingModifiers = new HashSet<>();
-
         this.db = new Debugging();
         this.currentSequent = seq;
         LinkedList<Premise> agenda = new LinkedList<>();
 
+        //For calculating processing time
         long startTime = System.nanoTime();
 
 
@@ -72,113 +74,170 @@ public class LLProver4 extends LLProver {
             sb.append(System.lineSeparator());
         }
 
-        String inputPremises = currentSequent.getLhs().stream().map(Objects::toString).collect(Collectors.joining("\n"));
-
-        getLOGGER().fine("List of current premises: " + inputPremises);
+        //String inputPremises = currentSequent.getLhs().stream().map(Objects::toString).collect(Collectors.joining("\n"));
+        getLOGGER().fine("List of current premises: \n" + sb.toString());
 
         //TODO insert boolean for distinguishing between sdout and file
-        if (true) {
-            proofBuilder.append(sb.toString());
-            proofBuilder.append(System.lineSeparator());
-            proofBuilder.append(System.lineSeparator());
-        }
+
+        proofBuilder.append(sb.toString());
+        proofBuilder.append(System.lineSeparator());
+        proofBuilder.append(System.lineSeparator());
 
         HashMap<Premise,Set<String>> categoryToPremiseMapping = new HashMap<>();
+
+        //Compilation refers to the process of creating first-order LL terms from higher order terms
+        //EX: (a -o b) -o c --> {[a], b -o c}
 
         getLOGGER().fine("Starting compilation process...");
         for (Premise p : currentSequent.getLhs()) {
             List<Premise> compiled = convert(p);
             agenda.addAll(compiled);
 
-            Set<String> compiledCategory = new HashSet<>();
-            for (Premise c : compiled)
-            {
-                compiledCategory.addAll(compiled.stream().map(x -> x.getGlueTerm().category().toString()).collect(Collectors.toSet()));
-            }
+            Set<String> compiledCategory = compiled.stream().map(x ->
+                    x.getGlueTerm().category().toString()).collect(Collectors.toSet());
+
+            //Store original mapping
             categoryToPremiseMapping.put(p,compiledCategory);
         }
 
-        StringBuilder agendaString = new StringBuilder();
-        for (Premise p : agenda)
-        {
-            agendaString.append(p.toString() + "\n");
-        }
-
-        getLOGGER().fine(agendaString.toString());
-
-        String goalCategory = findAtomicGoal(agenda);
-        getLOGGER().fine("Automatically detected goal category: " + goalCategory);
-
-
-        getLOGGER().fine("Starting deduction procedure...");
         StringBuilder ab = new StringBuilder();
-        ab.append("Agenda:");
+        ab.append("Compiled premises:");
         ab.append(System.lineSeparator());
         for (Premise p : agenda) {
             ab.append(p);
             ab.append(System.lineSeparator());
         }
 
+        getLOGGER().fine(ab.toString());
 
-        //TODO insert boolean for distinguishing between sdout and file
-        if (true) {
-            proofBuilder.append(ab.toString());
-            proofBuilder.append(System.lineSeparator());
-            proofBuilder.append(System.lineSeparator());
+        proofBuilder.append(ab.toString());
+        proofBuilder.append(System.lineSeparator());
+        proofBuilder.append(System.lineSeparator());
+
+        List<String> goalCategoryList = findAtomicGoal(agenda);
+        String goalCategory = null;
+        boolean goalCategoryFound = false;
+
+        if (goalCategoryList.size() == 1){
+            goalCategory = goalCategoryList.get(0);
+            goalCategoryFound = true;
+            getLOGGER().fine("Automatically detected goal category: " + goalCategory);
+        } else if (goalCategoryList.size() > 1) {
+            goalCategoryFound = true;
+            goalCategory = goalCategoryList.get(0);
+            getLOGGER().warning("Multiple goal categories detected: " + goalCategoryList.toString());
+        } else {
+            getLOGGER().warning("No goal category detected.");
         }
 
-        List<LLTerm> initialCategories = new ArrayList<>();
-        HashMap<String,List<Premise>> category2premiseMapping = new HashMap<>();
 
-        for (Premise p : agenda) {
-            if (p.getPremiseIDs().size() == 1) {
-                goalIDs.addAll(p.getPremiseIDs());
-            }
+        Graph<CGNode, DefaultEdge> categoryGraph = null;
+        Graph<Graph<CGNode, DefaultEdge>, DefaultEdge> scc = null;
 
-            if (!category2premiseMapping.containsKey(p.getGlueTerm().category().toString()))
-            {
-                category2premiseMapping.put(p.getGlueTerm().category().toString(), new ArrayList<>());
-            }
-            category2premiseMapping.get(p.getGlueTerm().category().toString()).add(p);
 
-            Boolean contains = false;
-            for (LLTerm glue : initialCategories) {
-                if (p.getGlueTerm().category().equals(glue.category())) {
-                    contains = true;
-                    break;
+        if (goalCategoryFound) {
+            getLOGGER().fine("Starting deduction procedure...");
+
+            List<LLTerm> initialCategories = new ArrayList<>();
+            HashMap<String, List<Premise>> category2premiseMapping = new HashMap<>();
+
+            for (Premise p : agenda) {
+                if (p.getPremiseIDs().size() == 1) {
+                    goalIDs.addAll(p.getPremiseIDs());
+                }
+
+                if (!category2premiseMapping.containsKey(p.getGlueTerm().category().toString())) {
+                    category2premiseMapping.put(p.getGlueTerm().category().toString(), new ArrayList<>());
+                }
+                category2premiseMapping.get(p.getGlueTerm().category().toString()).add(p);
+
+                boolean contains = false;
+                for (LLTerm glue : initialCategories) {
+                    if (p.getGlueTerm().category().equals(glue.category())) {
+                        contains = true;
+                        break;
+                    }
+                }
+                if (!contains) {
+                    initialCategories.add(p.getGlueTerm());
                 }
             }
-            if(!contains)
-            {
-                initialCategories.add(p.getGlueTerm());
+
+            List<LLTerm> copy = new ArrayList<LLTerm>(initialCategories);
+            categoryGraph = calculateCategoryGraph(copy, category2premiseMapping);
+
+            //Deduces from graph and returns the graph
+            scc = deduceFromGraph(categoryGraph, goalCategory);
+/*
+        Set<History> compressedFinalHistories = CGNode.compressHistories(finalHistories);
+        setFinalHistories(new LinkedList<>(compressedFinalHistories));
+*/
+            getLOGGER().fine("Starting semantic calculations...");
+
+            StringBuilder resultBuilder = new StringBuilder();
+
+            if (!finalHistories.isEmpty()) {
+                for (History solution : finalHistories) {
+                    getSolutions().addAll(solution.calculateSolutions(resultBuilder));
+                }
+                proofBuilder.append(resultBuilder.toString());
+                getLOGGER().info("Found the following glue derivation(s):\n" + resultBuilder.toString());
+
             }
         }
-        List<LLTerm> copy = new ArrayList<LLTerm>(initialCategories);
 
-        Graph<CGNode, DefaultEdge> categoryGraph2 = calculateCategoryGraph2(copy,category2premiseMapping);
+       // System.out.println(resultBuilder);
+        // System.out.println(System.lineSeparator());
 
-        StrongConnectivityAlgorithm<CGNode,DefaultEdge> ins2 = new GabowStrongConnectivityInspector<>(categoryGraph2);
-        Graph<Graph<CGNode,DefaultEdge>,DefaultEdge> scc2 = ins2.getCondensation();
+        long endTime = System.nanoTime();
+        db.computationTime = endTime - startTime;
+        proofBuilder.append(System.lineSeparator());
 
-        TopologicalOrderIterator<Graph<CGNode,DefaultEdge>,DefaultEdge> graphIter2 = new TopologicalOrderIterator<>(scc2);
 
+        if (getSettings().isExplainFail()) {
+            analysis = new GraphAnalysis(goalCategory, scc, categoryGraph, categoryToPremiseMapping);
+            analysis.returnJSONGraph();
+            //analysis.displayGraph();
 
-        while (graphIter2.hasNext())
+            if (getSolutions().isEmpty() && !finalPartialHistories.isEmpty())
+            {
+             proofBuilder.append("Found the following partial solutions: ...");
+
+             for (History h : finalPartialHistories){
+                 // Calculate symmetric difference
+                 Set<Integer> symmetricDifference = new HashSet<>(goalIDs);
+                 symmetricDifference.addAll(h.indexSet);
+
+                 Set<Integer> tmp = new HashSet<>(goalIDs);
+                 tmp.retainAll(h.indexSet);
+
+                 symmetricDifference.removeAll(tmp);
+                 proofBuilder.append("For solution " + h.mainIndex.toString() + ", the followind indices are missing: " + symmetricDifference.toString() + "\n");
+             }
+            }
+        }
+
+    }
+
+    public Graph<Graph<CGNode,DefaultEdge>,DefaultEdge> deduceFromGraph(Graph<CGNode, DefaultEdge> categoryGraph, String goalCategory) throws VariableBindingException, ProverException {
+        StrongConnectivityAlgorithm<CGNode,DefaultEdge> ins = new GabowStrongConnectivityInspector<>(categoryGraph);
+        Graph<Graph<CGNode,DefaultEdge>,DefaultEdge> scc = ins.getCondensation();
+        TopologicalOrderIterator<Graph<CGNode,DefaultEdge>,DefaultEdge> graphIter = new TopologicalOrderIterator<>(scc);
+
+        while (graphIter.hasNext())
         {
-            Graph<CGNode,DefaultEdge> sccKey = graphIter2.next();
+            Graph<CGNode,DefaultEdge> sccKey = graphIter.next();
             //Element is outside of an scc
             if (sccKey.vertexSet().size() == 1)
             {
                 CGNode node =  (CGNode) sccKey.vertexSet().stream().findAny().get();
-
                 if (node.nodeType.equals(CGNode.type.CATEGORY)) {
 
-                    for (Object edge : scc2.incomingEdgesOf(sccKey))
+                    for (Object edge : scc.incomingEdgesOf(sccKey))
                     {
-                        CGNode parentConnectorNode = (CGNode) ((Graph) scc2.getEdgeSource((DefaultEdge) edge)).vertexSet().stream().findAny().get();
+                        CGNode parentConnectorNode = (CGNode) ((Graph) scc.getEdgeSource((DefaultEdge) edge)).vertexSet().stream().findAny().get();
                         node.histories.addAll(parentConnectorNode.histories);
                         node.compressHistories();
-
                     }
                     //Compress histories
                 }
@@ -187,10 +246,9 @@ public class LLProver4 extends LLProver {
                 {
                     //           Object childNodeGraph = categoryGraph2.outgoingEdgesOf(node).stream().findAny().get();
                     //           CGNode childNode = (CGNode) scc2.getEdgeTarget((CGNode) childNodeGraph);
-
                     List<CGNode> parents = new ArrayList<>();
-                    for (Object edge : categoryGraph2.incomingEdgesOf(node)) {
-                        CGNode parentNode = categoryGraph2.getEdgeSource((DefaultEdge) edge);
+                    for (Object edge : categoryGraph.incomingEdgesOf(node)) {
+                        CGNode parentNode = categoryGraph.getEdgeSource((DefaultEdge) edge);
                         parents.add(parentNode);
                     }
                     CGNode arg;
@@ -235,7 +293,7 @@ public class LLProver4 extends LLProver {
                         CGNode node = iter.next();
                         if (node.nodeType.equals(CGNode.type.CATEGORY) && !node.category.contains("-o")) {
                             //Exactly one incoming node
-                            if (categoryGraph2.incomingEdgesOf(node).size() <= 2) {
+                            if (categoryGraph.incomingEdgesOf(node).size() <= 2) {
                                 atomicCategory = node;
                                 iter.remove();
                                 break;
@@ -246,19 +304,19 @@ public class LLProver4 extends LLProver {
                     if (atomicCategory != null) {
                         CGNode node = nodes.stream().findAny().get();
                         if (node.nodeType == CGNode.type.CONNECTOR) {
-                            List<DefaultEdge> incomingEdges = new ArrayList<>(categoryGraph2.incomingEdgesOf(node));
+                            List<DefaultEdge> incomingEdges = new ArrayList<>(categoryGraph.incomingEdgesOf(node));
                             Iterator<DefaultEdge> outIter = incomingEdges.iterator();
                             while (outIter.hasNext()) {
                                 DefaultEdge e = outIter.next();
-                                if (categoryGraph2.getEdgeSource(e).equals(atomicCategory)) {
+                                if (categoryGraph.getEdgeSource(e).equals(atomicCategory)) {
                                     outIter.remove();
                                 } else {
                                     //Check if second parent of connector node is a modifier of the atomic category
-                                    if (categoryGraph2.getEdgeSource(e).category.equals(atomicCategory + " -o " + atomicCategory))
+                                    if (categoryGraph.getEdgeSource(e).category.equals(atomicCategory + " -o " + atomicCategory))
                                         ;
                                     {
                                         basicScc = true;
-                                        modifierNode = categoryGraph2.getEdgeSource(e);
+                                        modifierNode = categoryGraph.getEdgeSource(e);
                                         outIter.remove();
                                     }
                                 }
@@ -266,7 +324,6 @@ public class LLProver4 extends LLProver {
                         }
                     }
                 }
-
 
                 List<CGNode> outputNodes = new ArrayList<>();
                 List<CGNode> inputNodes = new ArrayList<>();
@@ -276,13 +333,12 @@ public class LLProver4 extends LLProver {
 
                     if (node.nodeType.equals(CGNode.type.CATEGORY)) {
 
-                        for (Object edge : categoryGraph2.incomingEdgesOf(node)) {
-                            CGNode parentConnectorNode = (CGNode) categoryGraph2.getEdgeSource((DefaultEdge) edge);
+                        for (Object edge : categoryGraph.incomingEdgesOf(node)) {
+                            CGNode parentConnectorNode = (CGNode) categoryGraph.getEdgeSource((DefaultEdge) edge);
                             node.histories.addAll(parentConnectorNode.histories);
                             node.compressHistories();
                         }
                     }
-
 
                     // inputNodes.add((CGNode) node);
                     sccHistories.addAll(((CGNode) node).histories);
@@ -290,14 +346,14 @@ public class LLProver4 extends LLProver {
                     boolean input = true;
 
                     //Search input nodes
-                    if (!(categoryGraph2.incomingEdgesOf((CGNode) node).size() == 0)) {
+                    if (!(categoryGraph.incomingEdgesOf((CGNode) node).size() == 0)) {
 
-                        for (Object edge : categoryGraph2.incomingEdgesOf((CGNode) node)) {
-                            if (sccKey.vertexSet().contains(categoryGraph2.getEdgeSource((DefaultEdge) edge))) {
+                        for (Object edge : categoryGraph.incomingEdgesOf((CGNode) node)) {
+                            if (sccKey.vertexSet().contains(categoryGraph.getEdgeSource((DefaultEdge) edge))) {
                                 input = false;
                             } else {
                                 //Add all histories that are fed in from outside the scc
-                                sccHistories.addAll(categoryGraph2.getEdgeSource((DefaultEdge) edge).histories);
+                                sccHistories.addAll(categoryGraph.getEdgeSource((DefaultEdge) edge).histories);
                             }
                         }
                     }
@@ -307,12 +363,11 @@ public class LLProver4 extends LLProver {
                         //                       sccHistories.addAll(((CGNode) node).histories);
                     }
 
-
                     //Search output nodes
-                    if (categoryGraph2.outgoingEdgesOf((CGNode) node).size() > 0) {
-                        for (Object edge : categoryGraph2.outgoingEdgesOf((CGNode) node)) {
-                            if (!(sccKey.vertexSet().contains(categoryGraph2.getEdgeTarget((DefaultEdge) edge)))
-                                    && categoryGraph2.getEdgeTarget((DefaultEdge) edge).nodeType.equals(CGNode.type.CONNECTOR)) {
+                    if (categoryGraph.outgoingEdgesOf((CGNode) node).size() > 0) {
+                        for (Object edge : categoryGraph.outgoingEdgesOf((CGNode) node)) {
+                            if (!(sccKey.vertexSet().contains(categoryGraph.getEdgeTarget((DefaultEdge) edge)))
+                                    && categoryGraph.getEdgeTarget((DefaultEdge) edge).nodeType.equals(CGNode.type.CONNECTOR)) {
                                 outputNodes.add((CGNode) node);
                                 break;
                             }
@@ -322,12 +377,9 @@ public class LLProver4 extends LLProver {
                     if (((CGNode) node).category.equals(goalCategory)) {
                         outputNodes.add((CGNode) node);
                     }
-
                 }
 
-
                 //Basic optimization (252)
-
                 try {
 
                     if (basicScc) {
@@ -350,7 +402,6 @@ public class LLProver4 extends LLProver {
                             Iterator<History> outputIter = output.histories.iterator();
                             while (outputIter.hasNext()) {
                                 History ch = outputIter.next();
-
                                 Boolean includesMainindex = false;
                                 for (History h : modifierNode.histories) {
                                     if (ch.indexSet.contains(h.mainIndex)) {
@@ -358,7 +409,6 @@ public class LLProver4 extends LLProver {
                                         break;
                                     }
                                 }
-
                                 if (!includesMainindex) {
                                     outputIter.remove();
                                     db.discardedHistories++;
@@ -367,264 +417,15 @@ public class LLProver4 extends LLProver {
                         }
 
                     }
-
                 }catch(Exception e)
                 {
                     getLOGGER().warning("Failed to apply optimization for modifiers (252)");
                 }
-
-                //Apply Hepple algorithm to histories collected from the scc
-                List<History> sccAgenda = new ArrayList<>();
-                sccAgenda.addAll(sccHistories);
-
-                /*
-                Original chart deduce call
-                 */
-
-                /*
-
-                Chart c = chartDeduce(sccAgenda);
-
-
-                //Add output histories to their respective output nodes
-                for (CGNode outputNode : outputNodes)
-                {
-                    if (c.atomicChart.containsKey(outputNode.category))
-                    {
-                        outputNode.histories.addAll(c.atomicChart.get(outputNode.category));
-
-                    } else if (c.nonAtomicChart.containsKey(outputNode.category)) {
-                        outputNode.histories.addAll(c.nonAtomicChart.get(outputNode.category));
-                }
-             //     outputNode.compressHistories();
-                }
-
-
-                 */
-
-
-                /*
-                Modified chartDeduce call
-                 */
-
-                //filter out all scoping histories
-
-
-
-
-
-
-                /*
-                //Sort nonscopingAgenda by size of Category
-                nonscopingAgenda.sort(new Comparator<History>() {
-                    @Override
-                    public int compare(History o1, History o2) {
-                        return Integer.valueOf(o1.category.getSize()).compareTo(o2.category.getSize());
-                    }
-                });
-                // revert nonscopingAgenda
-                Collections.reverse(nonscopingAgenda);
-
-                 */
-
-                HashMap<String,List<History>> stagedSccAgenda = new HashMap<>();
-                List<History> globalHistory = new ArrayList<>();
-
-                for (History h : sccAgenda)
-                {
-                    if (h.stage != null) {
-                        if (!stagedSccAgenda.containsKey(h.stage))
-                        {
-                            stagedSccAgenda.put(h.stage,new ArrayList<>());
-                        }
-                        stagedSccAgenda.get(h.stage).add(h);
-                    } else
-                    {
-                        globalHistory.add(h);
-                    }
-                }
-
-
-
-
-
-                List<History> histories = new ArrayList<>();
-
-                histories.addAll(globalHistory);
-
-                //sort stagedSccAgenda by key in descending order
-                List<String> stagedSccAgendaKeys = new ArrayList<>(stagedSccAgenda.keySet());
-                stageSort(stagedSccAgendaKeys);
-                Collections.reverse(stagedSccAgendaKeys);
-
-                for (String key : stagedSccAgendaKeys) {
-
-                    if (!nonScopingModifiers.isEmpty()) {
-                        List<History> scopingModifiers = sccAgenda.stream().filter(h -> !this.nonScopingModifiers.contains(h.mainIndex) && h.category.left != null &&
-                                h.category.left.toString().equals(h.category.right.toString()) &&
-                                h.stage.equals(key)).collect(Collectors.toList());
-                        // sccAgenda minus scopingModifiers
-                        List<History> nonscopingAgenda = stagedSccAgenda.get(key).stream().filter(h -> !scopingModifiers.contains(h)).collect(Collectors.toList());
-
-                        //
-                      //  Set<Integer> appliedModifiers = nonscopingAgenda.stream().map(h -> h.mainIndex).collect(Collectors.toSet());
-
-                        nonscopingAgenda.addAll(globalHistory);
-                        // List<History> histories = chartDeduce2(sccAgenda);
-
-                        histories.addAll(chartDeduce2(nonscopingAgenda));
-
-
-                        //Remove duplicates based on mainindex
-
-                        /**
-                         * Noscope optimization
-                         */
-
-                        HashMap<History, Set<Integer>[]> indexSetComparison = new HashMap<>();
-
-                        Set<Integer> usedNonScopingModifiers = new HashSet<>();
-
-                        for (History h : histories) {
-
-                            Set<Integer>[] indices = new Set[2];
-                            Set<Integer> nonScopingIndices = new HashSet<>(h.indexSet);
-                            nonScopingIndices.retainAll(this.nonScopingModifiers);
-
-                            indices[0] = nonScopingIndices;
-                            usedNonScopingModifiers.addAll(nonScopingIndices);
-
-                            Set<Integer> otherIndices = new HashSet<>(h.indexSet);
-                            otherIndices.stream().filter(i -> !nonScopingIndices.contains(i)).collect(Collectors.toList());
-
-                            indices[1] = otherIndices;
-
-                            if (!indices[0].isEmpty() && !indices[1].isEmpty()) {
-                                indexSetComparison.put(h, indices);
-                            }
-                        }
-
-                        this.nonScopingModifiers.removeAll(usedNonScopingModifiers);
-
-                        if (usedNonScopingModifiers.size() > 0) {
-
-                            int previousHistories = indexSetComparison.keySet().size();
-                            //Remove all key/value pairs for which indices[0] are equal and indices[1] are equal with lambda expression
-                            indexSetComparison.entrySet().removeIf(entry -> indexSetComparison.entrySet().stream().anyMatch(entry2 -> entry2.getKey() != entry.getKey() &&
-                                    entry2.getValue()[0].equals(entry.getValue()[0]) && entry2.getValue()[1].equals(entry.getValue()[1])));
-
-
-                            if (!indexSetComparison.keySet().isEmpty()) {
-
-                                int removedHistories = previousHistories - indexSetComparison.keySet().size();
-                                db.noScopedHistories += removedHistories;
-
-                                List<History> outputHistories = new ArrayList<>();
-
-                                for (CGNode outputNode : outputNodes) {
-                                    for (History h : indexSetComparison.keySet()) {
-                                        if (h.category.toString().equals(outputNode.category)) {
-                                            outputHistories.add(h);
-                                        } else if (h.category.atomic) {
-                                            outputHistories.add(h);
-                                        }
-                                    }
-                                }
-                                histories = outputHistories;
-
-                            }
-                        }
-
-                            if (!scopingModifiers.isEmpty()) {
-                                histories.addAll(scopingModifiers);
-                                histories = chartDeduce2(histories);
-                            }
-
-                            List<History> newOutput = new ArrayList<>();
-                            for (CGNode outputNode : outputNodes) {
-                                for (History h : histories) {
-                                    if (h.category.toString().equals(outputNode.category)) {
-                                        newOutput.add(h);
-                                    }
-                                    /*
-                                    else if (h.category.atomic)
-                                    {
-                                        outputHistories.add(h);
-                                    }
-                                     */
-                                }
-                            }
-                          //  this.nonScopingModifiers.removeAll(appliedModifiers);
-                            histories = newOutput;
-
-
-                    } else {
-                        stagedSccAgenda.get(key).addAll(histories);
-
-                        histories = chartDeduce2(stagedSccAgenda.get(key));
-
-
-                        List<History> outputHistories = new ArrayList<>();
-
-                        for (CGNode outputNode : outputNodes) {
-                            for (History h : histories) {
-                                if (h.category.toString().equals(outputNode.category)) {
-                                    outputHistories.add(h);
-                                } else if (h.category.atomic)
-                                {
-                                    outputHistories.add(h);
-                                }
-                            }
-                        }
-
-                        histories = outputHistories;
-
-                    }
-
-                }
-                //End of noscope optimization
-
-                for (CGNode outputNode : outputNodes)
-                {
-                    for (History h : histories){
-                        if (h.category.toString().equals(outputNode.category))
-                        {
-                            outputNode.histories.add(h);
-                        }
-                    }
-                    outputNode.compressHistories();
-
-
-                    /*
-                    List<History> sortedHistories = new ArrayList<>(outputNode.histories);
-
-                    sortedHistories.sort(new Comparator<History>() {
-                        @Override
-                        public int compare(History o1, History o2) {
-                            return Integer.valueOf(o1.indexSet.size()).compareTo(o2.indexSet.size());
-                        }
-                    });
-
-
-                     */
-
-                    //         compressedHistories.add(CGNode.compressHistories(new ArrayList<>(outputNode.histories)));
-
-                    /*
-                    List<History> compressedFinalHistories = CGNode.compressHistories(new ArrayList<>(outputNode.histories));
-                    outputNode.histories = new HashSet<>(compressedFinalHistories);
-
-
-                     */
-                    //
-
-                }
-
-
+                //Calculate SCC
+                calculateSCC(new ArrayList<>(sccHistories), outputNodes);
             }
         }
-
-        for (CGNode n : categoryGraph2.vertexSet())
+        for (CGNode n : categoryGraph.vertexSet())
         {
             if (n.category.equals(goalCategory))
             {
@@ -633,49 +434,230 @@ public class LLProver4 extends LLProver {
                     if (h.indexSet.equals(goalIDs))
                     {
                         finalHistories.add(h);
+                    } else
+                    {
+                        finalPartialHistories.add(h);
                     }
                 }
             }
         }
-
-
-/*
-
-        Set<History> compressedFinalHistories = CGNode.compressHistories(finalHistories);
-        setFinalHistories(new LinkedList<>(compressedFinalHistories));
-*/
+        return scc;
+    }
 
 
 
-        analysis = new GraphAnalysis(goalCategory,scc2, categoryGraph2,categoryToPremiseMapping);
-        analysis.returnJSONGraph();
-        //analysis.displayGraph();
+    public void calculateSCC(List<History> sccHistories, List<CGNode> outputNodes) throws VariableBindingException, ProverException {
+        //Apply Hepple algorithm to histories collected from the scc
+        List<History> sccAgenda = new ArrayList<>();
+        sccAgenda.addAll(sccHistories);
 
-        getLOGGER().fine("Starting semantic calculations...");
+        HashMap<String,List<History>> stagedSccAgenda = new HashMap<>();
+        List<History> globalHistory = new ArrayList<>();
 
-        StringBuilder resultBuilder = new StringBuilder();
-
-        if (!finalHistories.isEmpty()) {
-            for (History solution : finalHistories) {
-                getSolutions().addAll(solution.calculateSolutions(resultBuilder));
+        for (History h : sccAgenda)
+        {
+            if (h.stage != null) {
+                if (!stagedSccAgenda.containsKey(h.stage))
+                {
+                    stagedSccAgenda.put(h.stage,new ArrayList<>());
+                }
+                stagedSccAgenda.get(h.stage).add(h);
+            } else
+            {
+                globalHistory.add(h);
             }
-            proofBuilder.append(resultBuilder.toString());
-
-            getLOGGER().info("Found the following glue derivation(s):\n" + resultBuilder.toString());
-
-
-
         }
 
+        List<History> histories = new ArrayList<>();
+       // histories.addAll(globalHistory);
+
+        for (History h : globalHistory)
+        {
+            if (!histories.contains(h))
+            {
+                histories.add(h);
+            }
+        }
+
+        //sort stagedSccAgenda by key in descending order
+        List<String> stagedSccAgendaKeys = new ArrayList<>(stagedSccAgenda.keySet());
+        stageSort(stagedSccAgendaKeys);
+        Collections.reverse(stagedSccAgendaKeys);
+
+        for (String key : stagedSccAgendaKeys) {
+
+            if (!nonScopingModifiers.isEmpty()) {
+                List<History> scopingModifiers = sccAgenda.stream().filter(h -> !this.nonScopingModifiers.contains(h.mainIndex) && h.category.left != null &&
+                        h.category.left.toString().equals(h.category.right.toString()) &&
+                        h.stage.equals(key)).collect(Collectors.toList());
+                // sccAgenda minus scopingModifiers
+                List<History> nonscopingAgenda = stagedSccAgenda.get(key).stream().filter(h -> !scopingModifiers.contains(h)).collect(Collectors.toList());
 
 
-        // System.out.println(resultBuilder);
-        // System.out.println(System.lineSeparator());
+                //add potential histories from other stages (
+                nonscopingAgenda.addAll(histories);
 
-        long endTime = System.nanoTime();
-        db.computationTime = endTime - startTime;
-        proofBuilder.append(System.lineSeparator());
+                //
+                //  Set<Integer> appliedModifiers = nonscopingAgenda.stream().map(h -> h.mainIndex).collect(Collectors.toSet());
+                for (History h : globalHistory)
+                {
+                    if (!nonscopingAgenda.contains(h))
+                    {
+                        nonscopingAgenda.add(h);
+                    }
+                }
+
+                // List<History> histories = chartDeduce2(sccAgenda);
+
+                List<History> nonscopingResults = chartDeduce2(nonscopingAgenda,true);
+
+                //sort nonscopingResults by size of index set in descending order
+                nonscopingResults.sort((o1, o2) -> Integer.compare(o2.indexSet.size(), o1.indexSet.size()));
+
+
+                //Only add histories which have all modifiers applied by checking for the largest index set
+                for (History h : nonscopingResults){
+                    if (!histories.contains(h) && h.indexSet.size() == nonscopingResults.get(0).indexSet.size())
+                    {
+                        histories.add(h);
+                    }
+                }
+
+                //histories.addAll();
+                //Remove duplicates based on mainindex
+
+                /**
+                 * Noscope optimization
+                 */
+
+                /*
+
+                HashMap<History, Set<Integer>[]> indexSetComparison = new HashMap<>();
+
+                Set<Integer> usedNonScopingModifiers = new HashSet<>();
+
+                for (History h : histories) {
+
+                    Set<Integer>[] indices = new Set[2];
+                    Set<Integer> nonScopingIndices = new HashSet<>(h.indexSet);
+                    nonScopingIndices.retainAll(this.nonScopingModifiers);
+
+                    indices[0] = nonScopingIndices;
+                    usedNonScopingModifiers.addAll(nonScopingIndices);
+
+                    Set<Integer> otherIndices = new HashSet<>(h.indexSet);
+                    otherIndices.stream().filter(i -> !nonScopingIndices.contains(i)).collect(Collectors.toList());
+
+                    indices[1] = otherIndices;
+
+                    if (!indices[0].isEmpty() && !indices[1].isEmpty()) {
+                        indexSetComparison.put(h, indices);
+                    }
+                }
+
+                this.nonScopingModifiers.removeAll(usedNonScopingModifiers);
+
+                if (usedNonScopingModifiers.size() > 0) {
+
+                    int previousHistories = indexSetComparison.keySet().size();
+                    //Remove all key/value pairs for which indices[0] are equal and indices[1] are equal with lambda expression
+                    indexSetComparison.entrySet().removeIf(entry -> indexSetComparison.entrySet().stream().anyMatch(entry2 -> entry2.getKey() != entry.getKey() &&
+                            entry2.getValue()[0].equals(entry.getValue()[0]) && entry2.getValue()[1].equals(entry.getValue()[1])));
+
+
+                    if (!indexSetComparison.keySet().isEmpty()) {
+
+                        int removedHistories = previousHistories - indexSetComparison.keySet().size();
+                        db.noScopedHistories += removedHistories;
+
+                        List<History> outputHistories = new ArrayList<>();
+
+                        for (CGNode outputNode : outputNodes) {
+                            for (History h : indexSetComparison.keySet()) {
+                                if (h.category.toString().equals(outputNode.category)) {
+                                    outputHistories.add(h);
+                                } else if (h.category.atomic) {
+                                    outputHistories.add(h);
+                                }
+                            }
+                        }
+                        if (outputHistories.size() < getSettings().getMaxSolutions()) {
+                            histories = outputHistories;
+                        } else {
+                            //sort newOutput by the size of a histories index set with lambda; largest first
+                            outputHistories.sort((o1, o2) -> Integer.compare(o2.indexSet.size(), o1.indexSet.size()));
+                            histories = outputHistories.subList(0, getSettings().getMaxSolutions());
+                        }
+                    }
+                }
+                */
+
+                if (!scopingModifiers.isEmpty()) {
+                    histories.addAll(scopingModifiers);
+                    histories = chartDeduce2(histories,false);
+                }
+
+                List<History> newOutput = new ArrayList<>();
+                for (CGNode outputNode : outputNodes) {
+                    for (History h : histories) {
+                        if (h.category.toString().equals(outputNode.category)) {
+                            newOutput.add(h);
+                        }
+                    }
+                }
+
+                if (newOutput.size() < getSettings().getMaxSolutions()) {
+                    histories = newOutput;
+                } else {
+                    //sort newOutput by the size of a histories index set with lambda; largest first
+                    newOutput.sort((o1, o2) -> Integer.compare(o2.indexSet.size(), o1.indexSet.size()));
+                    histories = newOutput.subList(0, getSettings().getMaxSolutions());
+                }
+
+                //  this.nonScopingModifiers.removeAll(appliedModifiers);
+               // histories = newOutput;
+
+
+            } else {
+                stagedSccAgenda.get(key).addAll(histories);
+                histories = chartDeduce2(stagedSccAgenda.get(key),false);
+
+                List<History> outputHistories = new ArrayList<>();
+
+                for (CGNode outputNode : outputNodes) {
+                    for (History h : histories) {
+                        if (h.category.toString().equals(outputNode.category)) {
+                            outputHistories.add(h);
+                        } else if (h.category.atomic)
+                        {
+                            outputHistories.add(h);
+                        }
+                    }
+                }
+                if (outputHistories.size() < getSettings().getMaxSolutions()) {
+                    histories = outputHistories;
+                } else {
+                    //sort newOutput by the size of a histories index set with lambda; largest first
+                    outputHistories.sort((o1, o2) -> Integer.compare(o2.indexSet.size(), o1.indexSet.size()));
+                    histories = outputHistories.subList(0, getSettings().getMaxSolutions());
+                }
+            }
+        }
+        //End of noscope optimization
+
+        for (CGNode outputNode : outputNodes)
+        {
+            for (History h : histories){
+                if (h.category.toString().equals(outputNode.category) && !outputNode.histories.contains(h))
+                {
+                    outputNode.histories.add(h);
+                }
+            }
+            outputNode.compressHistories();
+        }
     }
+
+
 
 
     /**
@@ -688,55 +670,70 @@ public class LLProver4 extends LLProver {
      * @throws ProverException
      */
 
-    public List<History> chartDeduce2(List<History> histories) throws VariableBindingException, ProverException {
+
+
+    //This version of chartdeduce is now exponential (2^n + 2n) rather than factorial (n!).
+
+    public List<History> chartDeduce2(List<History> histories, boolean noscope) throws VariableBindingException, ProverException {
         getLOGGER().finer("Beginning a partial chart derivation...");
 
-        //The agenda contains all histories that take part in the calculation of the histories within the SCC
-        List<History> agenda = new ArrayList<>(histories);
-        //In the beginning the chart is empty
+        List<History> agenda = History.categorySort(histories);
+
+        // In the beginning the chart is empty
         List<History> chart = new ArrayList<>();
 
+        Set<List<Integer>> applications = new HashSet<>();
 
         while (!agenda.isEmpty()) {
-
             ListIterator<History> agendaIterator = agenda.listIterator();
 
             while (agendaIterator.hasNext()) {
                 History current = agendaIterator.next();
                 agendaIterator.remove();
 
-                /*each element in the agenda is checked for compatibility with each element on the chart to see if a new
-                resource can be produced.
-                If so, it is added to the agenda
-                 */
-
-
+                // Each element in the agenda is checked for compatibility with each element on the chart
+                // to see if a new resource can be produced. If so, it is added to the agenda
                 for (History h : chart) {
                     if (h.category.left != null) {
                         if (h.category.left.toString().equals(current.category.toString())) {
+                            if (noscope && nonScopingModifiers.contains(h.mainIndex)) {
+                                List<Integer> inverseFa = Arrays.asList(current.mainIndex, h.mainIndex);
+                                if (applications.contains(inverseFa)) {
+                                    continue;
+                                }
+                            }
                             History combined = combineHistories(h, current);
                             if (combined != null) {
                                 agendaIterator.add(combined);
+                                List<Integer> fa = Arrays.asList(h.mainIndex, current.mainIndex);
+                                applications.add(fa);
                             }
                         }
                     }
                     if (current.category.left != null) {
                         if (current.category.left.toString().equals(h.category.toString())) {
+                            if (noscope && nonScopingModifiers.contains(current.mainIndex)) {
+                                List<Integer> inverseFa = Arrays.asList(h.mainIndex, current.mainIndex);
+                                if (applications.contains(inverseFa)) {
+                                    continue;
+                                }
+                            }
                             History combined = combineHistories(current, h);
                             if (combined != null) {
                                 agendaIterator.add(combined);
+                                List<Integer> fa = Arrays.asList(current.mainIndex, h.mainIndex);
+                                applications.add(fa);
                             }
-
                         }
                     }
                 }
                 chart.add(current);
             }
-
-
         }
+        getLOGGER().warning("Chartsize: " + chart.size());
         return chart;
     }
+
 
         /*
     public List<History> nonScopechartDeduce(List<History> histories) throws VariableBindingException, ProverException {
@@ -857,7 +854,7 @@ public class LLProver4 extends LLProver {
 */
 
 
-    public Graph<CGNode,DefaultEdge> calculateCategoryGraph2(List<LLTerm> initialPremises,HashMap<String,List<Premise>> category2premiseMapping)
+    public Graph<CGNode,DefaultEdge> calculateCategoryGraph(List<LLTerm> initialPremises,HashMap<String,List<Premise>> category2premiseMapping)
     {
         Graph<CGNode,DefaultEdge> categoryGraph = new DefaultDirectedGraph<CGNode,DefaultEdge>(DefaultEdge.class);
         HashMap<String,CGNode> category2node = new HashMap<>();
@@ -1644,7 +1641,7 @@ public class LLProver4 extends LLProver {
         return false;
     }
 
-    public String findAtomicGoal(List<Premise> premises)
+    public List<String> findAtomicGoal(List<Premise> premises)
     {
         List<LLAtom> allAtoms = new ArrayList<>();
         List<String> positive = new ArrayList<>();
@@ -1697,7 +1694,8 @@ public class LLProver4 extends LLProver {
 
         }
 
-        return positive.stream().findAny().get();
+
+        return positive;
     }
 
     //Getter and Setter

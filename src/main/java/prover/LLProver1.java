@@ -18,7 +18,6 @@ import utilities.Debugging;
 import utilities.LexVariableHandler;
 
 import java.io.IOException;
-import java.lang.reflect.Member;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -37,7 +36,7 @@ public class LLProver1 extends LLProver {
      * It uses a cartography graph to order combination steps handling skeleton premises and a chart-based
      * algorithm to deal with modifier premises, i.e. cyclic elements in a glue proof.
      *
-     * @param settings
+     * @param settings contains all settings specified via user input
      */
     public LLProver1(Settings settings) {
         setSettings(settings);
@@ -60,7 +59,6 @@ public class LLProver1 extends LLProver {
         this.nonScopingModifiers = new HashSet<>();
         this.db = new Debugging();
         this.currentSequent = seq;
-
         LinkedList<Premise> agenda = new LinkedList<>();
 
         //For calculating processing time
@@ -114,75 +112,141 @@ public class LLProver1 extends LLProver {
         proofBuilder.append(System.lineSeparator());
         proofBuilder.append(System.lineSeparator());
 
-        String goalCategory = findAtomicGoal(agenda);
-        getLOGGER().fine("Automatically detected goal category: " + goalCategory);
+        List<String> goalCategoryList = findAtomicGoal(agenda);
+        String goalCategory = null;
+        boolean goalCategoryFound = false;
 
-        getLOGGER().fine("Starting deduction procedure...");
+        if (goalCategoryList.size() == 1){
+            goalCategory = goalCategoryList.get(0);
+            goalCategoryFound = true;
+            getLOGGER().fine("Automatically detected goal category: " + goalCategory);
+        } else if (goalCategoryList.size() > 1) {
+            goalCategoryFound = true;
+            goalCategory = goalCategoryList.get(0);
+            getLOGGER().warning("Multiple goal categories detected: " + goalCategoryList.toString());
+        } else {
+            getLOGGER().warning("No goal category detected.");
+        }
 
-        List<LLTerm> initialCategories = new ArrayList<>();
-        HashMap<String,List<Premise>> category2premiseMapping = new HashMap<>();
 
-        for (Premise p : agenda) {
-            if (p.getPremiseIDs().size() == 1) {
-                goalIDs.addAll(p.getPremiseIDs());
-            }
+        Graph<CGNode, DefaultEdge> categoryGraph = null;
+        Graph<Graph<CGNode, DefaultEdge>, DefaultEdge> scc = null;
 
-            if (!category2premiseMapping.containsKey(p.getGlueTerm().category().toString()))
-            {
-              category2premiseMapping.put(p.getGlueTerm().category().toString(), new ArrayList<>());
-            }
-            category2premiseMapping.get(p.getGlueTerm().category().toString()).add(p);
 
-            boolean contains = false;
+        if (goalCategoryFound) {
+            getLOGGER().fine("Starting deduction procedure...");
+
+            List<LLTerm> initialCategories = new ArrayList<>();
+            HashMap<String, List<Premise>> category2premiseMapping = new HashMap<>();
+
+            for (Premise p : agenda) {
+                if (p.getPremiseIDs().size() == 1) {
+                    goalIDs.addAll(p.getPremiseIDs());
+                }
+
+                if (!category2premiseMapping.containsKey(p.getGlueTerm().category().toString())) {
+                    category2premiseMapping.put(p.getGlueTerm().category().toString(), new ArrayList<>());
+                }
+                category2premiseMapping.get(p.getGlueTerm().category().toString()).add(p);
+
+                boolean contains = false;
                 for (LLTerm glue : initialCategories) {
                     if (p.getGlueTerm().category().equals(glue.category())) {
                         contains = true;
                         break;
                     }
                 }
-                    if(!contains)
-                    {
-                        initialCategories.add(p.getGlueTerm());
-                    }
+                if (!contains) {
+                    initialCategories.add(p.getGlueTerm());
+                }
             }
-        List<LLTerm> copy = new ArrayList<LLTerm>(initialCategories);
 
-        Graph<CGNode, DefaultEdge> categoryGraph2 = calculateCategoryGraph2(copy,category2premiseMapping);
+            List<LLTerm> copy = new ArrayList<LLTerm>(initialCategories);
+            categoryGraph = calculateCategoryGraph(copy, category2premiseMapping);
 
-        StrongConnectivityAlgorithm<CGNode,DefaultEdge> ins2 = new GabowStrongConnectivityInspector<>(categoryGraph2);
-        Graph<Graph<CGNode,DefaultEdge>,DefaultEdge> scc2 = ins2.getCondensation();
+            //Deduces from graph and returns the graph
+            scc = deduceFromGraph(categoryGraph, goalCategory);
+/*
+        Set<History> compressedFinalHistories = CGNode.compressHistories(finalHistories);
+        setFinalHistories(new LinkedList<>(compressedFinalHistories));
+*/
+            getLOGGER().fine("Starting semantic calculations...");
 
-        TopologicalOrderIterator<Graph<CGNode,DefaultEdge>,DefaultEdge> graphIter2 = new TopologicalOrderIterator<>(scc2);
+            StringBuilder resultBuilder = new StringBuilder();
+
+            if (!finalHistories.isEmpty()) {
+                for (History solution : finalHistories) {
+                    getSolutions().addAll(solution.calculateSolutions(resultBuilder));
+                }
+                proofBuilder.append(resultBuilder.toString());
+                getLOGGER().info("Found the following glue derivation(s):\n" + resultBuilder.toString());
+
+            }
+        }
+
+       // System.out.println(resultBuilder);
+        // System.out.println(System.lineSeparator());
+
+        long endTime = System.nanoTime();
+        db.computationTime = endTime - startTime;
+        proofBuilder.append(System.lineSeparator());
 
 
-        while (graphIter2.hasNext())
+        if (getSettings().isExplainFail()) {
+            analysis = new GraphAnalysis(goalCategory, scc, categoryGraph, categoryToPremiseMapping);
+            analysis.returnJSONGraph();
+            //analysis.displayGraph();
+
+            if (getSolutions().isEmpty() && !finalPartialHistories.isEmpty())
+            {
+             proofBuilder.append("Found the following partial solutions: ...");
+
+             for (History h : finalPartialHistories){
+                 // Calculate symmetric difference
+                 Set<Integer> symmetricDifference = new HashSet<>(goalIDs);
+                 symmetricDifference.addAll(h.indexSet);
+
+                 Set<Integer> tmp = new HashSet<>(goalIDs);
+                 tmp.retainAll(h.indexSet);
+
+                 symmetricDifference.removeAll(tmp);
+                 proofBuilder.append("For solution " + h.mainIndex.toString() + ", the followind indices are missing: " + symmetricDifference.toString() + "\n");
+             }
+            }
+        }
+
+    }
+
+    public Graph<Graph<CGNode,DefaultEdge>,DefaultEdge> deduceFromGraph(Graph<CGNode, DefaultEdge> categoryGraph, String goalCategory) throws VariableBindingException, ProverException {
+        StrongConnectivityAlgorithm<CGNode,DefaultEdge> ins = new GabowStrongConnectivityInspector<>(categoryGraph);
+        Graph<Graph<CGNode,DefaultEdge>,DefaultEdge> scc = ins.getCondensation();
+        TopologicalOrderIterator<Graph<CGNode,DefaultEdge>,DefaultEdge> graphIter = new TopologicalOrderIterator<>(scc);
+
+        while (graphIter.hasNext())
         {
-            Graph<CGNode,DefaultEdge> sccKey = graphIter2.next();
+            Graph<CGNode,DefaultEdge> sccKey = graphIter.next();
             //Element is outside of an scc
             if (sccKey.vertexSet().size() == 1)
             {
                 CGNode node =  (CGNode) sccKey.vertexSet().stream().findAny().get();
-
                 if (node.nodeType.equals(CGNode.type.CATEGORY)) {
 
-                    for (Object edge : scc2.incomingEdgesOf(sccKey))
-                        {
-                           CGNode parentConnectorNode = (CGNode) ((Graph) scc2.getEdgeSource((DefaultEdge) edge)).vertexSet().stream().findAny().get();
-                           node.histories.addAll(parentConnectorNode.histories);
-                           node.compressHistories();
-
-                        }
+                    for (Object edge : scc.incomingEdgesOf(sccKey))
+                    {
+                        CGNode parentConnectorNode = (CGNode) ((Graph) scc.getEdgeSource((DefaultEdge) edge)).vertexSet().stream().findAny().get();
+                        node.histories.addAll(parentConnectorNode.histories);
+                        node.compressHistories();
+                    }
                     //Compress histories
                 }
                 //Element is a connector node
                 if (node.nodeType.equals(CGNode.type.CONNECTOR))
                 {
-         //           Object childNodeGraph = categoryGraph2.outgoingEdgesOf(node).stream().findAny().get();
-         //           CGNode childNode = (CGNode) scc2.getEdgeTarget((CGNode) childNodeGraph);
-
+                    //           Object childNodeGraph = categoryGraph2.outgoingEdgesOf(node).stream().findAny().get();
+                    //           CGNode childNode = (CGNode) scc2.getEdgeTarget((CGNode) childNodeGraph);
                     List<CGNode> parents = new ArrayList<>();
-                    for (Object edge : categoryGraph2.incomingEdgesOf(node)) {
-                        CGNode parentNode = categoryGraph2.getEdgeSource((DefaultEdge) edge);
+                    for (Object edge : categoryGraph.incomingEdgesOf(node)) {
+                        CGNode parentNode = categoryGraph.getEdgeSource((DefaultEdge) edge);
                         parents.add(parentNode);
                     }
                     CGNode arg;
@@ -227,7 +291,7 @@ public class LLProver1 extends LLProver {
                         CGNode node = iter.next();
                         if (node.nodeType.equals(CGNode.type.CATEGORY) && !node.category.contains("-o")) {
                             //Exactly one incoming node
-                            if (categoryGraph2.incomingEdgesOf(node).size() <= 2) {
+                            if (categoryGraph.incomingEdgesOf(node).size() <= 2) {
                                 atomicCategory = node;
                                 iter.remove();
                                 break;
@@ -238,19 +302,19 @@ public class LLProver1 extends LLProver {
                     if (atomicCategory != null) {
                         CGNode node = nodes.stream().findAny().get();
                         if (node.nodeType == CGNode.type.CONNECTOR) {
-                            List<DefaultEdge> incomingEdges = new ArrayList<>(categoryGraph2.incomingEdgesOf(node));
+                            List<DefaultEdge> incomingEdges = new ArrayList<>(categoryGraph.incomingEdgesOf(node));
                             Iterator<DefaultEdge> outIter = incomingEdges.iterator();
                             while (outIter.hasNext()) {
                                 DefaultEdge e = outIter.next();
-                                if (categoryGraph2.getEdgeSource(e).equals(atomicCategory)) {
+                                if (categoryGraph.getEdgeSource(e).equals(atomicCategory)) {
                                     outIter.remove();
                                 } else {
                                     //Check if second parent of connector node is a modifier of the atomic category
-                                    if (categoryGraph2.getEdgeSource(e).category.equals(atomicCategory + " -o " + atomicCategory))
+                                    if (categoryGraph.getEdgeSource(e).category.equals(atomicCategory + " -o " + atomicCategory))
                                         ;
                                     {
                                         basicScc = true;
-                                        modifierNode = categoryGraph2.getEdgeSource(e);
+                                        modifierNode = categoryGraph.getEdgeSource(e);
                                         outIter.remove();
                                     }
                                 }
@@ -258,7 +322,6 @@ public class LLProver1 extends LLProver {
                         }
                     }
                 }
-
 
                 List<CGNode> outputNodes = new ArrayList<>();
                 List<CGNode> inputNodes = new ArrayList<>();
@@ -268,13 +331,12 @@ public class LLProver1 extends LLProver {
 
                     if (node.nodeType.equals(CGNode.type.CATEGORY)) {
 
-                        for (Object edge : categoryGraph2.incomingEdgesOf(node)) {
-                            CGNode parentConnectorNode = (CGNode) categoryGraph2.getEdgeSource((DefaultEdge) edge);
+                        for (Object edge : categoryGraph.incomingEdgesOf(node)) {
+                            CGNode parentConnectorNode = (CGNode) categoryGraph.getEdgeSource((DefaultEdge) edge);
                             node.histories.addAll(parentConnectorNode.histories);
                             node.compressHistories();
                         }
                     }
-
 
                     // inputNodes.add((CGNode) node);
                     sccHistories.addAll(((CGNode) node).histories);
@@ -282,14 +344,14 @@ public class LLProver1 extends LLProver {
                     boolean input = true;
 
                     //Search input nodes
-                    if (!(categoryGraph2.incomingEdgesOf((CGNode) node).size() == 0)) {
+                    if (!(categoryGraph.incomingEdgesOf((CGNode) node).size() == 0)) {
 
-                        for (Object edge : categoryGraph2.incomingEdgesOf((CGNode) node)) {
-                            if (sccKey.vertexSet().contains(categoryGraph2.getEdgeSource((DefaultEdge) edge))) {
+                        for (Object edge : categoryGraph.incomingEdgesOf((CGNode) node)) {
+                            if (sccKey.vertexSet().contains(categoryGraph.getEdgeSource((DefaultEdge) edge))) {
                                 input = false;
                             } else {
                                 //Add all histories that are fed in from outside the scc
-                                sccHistories.addAll(categoryGraph2.getEdgeSource((DefaultEdge) edge).histories);
+                                sccHistories.addAll(categoryGraph.getEdgeSource((DefaultEdge) edge).histories);
                             }
                         }
                     }
@@ -299,12 +361,11 @@ public class LLProver1 extends LLProver {
                         //                       sccHistories.addAll(((CGNode) node).histories);
                     }
 
-
                     //Search output nodes
-                    if (categoryGraph2.outgoingEdgesOf((CGNode) node).size() > 0) {
-                        for (Object edge : categoryGraph2.outgoingEdgesOf((CGNode) node)) {
-                            if (!(sccKey.vertexSet().contains(categoryGraph2.getEdgeTarget((DefaultEdge) edge)))
-                                    && categoryGraph2.getEdgeTarget((DefaultEdge) edge).nodeType.equals(CGNode.type.CONNECTOR)) {
+                    if (categoryGraph.outgoingEdgesOf((CGNode) node).size() > 0) {
+                        for (Object edge : categoryGraph.outgoingEdgesOf((CGNode) node)) {
+                            if (!(sccKey.vertexSet().contains(categoryGraph.getEdgeTarget((DefaultEdge) edge)))
+                                    && categoryGraph.getEdgeTarget((DefaultEdge) edge).nodeType.equals(CGNode.type.CONNECTOR)) {
                                 outputNodes.add((CGNode) node);
                                 break;
                             }
@@ -314,12 +375,9 @@ public class LLProver1 extends LLProver {
                     if (((CGNode) node).category.equals(goalCategory)) {
                         outputNodes.add((CGNode) node);
                     }
-
                 }
 
-
                 //Basic optimization (252)
-
                 try {
 
                     if (basicScc) {
@@ -369,56 +427,6 @@ public class LLProver1 extends LLProver {
                 List<History> sccAgenda = new ArrayList<>();
                 sccAgenda.addAll(sccHistories);
 
-                /*
-                Original chart deduce call
-                 */
-
-                /*
-
-                Chart c = chartDeduce(sccAgenda);
-
-
-                //Add output histories to their respective output nodes
-                for (CGNode outputNode : outputNodes)
-                {
-                    if (c.atomicChart.containsKey(outputNode.category))
-                    {
-                        outputNode.histories.addAll(c.atomicChart.get(outputNode.category));
-
-                    } else if (c.nonAtomicChart.containsKey(outputNode.category)) {
-                        outputNode.histories.addAll(c.nonAtomicChart.get(outputNode.category));
-                }
-             //     outputNode.compressHistories();
-                }
-
-
-                 */
-
-
-                /*
-                Modified chartDeduce call
-                 */
-
-                //filter out all scoping histories
-
-
-
-
-
-
-                /*
-                //Sort nonscopingAgenda by size of Category
-                nonscopingAgenda.sort(new Comparator<History>() {
-                    @Override
-                    public int compare(History o1, History o2) {
-                        return Integer.valueOf(o1.category.getSize()).compareTo(o2.category.getSize());
-                    }
-                });
-                // revert nonscopingAgenda
-                Collections.reverse(nonscopingAgenda);
-
-                 */
-
                 List<History> histories = new ArrayList<>();
 
                 if (!nonScopingModifiers.isEmpty())
@@ -428,23 +436,16 @@ public class LLProver1 extends LLProver {
                     // sccAgenda minus scopingModifiers
                     List<History> nonscopingAgenda =  sccAgenda.stream().filter(h -> !scopingModifiers.contains(h)).collect(Collectors.toList());
 
+                    histories = chartDeduce2(nonscopingAgenda,false);
 
-                // List<History> histories =
-                    // (sccAgenda);
+                    //Remove duplicates based on mainindex
 
-                histories = chartDeduce2(nonscopingAgenda,false);
-
-
-                //Remove duplicates based on mainindex
-
-                /**
-                 * Noscope optimization
-                 */
+                    /**
+                     * Noscope optimization
+                     */
 
                     HashMap<History, Set<Integer>[]> indexSetComparison = new HashMap<>();
-
-
-                 Set<Integer> usedNonScopingModifiers = new HashSet<>();
+                    Set<Integer> usedNonScopingModifiers = new HashSet<>();
 
                     for (History h : histories) {
 
@@ -466,8 +467,7 @@ public class LLProver1 extends LLProver {
                         }
                     }
 
-                   this.nonScopingModifiers.removeAll(usedNonScopingModifiers);
-
+                    this.nonScopingModifiers.removeAll(usedNonScopingModifiers);
 
                     //Only try to optimize if any non-scoping modifiers have been used
                     if (usedNonScopingModifiers.size() > 0) {
@@ -498,14 +498,14 @@ public class LLProver1 extends LLProver {
 
                     //Histories now either is optimized or we basically use the original sccAgenda.
 
-                        if (!scopingModifiers.isEmpty()) {
-                            histories.addAll(scopingModifiers);
-                            histories = chartDeduce2(histories,false);
-                        }
+                    if (!scopingModifiers.isEmpty()) {
+                        histories.addAll(scopingModifiers);
+                        histories = chartDeduce2(histories,false);
+                    }
 
                 } else {
-                        histories = chartDeduce2(sccAgenda,false);
-                    }
+                    histories = chartDeduce2(sccAgenda,false);
+                }
 
 
                 //End of noscope optimization
@@ -518,7 +518,7 @@ public class LLProver1 extends LLProver {
                             outputNode.histories.add(h);
                         }
                     }
-                   outputNode.compressHistories();
+                    outputNode.compressHistories();
 
 
                     /*
@@ -534,7 +534,7 @@ public class LLProver1 extends LLProver {
 
                      */
 
-           //         compressedHistories.add(CGNode.compressHistories(new ArrayList<>(outputNode.histories)));
+                    //         compressedHistories.add(CGNode.compressHistories(new ArrayList<>(outputNode.histories)));
 
                     /*
                     List<History> compressedFinalHistories = CGNode.compressHistories(new ArrayList<>(outputNode.histories));
@@ -542,87 +542,31 @@ public class LLProver1 extends LLProver {
 
 
                      */
-           //
+                    //
 
-            }
+                }
 
 
             }
         }
 
-        for (CGNode n : categoryGraph2.vertexSet())
+        for (CGNode n : categoryGraph.vertexSet())
         {
             if (n.category.equals(goalCategory))
             {
-               for (History h : n.histories)
-               {
-                   if (h.indexSet.equals(goalIDs))
-                   {
-                       finalHistories.add(h);
-                   } else
-                   {
-                       finalPartialHistories.add(h);
-                   }
-               }
+                for (History h : n.histories)
+                {
+                    if (h.indexSet.equals(goalIDs))
+                    {
+                        finalHistories.add(h);
+                    } else
+                    {
+                        finalPartialHistories.add(h);
+                    }
+                }
             }
         }
-
-/*
-        Set<History> compressedFinalHistories = CGNode.compressHistories(finalHistories);
-        setFinalHistories(new LinkedList<>(compressedFinalHistories));
-*/
-
-        getLOGGER().fine("Starting semantic calculations...");
-
-        StringBuilder resultBuilder = new StringBuilder();
-
-        if (!finalHistories.isEmpty()) {
-            for (History solution : finalHistories) {
-                getSolutions().addAll(solution.calculateSolutions(resultBuilder));
-            }
-            proofBuilder.append(resultBuilder.toString());
-
-            getLOGGER().info("Found the following glue derivation(s):\n" + resultBuilder.toString());
-
-
-
-        }
-
-       // System.out.println(resultBuilder);
-        // System.out.println(System.lineSeparator());
-
-        long endTime = System.nanoTime();
-        db.computationTime = endTime - startTime;
-        proofBuilder.append(System.lineSeparator());
-
-
-        if (getSettings().isExplainFail()) {
-            analysis = new GraphAnalysis(goalCategory, scc2, categoryGraph2, categoryToPremiseMapping);
-            analysis.returnJSONGraph();
-            //analysis.displayGraph();
-
-            if (getSolutions().isEmpty() && !finalPartialHistories.isEmpty())
-            {
-             proofBuilder.append("Found the following partial solutions: ...");
-
-             for (History h : finalPartialHistories){
-                 // Calculate symmetric difference
-                 Set<Integer> symmetricDifference = new HashSet<>(goalIDs);
-                 symmetricDifference.addAll(h.indexSet);
-
-                 Set<Integer> tmp = new HashSet<>(goalIDs);
-                 tmp.retainAll(h.indexSet);
-
-                 symmetricDifference.removeAll(tmp);
-
-                 proofBuilder.append("For solution " + h.mainIndex.toString() + ", the followind indices are missing: " + symmetricDifference.toString() + "\n");
-
-
-             }
-
-            }
-        }
-
+        return scc;
     }
 
 
@@ -878,7 +822,7 @@ public class LLProver1 extends LLProver {
     }
 
 
-    public Graph<CGNode,DefaultEdge> calculateCategoryGraph2(List<LLTerm> initialPremises,HashMap<String,List<Premise>> category2premiseMapping)
+    public Graph<CGNode,DefaultEdge> calculateCategoryGraph(List<LLTerm> initialPremises, HashMap<String,List<Premise>> category2premiseMapping)
     {
         Graph<CGNode,DefaultEdge> categoryGraph = new DefaultDirectedGraph<CGNode,DefaultEdge>(DefaultEdge.class);
         HashMap<String,CGNode> category2node = new HashMap<>();
@@ -1679,21 +1623,18 @@ public class LLProver1 extends LLProver {
         return false;
     }
 
-    public String findAtomicGoal(List<Premise> premises)
+    public List<String> findAtomicGoal(List<Premise> premises)
     {
         List<LLAtom> allAtoms = new ArrayList<>();
         List<String> positive = new ArrayList<>();
         List<String> negative = new ArrayList<>();
 
-
         List<Premise> agendaCopy = new ArrayList<>(premises);
-
         ListIterator<Premise> iter = agendaCopy.listIterator();
 
         while (iter.hasNext())
         {
             Premise p = iter.next();
-
             if (p.getGlueTerm().isModifier())
             {
                 iter.remove();
@@ -1712,9 +1653,7 @@ public class LLProver1 extends LLProver {
             }
         }
 
-
         ListIterator<String> negIter = negative.listIterator();
-
         while (negIter.hasNext())
         {
             String negAtom = negIter.next();
@@ -1732,10 +1671,9 @@ public class LLProver1 extends LLProver {
 
         }
 
-        return positive.stream().findAny().get();
+
+        return positive;
     }
-
-
 
     //Getter and Setter
     public LinkedList<History> getFinalHistories() {

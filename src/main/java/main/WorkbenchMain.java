@@ -61,29 +61,26 @@ public class WorkbenchMain {
 
         LOGGER.info("The Glue Semantics Workbench -- copyright 2018 Moritz Messmer & Mark-Matthias Zymla");
 
-        boolean onlyMeaningSide = false;
-        boolean stdIn = false;
-        boolean stdOut = false;
-        String inputFileName = "";
-        String outputFileName = "";
-
         // Check program arguments for prover settings
         //for (String arg : args) {
         for (int i = 0; i < args.length; i++) {
             String arg = args[i];
             switch (arg) {
                 case ("-i"): {
-                    inputFileName = args[i + 1];
+                    String inputFileName = args[i + 1];
                     if (inputFileName.charAt(0) == '-')
                         inputFileName = "";
-                    stdIn = false;
+                    settings.setInputFileName(inputFileName);
+
+                    settings.setStdIn(false);
                     break;
                 }
                 case ("-o"): {
-                    outputFileName = args[i + 1];
+                    String outputFileName = args[i + 1];
                     if (outputFileName.charAt(0) == '-')
                         outputFileName = "";
-                    stdOut = false;
+                    settings.setOutputFileName(outputFileName);
+                    settings.setStdOut(false);
                     break;
                 }
                 case ("-outputStyle"):
@@ -142,7 +139,7 @@ public class WorkbenchMain {
                     break;
                 }
                 case ("-onlyMeaningSide"): {
-                    onlyMeaningSide = true;
+                    settings.setOnlyMeaningSide(true);
                     break;
                 }
                 case ("-explainFail"): {
@@ -150,11 +147,11 @@ public class WorkbenchMain {
                     break;
                 }
                 case ("-readStdIn"): {
-                    stdIn = true;
+                    settings.setStdIn(true);
                     break;
                 }
                 case ("-writeStdOut"): {
-                    stdOut = true;
+                    settings.setStdOut(true);
                     break;
                 }
                 case ("-assureGlueParsing"): {
@@ -171,11 +168,14 @@ public class WorkbenchMain {
                 case ("-web"):
                     settings.setWebService(true);
                     break;
+
+                case ("-tr"):
+
+                    break;
             }
         }
 
         if (settings.isWebService()) {
-
             LOGGER.info("Running system as web service ...");
             WebApplication web = new WebApplication();
             web.main(new String[0]);
@@ -185,21 +185,16 @@ public class WorkbenchMain {
             String outputMode = "plain";
             if (!settings.isBetaReduce())
                 betaReduce = "off";
-
             if (settings.getSemanticOutputStyle() == 1)
                 outputMode = "prolog";
-
             if (settings.getSemanticOutputStyle() == 2)
                 outputMode = "json";
-
             if (settings.getSemanticOutputStyle() == 3)
                 outputMode = "nltk";
             String outputSides = "meaning and linear logic sides";
-            if (onlyMeaningSide) {
+            if (settings.isOnlyMeaningSide()) {
                 outputSides = "only meaning side";
             }
-
-
             LOGGER.config(String.format("Current settings: automatic beta reduction: %s\t\toutput mode: %s\t\toutput: %s", betaReduce, outputMode, outputSides));
 
             InputStream inputFileStream = null;
@@ -208,11 +203,11 @@ public class WorkbenchMain {
             File outFile = null;
 
             // If no output or input method is defined, or one of them is missing then initiate manual mode
-            if (!stdIn && inputFileName.equals("")) {
+            if (!settings.isStdIn() && settings.getInputFileName().equals("")) {
                 try {
-                    inputFileName = getFileName("Choose a file containing lexical entries");
+                    settings.setInputFileName(getFileName("Choose a file containing lexical entries"));
                     //		outputFileName = getFileName("Choose an output file name");
-                    stdIn = false;
+                    settings.setStdIn(false);
                     // stdOut = false;
                     // initiateManualMode();
                 } catch (Exception e) {
@@ -221,7 +216,7 @@ public class WorkbenchMain {
             }
             try {
                 // Decide where to output
-                if (stdOut) {
+                if (settings.isStdOut()) {
                     w = new BufferedWriter(new OutputStreamWriter(System.out));
                     // Normally LOGGER is connected to stdout. So,
                     // simply remove all handlers from the logger and restore stderr
@@ -231,14 +226,12 @@ public class WorkbenchMain {
                         LOGGER.removeHandler(currentHandlers[i]);
                     }
                     LOGGER.addHandler(new StreamHandler(System.err, new MyFormatter()));
-                } else if (!outputFileName.equals("")) {
-                    outFile = new File(outputFileName);
+                } else if (!settings.getOutputFileName().equals("")) {
+                    outFile = new File(settings.getOutputFileName());
                     if (outFile.exists()) {
                         outFile.delete();
-                        outFile.createNewFile();
-                    } else {
-                        outFile.createNewFile();
                     }
+                    outFile.createNewFile();
                     if (outFile.exists()) {
                         w = new BufferedWriter(new FileWriter(outFile, true));
                     }
@@ -254,10 +247,10 @@ public class WorkbenchMain {
                     LOGGER.addHandler(new StreamHandler(System.err, new MyFormatter()));
                 }
                 // Decide from where to read the input
-                if (stdIn) {
+                if (settings.isStdIn()) {
                     inputFileStream = System.in;
-                } else if (!inputFileName.equals("")) {
-                    inputFileStream = Files.newInputStream(new File(inputFileName).toPath());
+                } else if (!settings.getInputFileName().equals("")) {
+                    inputFileStream = Files.newInputStream(new File(settings.getInputFileName()).toPath());
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -286,7 +279,7 @@ public class WorkbenchMain {
 
                 //Writes solution to output (file, stdout) if it is not empty
                 if (!solutions.keySet().isEmpty()) {
-                    if (onlyMeaningSide) {
+                    if (settings.isOnlyMeaningSide()) {
                         int nProofs = 0;
                         for (Integer key : solutions.keySet())
                             for (int i = 0; i < solutions.get(key).size(); i++)
@@ -301,7 +294,7 @@ public class WorkbenchMain {
                         for (int i = 0; i < solutions.get(key).size(); i++) {
                             List<String> sl = new ArrayList<>();
                             Premise solution = solutions.get(key).get(i);
-                            if (onlyMeaningSide) {
+                            if (settings.isOnlyMeaningSide()) {
                                 w.append(solution.getSemTerm().toString() + System.lineSeparator());
                                 if (naturalDeduction)
                                     w.append(NaturalDeductionProof.getNaturalDeductionProof(solution,0));
@@ -350,7 +343,7 @@ public class WorkbenchMain {
                 }
 
                 if (!settings.getSolutionOnly()) {
-                    if (!onlyMeaningSide) {
+                    if (!settings.isOnlyMeaningSide()) {
                         w.append(System.lineSeparator());
                         w.append("Proof:");
                         w.append(System.lineSeparator());
