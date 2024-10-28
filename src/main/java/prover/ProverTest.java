@@ -1,6 +1,7 @@
 package prover;
 
 import glueSemantics.parser.GlueParser;
+import glueSemantics.parser.LexicalEntries;
 import glueSemantics.parser.ParserInputException;
 import glueSemantics.semantics.MeaningConstructor;
 import main.InputOutputProcessor;
@@ -17,7 +18,7 @@ public class ProverTest {
 
     private static Integer noOfIterations = 100;
 
-    public LinkedHashMap<Integer, List<MeaningConstructor>> loadMeaningConstructors(String fileName) throws ParserInputException {
+    public LexicalEntries loadMeaningConstructors(String fileName) throws ParserInputException {
         List<String> formulas = new ArrayList<>();
 
         Path inputFileStream = testFolderPath.resolve(fileName);
@@ -43,26 +44,24 @@ public class ProverTest {
 
         GlueParser parser = new GlueParser(testSettings);
 
-        LinkedHashMap<Integer, List<MeaningConstructor>> lexicalEntries = parser.parseMeaningConstructorList(Arrays.asList(lines));
-
-        return lexicalEntries;
+        return parser.parseMeaningConstructorList(Arrays.asList(lines));
     }
 
 
     @Test
     public void testHeppleWorstCase() throws ParserInputException, VariableBindingException, ProverException {
-        LinkedHashMap<Integer, List<MeaningConstructor>> lexicalEntries = loadMeaningConstructors("hepple_worst_case.txt");
+        LexicalEntries lexicalEntries = loadMeaningConstructors("hepple_worst_case.txt");
         testSettings.setProverType(Settings.HEPPLE);
         testSettings.setDebugging(true);
-        assert (lexicalEntries.size() == 1);
-        assert (lexicalEntries.get(1).size() == 9);
+        assert (lexicalEntries.lexicalEntries.size() == 1);
+        assert (lexicalEntries.lexicalEntries.get(1).size() == 9);
 
         LLProver prover = new LLProver2(testSettings);
 
         List<Long> processingTimes = new ArrayList<>();
 
         for (int i = 0; i < noOfIterations; i++) {
-            for (Integer key : lexicalEntries.keySet()) {
+            for (Integer key : lexicalEntries.lexicalEntries.keySet()) {
                 prover.searchProof(key, lexicalEntries, true);
                 if (!prover.getSolutions().isEmpty()) {
                     processingTimes.add(prover.db.computationTime);
@@ -85,18 +84,18 @@ public class ProverTest {
 
     @Test
     public void testHeppleWorstCase2() throws ParserInputException, VariableBindingException, ProverException {
-        LinkedHashMap<Integer, List<MeaningConstructor>> lexicalEntries = loadMeaningConstructors("lev_worst_case.txt");
+        LexicalEntries lexicalEntries = loadMeaningConstructors("lev_worst_case.txt");
         testSettings.setProverType(Settings.HEPPLE);
         testSettings.setDebugging(true);
-        assert (lexicalEntries.size() == 8);
-        assert (lexicalEntries.get(1).size() == 9);
+        assert (lexicalEntries.lexicalEntries.size() == 8);
+        assert (lexicalEntries.lexicalEntries.get(1).size() == 9);
 
         LLProver prover = new LLProver2(testSettings);
 
         List<Long> processingTimes = new ArrayList<>();
 
         for (int i = 0; i < noOfIterations; i++) {
-            for (Integer key : lexicalEntries.keySet()) {
+            for (Integer key : lexicalEntries.lexicalEntries.keySet()) {
                 prover.searchProof(key, lexicalEntries, true);
                 if (!prover.getSolutions().isEmpty()) {
                     processingTimes.add(prover.db.computationTime);
@@ -119,18 +118,18 @@ public class ProverTest {
 
     @Test
     public void testLevWorstCase() throws ParserInputException, VariableBindingException, ProverException {
-        LinkedHashMap<Integer, List<MeaningConstructor>> lexicalEntries = loadMeaningConstructors("lev_worst_case.txt");
+        LexicalEntries lexicalEntries = loadMeaningConstructors("lev_worst_case.txt");
         testSettings.setProverType(Settings.LEV);
         testSettings.setDebugging(true);
-        assert (lexicalEntries.size() == 8);
-        assert (lexicalEntries.get(1).size() == 9);
+        assert (lexicalEntries.lexicalEntries.size() == 8);
+        assert (lexicalEntries.lexicalEntries.get(1).size() == 9);
 
         LLProver prover = new LLProver1(testSettings);
 
         List<Long> processingTimes = new ArrayList<>();
 
         for (int i = 0; i < noOfIterations; i++) {
-            for (Integer key : lexicalEntries.keySet()) {
+            for (Integer key : lexicalEntries.lexicalEntries .keySet()) {
                 prover.searchProof(key, lexicalEntries, true);
                 if (!prover.getSolutions().isEmpty()) {
                     processingTimes.add(prover.db.computationTime);
@@ -153,18 +152,18 @@ public class ProverTest {
 
     @Test
     public void testNestedQuantifierHepple() throws ParserInputException, VariableBindingException, ProverException {
-        LinkedHashMap<Integer, List<MeaningConstructor>> lexicalEntries = loadMeaningConstructors("nested_quantifiers1.txt");
+        LexicalEntries lexicalEntries = loadMeaningConstructors("nested_quantifiers1.txt");
         testSettings.setProverType(Settings.HEPPLE);
         testSettings.setDebugging(true);
-        assert (lexicalEntries.size() == 1);
-        assert (lexicalEntries.get(1).size() == 6);
+        assert (lexicalEntries.lexicalEntries.size() == 1);
+        assert (lexicalEntries.lexicalEntries.get(1).size() == 6);
 
         LLProver prover = new LLProver2(testSettings);
 
         List<Long> processingTimes = new ArrayList<>();
 
         for (int i = 0; i < noOfIterations; i++) {
-            for (Integer key : lexicalEntries.keySet()) {
+            for (Integer key : lexicalEntries.lexicalEntries.keySet()) {
                 prover.searchProof(key, lexicalEntries, true);
                 if (!prover.getSolutions().isEmpty()) {
                     processingTimes.add(prover.db.computationTime);
@@ -188,18 +187,18 @@ public class ProverTest {
 
     @Test
     public void testNestedQuantifierLev() throws ParserInputException, VariableBindingException, ProverException {
-        LinkedHashMap<Integer, List<MeaningConstructor>> lexicalEntries = loadMeaningConstructors("nested_quantifiers2.txt");
+        LexicalEntries lexicalEntries = loadMeaningConstructors("nested_quantifiers2.txt");
         testSettings.setProverType(Settings.LEV);
         testSettings.setDebugging(true);
-        assert (lexicalEntries.size() == 2);
-        assert (lexicalEntries.get(1).size() == 6);
+        assert (lexicalEntries.lexicalEntries.size() == 2);
+        assert (lexicalEntries.lexicalEntries.get(1).size() == 6);
 
         LLProver prover = new LLProver1(testSettings);
 
         List<Long> processingTimes = new ArrayList<>();
 
         for (int i = 0; i < noOfIterations; i++) {
-            for (Integer key : lexicalEntries.keySet()) {
+            for (Integer key : lexicalEntries.lexicalEntries.keySet()) {
                 prover.searchProof(key, lexicalEntries, true);
                 if (!prover.getSolutions().isEmpty()) {
                     processingTimes.add(prover.db.computationTime);

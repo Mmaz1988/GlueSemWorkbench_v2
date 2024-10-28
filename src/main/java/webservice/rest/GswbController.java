@@ -2,6 +2,7 @@ package webservice.rest;
 
 import glueSemantics.linearLogic.Premise;
 import glueSemantics.parser.GlueParser;
+import glueSemantics.parser.LexicalEntries;
 import glueSemantics.parser.ParserInputException;
 import glueSemantics.semantics.MeaningConstructor;
 import main.*;
@@ -76,6 +77,11 @@ public class GswbController {
             prover = new LLProver4(settings,sb);
         }
 
+        boolean multistage = false;
+        if (settings.getProverType() == 3)
+        {
+            multistage = true;
+        }
         HashMap<String,GswbOutput> analyses = new HashMap<>();
 
         StringBuilder reportBuilder = new StringBuilder();
@@ -103,16 +109,17 @@ public class GswbController {
         for (int i = 0; i < keys.size(); i++)
         {
             String id = keys.get(i);
-            LinkedHashMap<Integer, List<MeaningConstructor>> mcs = gp.parseMeaningConstructorString(request.premises.get(id));
+            LexicalEntries mcs =
+                    gp.parseMeaningConstructorString(request.premises.get(id),multistage);
 
             Integer noOfMCs = 0;
             LinkedHashMap<Integer, List<Premise>> allSolutions = new LinkedHashMap<>();
 
             Integer countSolutions = 0;
 
-            for (Integer key : mcs.keySet()) {
+            for (Integer key : mcs.lexicalEntries.keySet()) {
                 try {
-                     noOfMCs = noOfMCs + mcs.get(key).size();
+                     noOfMCs = noOfMCs + mcs.lexicalEntries.get(key).size();
                     List<Premise> solutions = prover.searchProof(key,mcs);
                     allSolutions.put(key, solutions);
                     countSolutions = countSolutions + solutions.size();
@@ -221,12 +228,18 @@ public class GswbController {
         settings.setParseSemantics(request.gswbPreferences.parseSem);
         settings.setNaturalDeductionOutput(request.gswbPreferences.naturalDeductionStyle);
 
+        Boolean multistage = false;
+        if (settings.getProverType() == 3)
+        {
+            multistage = true;
+        }
+
         GlueParser gp = new GlueParser(settings);
 
         InputOutputProcessor.process(request.premises);
         String input = InputOutputProcessor.translate(request.premises);
 
-        LinkedHashMap<Integer, List<MeaningConstructor>> mcs = gp.parseMeaningConstructorString(input);
+        LexicalEntries mcs = gp.parseMeaningConstructorString(input, multistage);
         LinkedHashMap<Integer, List<Premise>> allSolutions = new LinkedHashMap<>();
 
         LLProver prover = null;
@@ -244,7 +257,7 @@ public class GswbController {
             prover = new LLProver4(settings,sb);
         }
 
-        for (Integer key : mcs.keySet()) {
+        for (Integer key : mcs.lexicalEntries.keySet()) {
             try {
                 List<Premise> solutions = prover.searchProof(key,mcs);
                 allSolutions.put(key, solutions);

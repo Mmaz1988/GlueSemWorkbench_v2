@@ -178,11 +178,11 @@ public class LinearLogicParser {
                         } else if (unparsedInput.charAt(pos) == 'p') {
                             pos++;
                             return new LLAtom(glueIdentifier,
-                                    new SemType(SemType.AtomicType.ALT), LLAtom.LLType.CONST, polarity);
+                                    new SemType(SemType.AtomicType.P), LLAtom.LLType.CONST, polarity);
                         } else if (unparsedInput.charAt(pos) == 'a') {
                             pos++;
                             return new LLAtom(glueIdentifier,
-                                    new SemType(SemType.AtomicType.P), LLAtom.LLType.CONST, polarity);
+                                    new SemType(SemType.AtomicType.ALT), LLAtom.LLType.CONST, polarity);
                         }
                     }
                     else

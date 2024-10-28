@@ -2,6 +2,7 @@ package prover;
 
 import glueSemantics.linearLogic.Premise;
 import glueSemantics.linearLogic.Sequent;
+import glueSemantics.parser.LexicalEntries;
 import glueSemantics.semantics.MeaningConstructor;
 import main.InputOutputProcessor;
 import main.Settings;
@@ -18,6 +19,8 @@ public abstract class LLProver {
     public Debugging db;
     private Settings settings;
     private LinkedList<Premise> solutions = new LinkedList<>();
+
+    private LexicalEntries lexicalEntries;
 
 
     private final static Logger LOGGER = Logger.getLogger(WorkbenchMain.class.getName());
@@ -53,20 +56,20 @@ public abstract class LLProver {
     public abstract void setProofBuilder(StringBuilder proofBuilder);
 
 
-    public List<Premise> searchProof(Integer key, LinkedHashMap<Integer,List<MeaningConstructor>> lexicalEntries) throws VariableBindingException, ProverException {
+    public List<Premise> searchProof(Integer key, LexicalEntries lexicalEntries) throws VariableBindingException, ProverException {
         return searchProof(key, lexicalEntries, false);
     }
 
-    public List<Premise> searchProof(Integer key, LinkedHashMap<Integer,List<MeaningConstructor>> lexicalEntries, Boolean mute) throws VariableBindingException, ProverException {
+    public List<Premise> searchProof(Integer key, LexicalEntries lexicalEntries, Boolean mute) throws VariableBindingException, ProverException {
 
+        this.lexicalEntries = lexicalEntries;
         try {
-
         if (!mute)
         {
-            LOGGER.info(String.format("Found %d lexical entries for proof with id S%d",lexicalEntries.get(key).size(),key));
+            LOGGER.info(String.format("Found %d lexical entries for proof with id S%d",lexicalEntries.lexicalEntries.get(key).size(),key));
         }
 
-            Sequent testseq = new Sequent(lexicalEntries.get(key));
+            Sequent testseq = new Sequent(lexicalEntries.lexicalEntries.get(key));
 
             deduce(testseq);
             List<Premise> result = new ArrayList<>(getSolutions());
@@ -141,6 +144,14 @@ public abstract class LLProver {
             e.printStackTrace();
         }
     return null;
+    }
+
+    public LexicalEntries getLexicalEntries() {
+        return lexicalEntries;
+    }
+
+    public void setLexicalEntries(LexicalEntries lexicalEntries) {
+        this.lexicalEntries = lexicalEntries;
     }
 
 }

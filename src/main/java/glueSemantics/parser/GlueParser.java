@@ -19,13 +19,14 @@ package glueSemantics.parser;
 
 
 import glueSemantics.linearLogic.LLTerm;
-import glueSemantics.linearLogic.Premise;
 import glueSemantics.semantics.MeaningConstructor;
 import glueSemantics.semantics.MeaningRepresentation;
 import glueSemantics.semantics.SemanticRepresentation;
 import glueSemantics.semantics.lambda.SemSet;
 import main.Settings;
-import prover.VariableBindingException;
+import org.jgrapht.Graph;
+import org.jgrapht.graph.DefaultDirectedGraph;
+import org.jgrapht.graph.DefaultEdge;
 import utilities.MyFormatter;
 
 import java.util.*;
@@ -144,15 +145,19 @@ public class GlueParser {
     }
 
 
-    public LinkedHashMap<Integer,List<MeaningConstructor>> parseMeaningConstructorString(String mc) throws ParserInputException {
+    public LexicalEntries parseMeaningConstructorString(String mc, boolean multistage) throws ParserInputException {
         List<String> formulas = Arrays.asList(mc.split("\n"));
+        if (multistage)
+        {
+            return parseMultiStageMCList(formulas);
+        }
         return parseMeaningConstructorList(formulas);
     }
 
-    public LinkedHashMap<Integer,List<MeaningConstructor>> parseMeaningConstructorList(List<String> formulas) throws ParserInputException {
+    public LexicalEntries parseMeaningConstructorList(List<String> formulas) throws ParserInputException {
 
         //Split string into lines
-
+        Graph<String, DefaultEdge> multiStageMapping = new DefaultDirectedGraph<>(DefaultEdge.class);
 
         LinkedHashMap<Integer, List<MeaningConstructor>> lexicalEntries = new LinkedHashMap<>();
         Integer sets = 0;
@@ -164,41 +169,49 @@ public class GlueParser {
 
         List<MeaningConstructor> ungroupedEntries = new ArrayList<>();
 
+        Integer stage = 0;
+        Integer sister = 0;
+        HashMap<Integer,Integer> sisters = new HashMap<>();
+        sisters.put(stage,sister);
+
         for (int i = 0; i < formulas.size(); i++) {
-
             String current = formulas.get(i);
+            Matcher startMatcher = wrapperStart.matcher(current);
 
-            Matcher startMatcher = wrapperStart.matcher(formulas.get(i));
-
-            if (formulas.get(i).startsWith("//"))
+            if (current.startsWith("//"))
             {
                 continue;
             }
 
             //sets corresponds to the number of individual proofs
             if (startMatcher.matches()) {
-                Integer stage = 0;
-                Integer sister = 0;
-                HashMap<Integer,Integer> sisters = new HashMap<>();
-                sisters.put(stage,sister);
                 sets++;
                 List<MeaningConstructor> currentLexicalEntries = new LinkedList<>();
                 i++;
                 Boolean newEntry = true;
                 //Here the mcs for one proof are calculated
                 while (newEntry) {
-                    Matcher endMatcher = wrapperEnd.matcher(formulas.get(i));
-                    Matcher currentStartMatcher = wrapperStart.matcher(formulas.get(i));
+                    String newItem = formulas.get(i).trim();
+                    Matcher endMatcher = wrapperEnd.matcher(newItem);
+                    Matcher currentStartMatcher = wrapperStart.matcher(newItem);
 
 
                     if (endMatcher.matches()) {
                         if (stage > 0) {
                             i++;
+                            String vertex = stage + "+" + sisters.get(stage);
+                            String parentVertex = stage - 1 + "+" + (sisters.get(stage-1));
+                            multiStageMapping.addVertex(vertex);
+                            if (!multiStageMapping.vertexSet().contains(parentVertex)) {
+                                multiStageMapping.addVertex(parentVertex);
+                            }
+                            multiStageMapping.addEdge(parentVertex,vertex);
                             sisters.put(stage,sisters.get(stage) + 1);
                             stage = stage - 1;
                             continue;
                         } else
                         if (stage == 0) {
+                            multiStageMapping.addVertex("0+0");
                             newEntry = false;
                             lexicalEntries.put(sets, currentLexicalEntries);
                             continue;
@@ -224,7 +237,7 @@ public class GlueParser {
                         }
 
                         LOGGER.finer("Now parsing meaning constructor at position " + i + " in premise list...");
-                        currentLexicalEntries.add(parseMeaningConstructor(formulas.get(i),stage.toString() + "+" + sisters.get(stage)));
+                        currentLexicalEntries.add(parseMeaningConstructor(newItem,stage.toString() + "+" + sisters.get(stage)));
                     } catch (ParserInputException e) {
                         LOGGER.warning(String.format("Error: " +
                                 "glue parser could not parse line %d of input file. " +
@@ -253,8 +266,126 @@ public class GlueParser {
             lexicalEntries.put(0, ungroupedEntries);
         }
 
-        return lexicalEntries;
+        return new LexicalEntries(lexicalEntries);
     }
+
+
+
+    public LexicalEntries parseMultiStageMCList(List<String> formulas) throws ParserInputException {
+
+        //Split string into lines
+        Graph<String, DefaultEdge> multiStageMapping = new DefaultDirectedGraph<>(DefaultEdge.class);
+
+        LinkedHashMap<Integer, List<MeaningConstructor>> lexicalEntries = new LinkedHashMap<>();
+        Integer sets = 0;
+        Pattern wrapperStart = Pattern.compile("\\t*\\{\\t*");
+        Pattern wrapperEnd = Pattern.compile("\\t*\\}\\t*");
+
+
+        LOGGER.info("Now parsing input premises...");
+
+        List<MeaningConstructor> ungroupedEntries = new ArrayList<>();
+
+        Integer stage = 0;
+        Integer sister = 0;
+        HashMap<Integer,Integer> sisters = new HashMap<>();
+        sisters.put(stage,sister);
+
+        for (int i = 0; i < formulas.size(); i++) {
+            String current = formulas.get(i);
+            Matcher startMatcher = wrapperStart.matcher(current);
+
+            if (current.startsWith("//"))
+            {
+                continue;
+            }
+
+            //sets corresponds to the number of individual proofs
+            if (startMatcher.matches()) {
+                sets++;
+                List<MeaningConstructor> currentLexicalEntries = new LinkedList<>();
+                i++;
+                Boolean newEntry = true;
+                //Here the mcs for one proof are calculated
+                while (newEntry) {
+                    String newItem = formulas.get(i).trim();
+                    Matcher endMatcher = wrapperEnd.matcher(newItem);
+                    Matcher currentStartMatcher = wrapperStart.matcher(newItem);
+
+
+                    if (endMatcher.matches()) {
+                        if (stage > 0) {
+                            i++;
+                            String vertex = stage + "+" + sisters.get(stage);
+                            String parentVertex = stage - 1 + "+" + (sisters.get(stage-1));
+                            multiStageMapping.addVertex(vertex);
+                            if (!multiStageMapping.vertexSet().contains(parentVertex)) {
+                                multiStageMapping.addVertex(parentVertex);
+                            }
+                            multiStageMapping.addEdge(parentVertex,vertex);
+                            sisters.put(stage,sisters.get(stage) + 1);
+                            stage = stage - 1;
+                            continue;
+                        } else
+                        if (stage == 0) {
+                            multiStageMapping.addVertex("0+0");
+                            newEntry = false;
+                            lexicalEntries.put(sets, currentLexicalEntries);
+                            continue;
+                        }
+                    }
+
+                    if (currentStartMatcher.matches())
+                    {
+                        i++;
+                        stage = stage + 1;
+                        if (!sisters.containsKey(stage))
+                        {
+                            sisters.put(stage,0);
+                        }
+                        continue;
+                    }
+                    try {
+
+                        if (formulas.get(i).startsWith("//"))
+                        {
+                            i++;
+                            continue;
+                        }
+
+                        LOGGER.finer("Now parsing meaning constructor at position " + i + " in premise list...");
+                        currentLexicalEntries.add(parseMeaningConstructor(newItem,stage.toString() + "+" + sisters.get(stage)));
+                    } catch (ParserInputException e) {
+                        LOGGER.warning(String.format("Error: " +
+                                "glue parser could not parse line %d of input file. " +
+                                "Skipping this line.", formulas.indexOf(formulas.get(i))));
+                    }
+                    i++;
+                }
+
+                lexicalEntries.put(sets, currentLexicalEntries);
+
+            } else
+            {
+                try {
+                    LOGGER.finer("Now parsing meaning constructor at position " + i + " in premise list...");
+                    ungroupedEntries.add(parseMeaningConstructor(formulas.get(i)));
+                } catch (ParserInputException e) {
+                    LOGGER.warning(String.format("Error: " +
+                            "glue parser could not parse line %d of input file. " +
+                            "Skipping this line.", formulas.indexOf(formulas.get(i))));
+                }
+            }
+        }
+
+        if (!ungroupedEntries.isEmpty())
+        {
+            lexicalEntries.put(0, ungroupedEntries);
+        }
+
+        return new LexicalEntries(lexicalEntries,multiStageMapping);
+    }
+
 
     /*
     public static void main(String[] args) throws VariableBindingException {

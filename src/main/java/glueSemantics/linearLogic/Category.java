@@ -79,4 +79,21 @@ public class Category {
             return left.getSize() + right.getSize();
         }
     }
+
+
+    public boolean isModifier()
+    {
+        if (this.left == null)
+        {
+            return false;
+        } else {
+            if (this.left.toString().equals(this.right.toString()))
+            {
+                return true;
+            } else {
+                return this.right.isModifier();
+            }
+        }
+
+    }
 }

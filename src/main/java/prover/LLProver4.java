@@ -339,29 +339,24 @@ public class LLProver4 extends LLProver {
                             node.compressHistories();
                         }
                     }
-
-                    // inputNodes.add((CGNode) node);
                     sccHistories.addAll(((CGNode) node).histories);
-
-                    boolean input = true;
 
                     //Search input nodes
                     if (!(categoryGraph.incomingEdgesOf((CGNode) node).size() == 0)) {
 
                         for (Object edge : categoryGraph.incomingEdgesOf((CGNode) node)) {
-                            if (sccKey.vertexSet().contains(categoryGraph.getEdgeSource((DefaultEdge) edge))) {
-                                input = false;
-                            } else {
+                            CGNode incomingNode = categoryGraph.getEdgeSource((DefaultEdge) edge);
+                            if (!sccKey.vertexSet().contains(incomingNode)){
                                 //Add all histories that are fed in from outside the scc
-                                sccHistories.addAll(categoryGraph.getEdgeSource((DefaultEdge) edge).histories);
+                                sccHistories.addAll(incomingNode.histories);
+                                inputNodes.add(incomingNode);
                             }
                         }
                     }
 
-                    if (input) {
-                        inputNodes.add((CGNode) node);
-                        //                       sccHistories.addAll(((CGNode) node).histories);
-                    }
+             //       if (input) {
+             //           inputNodes.add((CGNode) node);
+                        //                       sccHistories.addAll(((CGNode) node).histories)
 
                     //Search output nodes
                     if (categoryGraph.outgoingEdgesOf((CGNode) node).size() > 0) {
@@ -373,6 +368,12 @@ public class LLProver4 extends LLProver {
                             }
                         }
                     }
+
+                    /*
+                    TODO: ? Should nodes completely inside a cylce also be outputnodes if they result from a derviation
+                    Probably not because the pr
+                     */
+
 
                     if (((CGNode) node).category.equals(goalCategory)) {
                         outputNodes.add((CGNode) node);
@@ -486,15 +487,29 @@ public class LLProver4 extends LLProver {
 
         for (String key : stagedSccAgendaKeys) {
 
-            if (!nonScopingModifiers.isEmpty()) {
-                List<History> scopingModifiers = sccAgenda.stream().filter(h -> !this.nonScopingModifiers.contains(h.mainIndex) && h.category.left != null &&
-                        h.category.left.toString().equals(h.category.right.toString()) &&
-                        h.stage.equals(key)).collect(Collectors.toList());
+            Set<Integer> noscopeIndices = stagedSccAgenda.get(key).stream().filter(y -> nonScopingModifiers.contains(y.mainIndex)).collect(Collectors.toSet()).
+                    stream().map(x -> x.mainIndex).collect(Collectors.toSet());
+
+            List<History> scopingConsumers = stagedSccAgenda.get(key).stream().filter(h -> !noscopeIndices.contains(h.mainIndex) &&
+                    h.category.left != null).collect(Collectors.toList());
+
+            List<History> scopingSkeletons = scopingConsumers.stream().filter(h -> !h.category.isModifier()).collect(Collectors.toList());
+            List<History> scopingModifiers = scopingConsumers.stream().filter(h -> h.category.isModifier()).collect(Collectors.toList());
+
+            boolean noscope = false;
+
+            if (!noscopeIndices.isEmpty()) {
+                List<History> noScopeHistories = new ArrayList<>(histories);
+
+                //  h.category.left.toString().equals(h.category.right.toString()) &&
+                      //  h.stage.equals(key)).collect(Collectors.toList());
                 // sccAgenda minus scopingModifiers
-                List<History> nonscopingAgenda = stagedSccAgenda.get(key).stream().filter(h -> !scopingModifiers.contains(h)).collect(Collectors.toList());
+                List<History> nonscopingAgenda = stagedSccAgenda.get(key).stream().filter(h ->
+                        noscopeIndices.contains(h.mainIndex)).collect(Collectors.toList());
 
 
-                //add potential histories from other stages (
+                //Potentially check for duplicates
+                nonscopingAgenda.addAll(scopingSkeletons);
                 nonscopingAgenda.addAll(histories);
 
                 //
@@ -514,86 +529,20 @@ public class LLProver4 extends LLProver {
                 //sort nonscopingResults by size of index set in descending order
                 nonscopingResults.sort((o1, o2) -> Integer.compare(o2.indexSet.size(), o1.indexSet.size()));
 
+                //Elevates all unused complex mcs one stage higher (allows to use non-atomic results later in derivation)
+                elevateHistories(nonscopingResults,stagedSccAgenda,key);
 
                 //Only add histories which have all modifiers applied by checking for the largest index set
                 for (History h : nonscopingResults){
-                    if (!histories.contains(h) && h.indexSet.size() == nonscopingResults.get(0).indexSet.size())
+                    if (!histories.contains(h) && h.indexSet.containsAll(noscopeIndices))
                     {
                         histories.add(h);
                     }
                 }
 
-                //histories.addAll();
-                //Remove duplicates based on mainindex
-
-                /**
-                 * Noscope optimization
-                 */
-
-                /*
-
-                HashMap<History, Set<Integer>[]> indexSetComparison = new HashMap<>();
-
-                Set<Integer> usedNonScopingModifiers = new HashSet<>();
-
-                for (History h : histories) {
-
-                    Set<Integer>[] indices = new Set[2];
-                    Set<Integer> nonScopingIndices = new HashSet<>(h.indexSet);
-                    nonScopingIndices.retainAll(this.nonScopingModifiers);
-
-                    indices[0] = nonScopingIndices;
-                    usedNonScopingModifiers.addAll(nonScopingIndices);
-
-                    Set<Integer> otherIndices = new HashSet<>(h.indexSet);
-                    otherIndices.stream().filter(i -> !nonScopingIndices.contains(i)).collect(Collectors.toList());
-
-                    indices[1] = otherIndices;
-
-                    if (!indices[0].isEmpty() && !indices[1].isEmpty()) {
-                        indexSetComparison.put(h, indices);
-                    }
-                }
-
-                this.nonScopingModifiers.removeAll(usedNonScopingModifiers);
-
-                if (usedNonScopingModifiers.size() > 0) {
-
-                    int previousHistories = indexSetComparison.keySet().size();
-                    //Remove all key/value pairs for which indices[0] are equal and indices[1] are equal with lambda expression
-                    indexSetComparison.entrySet().removeIf(entry -> indexSetComparison.entrySet().stream().anyMatch(entry2 -> entry2.getKey() != entry.getKey() &&
-                            entry2.getValue()[0].equals(entry.getValue()[0]) && entry2.getValue()[1].equals(entry.getValue()[1])));
-
-
-                    if (!indexSetComparison.keySet().isEmpty()) {
-
-                        int removedHistories = previousHistories - indexSetComparison.keySet().size();
-                        db.noScopedHistories += removedHistories;
-
-                        List<History> outputHistories = new ArrayList<>();
-
-                        for (CGNode outputNode : outputNodes) {
-                            for (History h : indexSetComparison.keySet()) {
-                                if (h.category.toString().equals(outputNode.category)) {
-                                    outputHistories.add(h);
-                                } else if (h.category.atomic) {
-                                    outputHistories.add(h);
-                                }
-                            }
-                        }
-                        if (outputHistories.size() < getSettings().getMaxSolutions()) {
-                            histories = outputHistories;
-                        } else {
-                            //sort newOutput by the size of a histories index set with lambda; largest first
-                            outputHistories.sort((o1, o2) -> Integer.compare(o2.indexSet.size(), o1.indexSet.size()));
-                            histories = outputHistories.subList(0, getSettings().getMaxSolutions());
-                        }
-                    }
-                }
-                */
-
                 if (!scopingModifiers.isEmpty()) {
                     histories.addAll(scopingModifiers);
+                //    histories.addAll(scopingSkeletons);
                     histories = chartDeduce2(histories,false);
                 }
 
@@ -602,7 +551,10 @@ public class LLProver4 extends LLProver {
                     for (History h : histories) {
                         if (h.category.toString().equals(outputNode.category)) {
                             newOutput.add(h);
-                        }
+                        } else if (h.category.atomic)
+                    {
+                        newOutput.add(h);
+                    }
                     }
                 }
 
@@ -613,16 +565,20 @@ public class LLProver4 extends LLProver {
                     newOutput.sort((o1, o2) -> Integer.compare(o2.indexSet.size(), o1.indexSet.size()));
                     histories = newOutput.subList(0, getSettings().getMaxSolutions());
                 }
-
                 //  this.nonScopingModifiers.removeAll(appliedModifiers);
                // histories = newOutput;
-
 
             } else {
                 stagedSccAgenda.get(key).addAll(histories);
                 histories = chartDeduce2(stagedSccAgenda.get(key),false);
 
-                List<History> outputHistories = new ArrayList<>();
+                //Elevates all unused complex mcs one stage higher (allows to use non-atomic results later in derivation)
+                elevateHistories(histories,stagedSccAgenda,key);
+
+
+
+                    List<History> outputHistories = new ArrayList<>();
+
 
                 for (CGNode outputNode : outputNodes) {
                     for (History h : histories) {
@@ -657,7 +613,42 @@ public class LLProver4 extends LLProver {
         }
     }
 
+    public void elevateHistories(List<History> histories, HashMap<String,List<History>> stagedSccAgenda, String key){
+        //Check whether any element is not fully saturated and elevate it to one stage higher
+        for (History h : histories){
+            boolean unsaturated = true;
+            if (h.category.left != null) {
+                for (History h1 : histories)
+                {
+                    if (h1.category.equals(h.category.left))
+                    {
+                        unsaturated = false;
+                    }
+                }
+                if (unsaturated)
+                {
+                    String newStage = reduceStage(key);
+                    h.stage = newStage;
+                    if (stagedSccAgenda.keySet().contains(newStage))
+                    {
+                        stagedSccAgenda.get(newStage).add(h);
+                    }
+                    getLOGGER().info("Raised history with category: " + h.category);
+                }
+            }
+        }
+    }
 
+    public String reduceStage(String inputStage)
+    {
+       Set<DefaultEdge> parentEdge = getLexicalEntries().multiStageGraph.incomingEdgesOf(inputStage);
+
+       if (parentEdge.size() == 1)
+       {
+           return getLexicalEntries().multiStageGraph.getEdgeSource(parentEdge.stream().findAny().get());
+       }
+        return "0+0";
+    }
 
 
     /**

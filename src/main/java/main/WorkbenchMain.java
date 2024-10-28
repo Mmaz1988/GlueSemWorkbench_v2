@@ -398,7 +398,7 @@ public class WorkbenchMain {
 
             GlueParser parser = new GlueParser(settings);
 
-            LinkedHashMap<Integer, List<MeaningConstructor>> lexicalEntries = parser.parseMeaningConstructorList(formulas);
+            LinkedHashMap<Integer, List<MeaningConstructor>> lexicalEntries = parser.parseMeaningConstructorList(formulas).lexicalEntries;
 
                 //TODO fix output to accomodate for multiple entries
                 LOGGER.info(String.format("Found %d different proof(s) in input file.", lexicalEntries.size()));
