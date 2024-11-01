@@ -452,6 +452,12 @@ public class LLProver4 extends LLProver {
         List<History> sccAgenda = new ArrayList<>();
         sccAgenda.addAll(sccHistories);
 
+//        Set<Integer> goalIndices = new HashSet<>();
+//                for (History h : sccAgenda)
+//                {
+//                    goalIndices.addAll(h.indexSet);
+//                }
+
         HashMap<String,List<History>> stagedSccAgenda = new HashMap<>();
         List<History> globalHistory = new ArrayList<>();
 
@@ -499,7 +505,7 @@ public class LLProver4 extends LLProver {
             boolean noscope = false;
 
             if (!noscopeIndices.isEmpty()) {
-                List<History> noScopeHistories = new ArrayList<>(histories);
+               // List<History> noScopeHistories = new ArrayList<>(histories);
 
                 //  h.category.left.toString().equals(h.category.right.toString()) &&
                       //  h.stage.equals(key)).collect(Collectors.toList());
@@ -529,16 +535,20 @@ public class LLProver4 extends LLProver {
                 //sort nonscopingResults by size of index set in descending order
                 nonscopingResults.sort((o1, o2) -> Integer.compare(o2.indexSet.size(), o1.indexSet.size()));
 
+                nonscopingResults = noScopeCompress(nonscopingResults);
+
                 //Elevates all unused complex mcs one stage higher (allows to use non-atomic results later in derivation)
                 elevateHistories(nonscopingResults,stagedSccAgenda,key);
 
                 //Only add histories which have all modifiers applied by checking for the largest index set
                 for (History h : nonscopingResults){
-                    if (!histories.contains(h) && h.indexSet.containsAll(noscopeIndices))
+                    if (!histories.contains(h) && !Collections.disjoint(noscopeIndices,h.indexSet))
                     {
                         histories.add(h);
                     }
                 }
+
+
 
                 if (!scopingModifiers.isEmpty()) {
                     histories.addAll(scopingModifiers);
@@ -557,6 +567,8 @@ public class LLProver4 extends LLProver {
                     }
                     }
                 }
+
+
 
                 if (newOutput.size() < getSettings().getMaxSolutions()) {
                     histories = newOutput;
@@ -668,6 +680,9 @@ public class LLProver4 extends LLProver {
     public List<History> chartDeduce2(List<History> histories, boolean noscope) throws VariableBindingException, ProverException {
         getLOGGER().finer("Beginning a partial chart derivation...");
 
+        HashMap<String,List<History>> atomicChart = new HashMap<>();
+        HashMap<String,List<History>> nonAtomicChart = new HashMap<>();
+
         List<History> agenda = History.categorySort(histories);
 
         // In the beginning the chart is empty
@@ -684,43 +699,83 @@ public class LLProver4 extends LLProver {
 
                 // Each element in the agenda is checked for compatibility with each element on the chart
                 // to see if a new resource can be produced. If so, it is added to the agenda
-                for (History h : chart) {
-                    if (h.category.left != null) {
-                        if (h.category.left.toString().equals(current.category.toString())) {
-                            if (noscope && nonScopingModifiers.contains(h.mainIndex)) {
-                                List<Integer> inverseFa = Arrays.asList(current.mainIndex, h.mainIndex);
-                                if (applications.contains(inverseFa)) {
-                                    continue;
+
+                boolean nonAtomic = false;
+                if (current.category.left != null) {
+                    nonAtomic = true;
+                }
+
+
+                if (!nonAtomic) {
+                    if (nonAtomicChart.containsKey(current.category.toString()))
+                        for (History h : nonAtomicChart.get(current.category.toString())) {
+                            if (h.category.left != null) {
+                                if (h.category.left.toString().equals(current.category.toString())) {
+                                    if (noscope && nonScopingModifiers.contains(h.mainIndex)) {
+                                        List<Integer> inverseFa = Arrays.asList(current.mainIndex, h.mainIndex);
+                                        if (applications.contains(inverseFa)) {
+                                            continue;
+                                        }
+                                    }
+                                    History combined = combineHistories(h, current);
+                                    if (combined != null) {
+                                        agendaIterator.add(combined);
+                                        List<Integer> fa = Arrays.asList(h.mainIndex, current.mainIndex);
+                                        applications.add(fa);
+                                    }
                                 }
-                            }
-                            History combined = combineHistories(h, current);
-                            if (combined != null) {
-                                agendaIterator.add(combined);
-                                List<Integer> fa = Arrays.asList(h.mainIndex, current.mainIndex);
-                                applications.add(fa);
                             }
                         }
-                    }
-                    if (current.category.left != null) {
-                        if (current.category.left.toString().equals(h.category.toString())) {
-                            if (noscope && nonScopingModifiers.contains(current.mainIndex)) {
-                                List<Integer> inverseFa = Arrays.asList(h.mainIndex, current.mainIndex);
-                                if (applications.contains(inverseFa)) {
-                                    continue;
+
+                } else {
+                    if (atomicChart.containsKey(current.category.left.toString())) {
+                        for (History h : atomicChart.get(current.category.left.toString())) {
+                            if (current.category.left.toString().equals(h.category.toString())) {
+                                if (noscope && nonScopingModifiers.contains(current.mainIndex)) {
+                                    List<Integer> inverseFa = Arrays.asList(h.mainIndex, current.mainIndex);
+                                    if (applications.contains(inverseFa)) {
+                                        continue;
+                                    }
                                 }
-                            }
-                            History combined = combineHistories(current, h);
-                            if (combined != null) {
-                                agendaIterator.add(combined);
-                                List<Integer> fa = Arrays.asList(current.mainIndex, h.mainIndex);
-                                applications.add(fa);
+                                History combined = combineHistories(current, h);
+                                if (combined != null) {
+                                    agendaIterator.add(combined);
+                                    List<Integer> fa = Arrays.asList(current.mainIndex, h.mainIndex);
+                                    applications.add(fa);
+                                }
                             }
                         }
                     }
                 }
-                chart.add(current);
+
+                if (nonAtomic)
+                {
+                if (!nonAtomicChart.containsKey(current.category.left.toString()))
+                {
+                    nonAtomicChart.put(current.category.left.toString(), new ArrayList<>());
+                }
+                nonAtomicChart.get(current.category.left.toString()).add(current);
+                } else {
+                    if (!atomicChart.containsKey(current.category.toString()))
+                    {
+                        atomicChart.put(current.category.toString(),new ArrayList<>());
+                    }
+                    atomicChart.get(current.category.toString()).add(current);
+                }
             }
         }
+
+        //Compress charts and flatten to list
+
+        for (String key : atomicChart.keySet())
+        {
+            chart.addAll(atomicChart.get(key));
+        }
+        for (String key : nonAtomicChart.keySet())
+        {
+            chart.addAll(nonAtomicChart.get(key));
+        }
+
         getLOGGER().warning("Chartsize: " + chart.size());
         return chart;
     }
@@ -1733,4 +1788,95 @@ public class LLProver4 extends LLProver {
             }
         });
     }
+
+    public Set<History> compressHistories(List<History> histories)
+    {
+        List<History> chart = new ArrayList<>();
+        if (histories.size() > 1) {
+            List<History> agenda = new ArrayList<>(histories);
+
+            while (!agenda.isEmpty()) {
+                ListIterator<History> iter = agenda.listIterator();
+                while (iter.hasNext()) {
+                    History h1 = iter.next();
+                    iter.remove();
+
+                    Boolean added = false;
+                    if (!chart.isEmpty()) {
+                        ListIterator<History> chartIter = chart.listIterator();
+                        while (chartIter.hasNext()) {
+                            History h2 = chartIter.next();
+
+                            if (!(h1.equals(h2)) && h1.category.toString().equals(h2.category.toString()) &&
+                                    h1.indexSet.equals(h2.indexSet) && h1.discharges.equals(h2.discharges) && (h1.requirements.equals(h2.requirements))) {
+
+                                Set<HashMap<Integer, History>> nh = new HashSet<>();
+                                nh.addAll(h1.parents);
+                                nh.addAll(h2.parents);
+
+                                History h3 = new History(h1.category, h1.indexSet, nh, h1.p, h1.prover);
+                                h3.discharges = h1.discharges;
+                                h3.requirements = h1.requirements;
+
+                                added = true;
+                                chartIter.remove();
+                                chartIter.add(h3);
+                                break;
+                            }
+                        }
+                    }
+                    if (!added)
+                    {
+                        chart.add(h1);
+                    }
+                }
+            }
+            if (!chart.isEmpty())
+            {
+                this.db.discardedHistories = this.db.discardedHistories + histories.size() - chart.size();
+                getLOGGER().info("Discarded " + (histories.size() - chart.size()) + " histories");
+                return new HashSet<>(chart);
+            }
+        }
+        return  new HashSet<>(histories);
+    }
+
+    public List<History> noScopeCompress(List<History> histories)
+    {
+        List<History> chart = new ArrayList<>();
+
+        List<History> agenda = new ArrayList<>(histories);
+
+        ListIterator<History> agendaIterator = agenda.listIterator();
+
+        boolean subsumed = false;
+
+        while (agendaIterator.hasNext())
+        {
+
+            History current = agendaIterator.next();
+            ListIterator<History> chartIterator = chart.listIterator();
+
+            while (chartIterator.hasNext())
+            {
+               History  h = chartIterator.next();
+                if (h.indexSet.containsAll(current.indexSet))
+                {
+                    subsumed = true;
+                } else if (current.indexSet.containsAll(h.indexSet))
+                {
+                    chartIterator.remove();
+                    chartIterator.add(current);
+                }
+            }
+
+            if (!subsumed)
+            {
+                chart.add(current);
+            }
+        }
+        getLOGGER().info("Discarded " + (histories.size() - chart.size()) + " histories");
+        return chart;
+    }
+
 }

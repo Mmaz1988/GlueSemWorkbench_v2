@@ -1,0 +1,216 @@
+{
+//1: Quantifier ambiguity; 2 solutions
+h : h_e
+student : (s_e -o s_t)
+student : (g_e -o g_t)
+a : ((s_e -o s_t) -o ((s_e -o f_t) -o f_t))
+every : ((g_e -o g_t) -o ((g_e -o f_t) -o f_t))
+give: (h_e -o (s_e -o (g_e -o f_t)))
+}
+{
+//2: Staging to disambiguate; 1 solution
+h : h_e
+student : (s_e -o s_t)
+a : ((s_e -o s_t) -o ((s_e -o f_t) -o f_t))
+{
+grade : (g_e -o g_t)
+every : ((g_e -o g_t) -o ((g_e -o f_t) -o f_t))
+give: (h_e -o (s_e -o (g_e -o f_t)))
+}
+}
+{
+//3: super simple staging example; 1 solution
+1 : a
+{
+3 : (a -o a)
+{
+2 : (a -o a)
+}
+}
+}
+{
+//4: embedded modifier; 2 solutions
+a : a
+b1 : b
+b2 : b
+{
+c : (b -o (a -o a))
+{
+d : (b -o (a -o a))
+}
+}
+}
+{
+//5: pseudo modifier; 2 solutions
+a : a
+b1 : b
+b2 : b
+{
+c : (a -o (b -o a))
+{
+d : (a -o (b -o a))
+}
+}
+}
+{
+//6: higher order pseudo modifier; 4 solutions
+a : (a -o (a -o a))
+c : ((a -o b) -o a)
+{
+d : ((a -o b) -o a)
+a1 : (a -o b)
+a2 : (a -o b)
+}
+}
+{
+//7: staging + no scope; 1 solution
+a : a
+{
+b : (a -o a)
+{
+c : (a -o a)
+c : (a -o a) || noscope
+c : (a -o a) || noscope
+}
+}
+}
+{
+//8: staging + no scope; 2 solutions
+a : a
+{
+b : (a -o a)
+{
+c : (a -o a)
+c1 : (a -o a)
+c2 : (a -o a) || noscope
+c3 : (a -o a) || noscope
+}
+}
+}
+//9: atomics are never embedded in a stage but globally available. 1 solution
+{
+end : (a -o e)
+{
+a : a
+b : (a -o a)
+{
+c : (a -o a)
+}
+}
+}
+{
+//10: adjective test; 1 solution
+//Grammar
+[/x_e.dog(x)] : (9_e -o 8_t)
+[/P_<e,t>.[/Q_<e,t>.Ex_e[P(x)&Q(x)]]] : ((9_e -o 8_t) -o ((7_e -o 11_t) -o 11_t))
+[/P_<e,t>.[/x_e.(black(x)&P(x))]] : ((9_e -o 8_t) -o (9_e -o 8_t)) || noscope
+[/P_<e,t>.[/x_e.(big(x)&P(x))]] : ((9_e -o 8_t) -o (9_e -o 8_t)) || noscope
+[/x_e.appear(x)] : (7_e -o 11_t)
+}
+//11: very complex test; 24 solutions
+{
+m1 : (v_t -o v_t)
+m2 : (v_t -o v_t)
+{
+e : v_t
+v : (v_t -o v_t) || noscope
+arg1 : (v_t -o (n1_e -o v_t)) || noscope
+arg2 : (v_t -o (n2_e -o v_t)) || noscope
+arg3 : (v_t -o (n3_e -o v_t)) || noscope
+a : ((n1_e -o n1_t) -o ((n1_e -o v_t) -o v_t))
+every : ((n2_e -o n2_t) -o ((n2_e -o v_t) -o v_t))
+some : ((n3_e -o n3_t) -o ((n3_e -o v_t) -o v_t))
+{
+big : ((n1_e -o n1_t) -o (n1_e -o n1_t)) || noscope
+black : ((n1_e -o n1_t) -o (n1_e -o n1_t)) || noscope
+dog : (n1_e -o n1_t)
+}
+{
+fubl : ((n2_e -o n2_t) -o (n2_e -o n2_t))
+bubl : ((n2_e -o n2_t) -o (n2_e -o n2_t))
+cat : (n2_e -o n2_t)
+}
+{
+fubl : ((n3_e -o n3_t) -o (n3_e -o n3_t)) || noscope
+bubl : ((n3_e -o n3_t) -o (n3_e -o n3_t)) || noscope
+cat : (n3_e -o n3_t)
+}
+}
+}
+// 12 Elevating unused formulas; 1 solution
+{
+{
+1 : ((c_e -o c_t) -o c_t)
+2 : (c_e -o c_t)
+{
+3 : (a_e -o (b_e -o b_t))
+4 : a_e
+5 : ((b_e -o b_t) -o ((c_e -o c_t) -o (c_e -o c_t)))
+}
+}
+}
+//13 elevation with noscope; 1 solution
+{
+{
+1 : ((c_e -o c_t) -o c_t)
+2 : (c_e -o c_t)
+{
+3 : (a_e -o (b_e -o b_t))
+4 : a_e
+5 : ((b_e -o b_t) -o ((c_e -o c_t) -o (c_e -o c_t))) || noscope
+}
+}
+}
+//14 Discontinuous cycle; 4 solutions
+{
+c : (4_x -o 4_p)
+a : (4_x -o 4_x)
+g : 4_x
+{
+b : (4_x -o 4_x)
+d : (4_p -o (4_x -o 4_x))
+e : (4_p -o 4_p)
+f : (4_p -o 4_p)
+h : 4_p
+}
+}
+//15 works; 2 solutions
+{
+c : (4_x -o 4_p)
+a : (4_x -o 4_x)
+g : 4_x
+{
+b : (4_x -o 4_x) || noscope
+d : (4_p -o (4_x -o 4_x))
+e : (4_p -o 4_p)
+f : (4_p -o 4_p)
+h : 4_p
+}
+}
+}
+//16 Test fails with noscope; no solutions (discontinuous applications blocked by noscope)
+{
+c : (4_x -o 4_p)
+a : (4_x -o 4_x)
+g : 4_x
+{
+b : (4_x -o 4_x) || noscope
+d : (4_p -o (4_x -o 4_x))
+e : (4_p -o 4_p) || noscope
+f : (4_p -o 4_p) || noscope
+h : 4_p
+}
+}
+//17 Test fails with noscope; 1 solution
+{
+c : (4_x -o 4_p)
+a : (4_x -o 4_x)
+g : 4_x
+{
+b : (4_x -o 4_x) || noscope
+d : (4_p -o (4_x -o 4_x))
+e : (4_p -o 4_p)
+f : (4_p -o 4_p) || noscope
+h : 4_p
+}
+}

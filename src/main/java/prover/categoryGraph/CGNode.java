@@ -131,46 +131,6 @@ public class CGNode {
     }
 
 
-    public static Set<History> compressHistories(List<History> histories)
-    {
-        Set<History> chart = new HashSet<>();
-
-        if (histories.size() > 1) {
-            List<History> agenda = new ArrayList<>(histories);
-
-            while (!agenda.isEmpty()) {
-                ListIterator<History> iter = agenda.listIterator();
-                while (iter.hasNext()) {
-                    History h1 = iter.next();
-                    iter.remove();
-
-                    Boolean added = false;
-                    for (History h2 : chart) {
-
-                        if (!(h1.equals(h2)) && h1.category.toString().equals(h2.category.toString()) &&
-                                h1.indexSet.equals(h2.indexSet) && h1.discharges.equals(h2.discharges) && (h1.requirements.equals(h2.requirements))) {
-
-                            Set<HashMap<Integer, History>> nh = new HashSet<>();
-                            nh.addAll(h1.parents);
-                            nh.addAll(h2.parents);
-                            h2.parents = nh;
-                            added = true;
-                            break;
-                        }
-                    }
-                    if (!added)
-                    {
-                        chart.add(h1);
-                    }
-                }
-            }
-            if (!chart.isEmpty())
-            {
-              return chart;
-            }
-        }
-        return null;
-    }
 
 
 

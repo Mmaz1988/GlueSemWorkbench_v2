@@ -75,7 +75,7 @@ public class Settings {
     private String inputFileName = "";
     private String outputFileName = "";
 
-    private Integer maxSolutions = 1000;
+    private Integer maxSolutions = 100000;
 
     private Integer maxMsBeforeCalculatingDummy = 180000;
 
