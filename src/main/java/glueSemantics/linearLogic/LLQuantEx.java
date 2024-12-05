@@ -92,7 +92,10 @@ public class LLQuantEx extends LLTerm {
         scope.updateBoundVariables(var);
     }
 
-
+    public String toUTF8()
+    {
+        return "\\forall " + var.toUTF8() + "." + scope.toUTF8();
+    }
 
     public LLAtom getVar() {
         return var;

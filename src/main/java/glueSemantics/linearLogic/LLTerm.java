@@ -99,6 +99,8 @@ public abstract class LLTerm {
 
     public abstract List<LLAtom> returnAllAtoms();
 
+    public abstract String toUTF8();
+
  /*TODO update this method
     String printAssumptions() {
         StringBuilder sb = new StringBuilder();

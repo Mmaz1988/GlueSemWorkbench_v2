@@ -760,66 +760,66 @@ public class LLProver1 extends LLProver {
          */
 
 
-    public Chart chartDeduce(List<History> histories) throws VariableBindingException, ProverException {
-        getLOGGER().finer("Beginning a partial chart derivation...");
-        Chart chart = new Chart();
-
-        List<History> agenda = new ArrayList<>(histories);
-
-        while (!agenda.isEmpty()) {
-            ListIterator<History> agendaIterator = agenda.listIterator();
-
-            while (agendaIterator.hasNext()) {
-                History current = agendaIterator.next();
-                agendaIterator.remove();
-
-                if (!current.category.atomic) {
-
-                    if (chart.atomicChart.containsKey(current.category.left.toString()))
-                    {
-                        for (History h : chart.atomicChart.get(current.category.left.toString())) {
-                            History combined = combineHistories(current,h);
-                            if (combined != null) {
-                                agendaIterator.add(combined);
-                            }
-                        }
-                    }
-                    if (chart.nonAtomicChart.containsKey(current.category.left.toString()))
-                    {
-                        chart.nonAtomicChart.get(current.category.left.toString()).add(current);
-                    } else
-                    {
-                        Set<History> histories1 = new HashSet<>();
-                        histories1.add(current);
-                        chart.nonAtomicChart.put(current.category.left.toString(),histories1);
-                    }
-
-                } else {
-                    if (chart.nonAtomicChart.containsKey(current.category.toString()))
-                    {
-                        for (History h : chart.nonAtomicChart.get(current.category.toString()))
-                        {
-                            History combined = combineHistories(h,current);
-                            if (combined != null) {
-                                agendaIterator.add(combined);
-                            }
-                        }
-                    }
-
-                    if (chart.atomicChart.containsKey(current.category.toString()))
-                    {
-                        chart.atomicChart.get(current.category.toString()).add(current);
-                    } else
-                    {
-                        Set<History> histories1 = new HashSet<>();
-                        histories1.add(current);
-                        chart.atomicChart.put(current.category.toString(),histories1);
-                    }
-                }
-            }
-        }
-        return chart;
-    }
+//    public Chart chartDeduce(List<History> histories) throws VariableBindingException, ProverException {
+//        getLOGGER().finer("Beginning a partial chart derivation...");
+//        Chart chart = new Chart();
+//
+//        List<History> agenda = new ArrayList<>(histories);
+//
+//        while (!agenda.isEmpty()) {
+//            ListIterator<History> agendaIterator = agenda.listIterator();
+//
+//            while (agendaIterator.hasNext()) {
+//                History current = agendaIterator.next();
+//                agendaIterator.remove();
+//
+//                if (!current.category.atomic) {
+//
+//                    if (chart.atomicChart.containsKey(current.category.left.toString()))
+//                    {
+//                        for (History h : chart.atomicChart.get(current.category.left.toString())) {
+//                            History combined = combineHistories(current,h);
+//                            if (combined != null) {
+//                                agendaIterator.add(combined);
+//                            }
+//                        }
+//                    }
+//                    if (chart.nonAtomicChart.containsKey(current.category.left.toString()))
+//                    {
+//                        chart.nonAtomicChart.get(current.category.left.toString()).add(current);
+//                    } else
+//                    {
+//                        Set<History> histories1 = new HashSet<>();
+//                        histories1.add(current);
+//                        chart.nonAtomicChart.put(current.category.left.toString(),histories1);
+//                    }
+//
+//                } else {
+//                    if (chart.nonAtomicChart.containsKey(current.category.toString()))
+//                    {
+//                        for (History h : chart.nonAtomicChart.get(current.category.toString()))
+//                        {
+//                            History combined = combineHistories(h,current);
+//                            if (combined != null) {
+//                                agendaIterator.add(combined);
+//                            }
+//                        }
+//                    }
+//
+//                    if (chart.atomicChart.containsKey(current.category.toString()))
+//                    {
+//                        chart.atomicChart.get(current.category.toString()).add(current);
+//                    } else
+//                    {
+//                        Set<History> histories1 = new HashSet<>();
+//                        histories1.add(current);
+//                        chart.atomicChart.put(current.category.toString(),histories1);
+//                    }
+//                }
+//            }
+//        }
+//        return chart;
+//    }
 
 
     public Graph<CGNode,DefaultEdge> calculateCategoryGraph(List<LLTerm> initialPremises, HashMap<String,List<Premise>> category2premiseMapping)
@@ -837,7 +837,7 @@ public class LLProver1 extends LLProver {
 
         for (Category category : cgnList)
         {
-            CGNode currentNode = new CGNode(category.toString(), CGNode.type.CATEGORY,this);
+            CGNode currentNode = new CGNode(category, CGNode.type.CATEGORY,this);
 
             if (category2premiseMapping.containsKey(category.toString())) {
 

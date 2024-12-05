@@ -549,9 +549,9 @@ public class LLProver3 extends LLProver {
         }
 
 
-    public Chart chartDeduce(List<History> histories) throws VariableBindingException, ProverException {
+    public CombinedChart chartDeduce(List<History> histories) throws VariableBindingException, ProverException {
         getLOGGER().finer("Beginning a partial chart derivation...");
-        Chart chart = new Chart();
+        CombinedChart combinedChart = new CombinedChart();
 
         List<History> agenda = new ArrayList<>(histories);
 
@@ -564,29 +564,29 @@ public class LLProver3 extends LLProver {
 
                 if (!current.category.atomic) {
 
-                    if (chart.atomicChart.containsKey(current.category.left.toString()))
+                    if (combinedChart.atomicChart.containsKey(current.category.left.toString()))
                     {
-                        for (History h : chart.atomicChart.get(current.category.left.toString())) {
+                        for (History h : combinedChart.atomicChart.get(current.category.left.toString())) {
                             History combined = combineHistories(current,h);
                             if (combined != null) {
                                 agendaIterator.add(combined);
                             }
                         }
                     }
-                    if (chart.nonAtomicChart.containsKey(current.category.left.toString()))
+                    if (combinedChart.nonAtomicChart.containsKey(current.category.left.toString()))
                     {
-                        chart.nonAtomicChart.get(current.category.left.toString()).add(current);
+                        combinedChart.nonAtomicChart.get(current.category.left.toString()).add(current);
                     } else
                     {
                         Set<History> histories1 = new HashSet<>();
                         histories1.add(current);
-                        chart.nonAtomicChart.put(current.category.left.toString(),histories1);
+                        combinedChart.nonAtomicChart.put(current.category.left.toString(),histories1);
                     }
 
                 } else {
-                    if (chart.nonAtomicChart.containsKey(current.category.toString()))
+                    if (combinedChart.nonAtomicChart.containsKey(current.category.toString()))
                     {
-                        for (History h : chart.nonAtomicChart.get(current.category.toString()))
+                        for (History h : combinedChart.nonAtomicChart.get(current.category.toString()))
                         {
                             History combined = combineHistories(h,current);
                             if (combined != null) {
@@ -595,19 +595,19 @@ public class LLProver3 extends LLProver {
                         }
                     }
 
-                    if (chart.atomicChart.containsKey(current.category.toString()))
+                    if (combinedChart.atomicChart.containsKey(current.category.toString()))
                     {
-                        chart.atomicChart.get(current.category.toString()).add(current);
+                        combinedChart.atomicChart.get(current.category.toString()).add(current);
                     } else
                     {
                         Set<History> histories1 = new HashSet<>();
                         histories1.add(current);
-                        chart.atomicChart.put(current.category.toString(),histories1);
+                        combinedChart.atomicChart.put(current.category.toString(),histories1);
                     }
                 }
             }
         }
-        return chart;
+        return combinedChart;
     }
 
 

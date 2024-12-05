@@ -1,5 +1,6 @@
 package prover.categoryGraph;
 
+import glueSemantics.linearLogic.Category;
 import prover.LLProver;
 
 import java.util.*;
@@ -13,6 +14,7 @@ public class CGNode {
     }
     public LLProver prover;
     public String category;
+    public Category categoryObject;
     public type nodeType;
     public Set<History> histories = new HashSet<>();
 
@@ -22,6 +24,16 @@ public class CGNode {
         this.nodeType = nodeType;
         this.prover = prover;
     }
+
+    public CGNode(Category category, type nodeType, LLProver prover)
+    {
+        this.category = category.toString();
+        this.categoryObject = category;
+        this.nodeType = nodeType;
+        this.prover = prover;
+    }
+
+
 
     @Override
     public String toString()

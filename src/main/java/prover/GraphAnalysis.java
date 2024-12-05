@@ -7,7 +7,6 @@ import com.mxgraph.model.mxCell;
 import com.mxgraph.swing.mxGraphComponent;
 import com.mxgraph.util.mxConstants;
 import glueSemantics.linearLogic.Premise;
-import main.WorkbenchMain;
 import org.jgrapht.Graph;
 import org.jgrapht.ext.JGraphXAdapter;
 import org.jgrapht.graph.DefaultEdge;
@@ -74,6 +73,7 @@ public class GraphAnalysis {
             GswbNode premiseNode = new GswbNode();
             premiseNode.data = new HashMap<>();
             premiseNode.data.put("id",p.getGlueTerm().category().toString());
+            premiseNode.data.put("text",p.getGlueTerm().toUTF8());
             premiseNode.data.put("color", "orange");
             premiseNode.data.put("solutions",Collections.singleton(p.toString()));
 
@@ -102,7 +102,12 @@ public class GraphAnalysis {
             if (g.edgeSet().isEmpty())
             {
                 CGNode currentNode = g.vertexSet().stream().findAny().get();
+                if (currentNode.nodeType.equals(CGNode.type.CATEGORY)) {
+                    gswbNode.data.put("text", currentNode.categoryObject.toUTF8());
+                } else {
+                    gswbNode.data.put("text", currentNode.category);
 
+                }
                 if (currentNode.toString().equals(goalCategory))
                 {
                     gswbNode.data.put("color", "yellow");
@@ -191,6 +196,13 @@ public class GraphAnalysis {
             } else
             {
                 gswbNode.data.put("color", "green");
+
+                gswbNode.data.put("text",g.vertexSet().stream()
+                                .map(x -> x.categoryObject != null ? x.categoryObject.toUTF8() : x.category.toString())
+                                .collect(Collectors.toSet())
+                                .stream()
+                                .collect(Collectors.joining(", ")));
+
                 //g is a strongly connected component: Create subraph
                 Set<CGNode> nodes = new HashSet<>(g.vertexSet());
                 List<GswbGraphComponent> subGraphList = new ArrayList<>();
@@ -201,6 +213,11 @@ public class GraphAnalysis {
                     subGraphNode.data = new HashMap<>();
 
                     subGraphNode.data.put("id", node.toString());
+                    if (node.nodeType.equals(CGNode.type.CATEGORY)) {
+                        subGraphNode.data.put("text", node.categoryObject.toUTF8());
+                    } else {
+                        subGraphNode.data.put("text", node.category);
+                    }
 
                     if (node.toString().equals(goalCategory)) {
                         subGraphNode.data.put("color", "yellow");
@@ -272,6 +289,11 @@ public class GraphAnalysis {
                         GswbNode subgraphNode = new GswbNode();
                         subgraphNode.data = new HashMap<>();
                         subgraphNode.data.put("id",currentSource.toString());
+                        if (currentSource.nodeType.equals(CGNode.type.CATEGORY)) {
+                            subgraphNode.data.put("text", currentSource.categoryObject.toUTF8());
+                        } else {
+                            subgraphNode.data.put("text", currentSource.category);
+                        }
                         subgraphNode.data.put("color","blue");
 
                         List<String> solutions = new ArrayList<>();

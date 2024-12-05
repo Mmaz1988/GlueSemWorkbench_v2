@@ -103,6 +103,17 @@ public class LLFormula extends LLTerm {
 
     }
 
+       public String toUTF8(){
+
+        String left = lhs.toUTF8();
+
+        if (lhs instanceof LLFormula) {
+            left = "(" + lhs.toUTF8() + ")";
+        }
+
+        return left + " ⊸ " + rhs.toUTF8();
+       }
+
         public LLFormula(LLFormula f)
         {
 

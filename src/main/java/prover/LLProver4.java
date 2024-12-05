@@ -493,29 +493,46 @@ public class LLProver4 extends LLProver {
 
         for (String key : stagedSccAgendaKeys) {
 
+            CombinedChart stageChart = new CombinedChart(stagedSccAgenda.get(key));
+
             Set<Integer> noscopeIndices = stagedSccAgenda.get(key).stream().filter(y -> nonScopingModifiers.contains(y.mainIndex)).collect(Collectors.toSet()).
                     stream().map(x -> x.mainIndex).collect(Collectors.toSet());
 
+            //all implications, both modifiers and skeletons
             List<History> scopingConsumers = stagedSccAgenda.get(key).stream().filter(h -> !noscopeIndices.contains(h.mainIndex) &&
                     h.category.left != null).collect(Collectors.toList());
 
-            List<History> scopingSkeletons = scopingConsumers.stream().filter(h -> !h.category.isModifier()).collect(Collectors.toList());
-            List<History> scopingModifiers = scopingConsumers.stream().filter(h -> h.category.isModifier()).collect(Collectors.toList());
-
-            boolean noscope = false;
+            List<History> scopingSkeletons = scopingConsumers.stream().filter(h -> h.category.isModifier() == null).collect(Collectors.toList());
+            List<History> scopingModifiers = scopingConsumers.stream().filter(h -> h.category.isModifier() != null).collect(Collectors.toList());
 
             if (!noscopeIndices.isEmpty()) {
                // List<History> noScopeHistories = new ArrayList<>(histories);
-
                 //  h.category.left.toString().equals(h.category.right.toString()) &&
                       //  h.stage.equals(key)).collect(Collectors.toList());
                 // sccAgenda minus scopingModifiers
                 List<History> nonscopingAgenda = stagedSccAgenda.get(key).stream().filter(h ->
                         noscopeIndices.contains(h.mainIndex)).collect(Collectors.toList());
 
+                Set<String> nonScopingCategories = new HashSet<>();
+                for (History modifier : nonscopingAgenda)
+                {
+                if (modifier.category.isModifier() != null)
+                {
+                nonScopingCategories.add(modifier.category.isModifier());
+                }
+                }
+
+                for (String categoryKey : stageChart.nonAtomicChart.keySet())
+                {
+                    if (!nonScopingCategories.contains(categoryKey))
+                    {
+                        nonscopingAgenda.addAll(stageChart.nonAtomicChart.get(categoryKey));
+                    }
+                }
+
 
                 //Potentially check for duplicates
-                nonscopingAgenda.addAll(scopingSkeletons);
+                //nonscopingAgenda.addAll(scopingSkeletons);
                 nonscopingAgenda.addAll(histories);
 
                 //
@@ -915,7 +932,7 @@ public class LLProver4 extends LLProver {
 
         for (Category category : cgnList)
         {
-            CGNode currentNode = new CGNode(category.toString(), CGNode.type.CATEGORY,this);
+            CGNode currentNode = new CGNode(category, CGNode.type.CATEGORY,this);
 
             if (category2premiseMapping.containsKey(category.toString())) {
 
