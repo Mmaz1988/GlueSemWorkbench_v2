@@ -102,6 +102,10 @@ public class LLAtom extends LLTerm {
             return name + Category.semTypesToUTF8.get(this.getType().toString());
     }
 
+    public String toLateX() {
+        return name + "_" + this.getType().toString();
+    }
+
 
     // checks absolute equivalence (type and name)
     @Override

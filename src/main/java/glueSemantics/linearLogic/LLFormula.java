@@ -114,6 +114,16 @@ public class LLFormula extends LLTerm {
         return left + " ⊸ " + rhs.toUTF8();
        }
 
+       public String toLateX(){
+        String left = lhs.toLateX();
+        if (lhs instanceof LLFormula) {
+            left = "(" + ((LLFormula) lhs).toLateX() + ")";
+        }
+        return left + " \\multimap " + rhs.toLateX();
+       }
+
+
+
         public LLFormula(LLFormula f)
         {
 

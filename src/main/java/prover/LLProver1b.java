@@ -533,7 +533,13 @@ public class LLProver1b extends LLProver {
 
         if (getSettings().isExplainFail()) {
             analysis = new GraphAnalysis(goalCategory, scc2, categoryGraph2, categoryToPremiseMapping);
-            analysis.returnJSONGraph();
+
+            try {
+                analysis.returnJSONGraph(true);
+            } catch (Exception e) {
+                e.printStackTrace();
+                getLOGGER().warning("Failed to return JSON graph");
+            }
             //analysis.displayGraph();
         }
 

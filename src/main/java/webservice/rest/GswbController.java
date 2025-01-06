@@ -331,13 +331,19 @@ public class GswbController {
             if (settings.getProverType() == 0) {
                 derivation = explainBuilder.toString();
             } else if (prover instanceof LLProver1) {
-                derivation = ((LLProver1) prover).analysis.returnJSONGraph();
+                try {
+                    derivation = ((LLProver1) prover).analysis.returnJSONGraph(true);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             } else if (prover instanceof LLProver4) {
-                derivation = ((LLProver4) prover).analysis.returnJSONGraph();
+                try {
+                    derivation = ((LLProver4) prover).analysis.returnJSONGraph(true);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
-
-        LexVariableHandler.resetVars();
 
         String log = sb.toString();
 

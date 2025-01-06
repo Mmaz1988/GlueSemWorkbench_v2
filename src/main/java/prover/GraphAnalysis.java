@@ -12,6 +12,7 @@ import org.jgrapht.ext.JGraphXAdapter;
 import org.jgrapht.graph.DefaultEdge;
 import prover.categoryGraph.CGNode;
 import prover.categoryGraph.History;
+import utilities.Glue2svg;
 import webservice.rest.dtos.GswbEdge;
 import webservice.rest.dtos.GswbGraph;
 import webservice.rest.dtos.GswbGraphComponent;
@@ -21,6 +22,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 import java.util.List;
 import java.util.*;
 import java.util.logging.Logger;
@@ -61,8 +63,7 @@ public class GraphAnalysis {
         this.compiledToPremiseMapping = compiledToPremiseMapping;
     }
 
-    public GswbGraph returnJSONGraph()
-    {
+    public GswbGraph returnJSONGraph(Boolean useLatex) throws IOException, InterruptedException {
         List<GswbGraphComponent> graphComponents = new ArrayList<>();
 
 
@@ -73,7 +74,14 @@ public class GraphAnalysis {
             GswbNode premiseNode = new GswbNode();
             premiseNode.data = new HashMap<>();
             premiseNode.data.put("id",p.getGlueTerm().category().toString());
-            premiseNode.data.put("text",p.getGlueTerm().toUTF8());
+            if (useLatex) {
+                String latex = p.getGlueTerm().toLateX();
+                String svg = Glue2svg.latexToSvg(latex, true);
+                premiseNode.data.put("text", svg);
+            } else
+            {
+             premiseNode.data.put("text", p.getGlueTerm().category().toString());
+            }
             premiseNode.data.put("color", "orange");
             premiseNode.data.put("solutions",Collections.singleton(p.toString()));
 
@@ -103,10 +111,23 @@ public class GraphAnalysis {
             {
                 CGNode currentNode = g.vertexSet().stream().findAny().get();
                 if (currentNode.nodeType.equals(CGNode.type.CATEGORY)) {
-                    gswbNode.data.put("text", currentNode.categoryObject.toUTF8());
-                } else {
-                    gswbNode.data.put("text", currentNode.category);
-
+                    if (useLatex){
+                    String latex = currentNode.categoryObject.toLateX();
+                    String svg = Glue2svg.latexToSvg(latex,true);
+                    gswbNode.data.put("text", svg);
+                    } else {
+                        gswbNode.data.put("text", currentNode.category);
+                    }
+                    gswbNode.data.put("type", "category");
+                    } else {
+                    if (useLatex){
+                        String latex = currentNode.category;
+                        String svg = Glue2svg.latexToSvg(latex,true);
+                        gswbNode.data.put("text", svg);
+                    } else {
+                        gswbNode.data.put("text", currentNode.category);
+                    }
+                    gswbNode.data.put("type", "connector");
                 }
                 if (currentNode.toString().equals(goalCategory))
                 {
@@ -197,11 +218,24 @@ public class GraphAnalysis {
             {
                 gswbNode.data.put("color", "green");
 
-                gswbNode.data.put("text",g.vertexSet().stream()
-                                .map(x -> x.categoryObject != null ? x.categoryObject.toUTF8() : x.category.toString())
-                                .collect(Collectors.toSet())
-                                .stream()
-                                .collect(Collectors.joining(", ")));
+//                gswbNode.data.put("text",g.vertexSet().stream()
+//                                .map(x -> x.categoryObject != null ? x.categoryObject.toUTF8() : x.category.toString())
+//                                .collect(Collectors.toSet())
+//                                .stream()
+//                                .collect(Collectors.joining(", ")));
+
+                List<String> latexList = new ArrayList<>();
+                for (CGNode node : g.vertexSet())
+                {
+                    String latex = node.categoryObject != null ? node.categoryObject.toLateX() : node.category;
+                    latexList.add(latex);
+                }
+
+                String svg = Glue2svg.latexToSvg(latexList.stream().collect(Collectors.joining(", ")),true);
+                gswbNode.data.put("text",svg);
+                gswbNode.data.put("type","cycle");
+
+
 
                 //g is a strongly connected component: Create subraph
                 Set<CGNode> nodes = new HashSet<>(g.vertexSet());
@@ -214,9 +248,23 @@ public class GraphAnalysis {
 
                     subGraphNode.data.put("id", node.toString());
                     if (node.nodeType.equals(CGNode.type.CATEGORY)) {
-                        subGraphNode.data.put("text", node.categoryObject.toUTF8());
+                        if (useLatex) {
+                            String latex = node.categoryObject.toLateX();
+                            String svg1 = Glue2svg.latexToSvg(latex, true);
+                            subGraphNode.data.put("text", svg1);
+                        } else {
+                            subGraphNode.data.put("text", node.category);
+                        }
+                        subGraphNode.data.put("type", "category");
                     } else {
-                        subGraphNode.data.put("text", node.category);
+                        if (useLatex){
+                            String latex = node.category;
+                            String svg1 = Glue2svg.latexToSvg(latex,true);
+                            subGraphNode.data.put("text", svg1);
+                        } else {
+                            subGraphNode.data.put("text", node.category);
+                        }
+                        subGraphNode.data.put("type", "connector");
                     }
 
                     if (node.toString().equals(goalCategory)) {
@@ -290,9 +338,23 @@ public class GraphAnalysis {
                         subgraphNode.data = new HashMap<>();
                         subgraphNode.data.put("id",currentSource.toString());
                         if (currentSource.nodeType.equals(CGNode.type.CATEGORY)) {
-                            subgraphNode.data.put("text", currentSource.categoryObject.toUTF8());
+                            if (useLatex){
+                            String latex = currentSource.categoryObject.toLateX();
+                            String svg1 = Glue2svg.latexToSvg(latex,true);
+                            subgraphNode.data.put("text", svg1);}
+                            else {
+                                subgraphNode.data.put("text", currentSource.category);
+                            }
+                            subgraphNode.data.put("type", "category");
                         } else {
-                            subgraphNode.data.put("text", currentSource.category);
+                            if (useLatex) {
+                                String latex = currentSource.category;
+                                String svg1 = Glue2svg.latexToSvg(latex, true);
+                                subgraphNode.data.put("text", svg1);
+                            } else {
+                                subgraphNode.data.put("text", currentSource.category);
+                            }
+                            subgraphNode.data.put("type", "connector");
                         }
                         subgraphNode.data.put("color","blue");
 

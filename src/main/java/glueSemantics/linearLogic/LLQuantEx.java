@@ -97,6 +97,11 @@ public class LLQuantEx extends LLTerm {
         return "\\forall " + var.toUTF8() + "." + scope.toUTF8();
     }
 
+    public String toLateX()
+    {
+        return "\\forall " + var.toLateX() + ".(" + scope.toLateX() + ")";
+    }
+
     public LLAtom getVar() {
         return var;
     }

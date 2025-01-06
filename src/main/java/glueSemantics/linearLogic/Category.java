@@ -85,6 +85,24 @@ public class Category {
         }
     }
 
+    public String toLateX() {
+
+            if (atomic)
+            {
+                    return category;
+            } else
+            {
+                String left = this.left.toLateX();
+
+                if (!this.left.atomic)
+                {
+                    left = "(" + left + ")";
+                }
+
+                return left + " \\multimap " + this.right.toLateX();
+            }
+    }
+
 
     @Override
     public boolean equals(Object obj) {

@@ -101,6 +101,8 @@ public abstract class LLTerm {
 
     public abstract String toUTF8();
 
+    public abstract String toLateX();
+
  /*TODO update this method
     String printAssumptions() {
         StringBuilder sb = new StringBuilder();

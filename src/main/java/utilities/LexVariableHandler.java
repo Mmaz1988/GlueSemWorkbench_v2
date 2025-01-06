@@ -179,7 +179,7 @@ Possibly add more types, e.g. SemVarE, SemVarT etc.
             {
                 connectorID++;
             }
-            return "c" + connectorID;
+            return "c_" + connectorID;
         }
 
         if (varType.equals(variableType.SentenceID)) {

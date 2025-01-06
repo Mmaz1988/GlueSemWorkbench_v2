@@ -196,7 +196,15 @@ public class LLProver4 extends LLProver {
 
         if (getSettings().isExplainFail()) {
             analysis = new GraphAnalysis(goalCategory, scc, categoryGraph, categoryToPremiseMapping);
-            analysis.returnJSONGraph();
+
+            try {
+                analysis.returnJSONGraph(true);
+            } catch (Exception e) {
+                e.printStackTrace();
+                getLOGGER().warning("Failed to create JSON graph.");
+
+              //  throw new RuntimeException(e);
+            }
             //analysis.displayGraph();
 
             if (getSolutions().isEmpty() && !finalPartialHistories.isEmpty())
