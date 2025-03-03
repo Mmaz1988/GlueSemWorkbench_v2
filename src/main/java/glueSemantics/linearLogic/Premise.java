@@ -21,6 +21,7 @@ import glueSemantics.semantics.MeaningConstructor;
 import glueSemantics.semantics.SemanticRepresentation;
 import glueSemantics.semantics.lambda.SemAtom;
 import glueSemantics.semantics.lambda.SemanticExpression;
+import main.Settings;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -86,7 +87,20 @@ public class Premise {
     @Override
     public String toString() {
         //return ANSI_BLUE + glueTerm + ANSI_RESET + " : " + ANSI_YELLOW + semTerm + ANSI_RESET +  premiseIDs;
-        return glueTerm + " : " + semTerm + "[" + premiseIDs + "]"; //
+
+        String premise = glueTerm + " : " + semTerm;
+
+
+        if (Settings.printIDs) {
+            //TODO condition to some setting?
+            if (premiseIDs.size() == 1) {
+                premise = premiseIDs + " " + premise;
+            } else {
+                premise = premise + " " + premiseIDs;
+            }
+        }
+
+        return premise; //
         // +  premiseIDs;
     }
 

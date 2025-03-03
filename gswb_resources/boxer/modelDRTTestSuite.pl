@@ -24,7 +24,7 @@
 
 *************************************************************************/
 
-:- module(modelDRTTestSuite,[test/5]).
+:- module(modelDRTTestSuite,[test/3]).
 
 
 /*========================================================================
@@ -32,27 +32,51 @@
    Correct answer recorded as third argument.
 ========================================================================*/
 
+%Olaf loves a sunbath.
+test(drs([A,B],[rel(love,B,A),pred(sunbath,A),eq(B,olaf),pred(male,B)]),1,pos).
+
+%Olaf loves a sunbath. It melts him.
+test(drs([A,B],[rel(melt,A,B),rel(love,B,A),pred(sunbath,A),eq(B,olaf),pred(male,B)]),1,pos).
+
+%Every snowman is cold.
+test(drs([],[imp(drs([X],[pred(snowman,X)]),drs([],[pred(cold,X)]))]),1,pos).
+
+%Every snowman is angry.
+test(drs([],[imp(drs([X],[pred(snowman,X)]),drs([],[pred(angry,X)]))]),1,neg).
+
+%Every snowman loves a  sunbath. (narrow-scope)
+test(drs([],[imp(drs([X],[pred(snowman,X)]),drs([Y],[pred(sunbath,Y),rel(love,X,Y)]))]),1,neg).
+
+%Every snowman loves a witch. (wide-scope)
+test(drs([Y],[pred(witch,Y),imp(drs([X],[pred(snowman,X)]),drs([],[rel(love,X,Y)]))]),1,pos).
+
+%Olaf is not cold.
+test(drs([X],[eq(X,olaf),not(drs([],[pred(cold,X)]))]),1,neg).
+
+%Elsa is not cold.
+test(drs([X],[eq(X,elsa),not(drs([],[pred(cold,X)]))]),1,pos).
+
 %A dragon sleeps in a cave. The dragon dreams
 	
 	%Lesart 1 (accomodation)
 		test([a,dragon,sleeps,in,a,cave,the,dragon,dreams],
 				drs([A,B,C,D,E],[pred(dragon,A),pred(sleep,B),rel(agent,B,A),pred(cave,C),rel(in,B,C),pred(event,B),
 					pred(dragon,D),pred(dream,E),rel(agent,E,D),pred(event,E)]),
-				accommodation,1,pos).
+				accommodation,2,pos).
 
 		
 	%Lesart 2 (binding)
 		test([a,dragon,sleeps,in,a,cave,the,dragon,dreams],
 				drs([A,B,C,D],[pred(dragon,A),pred(sleep,B),rel(agent,B,A),pred(cave,C),rel(in,B,C),pred(event,B),
 					pred(dream,D),rel(agent,D,A),pred(event,D)]),
-				binding,1,pos).
+				binding,2,pos).
 
 
 %The dragon sleeps.
 
 		test([the,dragon,sleeps],
 				drs([A,B],[pred(dragon,A),pred(sleep,B),rel(agent,B,A),pred(event,B)]),
-				accommodation,1,pos).
+				accommodation,2,pos).
 
 
 %The dragon does not sleep.
@@ -63,7 +87,7 @@
 	%Lesart 2 (accommodation on global level)
 		test([the,dragon,does,not,sleep],
 				drs([A],[pred(dragon,A),not(drs([B],[pred(sleep,B),rel(agent,B,A),pred(event,B)]))]),
-				accommodation_on_global_level,1,pos).
+				accommodation_on_global_level,2,pos).
 
 
 %A dragon sleeps in a cave. It dreams.
@@ -76,11 +100,11 @@
 		test([a,dragon,sleeps,in,a,cave,it,dreams],
 				drs([A,B,C,D],[pred(neuter,A),pred(dragon,A),pred(sleep,B),rel(agent,B,A),pred(cave,C),rel(in,B,C),pred(event,B),
 					pred(dream,D),rel(agent,D,A),pred(event,D)]),
-				binding,1,pos).
+				binding,2,pos).
 
 
 %It sleeps.
-		test([it,sleeps],drs([],[]),uninterpretable,1,undef).
+		test([it,sleeps],drs([],[]),uninterpretable,2,undef).
 
 
 %If a viking meets a dragon, he tames the dragon.
@@ -97,13 +121,13 @@
 		test([if,a,viking,meets,a,dragon,he,tames,the,dragon],
 				drs([],[imp(drs([A,B,C],[pred(male,A),pred(viking,A),pred(dragon,B),pred(meet,C),rel(agent,C,A),rel(patient,C,B),
 					pred(nonreflexive,C),pred(event,C)]),drs([D],[pred(tame,D),rel(agent,D,A),rel(patient,D,B),pred(nonreflexive,D),pred(event,D)]))]),
-				binding,1,pos).
+				binding,2,pos).
 
 	%Lesart 4 (accomodation on global level):
 		test([if,a,viking,meets,a,dragon,he,tames,the,dragon],
 				drs([A],[pred(dragon,A),imp(drs([B,C,D],[pred(male,B),pred(viking,B),pred(dragon,C),pred(meet,D),rel(agent,D,B),rel(patient,D,C),
 					pred(nonreflexive,D),pred(event,D)]),drs([E],[pred(tame,E),rel(agent,E,B),rel(patient,E,A),pred(nonreflexive,E),pred(event,E)]))]),
-				accommodation_on_global_level,1,neg).
+				accommodation_on_global_level,2,neg).
 	
 	
 %If a viking meets a dragon, he tames it.
@@ -129,13 +153,13 @@
 		test([every,viking,who,meets,a,dragon,tames,the,dragon],
 				drs([],[imp(drs([A,B,C],[pred(dragon,B),pred(meet,C),rel(agent,C,A),rel(patient,C,B),pred(nonreflexive,C),pred(event,C),
 					pred(viking,A)]),drs([D],[pred(tame,D),rel(agent,D,A),rel(patient,D,B),pred(nonreflexive,D),pred(event,D)]))]),
-				binding,1,pos).
+				binding,2,pos).
 
 	%Lesart 4 (accomodation on global level):
 		test([every,viking,who,meets,a,dragon,tames,the,dragon],
 				drs([A],[pred(dragon,A),imp(drs([B,C,D],[pred(dragon,C),pred(meet,D),rel(agent,D,B),rel(patient,D,C),pred(nonreflexive,D),
 					pred(event,D),pred(viking,B)]),drs([E],[pred(tame,E),rel(agent,E,B),rel(patient,E,A),pred(nonreflexive,E),pred(event,E)]))]),
-				accommodation_on_global_level,1,neg).
+				accommodation_on_global_level,2,neg).
 
 
 
@@ -146,21 +170,21 @@
 				drs([A,B,C,D,E,F,G],[pred(viking,A),pred(big,B),pred(dragon,B),pred(meet,C),rel(agent,C,A),rel(patient,C,B),
 					pred(nonreflexive,C),pred(event,C),pred(small,D),pred(dragon,D),pred(meet,E),rel(agent,E,A),rel(patient,E,D),
 					pred(nonreflexive,E),pred(event,E),pred(dragon,F),pred(roar,G),rel(agent,G,F),pred(event,G)]),
-				accommodation,1,pos).
+				accommodation,2,pos).
 	
 	%Lesart 2 (binding, small dragon roars)
 		test([a,viking,meets,a,big,dragon,and,a,small,dragon,the,dragon,roars],
 				drs([A,B,C,D,E,F],[pred(viking,A),pred(big,B),pred(dragon,B),pred(meet,C),rel(agent,C,A),rel(patient,C,B),
 					pred(nonreflexive,C),pred(event,C),pred(small,D),pred(dragon,D),pred(meet,E),rel(agent,E,A),rel(patient,E,D),
 					pred(nonreflexive,E),pred(event,E),pred(roar,F),rel(agent,F,D),pred(event,F)]),
-				binding_small_dragon,1,neg).
+				binding_small_dragon,2,neg).
 		
 	%Lesart 3 (binding, big dragon roars)
 		test([a,viking,meets,a,big,dragon,and,a,small,dragon,the,dragon,roars],
 				drs([A,B,C,D,E,F],[pred(viking,A),pred(big,B),pred(dragon,B),pred(meet,C),rel(agent,C,A),rel(patient,C,B),
 					pred(nonreflexive,C),pred(event,C),pred(small,D),pred(dragon,D),pred(meet,E),rel(agent,E,A),rel(patient,E,D),
 					pred(nonreflexive,E),pred(event,E),pred(roar,F),rel(agent,F,B),pred(event,F)]),
-				binding_big_dragon,1,pos).
+				binding_big_dragon,2,pos).
 	
 
 

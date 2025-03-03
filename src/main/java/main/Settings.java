@@ -64,6 +64,7 @@ public class Settings {
 
     private String explanation = "";
     private boolean explainFail = false;
+    public static boolean printIDs = false;
     private boolean assureGlueParsing = false;
 
     private boolean webService = false;

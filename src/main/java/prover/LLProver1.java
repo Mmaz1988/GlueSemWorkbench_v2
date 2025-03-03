@@ -101,6 +101,11 @@ public class LLProver1 extends LLProver {
         StringBuilder ab = new StringBuilder();
         ab.append("Compiled premises:");
         ab.append(System.lineSeparator());
+
+        //In the initial agenda each premise has a single id in its index set, so we can sort by the singleton value
+        //in the index set
+        agenda.sort(Comparator.comparingInt(p -> p.getPremiseIDs().iterator().next()));
+
         for (Premise p : agenda) {
             ab.append(p);
             ab.append(System.lineSeparator());
@@ -192,6 +197,8 @@ public class LLProver1 extends LLProver {
         proofBuilder.append(System.lineSeparator());
 
 
+
+        //TODO preparing the output should probably be moved out of the Prover classes
         if (getSettings().isExplainFail()) {
             analysis = new GraphAnalysis(goalCategory, scc, categoryGraph, categoryToPremiseMapping);
             analysis.returnJSONGraph();
@@ -199,7 +206,8 @@ public class LLProver1 extends LLProver {
 
             if (getSolutions().isEmpty() && !finalPartialHistories.isEmpty())
             {
-             proofBuilder.append("Found the following partial solutions: ...");
+             proofBuilder.append("Found the following partial solutions:");
+             proofBuilder.append(System.lineSeparator());
 
              for (History h : finalPartialHistories){
                  // Calculate symmetric difference
@@ -210,7 +218,12 @@ public class LLProver1 extends LLProver {
                  tmp.retainAll(h.indexSet);
 
                  symmetricDifference.removeAll(tmp);
-                 proofBuilder.append("For solution " + h.mainIndex.toString() + ", the followind indices are missing: " + symmetricDifference.toString() + "\n");
+
+                 proofBuilder.append("Solution " + h.mainIndex.toString() + ": ").append(h.category).append(" "+h.indexSet);
+
+                 proofBuilder.append(System.lineSeparator());
+                 proofBuilder.append("The following indices are missing: " + symmetricDifference.toString() + "\n");
+                 proofBuilder.append(System.lineSeparator());
              }
             }
         }

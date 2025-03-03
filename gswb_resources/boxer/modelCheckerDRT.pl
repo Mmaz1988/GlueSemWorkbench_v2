@@ -13,14 +13,12 @@
 :- module(modelCheckerDRT,[evaluate/2,modelCheckerTestSuite/0]).
 :- use_module(comsemPredicates,[compose/3,member/2,printRepresentations/1]),
    use_module(exampleModels,[example/2]).
-:- use_module(modelDRTTestSuite,[test/5]).
+:- use_module(modelDRTTestSuite,[test/3]).
 
 
 /*========================================================================
    Semantic Interpretation
 ========================================================================*/
-
-
 
 satisfy(Drs,Model,pos) :- satisfyDrs(Drs,Model).
 satisfy(Drs,Model,neg) :- \+ satisfyDrs(Drs,Model).
@@ -103,15 +101,26 @@ printStatus(neg):- write('Not satisfied in model. ').
 ========================================================================*/
 %angepasste Darstellung der TestSuite Ergebnisse:
 
+%modelCheckerTestSuite:-
+%   format('~n>>>>> DRT modelChecker TEST SUITE <<<<<~n',[]),
+%   test(Discourse,Formula,Reading,Example,Status),
+%   format('~n~nDicourse:',[]),
+%   write(Discourse),
+%   format('~nDRS:',[]),
+%   write(Formula),
+%   format('~nReading:',[]),
+%   write(Reading),
+%   format('~nExample Model: ~p~nStatus: ',[Example]),
+%   printStatus(Status),
+%   format('~nModel Checker says: ',[]),
+%   evaluate(Formula,Example),
+%   fail.
+
 modelCheckerTestSuite:-
    format('~n>>>>> DRT modelChecker TEST SUITE <<<<<~n',[]),
-   test(Discourse,Formula,Reading,Example,Status),
-   format('~n~nDicourse:',[]),
-   write(Discourse),
-   format('~nDRS:',[]),  
+   test(Formula,Example,Status),
+   format('~nDRS:',[]),
    write(Formula),
-   format('~nReading:',[]),
-   write(Reading),
    format('~nExample Model: ~p~nStatus: ',[Example]),
    printStatus(Status),
    format('~nModel Checker says: ',[]),

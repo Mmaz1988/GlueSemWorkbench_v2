@@ -124,6 +124,11 @@ public class WorkbenchMain {
                     break;
 
                 }
+
+                case ("-printIndex"):
+                    Settings.printIDs = true;
+                    break;
+
                 case ("-proveGoal"): {
                     if (i + 1 >= args.length)
                         searchForGoal = "";
@@ -311,7 +316,7 @@ public class WorkbenchMain {
                                 w.append(currentSolutionBuilder.toString());
 
                                 if (settings.isDrt()) {
-                                    sl.add(solution.getSemTerm().toString() + "." + System.lineSeparator());
+                                    //  sl.add(solution.getSemTerm().toString() + "." + System.lineSeparator());
                                     List<String> prettyDRTlist = PrintDRT.printDRT(sl);
                                     if (!prettyDRTlist.isEmpty())
                                     {
@@ -338,6 +343,8 @@ public class WorkbenchMain {
                     if (settings.isExplainFail() && !settings.getExplanation().equals("")) {
                         w.append("% No proof. Explanation: " + System.lineSeparator());
                         w.append(settings.getExplanation());
+                    } else {
+                        w.append("No solutions found." + System.lineSeparator());
                     }
                     LOGGER.info("No solutions found for given input.");
                 }
@@ -350,6 +357,7 @@ public class WorkbenchMain {
 
                         w.append(outputFileBuilder.toString());
 
+                        /* TODO: needs fixing. Is specified in the prover right now
                         if (settings.isPartial()) {
                             w.append("The following partial solutions were found:");
                             w.append(System.lineSeparator());
@@ -359,6 +367,7 @@ public class WorkbenchMain {
                                 w.append(System.lineSeparator());
                             }
                         }
+                         */
                     }
                 }
                 w.close();
