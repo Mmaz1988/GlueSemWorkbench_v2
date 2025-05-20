@@ -74,9 +74,24 @@ public class GlueParser {
 
     public MeaningConstructor parseMeaningConstructor(String mc, String stage) throws ParserInputException {
         String[] mcList = mc.split(":");
-        if (mcList.length != 2) {
+        if (mcList.length == 0) {
             throw new ParserInputException("Error parsing formula '" + mc + "'. " +
                     "Meaning side and glue side need to be separated with a ':'");
+        }
+
+        if (mcList.length > 2) {
+           //join all elements except last one
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < mcList.length - 1; i++)
+            {
+                sb.append(mcList[i]);
+                if (i < mcList.length - 2)
+                {
+                    sb.append(":");
+                }
+            }
+            mcList[0] = sb.toString();
+            mcList[1] = mcList[mcList.length - 1];
         }
 
 

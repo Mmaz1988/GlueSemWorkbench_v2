@@ -137,19 +137,18 @@ public class GswbController {
                 for (int j = 0; j < allSolutions.get(key).size(); j++) {
                     StringBuilder solutionBuilder = new StringBuilder();
                     if (settings.getSemanticOutputStyle() == 1) {
-                        solutionBuilder.append("solution" + "(" + key.toString() + j + ",");
-                        solutionBuilder.append(allSolutions.get(key).get(i).getSemTerm().toString());
-                        solutionBuilder.append(").");
-
-
-
+                            solutionBuilder.append("solution" + "(" + key.toString() + j + ",");
+                            solutionBuilder.append(allSolutions.get(key).get(j).getSemTerm().toString());
+                            solutionBuilder.append(").");
 
                     } else if (settings.getSemanticOutputStyle() == 0) {
-                        solutionBuilder.append(key.toString() + j + ": " + allSolutions.get(key).get(j).getSemTerm().toString());
+                            solutionBuilder.append(key.toString() + j + ": " + allSolutions.get(key).get(j).getSemTerm().toString());
+
                     }
 
                     solutions.add(solutionBuilder.toString());
 
+                    /*
                     //outputSolutions.add(solutionBuilder.toString());
                     if (settings.isExplainFail())
                     {
@@ -162,6 +161,8 @@ public class GswbController {
                             LOGGER.warning("Failed to print natural deduction proof.");
                         }
                     }
+
+                     */
                 }
 
                 LOGGER.info("Preparing explanation of failure...");
