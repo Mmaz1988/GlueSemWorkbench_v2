@@ -82,6 +82,7 @@ public class GswbController {
         {
             multistage = true;
         }
+
         HashMap<String,GswbOutput> analyses = new HashMap<>();
 
         StringBuilder reportBuilder = new StringBuilder();
@@ -146,6 +147,16 @@ public class GswbController {
 
                     }
 
+                    if (displayDRT)
+                    {
+                        List<String> drtSolutions = new ArrayList<>();
+                        drtSolutions.add(solutionBuilder.toString());
+                        solutionBuilder.append(String.join("\n\n",PrintDRT.printDRT(drtSolutions)));
+                    }
+
+
+
+
                     solutions.add(solutionBuilder.toString());
 
                     /*
@@ -196,7 +207,7 @@ public class GswbController {
 
             //transform list of premises into list of strings
             GswbOutput current = new GswbOutput(solutions, log, null);
-            analyses.remove(id,current);
+            analyses.put(id,current);
 
             reportBuilder.append(String.format("%s\t\t%s\t\t%s", id, noOfMCs, countSolutions));
             reportBuilder.append(System.lineSeparator());
