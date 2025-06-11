@@ -26,7 +26,8 @@
 main :- 
  current_prolog_flag(argv,Argv),
  Argv = [X,Y|_],
-  convert(X,Y).
+  convert(X,Y),
+  halt.
 
 convert(X,Y) :- consult(X),
   findall(S,solution(_,S),L),
@@ -39,7 +40,7 @@ drt2file(L,F) :- betaConvertList(L,L2),
  
 betaConvertList([],[]).
   betaConvertList([H1|T1],[H2|T2]) :- betaConvert(H1,H2),resolveDrs(H2,H3),
-  write(H3),nl,
-  printDrs(H3),
+  write(H3),
+  printDrs(H3),nl,
   betaConvertList(T1,T2),halt. 
 

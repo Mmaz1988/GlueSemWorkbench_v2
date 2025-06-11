@@ -3,10 +3,7 @@ package utilities;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.StreamHandler;
@@ -28,137 +25,171 @@ public class PrintDRT {
 
 
     public static List<String> printDRT(List<String> solutions) {
-
-
         LOGGER.info("Pretty printing DRT structures ...");
         List<String> drtSolutions = new ArrayList<>();
-        //create a file that includes all Strings in solutions line  by line
-        //run swipl with the file as input
 
-        LOGGER.fine("Creating temporary files...");
-        //create temporary directory gswb_resources/tmp
         File tmpDir = new File("gswb_resources/tmp");
+
+        // Clean up or recreate temporary directory
         if (tmpDir.exists()) {
-            //delete all files in tmpDir and tmpDir itself
             File[] files = tmpDir.listFiles();
-            for (File file : files) {
-                file.delete();
+            if (files != null) {
+                for (File file : files) file.delete();
             }
             tmpDir.delete();
         }
-
         tmpDir.mkdir();
-
         LOGGER.fine("Created temporary directory: " + tmpDir.getAbsolutePath());
 
-        File gswbFile = new File( tmpDir.getAbsolutePath() + "/gswbFile.txt");
+        File gswbFile = new File(tmpDir, "gswbFile.txt");
+        File drtOutputFile = new File(tmpDir, "drtOutputFile.txt");
 
-        try {
-            if (gswbFile.createNewFile()) {
-                LOGGER.fine("File created successfully!");
-            } else {
-                LOGGER.warning("File already exists!");
-            }
-        } catch (
-                IOException e) {
-            LOGGER.warning("An error occurred while creating the file: " + e.getMessage());
-            e.printStackTrace();
-        }
-
-        try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter(gswbFile));
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(gswbFile))) {
             for (String solution : solutions) {
                 writer.write(solution);
                 writer.newLine();
             }
-            writer.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.warning("Failed to write DRT input file: " + e.getMessage());
+            throw new RuntimeException(e);
         }
 
+        //Create output file
         try {
+            if (drtOutputFile.createNewFile()) {
+                LOGGER.fine("DRT output file created successfully: " + drtOutputFile.getAbsolutePath());
+            } else {
+                LOGGER.warning("DRT output file already exists: " + drtOutputFile.getAbsolutePath());
+            }
+        } catch (IOException e) {
+            LOGGER.warning("An error occurred while creating the DRT output file: " + e.getMessage());
+            throw new RuntimeException(e);
+        }
 
-            File drtOutputFile = new File(tmpDir.getAbsolutePath() + "/drtOutputFile.txt");
-            LOGGER.info("Created DRT output file: " + drtOutputFile.getAbsolutePath());
+        String[] command = {
+                "swipl",
+                "-q",
+                "-f", "gswb_resources/lambdaDRT.pl",
+                "-t", "main.",
+                "--",
+                gswbFile.getAbsolutePath(),
+                drtOutputFile.getAbsolutePath()
+        };
 
+        ProcessBuilder processBuilder = new ProcessBuilder(command);
+        processBuilder.redirectErrorStream(false);
 
-            String[] command = {
-                    "swipl",
-                    "-q",
-                    "-f",
-                    "gswb_resources/lambdaDRT.pl",
-                    "-t",
-                    "main.",
-                    "--",
-                    gswbFile.getAbsolutePath(),
-                    drtOutputFile.getAbsolutePath()
-            };
+        StringBuilder prettyDRT = new StringBuilder();
+        StringBuilder errorOutput = new StringBuilder();
 
-            ProcessBuilder processBuilder = new ProcessBuilder(command);
-
-            // Java join command with white space
-
-
-            LOGGER.info("Executing Prolog goal to pretty print DRT!");
-
-            processBuilder.redirectErrorStream(true);
-
+        try {
+            LOGGER.info("Executing Prolog to pretty print DRT...");
             Process process = processBuilder.start();
 
-            StringBuilder prettyDRT = new StringBuilder();
-
-            // Get the input stream to read the process output
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    prettyDRT.append(line);
-                    prettyDRT.append(System.lineSeparator());
+            Thread stdoutThread = new Thread(() -> {
+                try (BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(process.getInputStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        prettyDRT.append(line).append(System.lineSeparator());
+                    }
+                } catch (IOException e) {
+                    if (process.isAlive()) {
+                        LOGGER.warning("Error reading stdout: " + e.getMessage());
+                    } else {
+                        LOGGER.fine("stdout stream closed after process termination.");
+                    }
                 }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            });
 
-            LOGGER.fine("Pretty DRT: " + prettyDRT.toString());
+            Thread stderrThread = new Thread(() -> {
+                try (BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(process.getErrorStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        errorOutput.append(line).append(System.lineSeparator());
+                    }
+                } catch (IOException e) {
+                    if (process.isAlive()) {
+                        LOGGER.warning("Error reading stderr: " + e.getMessage());
+                    } else {
+                        LOGGER.fine("stderr stream closed after process termination.");
+                    }
+                }
+            });
 
-            // Read and print the output of the external command
+            stdoutThread.start();
+            stderrThread.start();
 
-            // Wait for the process to complete
-            // Create a separate thread to wait for the process to finish
-            FutureTask<Integer> task = new FutureTask<>(process::waitFor);
-            ExecutorService executor = Executors.newFixedThreadPool(1);
-            executor.execute(task);
+            ExecutorService executor = Executors.newSingleThreadExecutor();
+            Future<Integer> task = executor.submit(() -> process.waitFor());
 
-            // Wait for 5 seconds for the process to finish
             try {
-                int exitCode = task.get(5, TimeUnit.SECONDS);
+                int exitCode = task.get(5, TimeUnit.SECONDS); // Wait for Prolog to finish
+
+                stdoutThread.join();
+                stderrThread.join();
+
                 if (exitCode != 0) {
-                    LOGGER.warning("\nFailed to read output from lambdaDRT.pl!\n");
+                    LOGGER.warning("Prolog exited with code " + exitCode);
+                    LOGGER.warning("stderr:\n" + errorOutput);
+                    throw new RuntimeException("Prolog failed:\n" + errorOutput);
                 }
-            } catch (Exception e) {
-                // If the process takes more than 5 seconds, destroy it
+
+            } catch (TimeoutException e) {
+                LOGGER.warning("Prolog process timed out. Killing it...");
                 process.destroyForcibly();
-                LOGGER.warning("\nProcess timed out and was forcibly terminated.\n");
+                process.waitFor(3, TimeUnit.SECONDS); // Give it time to terminate
+            } catch (InterruptedException | ExecutionException e) {
+                Thread.currentThread().interrupt();
+                process.destroyForcibly();
+                throw new RuntimeException("Process execution failed", e);
+            } finally {
+                executor.shutdownNow();
+                try {
+                    stdoutThread.join();
+                    stderrThread.join();
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    LOGGER.warning("Interrupted while joining output threads.");
+                }
             }
 
-            executor.shutdown();
 
-            //Kill process if it takes longer than 10 seconds
+            if (!prettyDRT.toString().trim().isEmpty()) {
+                LOGGER.fine("Using prettyDRT from stdout.");
+                drtSolutions.add(prettyDRT.toString());
+            } else {
+                LOGGER.warning("prettyDRT is empty — attempting to read from output file.");
+                if (drtOutputFile.exists() && drtOutputFile.length() > 0) {
+                    try (BufferedReader reader = new BufferedReader(new FileReader(drtOutputFile))) {
+                        String line;
+                        StringBuilder sb = new StringBuilder();
+                        while ((line = reader.readLine()) != null) {
+                            sb.append(line).append(System.lineSeparator());
+                        }
+                        drtSolutions.add(sb.toString());
+                        LOGGER.fine("Successfully read from output file.");
+                    } catch (IOException e) {
+                        LOGGER.warning("Failed to read fallback DRT file: " + e.getMessage());
+                    }
+                } else {
+                    LOGGER.warning("DRT output file does not exist or is empty.");
+                }
+            }
 
+            return drtSolutions;
 
-            //create a new arraylist with prettyDRT as content
-
-            //delete temporary files
+        } catch (IOException | InterruptedException e) {
+            LOGGER.warning("Failed to pretty print DRT structures");
+            throw new RuntimeException(e);
+        } finally {
+            // Clean up temp files
             gswbFile.delete();
             drtOutputFile.delete();
             tmpDir.delete();
-
-
-            drtSolutions.add(prettyDRT.toString());
-            return drtSolutions;
-        } catch (IOException e) {
-            LOGGER.warning("Failed to pretty print DRT structures");
-            throw new RuntimeException(e);
         }
     }
+
 
 }
