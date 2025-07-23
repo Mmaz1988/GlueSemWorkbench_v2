@@ -256,6 +256,7 @@ public class GswbController {
 
         LLProver prover = null;
         StringBuilder sb = new StringBuilder();
+        String log = "";
 
         LOGGER.info("Running prover...");
 
@@ -273,6 +274,20 @@ public class GswbController {
             try {
                 List<Premise> solutions = prover.searchProof(key,mcs);
                 allSolutions.put(key, solutions);
+
+                log = log + "#### Proof with index " + key + " ####\n";
+                log = log + sb.toString() + "\n";
+
+                if (settings.isDebugging())
+                {
+                    log = log + prover.db.toString() + "\n\n";
+                    LOGGER.info("Debugging output: \n" + prover.db.toString());
+                }
+
+                //reset stringbuilder to empty string
+                sb.setLength(0);
+
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -328,6 +343,7 @@ public class GswbController {
                     LOGGER.warning("Failed to calculate explanation.");
                 }
             }
+
         }
 
         if (displayDRT)
@@ -350,14 +366,6 @@ public class GswbController {
         }
 
         LexVariableHandler.resetVars();
-
-        String log = sb.toString();
-
-        if (settings.isDebugging())
-        {
-            log = prover.db.toString() + "\n" + log;
-            LOGGER.info("Debugging output: \n" + prover.db.toString());
-        }
 
         //transform list of premises into list of strings
         return new GswbOutput(solutions, log, derivation);

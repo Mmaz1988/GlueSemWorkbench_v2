@@ -51,7 +51,7 @@ public class LLProver1 extends LLProver {
     public void deduce(Sequent seq) throws ProverException, VariableBindingException {
 
         //clear field variables for new deduction
-        this.proofBuilder = new StringBuilder();
+       // this.proofBuilder = new StringBuilder();
         this.finalHistories.clear();
         this.finalPartialHistories.clear();
         this.goalIDs.clear();
