@@ -114,7 +114,7 @@ public class GlueParser {
         } catch (Exception e)
         {
          System.out.println("Error parsing formula '" + mc + "'. " +
-                    "Glue modifiers need to be specified after a '..'");
+                    "Glue modifiers need to be specified after a '||'");
         }
 
 
@@ -176,8 +176,8 @@ public class GlueParser {
 
         LinkedHashMap<Integer, List<MeaningConstructor>> lexicalEntries = new LinkedHashMap<>();
         Integer sets = 0;
-        Pattern wrapperStart = Pattern.compile("\\t*\\{\\t*");
-        Pattern wrapperEnd = Pattern.compile("\\t*\\}\\t*");
+        Pattern wrapperStart = Pattern.compile("[^\\S\\r\\n]*\\{[^\\S\\r\\n]*");
+        Pattern wrapperEnd = Pattern.compile("[^\\S\\r\\n]*\\}[^\\S\\r\\n]*");
 
 
         LOGGER.info("Now parsing input premises...");
