@@ -140,6 +140,7 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
             //TODO This crashes when the argument is a set with complex type
             if (lambda.getBinder().getType().equals(arg.getType())  ||
                lambda.getBinder().getType().getSimple().equals(SemType.AtomicType.ALT) ||
+                lambda.getBinder().getType().getSimple().equals(SemType.AtomicType.TEMP) ||
                     arg.getType().getSimple().equals(SemType.AtomicType.TEMP)
                 ) {
                 SemanticRepresentation newBody = lambda.getFuncBody();

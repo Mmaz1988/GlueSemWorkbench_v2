@@ -313,7 +313,7 @@ public class GswbController {
                         solutionBuilder.append(").");
 
                 } else if (settings.getSemanticOutputStyle() == 0) {
-                    solutionBuilder.append(key.toString() + i + ": " + allSolutions.get(key).get(i).getSemTerm().toString());
+                    solutionBuilder.append(key.toString() + "." + i + ": " + allSolutions.get(key).get(i).getSemTerm().toString());
                 }
 
                 solutions.add(solutionBuilder.toString());
