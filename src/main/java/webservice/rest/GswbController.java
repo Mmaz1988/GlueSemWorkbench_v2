@@ -212,6 +212,9 @@ public class GswbController {
             reportBuilder.append(String.format("%s\t\t%s\t\t%s", id, noOfMCs, countSolutions));
             reportBuilder.append(System.lineSeparator());
         }
+
+
+        LOGGER.info("Finished processing with GSWB ... Returning results.");
         return new GswbBatchOutput(analyses,reportBuilder.toString());
     }
 
@@ -368,6 +371,7 @@ public class GswbController {
         LexVariableHandler.resetVars();
 
         //transform list of premises into list of strings
+        LOGGER.info("Finished processing with GSWB ... Returning results.");
         return new GswbOutput(solutions, log, derivation);
     }
 
