@@ -215,7 +215,7 @@ public class GswbController {
             GswbOutput current = new GswbOutput(solutions, log, null);
             analyses.put(id,current);
 
-            reportBuilder.append(String.format("%s\t\t%s\t\t%s", id, noOfMCs, countSolutions));
+            reportBuilder.append(String.format("%s\t\t%s\t\t\t%s", id, noOfMCs, countSolutions));
             reportBuilder.append(System.lineSeparator());
         }
 
