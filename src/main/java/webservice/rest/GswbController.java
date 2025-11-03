@@ -60,6 +60,13 @@ public class GswbController {
         settings.setParseSemantics(request.gswbPreferences.parseSem);
         settings.setNaturalDeductionOutput(request.gswbPreferences.naturalDeductionStyle);
 
+        String resolveSetting = "false";
+        if (request.gswbPreferences.resolveDrs)
+        {
+            resolveSetting = "true";
+        }
+
+
         GlueParser gp = new GlueParser(settings);
 
         LLProver prover = null;
@@ -151,13 +158,12 @@ public class GswbController {
                     {
                         List<String> drtSolutions = new ArrayList<>();
                         drtSolutions.add(solutionBuilder.toString());
-                        solutionBuilder.append(String.join("\n\n",PrintDRT.printDRT(drtSolutions)));
+                        List<String> drts = PrintDRT.printDRT(drtSolutions, resolveSetting);
+                        solutions.add(String.join("\n\n",drts));
+                    } else {
+                        solutions.add(solutionBuilder.toString());
                     }
-
-
-
-
-                    solutions.add(solutionBuilder.toString());
+                    //
 
                     /*
                     //outputSolutions.add(solutionBuilder.toString());
@@ -235,6 +241,12 @@ public class GswbController {
             settings.setSemanticOutputStyle(1);
         } else {
             settings.setSemanticOutputStyle(request.gswbPreferences.outputstyle);
+        }
+
+        String resolveSetting = "false";
+        if (request.gswbPreferences.resolveDrs)
+        {
+            resolveSetting = "true";
         }
 
         settings.setProverType(request.gswbPreferences.prover);
@@ -352,7 +364,7 @@ public class GswbController {
         if (displayDRT)
         {
             if (!solutions.isEmpty()) {
-                solutions = PrintDRT.printDRT(solutions);
+                solutions = PrintDRT.printDRT(solutions,resolveSetting);
             }
         }
 

@@ -23,8 +23,7 @@ public class PrintDRT {
     }
 
 
-
-    public static List<String> printDRT(List<String> solutions) {
+    public static List<String> printDRT(List<String> solutions, String resolveDrs) {
         LOGGER.info("Pretty printing DRT structures ...");
         List<String> drtSolutions = new ArrayList<>();
 
@@ -73,7 +72,8 @@ public class PrintDRT {
                 "-t", "main.",
                 "--",
                 gswbFile.getAbsolutePath(),
-                drtOutputFile.getAbsolutePath()
+                drtOutputFile.getAbsolutePath(),
+                resolveDrs
         };
 
         ProcessBuilder processBuilder = new ProcessBuilder(command);
