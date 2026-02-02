@@ -602,9 +602,6 @@ public class LLProver1 extends LLProver {
             HashMap<String,LinkedList<History>> atomicChart = new HashMap<>();
             List<History> nonatomicChart = new ArrayList();
 
-
-
-
             //The agenda contains all histories that take part in the calculation of the histories within the SCC
             List<History> agenda = History.categorySort(histories);
 
@@ -625,7 +622,6 @@ public class LLProver1 extends LLProver {
 
             History.categorySort(nonatomicChart);
             Collections.reverse(nonatomicChart);
-
 
             ListIterator<History> nonAtomicIterator = nonatomicChart.listIterator();
 
@@ -651,11 +647,8 @@ public class LLProver1 extends LLProver {
                                 nonAtomicIterator.add(combined);
                             }
                         }
-
                     }
-
                     atomicChart.put(currentHistory.category.left.toString(),newChart);
-
                 }
             }
 

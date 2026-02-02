@@ -71,7 +71,7 @@ public class History {
         this.parents = parents;
         calculateMainIndex();
 
-        this.quantifierForce = this.parents.stream().findAny().get().get(0).quantifierForce;
+    //    this.quantifierForce = this.parents.stream().findAny().get().get(0).quantifierForce;
     }
 
     @Override
@@ -249,12 +249,6 @@ public class History {
 
         return output;
 
-    }
-
-
-    public String printParentGraph() {
-
-return null;
     }
 
 }
