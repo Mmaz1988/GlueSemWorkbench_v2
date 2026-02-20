@@ -84,4 +84,9 @@ public class MeaningConstructor {
         this.stage = stage;
     }
 
+    @Override
+    public String toString() {
+        return this.getSem().toString() + " : " + this.getLlTerm().toString();
+    }
+
 }

@@ -3,6 +3,7 @@ package webservice.rest;
 import glueSemantics.linearLogic.Premise;
 import glueSemantics.parser.GlueParser;
 import glueSemantics.parser.LexicalEntries;
+import glueSemantics.parser.McDiscriminantValues;
 import glueSemantics.parser.ParserInputException;
 import glueSemantics.semantics.MeaningConstructor;
 import main.*;
@@ -23,6 +24,7 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 @CrossOrigin
 @RestController
@@ -158,7 +160,14 @@ public class GswbController {
                     {
                         List<String> drtSolutions = new ArrayList<>();
                         drtSolutions.add(solutionBuilder.toString());
-                        List<String> drts = PrintDRT.printDRT(drtSolutions, resolveSetting);
+
+                        List<String> drts =  PrintDRT.printDRT(drtSolutions, resolveSetting)
+                                .stream()
+                                .flatMap(s -> Arrays.stream(s.split("####")))
+                                .map(String::trim)
+                                .filter(part -> !part.isEmpty())
+                                .collect(Collectors.toList());
+
                         solutions.add(String.join("\n\n",drts));
                     } else {
                         solutions.add(solutionBuilder.toString());
@@ -285,9 +294,14 @@ public class GswbController {
             prover = new LLProver4(settings,sb);
         }
 
+        HashSet<Integer> mcSetWithSolution = new HashSet<>();
         for (Integer key : mcs.lexicalEntries.keySet()) {
             try {
                 List<Premise> solutions = prover.searchProof(key,mcs);
+                if (!solutions.isEmpty())
+                {
+                    mcSetWithSolution.add(key);
+                }
                 allSolutions.put(key, solutions);
 
                 log = log + "#### Proof with index " + key + " ####\n";
@@ -307,6 +321,20 @@ public class GswbController {
                 e.printStackTrace();
             }
         }
+
+        //copy lexical entries and remove all entries whose key is not in mcSetWithSolution
+        LinkedHashMap<Integer, List<MeaningConstructor>> filteredLexicalEntries = new LinkedHashMap<>();
+        for (Integer key : mcs.lexicalEntries.keySet()) {
+            if (mcSetWithSolution.contains(key))
+            {                filteredLexicalEntries.put(key, mcs.lexicalEntries.get(key));
+            }
+        }
+
+        LexicalEntries filteredMcs = new LexicalEntries(filteredLexicalEntries);
+
+        List<McDiscriminantValues> discriminants = filteredMcs.calculateDiscriminants();
+
+
 
                 /*w.append("solution" + "(" + key.toString() + i + ",");
                                     w.append(solution.getSemTerm().toString());
@@ -364,7 +392,12 @@ public class GswbController {
         if (displayDRT)
         {
             if (!solutions.isEmpty()) {
-                solutions = PrintDRT.printDRT(solutions,resolveSetting);
+                solutions =  PrintDRT.printDRT(solutions, resolveSetting)
+                        .stream()
+                        .flatMap(s -> Arrays.stream(s.split("####")))
+                        .map(String::trim)
+                        .filter(part -> !part.isEmpty())
+                        .collect(Collectors.toList());
             }
         }
 
