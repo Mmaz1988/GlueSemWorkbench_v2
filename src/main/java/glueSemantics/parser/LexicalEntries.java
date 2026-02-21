@@ -1,6 +1,6 @@
 package glueSemantics.parser;
 
-import Discriminants.McDiscriminantValues;
+import Discriminants.McDiscriminant;
 import glueSemantics.semantics.MeaningConstructor;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultEdge;
@@ -21,8 +21,10 @@ public class LexicalEntries {
     }
 
 
-    public List<McDiscriminantValues> calculateDiscriminants() {
-        HashMap<String, McDiscriminantValues> mcDiscriminantValues = new HashMap<>();
+    public List<McDiscriminant> calculateDiscriminants() {
+        HashMap<String, McDiscriminant> mcDiscriminantValues = new HashMap<>();
+
+        int discriminantCounter = 0;
 
         for (Integer key1 : lexicalEntries.keySet()) {
             for (MeaningConstructor mc1 : lexicalEntries.get(key1)) {
@@ -32,7 +34,7 @@ public class LexicalEntries {
                 }
                 HashSet<Integer> mcSetIds = new HashSet<>();
                 mcSetIds.add(key1);
-                mcDiscriminantValues.put(mc1.toString(), new McDiscriminantValues(mc1.toString(), mcSetIds, 1));
+                mcDiscriminantValues.put(mc1.toString(), new McDiscriminant("mc" + discriminantCounter, mc1.toString(), mcSetIds));
             }
         }
 
@@ -40,16 +42,16 @@ public class LexicalEntries {
         mcDiscriminantValues.entrySet().removeIf((entry) -> (entry.getValue().mcSetIds.size() == lexicalEntries.size()));
 
 
-        List<McDiscriminantValues> initialDiscriminantValues = mcDiscriminantValues.values().stream()
-                .sorted(Comparator.comparingDouble((McDiscriminantValues v) ->
+        List<McDiscriminant> initialDiscriminantValues = mcDiscriminantValues.values().stream()
+                .sorted(Comparator.comparingDouble((McDiscriminant v) ->
                         entropy(v.mcSetIds.size(), lexicalEntries.size())))
                 .toList();
 
 // LinkedHashMap preserves insertion order.
 // If you reversed the list first, insertion order will follow that reversed order.
-        Map<Set<Integer>, McDiscriminantValues> unique = new LinkedHashMap<>();
+        Map<Set<Integer>, McDiscriminant> unique = new LinkedHashMap<>();
 
-        for (McDiscriminantValues d : initialDiscriminantValues) {
+        for (McDiscriminant d : initialDiscriminantValues) {
 
             // IMPORTANT:
             // mcSetIds is mutable (HashSet). If it changes later, it would break map keying.

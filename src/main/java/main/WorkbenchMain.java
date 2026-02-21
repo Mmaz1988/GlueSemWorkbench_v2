@@ -37,7 +37,7 @@ public class WorkbenchMain {
     public static LinkedHashMap<Integer, List<Premise>> solutions = new LinkedHashMap<>();
     public static List<String> partial = new ArrayList<>();
     public static StringBuilder outputFileBuilder = new StringBuilder();
-    public static List<Premise> result = new ArrayList<>();
+    public static List<SolutionObject> result = new ArrayList<>();
     private final static Logger LOGGER = Logger.getLogger(WorkbenchMain.class.getName());
 
 
@@ -455,7 +455,8 @@ public class WorkbenchMain {
 
         // LOGGER.info("Found the following deduction(s):\n");
          StringBuilder resultBuilder = new StringBuilder();
-            for (Premise sol : result) {
+            for (SolutionObject so : result) {
+                Premise sol =  so.solution;
 
                 if (solutions.containsKey(key))
                 {

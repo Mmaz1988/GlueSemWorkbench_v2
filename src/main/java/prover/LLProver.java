@@ -18,7 +18,7 @@ import java.util.logging.Logger;
 public abstract class LLProver {
     public Debugging db;
     private Settings settings;
-    private LinkedList<Premise> solutions = new LinkedList<>();
+    private LinkedList<SolutionObject> solutions = new LinkedList<>();
 
     private LexicalEntries lexicalEntries;
 
@@ -31,11 +31,11 @@ public abstract class LLProver {
 
     public abstract Premise combinePremises(Premise functor, Premise argument, StringBuilder proofBuilder) throws VariableBindingException, ProverException;
     public abstract Premise combinePremises(Premise functor, Premise argument) throws VariableBindingException, ProverException;
-    public LinkedList<Premise> getSolutions() {
+    public LinkedList<SolutionObject> getSolutions() {
         return solutions;
     }
 
-    public void setSolutions(LinkedList<Premise> solutions) {
+    public void setSolutions(LinkedList<SolutionObject> solutions) {
         this.solutions = solutions;
     }
 
@@ -56,11 +56,11 @@ public abstract class LLProver {
     public abstract void setProofBuilder(StringBuilder proofBuilder);
 
 
-    public List<Premise> searchProof(Integer key, LexicalEntries lexicalEntries) throws VariableBindingException, ProverException {
+    public List<SolutionObject> searchProof(Integer key, LexicalEntries lexicalEntries) throws VariableBindingException, ProverException {
         return searchProof(key, lexicalEntries, false);
     }
 
-    public List<Premise> searchProof(Integer key, LexicalEntries lexicalEntries, Boolean mute) throws VariableBindingException, ProverException {
+    public List<SolutionObject> searchProof(Integer key, LexicalEntries lexicalEntries, Boolean mute) throws VariableBindingException, ProverException {
 
         this.lexicalEntries = lexicalEntries;
         try {
@@ -72,7 +72,7 @@ public abstract class LLProver {
             Sequent testseq = new Sequent(lexicalEntries.lexicalEntries.get(key));
 
             deduce(testseq);
-            List<Premise> result = new ArrayList<>(getSolutions());
+            List<SolutionObject> result = new ArrayList<>(getSolutions());
 
 
             // LOGGER.info("Found the following deduction(s):\n");
@@ -85,7 +85,8 @@ public abstract class LLProver {
             StringBuilder solutionBuilder = new StringBuilder();
             solutionBuilder.append(String.format("Found the following solutions for proof with id S%d:\n",key));
 
-                for (Premise p : result) {
+                for (SolutionObject so : result) {
+                    Premise p = so.solution;
                     solutionBuilder.append(InputOutputProcessor.restoreBackLinearLogicSide(p.toString()));
 
             }

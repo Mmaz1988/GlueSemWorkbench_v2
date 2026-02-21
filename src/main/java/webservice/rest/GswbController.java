@@ -1,9 +1,9 @@
 package webservice.rest;
 
-import glueSemantics.linearLogic.Premise;
+import Discriminants.ScopeDiscriminant;
 import glueSemantics.parser.GlueParser;
 import glueSemantics.parser.LexicalEntries;
-import Discriminants.McDiscriminantValues;
+import Discriminants.McDiscriminant;
 import glueSemantics.parser.ParserInputException;
 import glueSemantics.semantics.MeaningConstructor;
 import main.*;
@@ -119,14 +119,14 @@ public class GswbController {
                     gp.parseMeaningConstructorString(request.premises.get(id),multistage);
 
             Integer noOfMCs = 0;
-            LinkedHashMap<Integer, List<Premise>> allSolutions = new LinkedHashMap<>();
+            LinkedHashMap<Integer, List<SolutionObject>> allSolutions = new LinkedHashMap<>();
 
             Integer countSolutions = 0;
 
             for (Integer key : mcs.lexicalEntries.keySet()) {
                 try {
                      noOfMCs = noOfMCs + mcs.lexicalEntries.get(key).size();
-                    List<Premise> solutions = prover.searchProof(key,mcs);
+                    List<SolutionObject> solutions = prover.searchProof(key,mcs);
                     allSolutions.put(key, solutions);
                     countSolutions = countSolutions + solutions.size();
                 } catch (Exception e) {
@@ -144,11 +144,11 @@ public class GswbController {
                     StringBuilder solutionBuilder = new StringBuilder();
                     if (settings.getSemanticOutputStyle() == 1) {
                             solutionBuilder.append("solution" + "(" + key.toString() + j + ",");
-                            solutionBuilder.append(allSolutions.get(key).get(j).getSemTerm().toString());
+                            solutionBuilder.append(allSolutions.get(key).get(j).solution.getSemTerm().toString());
                             solutionBuilder.append(").");
 
                     } else if (settings.getSemanticOutputStyle() == 0) {
-                            solutionBuilder.append(key.toString() + j + ": " + allSolutions.get(key).get(j).getSemTerm().toString());
+                            solutionBuilder.append(key.toString() + j + ": " + allSolutions.get(key).get(j).solution.getSemTerm().toString());
 
                     }
 
@@ -272,7 +272,7 @@ public class GswbController {
         String input = InputOutputProcessor.translate(request.premises);
 
         LexicalEntries mcs = gp.parseMeaningConstructorString(input, multistage);
-        LinkedHashMap<Integer, List<Premise>> allSolutions = new LinkedHashMap<>();
+        LinkedHashMap<Integer, List<SolutionObject>> allSolutions = new LinkedHashMap<>();
 
         LLProver prover = null;
         StringBuilder sb = new StringBuilder();
@@ -293,7 +293,7 @@ public class GswbController {
         HashSet<Integer> mcSetWithSolution = new HashSet<>();
         for (Integer key : mcs.lexicalEntries.keySet()) {
             try {
-                List<Premise> solutions = prover.searchProof(key,mcs);
+                List<SolutionObject> solutions = prover.searchProof(key,mcs);
                 if (!solutions.isEmpty())
                 {
                     mcSetWithSolution.add(key);
@@ -328,7 +328,7 @@ public class GswbController {
 
         LexicalEntries filteredMcs = new LexicalEntries(filteredLexicalEntries);
 
-        List<McDiscriminantValues> discriminants = filteredMcs.calculateDiscriminants();
+        List<McDiscriminant> discriminants = filteredMcs.calculateDiscriminants();
 
 
 
@@ -340,36 +340,62 @@ public class GswbController {
 
         LOGGER.info("Formatting output...");
 
+
+        HashMap<Integer,SolutionObject> solutionStringsToObject = new HashMap<>();
+
         List<String> solutions = new ArrayList<>();
         StringBuilder explainBuilder = new StringBuilder();
 
+        HashMap<String,ScopeDiscriminant> scopeDiscriminants = new HashMap<>();
+
+        int solutionIndex = 0;
+        int scopeDiscriminantIndex = 0;
         for (Integer key : allSolutions.keySet()) {
             for (int i = 0; i < allSolutions.get(key).size(); i++) {
                 StringBuilder solutionBuilder = new StringBuilder();
                 if (settings.getSemanticOutputStyle() == 1) {
                         solutionBuilder.append("solution" + "(" + key.toString() + i + ",");
-                        solutionBuilder.append(allSolutions.get(key).get(i).getSemTerm().toString());
+                        solutionBuilder.append(allSolutions.get(key).get(i).solution.getSemTerm().toString());
                         solutionBuilder.append(").");
 
                 } else if (settings.getSemanticOutputStyle() == 0) {
-                    solutionBuilder.append(key.toString() + "." + i + ": " + allSolutions.get(key).get(i).getSemTerm().toString());
+                    solutionBuilder.append(key.toString() + "." + i + ": " + allSolutions.get(key).get(i).solution.getSemTerm().toString());
                 }
+
+                SolutionObject currentSO = allSolutions.get(key).get(i);
 
                 String currentSolution = solutionBuilder.toString().trim();
 
-                for (McDiscriminantValues d : discriminants) {
+                for (McDiscriminant d : discriminants) {
                     if (d.mcSetIds.contains(key)) {
-                    d.associatedSolutions.add(currentSolution);
+                        d.associatedSolutions.add("s" +  solutionIndex);
                     }
                 }
 
+                for (String sd : currentSO.scopeDiscriminants){
+                   if (!scopeDiscriminants.containsKey(sd)){
+                       ScopeDiscriminant newSD = new ScopeDiscriminant("sc" + scopeDiscriminantIndex,sd, new HashSet<>());
+                       newSD.solutionIds.add("s" +  solutionIndex);
+                       scopeDiscriminants.put(sd,newSD);
+                       scopeDiscriminantIndex++;
+                       continue;
+                   }
+                   scopeDiscriminants.get(sd).solutionIds.add("s" +  solutionIndex);
+                }
+
+
+                currentSO.solutionString = currentSolution;
+                currentSO.solutionId = "s" +  solutionIndex;
                 solutions.add(currentSolution);
+
+                solutionStringsToObject.put(solutionIndex,allSolutions.get(key).get(i));
+                solutionIndex++;
 
                 //outputSolutions.add(solutionBuilder.toString());
                 if (settings.isExplainFail())
                 {
                     try {
-                        explainBuilder.append(NaturalDeductionProof.getNaturalDeductionProof(allSolutions.get(key).get(i), settings.getNaturalDeductionOutput()));
+                        explainBuilder.append(NaturalDeductionProof.getNaturalDeductionProof(allSolutions.get(key).get(i).solution, settings.getNaturalDeductionOutput()));
                         explainBuilder.append(System.lineSeparator());
                         explainBuilder.append(System.lineSeparator());
                     } catch(Exception e)
@@ -404,6 +430,14 @@ public class GswbController {
                         .collect(Collectors.toList());
             }
         }
+
+        if (solutions.size() == solutionStringsToObject.keySet().size())
+        {
+            for (Integer key : solutionStringsToObject.keySet()) {
+                solutionStringsToObject.get(key).solutionString = solutions.get(key);
+            }
+        }
+
 
         Object derivation = null;
 

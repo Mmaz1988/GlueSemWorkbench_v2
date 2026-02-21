@@ -32,6 +32,7 @@ public class LLProver1 extends LLProver {
     private HashSet<Integer> goalIDs = new HashSet<>();
     public GraphAnalysis analysis;
     public HashSet<String> discriminants = new HashSet<>();
+    LinkedList<Premise> agenda = new LinkedList<>();
 
     /**
      * LLProver1 implements a procedure for Glue semantics derivations based on Lev (2007), chapter 6
@@ -148,6 +149,8 @@ public class LLProver1 extends LLProver {
             List<LLTerm> initialCategories = new ArrayList<>();
             HashMap<String, List<Premise>> category2premiseMapping = new HashMap<>();
 
+            this.agenda = agenda;
+
             for (Premise p : agenda) {
                 if (p.getPremiseIDs().size() == 1) {
                     goalIDs.addAll(p.getPremiseIDs());
@@ -185,8 +188,11 @@ public class LLProver1 extends LLProver {
 
             if (!finalHistories.isEmpty()) {
                 for (History solution : finalHistories) {
-                    getSolutions().addAll(solution.calculateSolutions(resultBuilder));
-                    this.discriminants.addAll(solution.scopeDiscriminants);
+                    //getSolutions().addAll();
+                    for (SolutionObject so : solution.calculateSolutions(resultBuilder)) {
+                        so.scopeDiscriminants.addAll(solution.scopeDiscriminants);
+                        getSolutions().add(so);
+                    }
                 }
                 proofBuilder.append(resultBuilder.toString());
                 getLOGGER().info("Found the following glue derivation(s):\n" + resultBuilder.toString());

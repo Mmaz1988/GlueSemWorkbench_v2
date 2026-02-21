@@ -1016,7 +1016,7 @@ public class LLProver2 extends LLProver{
     {
         if (p.getPremiseIDs().equals(goalIDs))
         {
-            getSolutions().add(p);
+            getSolutions().add(new SolutionObject(p));
         }
     }
 

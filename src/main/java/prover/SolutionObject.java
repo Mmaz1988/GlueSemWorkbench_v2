@@ -1,18 +1,25 @@
 package prover;
 
+import Discriminants.McDiscriminant;
 import glueSemantics.linearLogic.Premise;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 
 public class SolutionObject {
-    Premise solution;
-    List<String> discriminants;
+    public String solutionId;
+    public Premise solution;
+    public HashSet<String> scopeDiscriminants = new HashSet<>();
+    public HashSet<McDiscriminant> mcDiscriminants = new HashSet<>();
+    public String solutionString;
 
 
-    public SolutionObject(Premise solution, List<String> discriminants) {
+    public SolutionObject(Premise solution) {
         this.solution = solution;
-        this.discriminants = discriminants;
+    }
+
+    public SolutionObject(Premise solution, HashSet<String> discriminants) {
+        this.solution = solution;
+        this.scopeDiscriminants = discriminants;
     }
 
 }

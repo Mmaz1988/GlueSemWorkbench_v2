@@ -127,7 +127,7 @@ public class GraphAnalysis {
                     for (History h : currentNode.histories)
                     {
                         try {
-                            solutions.addAll(h.calculateSolutions().stream().map(Premise::toString).collect(Collectors.toList()));
+                            solutions.addAll(h.calculateSolutions().stream().map(x -> x.solution.toString()).collect(Collectors.toList()));
                         } catch(Exception e)
                         {
                             LOGGER.fine("History with category " + h.category + "has no solutions to calculate.");
@@ -229,7 +229,7 @@ public class GraphAnalysis {
                     if (node.histories != null && !node.histories.isEmpty()) {
                         for (History h : node.histories) {
                             try {
-                                solutions.addAll(h.calculateSolutions().stream().map(Premise::toString).collect(Collectors.toList()));
+                                solutions.addAll(h.calculateSolutions().stream().map(x -> x.solution.toString()).collect(Collectors.toList()));
                             } catch (Exception e) {
                                 LOGGER.fine("History with category " + h.category + "has no solutions to calculate.");
                             }
@@ -302,7 +302,7 @@ public class GraphAnalysis {
                             for (History h : currentSource.histories)
                             {
                                 try {
-                                    solutions.addAll(h.calculateSolutions().stream().map(Premise::toString).collect(Collectors.toList()));
+                                    solutions.addAll(h.calculateSolutions().stream().map(x -> x.solution.toString()).collect(Collectors.toList()));
                                 } catch(Exception exc)
                                 {
                                     LOGGER.fine("History with category " + h.category + "has no solutions to calculate.");
@@ -522,14 +522,14 @@ class inspectProofAdapter extends MouseAdapter {
                 testFrame.setModalityType(Dialog.DEFAULT_MODALITY_TYPE);
 
                 StringBuilder intermediateResultBuilder = new StringBuilder();
-                List<Premise> solutions = new ArrayList();
+                List<SolutionObject> solutions = new ArrayList();
 
                 for (History h : ((CGNode) ((Graph) ((mxCell) cell).getValue()).vertexSet().stream().findAny().get()).histories)
                 {
 
                     if (h.parents.size() == 1 && h.parents.stream().findAny().get().isEmpty())
                     {
-                        solutions.add(h.p);
+                        solutions.add(new SolutionObject(h.p));
                     }
                     else {
                         try {
@@ -542,7 +542,8 @@ class inspectProofAdapter extends MouseAdapter {
                     }
                 }
 
-                for (Premise h : solutions) {
+                for (SolutionObject so : solutions) {
+                    Premise h = so.solution;
                     intermediateResultBuilder.append(h.toString() + " " + h.getPremiseIDs().toString());
                     intermediateResultBuilder.append("<br>");
 
@@ -578,14 +579,14 @@ class inspectSCCAdapter extends MouseAdapter {
                 testFrame.setModalityType(Dialog.DEFAULT_MODALITY_TYPE);
 
                 StringBuilder intermediateResultBuilder = new StringBuilder();
-                List<Premise> solutions = new ArrayList();
+                List<SolutionObject> solutions = new ArrayList();
 
                 for (History h : ((CGNode) ((mxCell) cell).getValue()).histories)
                 {
 
                     if (h.parents.size() == 1 && h.parents.stream().findAny().get().isEmpty())
                     {
-                        solutions.add(h.p);
+                        solutions.add(new SolutionObject(h.p));
                     }
                     else {
                         try {
@@ -598,7 +599,8 @@ class inspectSCCAdapter extends MouseAdapter {
                     }
                 }
 
-                for (Premise h : solutions) {
+                for (SolutionObject so : solutions) {
+                    Premise h = so.solution;
                     intermediateResultBuilder.append(h.toString() + " " + h.getPremiseIDs().toString());
                     intermediateResultBuilder.append("<br>");
 

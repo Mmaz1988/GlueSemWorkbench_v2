@@ -4,6 +4,7 @@ import glueSemantics.linearLogic.Category;
 import glueSemantics.linearLogic.Premise;
 import prover.LLProver;
 import prover.ProverException;
+import prover.SolutionObject;
 import prover.VariableBindingException;
 
 import java.util.*;
@@ -32,7 +33,7 @@ public class History {
 
     public String stage;
 
-    public List<Premise> results;
+    public List<SolutionObject> results;
     public History(Category category, LinkedHashSet<Integer> indexSet, Set<HashMap<Integer,History>> parents, Premise p, LLProver prover)
     {
         this.prover = prover;
@@ -83,14 +84,14 @@ public class History {
         return category.toString() + " " + indexSet + " (" + parents + ")";
     }
 
-    public List<Premise> calculateSolutions(StringBuilder resultBuilder) throws VariableBindingException, ProverException {
+    public List<SolutionObject> calculateSolutions(StringBuilder resultBuilder) throws VariableBindingException, ProverException {
 
         if (results != null)
         {
             return results;
         }
 
-        List<Premise> results = new ArrayList<>();
+        List<SolutionObject> results = new ArrayList<>();
 
         for (HashMap<Integer,History> parentLinks : parents)
         {
@@ -103,7 +104,7 @@ public class History {
                 func.add(parentLinks.get(0).p);
             } else
             {
-                func.addAll(parentLinks.get(0).calculateSolutions(resultBuilder));
+                func.addAll(parentLinks.get(0).calculateSolutions(resultBuilder).stream().map(x -> x.solution).collect(Collectors.toList()));
             }
 
             if (parentLinks.get(1).p != null)
@@ -111,7 +112,7 @@ public class History {
                 arg.add(parentLinks.get(1).p);
             } else
             {
-                arg.addAll(parentLinks.get(1).calculateSolutions(resultBuilder));
+                arg.addAll(parentLinks.get(1).calculateSolutions(resultBuilder).stream().map(x -> x.solution).collect(Collectors.toList()));
             }
 
             for (Premise p : func)
@@ -123,11 +124,12 @@ public class History {
 
                     prover.db.attemptedCombination++;
                     Premise r = prover.combinePremises(p,q);
+                    SolutionObject so = new SolutionObject(r);
                     if (r != null ) {
                         if (r.getPremiseIDs().equals(this.indexSet)) {
                             resultBuilder.append("Combining function " + p.toString() + " with argument " + q.toString() + " to get " + r.toString() + "\n");
                             prover.db.combinations++;
-                            results.add(r);
+                            results.add(so);
                         }
                     }
                 }
@@ -147,9 +149,9 @@ public class History {
 
     }
 
-    public List<Premise> calculateSolutions() throws VariableBindingException, ProverException {
+    public List<SolutionObject> calculateSolutions() throws VariableBindingException, ProverException {
 
-        List<Premise> results = new ArrayList<>();
+        List<SolutionObject> results = new ArrayList<>();
 
         for (HashMap<Integer,History> parentLinks : parents)
         {
@@ -161,14 +163,14 @@ public class History {
                 func.add(parentLinks.get(0).p);
             } else
             {
-                func.addAll(parentLinks.get(0).calculateSolutions());
+                func.addAll(parentLinks.get(0).calculateSolutions().stream().map(x -> x.solution).collect(Collectors.toList()));
             }
             if (parentLinks.get(1).p != null)
             {
                 arg.add(parentLinks.get(1).p);
             } else
             {
-                arg.addAll(parentLinks.get(1).calculateSolutions());
+                arg.addAll(parentLinks.get(1).calculateSolutions().stream().map(x -> x.solution).collect(Collectors.toList()));
             }
             for (Premise p : func)
             {
@@ -195,10 +197,11 @@ public class History {
                      */
                     prover.db.attemptedCombination++;
                     Premise r = prover.combinePremises(p,q);
+                    SolutionObject so = new SolutionObject(r);
                     if (r != null ) {
                         if (r.getPremiseIDs().equals(this.indexSet)) {
                             prover.db.combinations++;
-                            results.add(r);
+                            results.add(so);
                         }
                     }
                 }
