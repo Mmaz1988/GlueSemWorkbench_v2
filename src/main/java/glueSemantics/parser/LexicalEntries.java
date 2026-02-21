@@ -35,6 +35,7 @@ public class LexicalEntries {
                 HashSet<Integer> mcSetIds = new HashSet<>();
                 mcSetIds.add(key1);
                 mcDiscriminantValues.put(mc1.toString(), new McDiscriminant("mc" + discriminantCounter, mc1.toString(), mcSetIds));
+                discriminantCounter++;
             }
         }
 

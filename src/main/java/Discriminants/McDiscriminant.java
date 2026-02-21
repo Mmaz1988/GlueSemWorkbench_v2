@@ -6,9 +6,9 @@ import java.util.List;
 
 public class McDiscriminant {
     public String discriminantID;
-    String meaningConstructor;
+    public String meaningConstructor;
     public HashSet<Integer> mcSetIds;
-    public List<String> associatedSolutions = new ArrayList<>();
+    public HashSet<String> associatedSolutions = new HashSet<>();
 
 
     public McDiscriminant(String discriminantID, String meaningConstructor, HashSet<Integer> mcSetIds) {

@@ -4,12 +4,12 @@ import java.util.List;
 
 public class GswbSolution {
 
-    public List<String> solutions;
-    public String explanation;
+    public String solution;
+    public String id;
 
-    public GswbSolution(List<String> solutions, String explanation)
+    public GswbSolution(String solution, String id)
     {
-        this.solutions = solutions;
-        this.explanation = explanation;
+    this.solution = solution;
+    this.id = id;
     }
 }

@@ -1,6 +1,7 @@
 package webservice.rest;
 
 import Discriminants.ScopeDiscriminant;
+import glueSemantics.linearLogic.Premise;
 import glueSemantics.parser.GlueParser;
 import glueSemantics.parser.LexicalEntries;
 import Discriminants.McDiscriminant;
@@ -15,10 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import prover.*;
 import utilities.LexVariableHandler;
 import utilities.PrintDRT;
-import webservice.rest.dtos.GswbBatchOutput;
-import webservice.rest.dtos.GswbBatchRequest;
-import webservice.rest.dtos.GswbOutput;
-import webservice.rest.dtos.GswbRequest;
+import webservice.rest.dtos.*;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -216,8 +214,16 @@ public class GswbController {
                 log = prover.db.toString() + "\n" + log;
             }
 
+
+            //TODO fix this hack
+            List<GswbSolution> outputSolutions = new ArrayList<>();
+            for (int j = 0; j < solutions.size(); j++){
+                outputSolutions.add(new GswbSolution("s" + j, solutions.get(j)));
+            }
+
+
             //transform list of premises into list of strings
-            GswbOutput current = new GswbOutput(solutions, log, null);
+            GswbOutput current = new GswbOutput(outputSolutions, log, null, null);
             analyses.put(id,current);
 
             reportBuilder.append(String.format("%s\t\t%s\t\t\t%s", id, noOfMCs, countSolutions));
@@ -291,6 +297,10 @@ public class GswbController {
         }
 
         HashSet<Integer> mcSetWithSolution = new HashSet<>();
+
+        //for tracking mcs across different sets; required for discriminants
+        // HashMap<String,LinkedHashSet<Integer>> premiseToIDmapping = new HashMap<>();
+
         for (Integer key : mcs.lexicalEntries.keySet()) {
             try {
                 List<SolutionObject> solutions = prover.searchProof(key,mcs);
@@ -298,6 +308,7 @@ public class GswbController {
                 {
                     mcSetWithSolution.add(key);
                 }
+
                 allSolutions.put(key, solutions);
 
                 log = log + "#### Proof with index " + key + " ####\n";
@@ -312,12 +323,48 @@ public class GswbController {
                 //reset stringbuilder to empty string
                 sb.setLength(0);
 
+                /*
+                if (settings.getProverType() == 0) {
+                    //TODO
+                } else if (settings.getProverType() == 1) {
+                    List<Premise> agenda = ((LLProver1) prover).agenda;
+                    for (Premise premise : agenda)
+                    {
+                        if (premise.getGlueTerm().isImpureXtX() && !premise.isNonScoping())
+                        {
+                            if (!premiseToIDmapping.containsKey(premise.toString()))
+                            {
+                                premiseToIDmapping.put(premise.toString(),premise.getPremiseIDs());
+                                continue;
+                            }
+                            premiseToIDmapping.get(premise.toString()).addAll(premise.getPremiseIDs());
+                        }
+                    }
+                } else if (settings.getProverType() == 2) {
+                 //TODO
+                }
+
+
+                 */
+
 
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
 
+
+        /* 1) frequency of each Integer across all sets
+        Map<Integer, Long> freq =
+                premiseToIDmapping.values().stream()
+                        .flatMap(Set::stream)
+                        .collect(Collectors.groupingBy(x -> x, Collectors.counting()));
+
+        // 2) remove any entry that shares at least one Integer with another entry
+        premiseToIDmapping.entrySet().removeIf(e ->
+                        e.getValue().stream().anyMatch(id -> freq.getOrDefault(id, 0L) > 1));
+
+         */
         //copy lexical entries and remove all entries whose key is not in mcSetWithSolution
         LinkedHashMap<Integer, List<MeaningConstructor>> filteredLexicalEntries = new LinkedHashMap<>();
         for (Integer key : mcs.lexicalEntries.keySet()) {
@@ -328,7 +375,7 @@ public class GswbController {
 
         LexicalEntries filteredMcs = new LexicalEntries(filteredLexicalEntries);
 
-        List<McDiscriminant> discriminants = filteredMcs.calculateDiscriminants();
+        List<McDiscriminant> finalMcDiscriminants = filteredMcs.calculateDiscriminants();
 
 
 
@@ -366,7 +413,7 @@ public class GswbController {
 
                 String currentSolution = solutionBuilder.toString().trim();
 
-                for (McDiscriminant d : discriminants) {
+                for (McDiscriminant d : finalMcDiscriminants) {
                     if (d.mcSetIds.contains(key)) {
                         d.associatedSolutions.add("s" +  solutionIndex);
                     }
@@ -419,6 +466,8 @@ public class GswbController {
 
         }
 
+
+
         if (displayDRT)
         {
             if (!solutions.isEmpty()) {
@@ -438,6 +487,37 @@ public class GswbController {
             }
         }
 
+        Integer solution_size = solutions.size();
+
+        //Sort discriminants
+        //Iterate through mcDiscrimantValues and remove all entries whose counter equals the number of keys in lexicalEntries
+        scopeDiscriminants.entrySet().removeIf((entry) -> (entry.getValue().solutionIds.size() == solution_size));
+
+
+        List<ScopeDiscriminant> initialScopeDiscriminants = scopeDiscriminants.values().stream()
+                .sorted(Comparator.comparingDouble((ScopeDiscriminant v) ->
+                        entropy(v.solutionIds.size(),solution_size)))
+                .toList();
+
+// LinkedHashMap preserves insertion order.
+// If you reversed the list first, insertion order will follow that reversed order.
+        Map<Set<String>, ScopeDiscriminant> unique = new LinkedHashMap<>();
+
+        for (ScopeDiscriminant d : initialScopeDiscriminants) {
+
+            // IMPORTANT:
+            // mcSetIds is mutable (HashSet). If it changes later, it would break map keying.
+            // So we make an immutable copy to use as the key.
+            Set<String> key = Set.copyOf(d.solutionIds);
+
+            // Keep the first discriminant we see for this key:
+            unique.putIfAbsent(key, d);
+        }
+
+// Now the unique representatives (in preserved order):
+        List<ScopeDiscriminant> finalScopeDiscriminants = new ArrayList<>(unique.values());
+        Collections.reverse(finalScopeDiscriminants);
+
 
         Object derivation = null;
 
@@ -451,12 +531,42 @@ public class GswbController {
             }
         }
 
+        List<GswbSolution> outputSolutions = new ArrayList<>();
+
+        for (Integer key : allSolutions.keySet())
+        {
+            for (SolutionObject so : allSolutions.get(key)) {
+                outputSolutions.add(new GswbSolution(so.solutionId, so.solutionString));
+            }
+        }
+
         LexVariableHandler.resetVars();
+
+        List<GswbDiscriminant> outputDiscriminants = new ArrayList<>();
+        for (ScopeDiscriminant d : finalScopeDiscriminants) {
+            outputDiscriminants.add(new GswbDiscriminant(d.discriminantID,"scope",d.scopeConstraint,d.solutionIds));
+        }
+        for (McDiscriminant mc : finalMcDiscriminants) {
+            outputDiscriminants.add(new GswbDiscriminant(mc.discriminantID,"MCs",mc.meaningConstructor, mc.associatedSolutions));
+        }
+
 
         //transform list of premises into list of strings
         LOGGER.info("Finished processing with GSWB ... Returning results.");
-        return new GswbOutput(solutions, log, derivation);
+        return new GswbOutput(outputSolutions, log, derivation,outputDiscriminants);
     }
 
 
+    private static double entropy(int k, int n) {
+        if (n <= 0) return 0.0;
+        if (k <= 0 || k >= n) return 0.0;
+        double p = (double) k / (double) n;
+        return -(p * log2(p) + (1.0 - p) * log2(1.0 - p));
+    }
+
+    private static double log2(double x) {
+        return Math.log(x) / Math.log(2.0);
+    }
+
 }
+

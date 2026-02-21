@@ -32,7 +32,7 @@ public class LLProver1 extends LLProver {
     private HashSet<Integer> goalIDs = new HashSet<>();
     public GraphAnalysis analysis;
     public HashSet<String> discriminants = new HashSet<>();
-    LinkedList<Premise> agenda = new LinkedList<>();
+    public LinkedList<Premise> agenda = new LinkedList<>();
 
     /**
      * LLProver1 implements a procedure for Glue semantics derivations based on Lev (2007), chapter 6
@@ -716,7 +716,7 @@ public class LLProver1 extends LLProver {
                                         {
                                            if (this.scopingModifiers.contains(index1))
                                            {
-                                               outscopes.add(index + "<" + index1);
+                                               outscopes.add(this.agenda.get(index).getGlueTerm().toString() + " < " + this.agenda.get(index1).getGlueTerm().toString());
                                            }
                                         }
                                     }
@@ -742,7 +742,7 @@ public class LLProver1 extends LLProver {
                                         {
                                             if (this.scopingModifiers.contains(index1))
                                             {
-                                                outscopes.add(index + "<" + index1);
+                                                outscopes.add(this.agenda.get(index).getGlueTerm().toString() + " < " + this.agenda.get(index1).getGlueTerm().toString());
                                             }
                                         }
                                     }
