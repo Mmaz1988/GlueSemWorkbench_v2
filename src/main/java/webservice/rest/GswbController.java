@@ -536,7 +536,7 @@ public class GswbController {
         for (Integer key : allSolutions.keySet())
         {
             for (SolutionObject so : allSolutions.get(key)) {
-                outputSolutions.add(new GswbSolution(so.solutionId, so.solutionString));
+                outputSolutions.add(new GswbSolution(so.solutionString,so.solutionId));
             }
         }
 
