@@ -3,7 +3,7 @@ package webservice.rest;
 import glueSemantics.linearLogic.Premise;
 import glueSemantics.parser.GlueParser;
 import glueSemantics.parser.LexicalEntries;
-import glueSemantics.parser.McDiscriminantValues;
+import Discriminants.McDiscriminantValues;
 import glueSemantics.parser.ParserInputException;
 import glueSemantics.semantics.MeaningConstructor;
 import main.*;
@@ -20,9 +20,7 @@ import webservice.rest.dtos.GswbBatchRequest;
 import webservice.rest.dtos.GswbOutput;
 import webservice.rest.dtos.GswbRequest;
 
-import java.io.*;
 import java.util.*;
-import java.util.concurrent.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -82,8 +80,6 @@ public class GswbController {
             prover = new LLProver1(settings,sb);
         } else if (settings.getProverType() == 2) {
             prover = new LLProver3(settings,sb);
-        } else if (settings.getProverType() == 3) {
-            prover = new LLProver4(settings,sb);
         }
 
         boolean multistage = false;
@@ -284,14 +280,14 @@ public class GswbController {
 
         LOGGER.info("Running prover...");
 
+        //0 == Hepple prover (Prover 2), 1 == Lev Prover (prover 1), 4 == multistage prover (prover 4)
+
         if (settings.getProverType() == 0) {
         prover = new LLProver2(settings,sb);
         } else if (settings.getProverType() == 1) {
             prover = new LLProver1(settings,sb);
         } else if (settings.getProverType() == 2) {
             prover = new LLProver3(settings,sb);
-        } else if (settings.getProverType() == 3) {
-            prover = new LLProver4(settings,sb);
         }
 
         HashSet<Integer> mcSetWithSolution = new HashSet<>();
@@ -359,7 +355,15 @@ public class GswbController {
                     solutionBuilder.append(key.toString() + "." + i + ": " + allSolutions.get(key).get(i).getSemTerm().toString());
                 }
 
-                solutions.add(solutionBuilder.toString());
+                String currentSolution = solutionBuilder.toString().trim();
+
+                for (McDiscriminantValues d : discriminants) {
+                    if (d.mcSetIds.contains(key)) {
+                    d.associatedSolutions.add(currentSolution);
+                    }
+                }
+
+                solutions.add(currentSolution);
 
                 //outputSolutions.add(solutionBuilder.toString());
                 if (settings.isExplainFail())
@@ -408,8 +412,8 @@ public class GswbController {
                 derivation = explainBuilder.toString();
             } else if (prover instanceof LLProver1) {
                 derivation = ((LLProver1) prover).analysis.returnJSONGraph();
-            } else if (prover instanceof LLProver4) {
-                derivation = ((LLProver4) prover).analysis.returnJSONGraph();
+            } else if (prover instanceof LLProver3) {
+                derivation = ((LLProver3) prover).analysis.returnJSONGraph();
             }
         }
 

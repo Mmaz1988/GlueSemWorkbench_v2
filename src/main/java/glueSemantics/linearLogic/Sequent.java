@@ -22,6 +22,7 @@ import glueSemantics.semantics.MeaningConstructor;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 public class Sequent {
@@ -38,7 +39,7 @@ public class Sequent {
      public Sequent(List<MeaningConstructor> lexEn) {
          lhs = new ArrayList<>();
          for (idCounter = 0; idCounter < lexEn.size(); idCounter++) {
-             HashSet<Integer> idSet = new HashSet<>();
+             LinkedHashSet<Integer> idSet = new LinkedHashSet<>();
              idSet.add(idCounter);
              Premise p = new Premise(idSet, lexEn.get(idCounter));
 
@@ -62,8 +63,8 @@ public class Sequent {
         return maxIDSet;
     }
 
-    public HashSet<Integer> getNewID() {
-        HashSet<Integer> newID = new HashSet<>();
+    public LinkedHashSet<Integer> getNewID() {
+        LinkedHashSet<Integer> newID = new LinkedHashSet<>();
         newID.add(idCounter++);
         return newID;
     }

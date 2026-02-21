@@ -435,12 +435,12 @@ public class WorkbenchMain {
 
         LLProver prover;
 
-        if (settings.getProverType() == 1) {
+        if (settings.getProverType() == 0) {
+            prover = new LLProver2(settings,outputFileBuilder);
+        } else if (settings.getProverType() == 1) {
             prover = new LLProver1(settings,outputFileBuilder);
         } else if (settings.getProverType() == 2) {
             prover = new LLProver3(settings,outputFileBuilder);
-        } else if (settings.getProverType() == 3) {
-            prover = new LLProver4(settings,outputFileBuilder);
         } else
         {
             prover = new LLProver2(settings,outputFileBuilder);

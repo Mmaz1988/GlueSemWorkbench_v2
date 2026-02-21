@@ -352,7 +352,7 @@ public class LLProver2 extends LLProver{
 
         Premise combined = null;
 
-        HashSet<Integer> combined_IDs = new HashSet<>();
+        LinkedHashSet<Integer> combined_IDs = new LinkedHashSet<>();
         if (((LLFormula) func.getGlueTerm()).getLhs().checkEquivalence(argumentClone.getGlueTerm())
                 && Collections.disjoint(func.getPremiseIDs(), argument.getPremiseIDs())) {
             combined_IDs.addAll(func.getPremiseIDs());
@@ -580,7 +580,7 @@ public class LLProver2 extends LLProver{
 
         Premise combined = null;
 
-        HashSet<Integer> combined_IDs = new HashSet<>();
+        LinkedHashSet<Integer> combined_IDs = new LinkedHashSet<>();
         if (((LLFormula) func.getGlueTerm()).getLhs().checkEquivalence(argumentClone.getGlueTerm())
                 && Collections.disjoint(func.getPremiseIDs(), argument.getPremiseIDs())) {
             combined_IDs.addAll(func.getPremiseIDs());

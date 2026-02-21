@@ -37,6 +37,7 @@ public class Settings {
     //Provers
     public static  final int HEPPLE = 0;
     public static final int LEV = 1;
+    public static final int Multi = 2;
 
     //resources
     public String resources = "gswb_resources/";

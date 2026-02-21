@@ -13,7 +13,7 @@ public class History {
 
     public LLProver prover;
     public Category category;
-    public Set<Integer> indexSet;
+    public LinkedHashSet<Integer> indexSet;
     public Integer mainIndex;
     public Integer lastModifierMainIndex;
     public Set<Integer> requirements = new HashSet<>();
@@ -28,10 +28,12 @@ public class History {
         OTHER
     }
 
+    public HashSet<String> scopeDiscriminants = new HashSet<>();
+
     public String stage;
 
     public List<Premise> results;
-    public History(Category category, Set<Integer> indexSet, Set<HashMap<Integer,History>> parents, Premise p, LLProver prover)
+    public History(Category category, LinkedHashSet<Integer> indexSet, Set<HashMap<Integer,History>> parents, Premise p, LLProver prover)
     {
         this.prover = prover;
         this.category = category;
@@ -63,7 +65,7 @@ public class History {
 
     }
 
-    public History(Category category, Set<Integer> indexSet, Set<HashMap<Integer,History>> parents, LLProver prover)
+    public History(Category category, LinkedHashSet<Integer> indexSet, Set<HashMap<Integer,History>> parents, LLProver prover)
     {
         this.prover = prover;
         this.category = category;

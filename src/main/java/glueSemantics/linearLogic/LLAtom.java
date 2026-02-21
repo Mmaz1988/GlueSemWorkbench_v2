@@ -89,7 +89,7 @@ public class LLAtom extends LLTerm {
         }
         */
 
-        return this.toPlainString();
+        return name + "_" + getType().toString();
 
     }
 

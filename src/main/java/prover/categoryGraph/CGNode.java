@@ -106,7 +106,8 @@ public class CGNode {
                             History h2 = chartIter.next();
 
                             if (!(h1.equals(h2)) && h1.category.toString().equals(h2.category.toString()) &&
-                                    h1.indexSet.equals(h2.indexSet) && h1.discharges.equals(h2.discharges) && (h1.requirements.equals(h2.requirements))) {
+                                    h1.indexSet.equals(h2.indexSet) && h1.discharges.equals(h2.discharges) && (h1.requirements.equals(h2.requirements))
+                                    && h1.scopeDiscriminants.equals(h2.scopeDiscriminants) ) {
 
                                 Set<HashMap<Integer, History>> nh = new HashSet<>();
                                 nh.addAll(h1.parents);
@@ -116,6 +117,8 @@ public class CGNode {
                                 h3.discharges = h1.discharges;
                                 h3.requirements = h1.requirements;
 
+                                h3.scopeDiscriminants.addAll(h1.scopeDiscriminants);
+                                h3.scopeDiscriminants.addAll(h2.scopeDiscriminants);
 
                                 added = true;
                                 chartIter.remove();

@@ -25,11 +25,13 @@ public class LLProver1 extends LLProver {
 
     private Sequent currentSequent;
     private Set<Integer> nonScopingModifiers;
+    private Set<Integer> scopingModifiers;
     private LinkedList<History> finalHistories = new LinkedList<>();
     private LinkedList<History> finalPartialHistories = new LinkedList<>();
     private StringBuilder proofBuilder;
     private HashSet<Integer> goalIDs = new HashSet<>();
     public GraphAnalysis analysis;
+    public HashSet<String> discriminants = new HashSet<>();
 
     /**
      * LLProver1 implements a procedure for Glue semantics derivations based on Lev (2007), chapter 6
@@ -57,6 +59,8 @@ public class LLProver1 extends LLProver {
         this.goalIDs.clear();
         this.getSolutions().clear();
         this.nonScopingModifiers = new HashSet<>();
+        this.scopingModifiers = new HashSet<>();
+        this.discriminants = new HashSet<>();
         this.db = new Debugging();
         this.currentSequent = seq;
         LinkedList<Premise> agenda = new LinkedList<>();
@@ -182,6 +186,7 @@ public class LLProver1 extends LLProver {
             if (!finalHistories.isEmpty()) {
                 for (History solution : finalHistories) {
                     getSolutions().addAll(solution.calculateSolutions(resultBuilder));
+                    this.discriminants.addAll(solution.scopeDiscriminants);
                 }
                 proofBuilder.append(resultBuilder.toString());
                 getLOGGER().info("Found the following glue derivation(s):\n" + resultBuilder.toString());
@@ -668,14 +673,14 @@ public class LLProver1 extends LLProver {
 
         //In the beginning the chart is empty
         List<History> chart = new ArrayList<>();
-
-
 /*
         //The agenda contains all histories that take part in the calculation of the histories within the SCC
         List<History> agenda = new ArrayList<>(histories);
         //In the beginning the chart is empty
         List<History> chart = new ArrayList<>();
 */
+
+        HashSet<Integer> scopingModifiers = new HashSet<>();
 
         while (!agenda.isEmpty()) {
 
@@ -696,7 +701,25 @@ public class LLProver1 extends LLProver {
                         if (h.category.left.toString().equals(current.category.toString())) {
                             History combined = combineHistories(h, current);
                             if (combined != null) {
+
+                                HashSet<String> outscopes = new HashSet<>();
+                                for (Integer index : h.indexSet){
+                                    if (this.scopingModifiers.contains(index))
+                                    {
+                                        for (Integer index1 : current.indexSet)
+                                        {
+                                           if (this.scopingModifiers.contains(index1))
+                                           {
+                                               outscopes.add(index + "<" + index1);
+                                           }
+                                        }
+                                    }
+                                }
+
+                                combined.scopeDiscriminants.addAll(outscopes);
+
                                 agendaIterator.add(combined);
+
                             }
                         }
                     }
@@ -704,6 +727,23 @@ public class LLProver1 extends LLProver {
                         if (current.category.left.toString().equals(h.category.toString())) {
                             History combined = combineHistories(current, h);
                             if (combined != null) {
+
+                                HashSet<String> outscopes = new HashSet<>();
+                                for (Integer index : current.indexSet){
+                                    if (this.scopingModifiers.contains(index))
+                                    {
+                                        for (Integer index1 : h.indexSet)
+                                        {
+                                            if (this.scopingModifiers.contains(index1))
+                                            {
+                                                outscopes.add(index + "<" + index1);
+                                            }
+                                        }
+                                    }
+                                }
+
+                                combined.scopeDiscriminants.addAll(outscopes);
+
                                 agendaIterator.add(combined);
                             }
 
@@ -865,6 +905,9 @@ public class LLProver1 extends LLProver {
                         if (p.getGlueTerm() instanceof LLFormula && p.isNonScoping())
                         {
                             this.nonScopingModifiers.add(h.mainIndex);
+                        } else if (p.getGlueTerm() instanceof LLFormula && p.getGlueTerm().isImpureXtX())
+                        {
+                            this.scopingModifiers.add(h.mainIndex);
                         }
                     }
                     currentNode.histories.add(h);
@@ -943,7 +986,7 @@ public class LLProver1 extends LLProver {
                     }
                      */
 
-                    Set<Integer> union = new HashSet<>();
+                    LinkedHashSet<Integer> union = new LinkedHashSet<>();
                     union.addAll(h1.indexSet);
                     union.addAll(h2.indexSet);
                     HashMap<Integer, History> parentNodes = new HashMap<>();
@@ -957,9 +1000,11 @@ public class LLProver1 extends LLProver {
                     if (!h1.category.right.atomic) {
                         result.discharges = h1.category.right.left.discharges;
                         result.requirements = h1.category.right.right.dischargeRequirements();
-
-
                     }
+
+                    //add discriminants
+                    result.scopeDiscriminants.addAll(h1.scopeDiscriminants);
+                    result.scopeDiscriminants.addAll(h2.scopeDiscriminants);
 
                     getLOGGER().finer("Now combining " + h1.category.toString() +
                             " and " + h2.category.toString() +
@@ -1030,7 +1075,7 @@ public class LLProver1 extends LLProver {
 
         Premise combined = null;
 
-        HashSet<Integer> combined_IDs = new HashSet<>();
+        LinkedHashSet<Integer> combined_IDs = new LinkedHashSet<>();
         if (((LLFormula) func.getGlueTerm()).getLhs().checkEquivalence(argumentClone.getGlueTerm())
                 && Collections.disjoint(func.getPremiseIDs(), argument.getPremiseIDs())) {
             combined_IDs.addAll(func.getPremiseIDs());
@@ -1251,7 +1296,7 @@ public class LLProver1 extends LLProver {
 
         Premise combined = null;
 
-        HashSet<Integer> combined_IDs = new HashSet<>();
+        LinkedHashSet<Integer> combined_IDs = new LinkedHashSet<>();
         if (((LLFormula) func.getGlueTerm()).getLhs().checkEquivalence(argumentClone.getGlueTerm())
                 && Collections.disjoint(func.getPremiseIDs(), argument.getPremiseIDs())) {
             combined_IDs.addAll(func.getPremiseIDs());

@@ -302,6 +302,31 @@ public abstract class LLTerm {
         this.XtXchecked = true;
         return this.XtX;
     }
+
+    public boolean isImpureXtX() {
+
+        if (this.isXtX()){
+            return true;
+        }
+        try {
+            LLFormula myObj = ((LLFormula)this);
+            if (myObj.getRhs() instanceof LLFormula)  {
+                LLTerm right = ((LLFormula)myObj.getRhs()).getRhs();
+                while (right instanceof LLFormula) {
+                    right = ((LLFormula)right).getRhs();
+                }
+                if (myObj.getLhs().toString().equals(right.toString()))    {
+                    return true;
+                }
+                return myObj.getRhs().isImpureXtX();
+            }
+        }
+        catch(Exception e){
+            // Do nothing.
+        }
+        return false;
+    }
+
     /* End of this code block added for optimization-1 */
 
 
