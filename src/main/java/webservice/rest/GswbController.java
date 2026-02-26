@@ -218,7 +218,7 @@ public class GswbController {
             //TODO fix this hack
             List<GswbSolution> outputSolutions = new ArrayList<>();
             for (int j = 0; j < solutions.size(); j++){
-                outputSolutions.add(new GswbSolution("s" + j, solutions.get(j)));
+                outputSolutions.add(new GswbSolution(solutions.get(j),"s" + j));
             }
 
 
