@@ -1,7 +1,6 @@
 package webservice.rest;
 
 import Discriminants.ScopeDiscriminant;
-import glueSemantics.linearLogic.Premise;
 import glueSemantics.parser.GlueParser;
 import glueSemantics.parser.LexicalEntries;
 import Discriminants.McDiscriminant;
@@ -32,530 +31,442 @@ public class GswbController {
 
     public GswbController(){}
 
-
     @CrossOrigin
-    //(origins = "http://localhost:63342")
     @PostMapping(value = "/gswb_batch_proof", produces = "application/json", consumes = "application/json")
     public GswbBatchOutput glueBatchDeduce(@RequestBody GswbBatchRequest request) throws ParserInputException {
 
-        boolean displayDRT = false;
-        //    public GswbPreferences(int prover, int outputstyle, boolean solutionOnly, boolean debugging, boolean explainFail)
-        Settings settings = new Settings();
-
+        RunContext ctx = buildRunContext(request.gswbPreferences);
         LOGGER.info("Received request: " + request.toString() + "\n" + "Applying settings...");
 
-        if (request.gswbPreferences.outputstyle == 4)
-        {
-            displayDRT = true;
-            settings.setSemanticOutputStyle(1);
-        } else {
-            settings.setSemanticOutputStyle(request.gswbPreferences.outputstyle);
-        }
+        GlueParser gp = new GlueParser(ctx.settings);
 
-        settings.setProverType(request.gswbPreferences.prover);
-        settings.setDebugging(request.gswbPreferences.debugging);
-        settings.setExplainFail(request.gswbPreferences.explainFail);
-        settings.setParseSemantics(request.gswbPreferences.parseSem);
-        settings.setNaturalDeductionOutput(request.gswbPreferences.naturalDeductionStyle);
+        HashMap<String, GswbOutput> analyses = new HashMap<>();
+        StringBuilder reportBuilder = new StringBuilder()
+                .append(System.lineSeparator())
+                .append("ID:     No of meaning constructors:     Solutions:\n");
 
-        String resolveSetting = "false";
-        if (request.gswbPreferences.resolveDrs)
-        {
-            resolveSetting = "true";
-        }
+        List<String> ids = sortedBatchKeys(request.premises.keySet());
 
+        for (String id : ids) {
+            SingleRunResult run =
+                    runAndFormatSingle(
+                            request.premises.get(id),
+                            ctx,
+                            gp,
+                            true,  // batch mode
+                            false  // includeDerivation
+                    );
 
-        GlueParser gp = new GlueParser(settings);
+            analyses.put(id, run.output);
 
-        LLProver prover = null;
-        StringBuilder sb = new StringBuilder();
-
-        LOGGER.info("Running prover...");
-
-        if (settings.getProverType() == 0) {
-            prover = new LLProver2(settings,sb);
-        } else if (settings.getProverType() == 1) {
-            prover = new LLProver1(settings,sb);
-        } else if (settings.getProverType() == 2) {
-            prover = new LLProver3(settings,sb);
-        }
-
-        boolean multistage = false;
-        if (settings.getProverType() == 3)
-        {
-            multistage = true;
-        }
-
-        HashMap<String,GswbOutput> analyses = new HashMap<>();
-
-        StringBuilder reportBuilder = new StringBuilder();
-
-        reportBuilder.append(System.lineSeparator());
-        reportBuilder.append("ID:     No of meaning constructors:     Solutions:\n");
-
-
-        List<String> keys = new ArrayList<>(request.premises.keySet());
-
-        //sort keys by string final number
-        keys.sort(new Comparator<String>() {
-            @Override
-            public int compare(String s1, String s2) {
-                // Extract the numbers from the end of the strings
-                int num1 = Integer.parseInt(s1.replaceAll("\\D", ""));
-                int num2 = Integer.parseInt(s2.replaceAll("\\D", ""));
-
-                // Compare the numbers
-                return Integer.compare(num1, num2);
-            }
-        });
-
-
-        for (int i = 0; i < keys.size(); i++)
-        {
-            String id = keys.get(i);
-            LexicalEntries mcs =
-                    gp.parseMeaningConstructorString(request.premises.get(id),multistage);
-
-            Integer noOfMCs = 0;
-            LinkedHashMap<Integer, List<SolutionObject>> allSolutions = new LinkedHashMap<>();
-
-            Integer countSolutions = 0;
-
-            for (Integer key : mcs.lexicalEntries.keySet()) {
-                try {
-                     noOfMCs = noOfMCs + mcs.lexicalEntries.get(key).size();
-                    List<SolutionObject> solutions = prover.searchProof(key,mcs);
-                    allSolutions.put(key, solutions);
-                    countSolutions = countSolutions + solutions.size();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-            LOGGER.info("Formatting output...");
-
-            List<String> solutions = new ArrayList<>();
-            StringBuilder explainBuilder = new StringBuilder();
-            for (Integer key : allSolutions.keySet()) {
-
-                for (int j = 0; j < allSolutions.get(key).size(); j++) {
-                    StringBuilder solutionBuilder = new StringBuilder();
-                    if (settings.getSemanticOutputStyle() == 1) {
-                            solutionBuilder.append("solution" + "(" + key.toString() + j + ",");
-                            solutionBuilder.append(allSolutions.get(key).get(j).solution.getSemTerm().toString());
-                            solutionBuilder.append(").");
-
-                    } else if (settings.getSemanticOutputStyle() == 0) {
-                            solutionBuilder.append(key.toString() + j + ": " + allSolutions.get(key).get(j).solution.getSemTerm().toString());
-
-                    }
-
-                    if (displayDRT)
-                    {
-                        List<String> drtSolutions = new ArrayList<>();
-                        drtSolutions.add(solutionBuilder.toString());
-
-                        List<String> drts =  PrintDRT.printDRT(drtSolutions, resolveSetting)
-                                .stream()
-                                .flatMap(s -> Arrays.stream(s.split("####")))
-                                .map(String::trim)
-                                .filter(part -> !part.isEmpty())
-                                .collect(Collectors.toList());
-
-                        solutions.add(String.join("\n\n",drts));
-                    } else {
-                        solutions.add(solutionBuilder.toString());
-                    }
-                    //
-
-                    /*
-                    //outputSolutions.add(solutionBuilder.toString());
-                    if (settings.isExplainFail())
-                    {
-                        try {
-                            explainBuilder.append(NaturalDeductionProof.getNaturalDeductionProof(allSolutions.get(key).get(j), settings.getNaturalDeductionOutput()));
-                            explainBuilder.append(System.lineSeparator());
-                            explainBuilder.append(System.lineSeparator());
-                        } catch(Exception e)
-                        {
-                            LOGGER.warning("Failed to print natural deduction proof.");
-                        }
-                    }
-
-                     */
-                }
-
-                LOGGER.info("Preparing explanation of failure...");
-
-                if (allSolutions.get(key).isEmpty() && settings.getProverType() == 0)
-                {
-                    try {
-                        explainBuilder.append(failExplainer.explain(((LLProver2) prover).getNonAtomicChart(), ((LLProver2) prover).getAtomicChart(), true));
-                    } catch(Exception e)
-                    {
-                        LOGGER.warning("Failed to calculate explanation.");
-                    }
-                }
-
-            }
-
-        /*
-        for (String solution : solutions)
-        {
-            System.out.println(solution);
-        }
-         */
-            LexVariableHandler.resetVars();
-
-            String log = sb.toString().toString();
-
-            if (settings.isDebugging())
-            {
-                log = prover.db.toString() + "\n" + log;
-            }
-
-
-            //TODO fix this hack
-            List<GswbSolution> outputSolutions = new ArrayList<>();
-            for (int j = 0; j < solutions.size(); j++){
-                outputSolutions.add(new GswbSolution(solutions.get(j),"s" + j));
-            }
-
-
-            //transform list of premises into list of strings
-            GswbOutput current = new GswbOutput(outputSolutions, log, null, null);
-            analyses.put(id,current);
-
-            reportBuilder.append(String.format("%s\t\t%s\t\t\t%s", id, noOfMCs, countSolutions));
+            reportBuilder.append(String.format("%s\t\t%s\t\t\t%s", id, run.noOfMCs, run.countSolutions));
             reportBuilder.append(System.lineSeparator());
         }
 
-
         LOGGER.info("Finished processing with GSWB ... Returning results.");
-        return new GswbBatchOutput(analyses,reportBuilder.toString());
+        return new GswbBatchOutput(analyses, reportBuilder.toString());
     }
 
     @CrossOrigin
-    //(origins = "http://localhost:63342")
     @PostMapping(value = "/deduce", produces = "application/json", consumes = "application/json")
     public GswbOutput glueDeduce(@RequestBody GswbRequest request) throws ParserInputException {
 
-        boolean displayDRT = false;
-        //    public GswbPreferences(int prover, int outputstyle, boolean solutionOnly, boolean debugging, boolean explainFail)
-        Settings settings = new Settings();
-
+        RunContext ctx = buildRunContext(request.gswbPreferences);
         LOGGER.info("Received request: " + request.toString() + "\n" + "Applying settings...");
 
-        if (request.gswbPreferences.outputstyle == 4)
-        {
-            displayDRT = true;
-            settings.setSemanticOutputStyle(1);
-        } else {
-            settings.setSemanticOutputStyle(request.gswbPreferences.outputstyle);
-        }
-
-        String resolveSetting = "false";
-        if (request.gswbPreferences.resolveDrs)
-        {
-            resolveSetting = "true";
-        }
-
-        settings.setProverType(request.gswbPreferences.prover);
-        settings.setDebugging(request.gswbPreferences.debugging);
-        settings.setExplainFail(request.gswbPreferences.explainFail);
-        settings.setParseSemantics(request.gswbPreferences.parseSem);
-        settings.setNaturalDeductionOutput(request.gswbPreferences.naturalDeductionStyle);
-
-        Boolean multistage = false;
-        if (settings.getProverType() == 3)
-        {
-            multistage = true;
-        }
-
-        GlueParser gp = new GlueParser(settings);
+        GlueParser gp = new GlueParser(ctx.settings);
 
         InputOutputProcessor.process(request.premises);
         String input = InputOutputProcessor.translate(request.premises);
 
-        LexicalEntries mcs = gp.parseMeaningConstructorString(input, multistage);
-        LinkedHashMap<Integer, List<SolutionObject>> allSolutions = new LinkedHashMap<>();
+        SingleRunResult run =
+                runAndFormatSingle(
+                        input,
+                        ctx,
+                        gp,
+                        false, // single mode
+                        true   // includeDerivation
+                );
 
-        LLProver prover = null;
-        StringBuilder sb = new StringBuilder();
-        String log = "";
+        return run.output;
+    }
+
+    // --------------------------
+    // Parallel pipeline helpers (both endpoints call the same ones)
+    // --------------------------
+
+    private static final class RunContext {
+        private final Settings settings;
+        private final boolean displayDRT;
+        private final String resolveSetting;
+        private final boolean multistage;
+
+        private RunContext(Settings settings, boolean displayDRT, String resolveSetting, boolean multistage) {
+            this.settings = settings;
+            this.displayDRT = displayDRT;
+            this.resolveSetting = resolveSetting;
+            this.multistage = multistage;
+        }
+    }
+
+    private static final class LLProverAndLog {
+        private final LLProver prover;
+        private final StringBuilder sb;
+
+        private LLProverAndLog(LLProver prover, StringBuilder sb) {
+            this.prover = prover;
+            this.sb = sb;
+        }
+    }
+
+    private static final class SolutionsAndDiscriminants {
+        private final List<String> solutionStrings;
+        private final Map<Integer, SolutionObject> solutionIndexToObject;
+        private final List<ScopeDiscriminant> finalScopeDiscriminants;
+
+        private SolutionsAndDiscriminants(
+                List<String> solutionStrings,
+                Map<Integer, SolutionObject> solutionIndexToObject,
+                List<ScopeDiscriminant> finalScopeDiscriminants
+        ) {
+            this.solutionStrings = solutionStrings;
+            this.solutionIndexToObject = solutionIndexToObject;
+            this.finalScopeDiscriminants = finalScopeDiscriminants;
+        }
+    }
+
+    private static final class SingleRunResult {
+        private final GswbOutput output;
+        private final int noOfMCs;
+        private final int countSolutions;
+
+        private SingleRunResult(GswbOutput output, int noOfMCs, int countSolutions) {
+            this.output = output;
+            this.noOfMCs = noOfMCs;
+            this.countSolutions = countSolutions;
+        }
+    }
+
+    private RunContext buildRunContext(GswbPreferences prefs) {
+        boolean displayDRT = false;
+        Settings settings = new Settings();
+
+        if (prefs.outputstyle == 4) {
+            displayDRT = true;
+            settings.setSemanticOutputStyle(1);
+        } else {
+            settings.setSemanticOutputStyle(prefs.outputstyle);
+        }
+
+        settings.setProverType(prefs.prover);
+        settings.setDebugging(prefs.debugging);
+        settings.setExplainFail(prefs.explainFail);
+        settings.setParseSemantics(prefs.parseSem);
+        settings.setNaturalDeductionOutput(prefs.naturalDeductionStyle);
+
+        String resolveSetting = prefs.resolveDrs ? "true" : "false";
+        boolean multistage = (settings.getProverType() == 3);
+
+        return new RunContext(settings, displayDRT, resolveSetting, multistage);
+    }
+
+    private SingleRunResult runAndFormatSingle(
+            String premiseInput,
+            RunContext ctx,
+            GlueParser gp,
+            boolean batchMode,
+            boolean includeDerivation
+    ) throws ParserInputException {
+
+        LLProverAndLog proverAndLog = createProver(ctx.settings);
+        LLProver prover = proverAndLog.prover;
+        StringBuilder sb = proverAndLog.sb;
 
         LOGGER.info("Running prover...");
 
-        //0 == Hepple prover (Prover 2), 1 == Lev Prover (prover 1), 4 == multistage prover (prover 4)
+        LexicalEntries mcs = gp.parseMeaningConstructorString(premiseInput, ctx.multistage);
 
-        if (settings.getProverType() == 0) {
-        prover = new LLProver2(settings,sb);
-        } else if (settings.getProverType() == 1) {
-            prover = new LLProver1(settings,sb);
-        } else if (settings.getProverType() == 2) {
-            prover = new LLProver3(settings,sb);
+        ProofRun run = runProofsOverLexicalEntries(mcs, prover, sb, ctx.settings, batchMode);
+
+        LexicalEntries filteredMcs = filterLexicalEntriesByKeySet(mcs, run.mcSetWithSolution);
+        List<McDiscriminant> finalMcDiscriminants = filteredMcs.calculateDiscriminants();
+
+        LOGGER.info("Formatting output...");
+
+        SolutionsAndDiscriminants formatted =
+                formatSolutionsAndDiscriminants(run.allSolutions, finalMcDiscriminants, ctx.settings);
+
+        applyOptionalDrtRendering(ctx, formatted);
+
+        List<GswbSolution> outputSolutions = toOutputSolutions(run.allSolutions);
+
+        Object derivation = null;
+        if (includeDerivation) {
+            derivation = buildDerivationIfEnabled(ctx.settings, prover);
         }
 
+        List<GswbDiscriminant> outputDiscriminants =
+                toOutputDiscriminants(formatted.finalScopeDiscriminants, finalMcDiscriminants);
+
+        LexVariableHandler.resetVars();
+
+        String log = run.log;
+        if (ctx.settings.isDebugging()) {
+            log = prover.db.toString() + "\n" + log;
+        }
+
+        return new SingleRunResult(
+                new GswbOutput(outputSolutions, log, derivation, outputDiscriminants),
+                run.noOfMCs,
+                run.countSolutions
+        );
+    }
+
+    private Object buildDerivationIfEnabled(Settings settings, LLProver prover) {
+        if (!settings.isExplainFail()) {
+            return null;
+        }
+
+        // Preserve prior behavior for the graph-based provers.
+        if (prover instanceof LLProver1 p1) {
+            return (p1.analysis != null) ? p1.analysis.returnJSONGraph() : null;
+        }
+        if (prover instanceof LLProver3 p3) {
+            return (p3.analysis != null) ? p3.analysis.returnJSONGraph() : null;
+        }
+
+        // For the Hepple prover path (LLProver2), the old controller code built a textual explanation
+        // via charts + fail explainer. That logic isn't currently part of the shared pipeline.
+        // Returning null here keeps behavior safe/non-breaking until that is refactored in similarly.
+        return null;
+    }
+
+    private static final class ProofRun {
+        private final LinkedHashMap<Integer, List<SolutionObject>> allSolutions;
+        private final HashSet<Integer> mcSetWithSolution;
+        private final int noOfMCs;
+        private final int countSolutions;
+        private final String log;
+
+        private ProofRun(
+                LinkedHashMap<Integer, List<SolutionObject>> allSolutions,
+                HashSet<Integer> mcSetWithSolution,
+                int noOfMCs,
+                int countSolutions,
+                String log
+        ) {
+            this.allSolutions = allSolutions;
+            this.mcSetWithSolution = mcSetWithSolution;
+            this.noOfMCs = noOfMCs;
+            this.countSolutions = countSolutions;
+            this.log = log;
+        }
+    }
+
+    private ProofRun runProofsOverLexicalEntries(
+            LexicalEntries mcs,
+            LLProver prover,
+            StringBuilder sb,
+            Settings settings,
+            boolean batchMode
+    ) {
+        int noOfMCs = 0;
+        int countSolutions = 0;
+
+        LinkedHashMap<Integer, List<SolutionObject>> allSolutions = new LinkedHashMap<>();
         HashSet<Integer> mcSetWithSolution = new HashSet<>();
 
-        //for tracking mcs across different sets; required for discriminants
-        // HashMap<String,LinkedHashSet<Integer>> premiseToIDmapping = new HashMap<>();
+        String log = "";
 
         for (Integer key : mcs.lexicalEntries.keySet()) {
             try {
-                List<SolutionObject> solutions = prover.searchProof(key,mcs);
-                if (!solutions.isEmpty())
-                {
+                noOfMCs += mcs.lexicalEntries.get(key).size();
+
+                List<SolutionObject> solutions = prover.searchProof(key, mcs);
+                allSolutions.put(key, solutions);
+
+                if (!solutions.isEmpty()) {
                     mcSetWithSolution.add(key);
                 }
 
-                allSolutions.put(key, solutions);
+                countSolutions += solutions.size();
 
-                log = log + "#### Proof with index " + key + " ####\n";
-                log = log + sb.toString() + "\n";
-
-                if (settings.isDebugging())
-                {
-                    log = log + prover.db.toString() + "\n\n";
-                    LOGGER.info("Debugging output: \n" + prover.db.toString());
+                if (!batchMode) {
+                    log = log + "#### Proof with index " + key + " ####\n";
+                    log = log + sb.toString() + "\n";
                 }
 
-                //reset stringbuilder to empty string
                 sb.setLength(0);
-
-                /*
-                if (settings.getProverType() == 0) {
-                    //TODO
-                } else if (settings.getProverType() == 1) {
-                    List<Premise> agenda = ((LLProver1) prover).agenda;
-                    for (Premise premise : agenda)
-                    {
-                        if (premise.getGlueTerm().isImpureXtX() && !premise.isNonScoping())
-                        {
-                            if (!premiseToIDmapping.containsKey(premise.toString()))
-                            {
-                                premiseToIDmapping.put(premise.toString(),premise.getPremiseIDs());
-                                continue;
-                            }
-                            premiseToIDmapping.get(premise.toString()).addAll(premise.getPremiseIDs());
-                        }
-                    }
-                } else if (settings.getProverType() == 2) {
-                 //TODO
-                }
-
-
-                 */
-
 
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
 
+        return new ProofRun(allSolutions, mcSetWithSolution, noOfMCs, countSolutions, log);
+    }
 
-        /* 1) frequency of each Integer across all sets
-        Map<Integer, Long> freq =
-                premiseToIDmapping.values().stream()
-                        .flatMap(Set::stream)
-                        .collect(Collectors.groupingBy(x -> x, Collectors.counting()));
-
-        // 2) remove any entry that shares at least one Integer with another entry
-        premiseToIDmapping.entrySet().removeIf(e ->
-                        e.getValue().stream().anyMatch(id -> freq.getOrDefault(id, 0L) > 1));
-
-         */
-        //copy lexical entries and remove all entries whose key is not in mcSetWithSolution
-        LinkedHashMap<Integer, List<MeaningConstructor>> filteredLexicalEntries = new LinkedHashMap<>();
-        for (Integer key : mcs.lexicalEntries.keySet()) {
-            if (mcSetWithSolution.contains(key))
-            {                filteredLexicalEntries.put(key, mcs.lexicalEntries.get(key));
-            }
+    private void applyOptionalDrtRendering(RunContext ctx, SolutionsAndDiscriminants formatted) {
+        if (!ctx.displayDRT || formatted.solutionStrings.isEmpty()) {
+            return;
         }
 
-        LexicalEntries filteredMcs = new LexicalEntries(filteredLexicalEntries);
+        List<String> rendered = PrintDRT.printDRT(formatted.solutionStrings, ctx.resolveSetting)
+                .stream()
+                .flatMap(s -> Arrays.stream(s.split("####")))
+                .map(String::trim)
+                .filter(part -> !part.isEmpty())
+                .collect(Collectors.toList());
 
-        List<McDiscriminant> finalMcDiscriminants = filteredMcs.calculateDiscriminants();
+        if (rendered.size() == formatted.solutionIndexToObject.keySet().size()) {
+            for (Integer idx : formatted.solutionIndexToObject.keySet()) {
+                formatted.solutionIndexToObject.get(idx).solutionString = rendered.get(idx);
+            }
+        }
+    }
 
+    private List<GswbSolution> toOutputSolutions(LinkedHashMap<Integer, List<SolutionObject>> allSolutions) {
+        List<GswbSolution> outputSolutions = new ArrayList<>();
+        for (Integer key : allSolutions.keySet()) {
+            for (SolutionObject so : allSolutions.get(key)) {
+                outputSolutions.add(new GswbSolution(so.solutionString, so.solutionId));
+            }
+        }
+        return outputSolutions;
+    }
 
+    private LLProverAndLog createProver(Settings settings) {
+        StringBuilder sb = new StringBuilder();
+        LLProver prover = null;
 
-                /*w.append("solution" + "(" + key.toString() + i + ",");
-                                    w.append(solution.getSemTerm().toString());
-                                    w.append(").");
+        if (settings.getProverType() == 0) {
+            prover = new LLProver2(settings, sb);
+        } else if (settings.getProverType() == 1) {
+            prover = new LLProver1(settings, sb);
+        } else if (settings.getProverType() == 2) {
+            prover = new LLProver3(settings, sb);
+        }
 
-                 */
+        return new LLProverAndLog(prover, sb);
+    }
 
-        LOGGER.info("Formatting output...");
+    private List<String> sortedBatchKeys(Set<String> ids) {
+        List<String> keys = new ArrayList<>(ids);
+        keys.sort(Comparator.comparingInt(s -> Integer.parseInt(s.replaceAll("\\D", ""))));
+        return keys;
+    }
 
+    private LexicalEntries filterLexicalEntriesByKeySet(LexicalEntries mcs, Set<Integer> keysToKeep) {
+        LinkedHashMap<Integer, List<MeaningConstructor>> filtered = new LinkedHashMap<>();
+        for (Integer key : mcs.lexicalEntries.keySet()) {
+            if (keysToKeep.contains(key)) {
+                filtered.put(key, mcs.lexicalEntries.get(key));
+            }
+        }
+        return new LexicalEntries(filtered);
+    }
 
-        HashMap<Integer,SolutionObject> solutionStringsToObject = new HashMap<>();
-
+    private SolutionsAndDiscriminants formatSolutionsAndDiscriminants(
+            LinkedHashMap<Integer, List<SolutionObject>> allSolutions,
+            List<McDiscriminant> finalMcDiscriminants,
+            Settings settings
+    ) {
+        Map<Integer, SolutionObject> solutionIndexToObject = new HashMap<>();
         List<String> solutions = new ArrayList<>();
-        StringBuilder explainBuilder = new StringBuilder();
 
-        HashMap<String,ScopeDiscriminant> scopeDiscriminants = new HashMap<>();
+        HashMap<String, ScopeDiscriminant> scopeDiscriminants = new HashMap<>();
 
         int solutionIndex = 0;
         int scopeDiscriminantIndex = 0;
+
         for (Integer key : allSolutions.keySet()) {
             for (int i = 0; i < allSolutions.get(key).size(); i++) {
-                StringBuilder solutionBuilder = new StringBuilder();
-                if (settings.getSemanticOutputStyle() == 1) {
-                        solutionBuilder.append("solution" + "(" + key.toString() + i + ",");
-                        solutionBuilder.append(allSolutions.get(key).get(i).solution.getSemTerm().toString());
-                        solutionBuilder.append(").");
-
-                } else if (settings.getSemanticOutputStyle() == 0) {
-                    solutionBuilder.append(key.toString() + "." + i + ": " + allSolutions.get(key).get(i).solution.getSemTerm().toString());
-                }
 
                 SolutionObject currentSO = allSolutions.get(key).get(i);
 
-                String currentSolution = solutionBuilder.toString().trim();
+                String currentSolution = buildSolutionString(settings, key, i, currentSO).trim();
 
                 for (McDiscriminant d : finalMcDiscriminants) {
                     if (d.mcSetIds.contains(key)) {
-                        d.associatedSolutions.add("s" +  solutionIndex);
+                        d.associatedSolutions.add("s" + solutionIndex);
                     }
                 }
 
-                for (String sd : currentSO.scopeDiscriminants){
-                   if (!scopeDiscriminants.containsKey(sd)){
-                       ScopeDiscriminant newSD = new ScopeDiscriminant("sc" + scopeDiscriminantIndex,sd, new HashSet<>());
-                       newSD.solutionIds.add("s" +  solutionIndex);
-                       scopeDiscriminants.put(sd,newSD);
-                       scopeDiscriminantIndex++;
-                       continue;
-                   }
-                   scopeDiscriminants.get(sd).solutionIds.add("s" +  solutionIndex);
+                for (String sd : currentSO.scopeDiscriminants) {
+                    ScopeDiscriminant existing = scopeDiscriminants.get(sd);
+                    if (existing == null) {
+                        ScopeDiscriminant newSD =
+                                new ScopeDiscriminant("sc" + scopeDiscriminantIndex, sd, new HashSet<>());
+                        newSD.solutionIds.add("s" + solutionIndex);
+                        scopeDiscriminants.put(sd, newSD);
+                        scopeDiscriminantIndex++;
+                    } else {
+                        existing.solutionIds.add("s" + solutionIndex);
+                    }
                 }
-
 
                 currentSO.solutionString = currentSolution;
-                currentSO.solutionId = "s" +  solutionIndex;
+                currentSO.solutionId = "s" + solutionIndex;
+
                 solutions.add(currentSolution);
-
-                solutionStringsToObject.put(solutionIndex,allSolutions.get(key).get(i));
+                solutionIndexToObject.put(solutionIndex, currentSO);
                 solutionIndex++;
-
-                //outputSolutions.add(solutionBuilder.toString());
-                if (settings.isExplainFail())
-                {
-                    try {
-                        explainBuilder.append(NaturalDeductionProof.getNaturalDeductionProof(allSolutions.get(key).get(i).solution, settings.getNaturalDeductionOutput()));
-                        explainBuilder.append(System.lineSeparator());
-                        explainBuilder.append(System.lineSeparator());
-                    } catch(Exception e)
-                    {
-                        LOGGER.warning("Failed to print natural deduction proof.");
-                    }
-                }
-            }
-
-            LOGGER.info("Preparing explanation of failure...");
-
-            if (allSolutions.get(key).isEmpty() && settings.getProverType() == 0)
-            {
-                try {
-                    explainBuilder.append(failExplainer.explain(((LLProver2) prover).getNonAtomicChart(), ((LLProver2) prover).getAtomicChart(), true));
-                } catch(Exception e)
-                {
-                    LOGGER.warning("Failed to calculate explanation.");
-                }
-            }
-
-        }
-
-
-
-        if (displayDRT)
-        {
-            if (!solutions.isEmpty()) {
-                solutions =  PrintDRT.printDRT(solutions, resolveSetting)
-                        .stream()
-                        .flatMap(s -> Arrays.stream(s.split("####")))
-                        .map(String::trim)
-                        .filter(part -> !part.isEmpty())
-                        .collect(Collectors.toList());
             }
         }
 
-        if (solutions.size() == solutionStringsToObject.keySet().size())
-        {
-            for (Integer key : solutionStringsToObject.keySet()) {
-                solutionStringsToObject.get(key).solutionString = solutions.get(key);
-            }
+        List<ScopeDiscriminant> finalScopeDiscriminants =
+                finalizeScopeDiscriminants(scopeDiscriminants, solutions.size());
+
+        return new SolutionsAndDiscriminants(solutions, solutionIndexToObject, finalScopeDiscriminants);
+    }
+
+    private String buildSolutionString(Settings settings, Integer key, int i, SolutionObject so) {
+        StringBuilder solutionBuilder = new StringBuilder();
+        if (settings.getSemanticOutputStyle() == 1) {
+            solutionBuilder.append("solution").append("(").append(key).append(i).append(",");
+            solutionBuilder.append(so.solution.getSemTerm().toString());
+            solutionBuilder.append(").");
+        } else if (settings.getSemanticOutputStyle() == 0) {
+            solutionBuilder.append(key).append(i).append(": ").append(so.solution.getSemTerm().toString());
         }
+        return solutionBuilder.toString();
+    }
 
-        Integer solution_size = solutions.size();
+    private List<ScopeDiscriminant> finalizeScopeDiscriminants(
+            Map<String, ScopeDiscriminant> scopeDiscriminants,
+            int solutionSize
+    ) {
+        scopeDiscriminants.entrySet().removeIf(e -> e.getValue().solutionIds.size() == solutionSize);
 
-        //Sort discriminants
-        //Iterate through mcDiscrimantValues and remove all entries whose counter equals the number of keys in lexicalEntries
-        scopeDiscriminants.entrySet().removeIf((entry) -> (entry.getValue().solutionIds.size() == solution_size));
-
-
-        List<ScopeDiscriminant> initialScopeDiscriminants = scopeDiscriminants.values().stream()
+        List<ScopeDiscriminant> initial = scopeDiscriminants.values().stream()
                 .sorted(Comparator.comparingDouble((ScopeDiscriminant v) ->
-                        entropy(v.solutionIds.size(),solution_size)))
+                        entropy(v.solutionIds.size(), solutionSize)))
                 .toList();
 
-// LinkedHashMap preserves insertion order.
-// If you reversed the list first, insertion order will follow that reversed order.
         Map<Set<String>, ScopeDiscriminant> unique = new LinkedHashMap<>();
-
-        for (ScopeDiscriminant d : initialScopeDiscriminants) {
-
-            // IMPORTANT:
-            // mcSetIds is mutable (HashSet). If it changes later, it would break map keying.
-            // So we make an immutable copy to use as the key.
+        for (ScopeDiscriminant d : initial) {
             Set<String> key = Set.copyOf(d.solutionIds);
-
-            // Keep the first discriminant we see for this key:
             unique.putIfAbsent(key, d);
         }
 
-// Now the unique representatives (in preserved order):
-        List<ScopeDiscriminant> finalScopeDiscriminants = new ArrayList<>(unique.values());
-        Collections.reverse(finalScopeDiscriminants);
-
-
-        Object derivation = null;
-
-        if (settings.isExplainFail()) {
-            if (settings.getProverType() == 0) {
-                derivation = explainBuilder.toString();
-            } else if (prover instanceof LLProver1) {
-                derivation = ((LLProver1) prover).analysis.returnJSONGraph();
-            } else if (prover instanceof LLProver3) {
-                derivation = ((LLProver3) prover).analysis.returnJSONGraph();
-            }
-        }
-
-        List<GswbSolution> outputSolutions = new ArrayList<>();
-
-        for (Integer key : allSolutions.keySet())
-        {
-            for (SolutionObject so : allSolutions.get(key)) {
-                outputSolutions.add(new GswbSolution(so.solutionString,so.solutionId));
-            }
-        }
-
-        LexVariableHandler.resetVars();
-
-        List<GswbDiscriminant> outputDiscriminants = new ArrayList<>();
-        for (ScopeDiscriminant d : finalScopeDiscriminants) {
-            outputDiscriminants.add(new GswbDiscriminant(d.discriminantID,"scope",d.scopeConstraint,d.solutionIds));
-        }
-        for (McDiscriminant mc : finalMcDiscriminants) {
-            outputDiscriminants.add(new GswbDiscriminant(mc.discriminantID,"MCs",mc.meaningConstructor, mc.associatedSolutions));
-        }
-
-
-        //transform list of premises into list of strings
-        LOGGER.info("Finished processing with GSWB ... Returning results.");
-        return new GswbOutput(outputSolutions, log, derivation,outputDiscriminants);
+        List<ScopeDiscriminant> finals = new ArrayList<>(unique.values());
+        Collections.reverse(finals);
+        return finals;
     }
 
+    private List<GswbDiscriminant> toOutputDiscriminants(
+            List<ScopeDiscriminant> scopeDiscriminants,
+            List<McDiscriminant> mcDiscriminants
+    ) {
+        List<GswbDiscriminant> out = new ArrayList<>();
+        for (ScopeDiscriminant d : scopeDiscriminants) {
+            out.add(new GswbDiscriminant(d.discriminantID, "scope", d.scopeConstraint, d.solutionIds));
+        }
+        for (McDiscriminant mc : mcDiscriminants) {
+            out.add(new GswbDiscriminant(mc.discriminantID, "MCs", mc.meaningConstructor, mc.associatedSolutions));
+        }
+        return out;
+    }
 
     private static double entropy(int k, int n) {
         if (n <= 0) return 0.0;
@@ -567,6 +478,4 @@ public class GswbController {
     private static double log2(double x) {
         return Math.log(x) / Math.log(2.0);
     }
-
 }
-
