@@ -31,7 +31,6 @@ public class LLProver1 extends LLProver {
     private StringBuilder proofBuilder;
     private HashSet<Integer> goalIDs = new HashSet<>();
     public GraphAnalysis analysis;
-    public HashSet<String> discriminants = new HashSet<>();
     public LinkedList<Premise> agenda = new LinkedList<>();
 
     /**
@@ -709,6 +708,8 @@ public class LLProver1 extends LLProver {
                             if (combined != null) {
 
                                 HashSet<String> outscopes = new HashSet<>();
+
+
                                 for (Integer index : h.indexSet){
                                     if (this.scopingModifiers.contains(index))
                                     {
@@ -716,16 +717,16 @@ public class LLProver1 extends LLProver {
                                         {
                                            if (this.scopingModifiers.contains(index1))
                                            {
-                                               outscopes.add(this.agenda.get(index).getGlueTerm().toString() + " < " + this.agenda.get(index1).getGlueTerm().toString());
+                                               String newScoping = this.agenda.get(index).getGlueTerm().toString() + " < " + this.agenda.get(index1).getGlueTerm().toString();
+                                               outscopes.add(newScoping);
+                                               scope2instantiations.putIfAbsent(newScoping, new LinkedHashSet<>());
+                                               scope2instantiations.get(newScoping).add(this.agenda.get(index).getGlueTerm().toStringNotation() + " : " + this.agenda.get(index).getSemTerm() + " <\n\t" + this.agenda.get(index1).getGlueTerm().toStringNotation() + " : " + this.agenda.get(index1).getSemTerm());
                                            }
                                         }
                                     }
                                 }
-
                                 combined.scopeDiscriminants.addAll(outscopes);
-
                                 agendaIterator.add(combined);
-
                             }
                         }
                     }
@@ -742,7 +743,11 @@ public class LLProver1 extends LLProver {
                                         {
                                             if (this.scopingModifiers.contains(index1))
                                             {
-                                                outscopes.add(this.agenda.get(index).getGlueTerm().toString() + " < " + this.agenda.get(index1).getGlueTerm().toString());
+                                                String newScoping = this.agenda.get(index).getGlueTerm().toString() + " < " + this.agenda.get(index1).getGlueTerm().toString();
+                                                outscopes.add(newScoping);
+                                                scope2instantiations.putIfAbsent(newScoping, new LinkedHashSet<>());
+                                                scope2instantiations.get(newScoping).add(this.agenda.get(index).getGlueTerm().toStringNotation() + " : " + this.agenda.get(index).getSemTerm() + " <\n\t" +
+                                                        this.agenda.get(index1).getGlueTerm().toStringNotation() + " : " + this.agenda.get(index1).getSemTerm());
                                             }
                                         }
                                     }

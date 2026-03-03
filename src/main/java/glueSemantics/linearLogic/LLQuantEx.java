@@ -86,6 +86,10 @@ public class LLQuantEx extends LLTerm {
         return "A" + var.toString() + "." + scope.toString();
     }
 
+    @Override
+    public String toStringNotation() {
+        return "A" + var.toStringNotation() + "." + scope.toStringNotation();
+    }
 
     public void updateBoundVariables(LLAtom var)
     {

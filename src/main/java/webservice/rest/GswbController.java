@@ -194,7 +194,7 @@ public class GswbController {
         LOGGER.info("Formatting output...");
 
         SolutionsAndDiscriminants formatted =
-                formatSolutionsAndDiscriminants(run.allSolutions, finalMcDiscriminants, ctx.settings);
+                formatSolutionsAndDiscriminants(run.allSolutions, finalMcDiscriminants, prover.scope2instantiations, ctx.settings);
 
         applyOptionalDrtRendering(ctx, formatted);
 
@@ -369,6 +369,7 @@ public class GswbController {
     private SolutionsAndDiscriminants formatSolutionsAndDiscriminants(
             LinkedHashMap<Integer, List<SolutionObject>> allSolutions,
             List<McDiscriminant> finalMcDiscriminants,
+            LinkedHashMap<String, LinkedHashSet<String>> scope2instantiations,
             Settings settings
     ) {
         Map<Integer, SolutionObject> solutionIndexToObject = new HashMap<>();
@@ -396,12 +397,13 @@ public class GswbController {
                     ScopeDiscriminant existing = scopeDiscriminants.get(sd);
                     if (existing == null) {
                         ScopeDiscriminant newSD =
-                                new ScopeDiscriminant("sc" + scopeDiscriminantIndex, sd, new HashSet<>());
+                                new ScopeDiscriminant("sc" + scopeDiscriminantIndex, sd, new HashSet<>(), scope2instantiations.getOrDefault(sd, new LinkedHashSet<>()));
                         newSD.solutionIds.add("s" + solutionIndex);
                         scopeDiscriminants.put(sd, newSD);
                         scopeDiscriminantIndex++;
                     } else {
                         existing.solutionIds.add("s" + solutionIndex);
+                        existing.instantiations.addAll(scope2instantiations.get(sd));
                     }
                 }
 
@@ -460,7 +462,7 @@ public class GswbController {
     ) {
         List<GswbDiscriminant> out = new ArrayList<>();
         for (ScopeDiscriminant d : scopeDiscriminants) {
-            out.add(new GswbDiscriminant(d.discriminantID, "scope", d.scopeConstraint, d.solutionIds));
+            out.add(new GswbDiscriminant(d.discriminantID, "scope", d.scopeConstraint, d.solutionIds, d.instantiations));
         }
         for (McDiscriminant mc : mcDiscriminants) {
             out.add(new GswbDiscriminant(mc.discriminantID, "MCs", mc.meaningConstructor, mc.associatedSolutions));

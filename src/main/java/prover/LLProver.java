@@ -9,10 +9,7 @@ import main.Settings;
 import main.WorkbenchMain;
 import utilities.Debugging;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Logger;
 
 public abstract class LLProver {
@@ -22,6 +19,8 @@ public abstract class LLProver {
 
     private LexicalEntries lexicalEntries;
 
+    public HashSet<String> discriminants = new HashSet<>();
+    public LinkedHashMap<String, LinkedHashSet<String>> scope2instantiations = new LinkedHashMap<>();
 
     private final static Logger LOGGER = Logger.getLogger(WorkbenchMain.class.getName());
 

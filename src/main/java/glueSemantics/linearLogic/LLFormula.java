@@ -271,6 +271,10 @@ public class LLFormula extends LLTerm {
         return "(" + lhs.toPlainString() + " " + "\u22B8" + " "  + rhs.toPlainString() + ")";
         }
 
+    public String toStringNotation() {
+        return "(" + lhs.toStringNotation() + " " + "-o" + " "  + rhs.toStringNotation() + ")";
+    }
+
         @Override
         public Category category(){
         return new Category(lhs.category(),rhs.category(),new HashSet<>(getOrderedDischarges().keySet()));
