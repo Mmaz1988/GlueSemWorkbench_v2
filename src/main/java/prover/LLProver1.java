@@ -450,16 +450,15 @@ public class LLProver1 extends LLProver {
                 List<History> sccAgenda = new ArrayList<>();
                 sccAgenda.addAll(sccHistories);
 
-                List<History> histories = new ArrayList<>();
+                List<History> histories = new ArrayList<>(sccAgenda);
 
-                if (!nonScopingModifiers.isEmpty())
-                {
+                if (!nonScopingModifiers.isEmpty()) {
                     List<History> scopingModifiers = sccAgenda.stream().filter(h -> !this.nonScopingModifiers.contains(h.mainIndex) && h.category.left != null &&
                             h.category.left.toString().equals(h.category.right.toString())).collect(Collectors.toList());
                     // sccAgenda minus scopingModifiers
-                    List<History> nonscopingAgenda =  sccAgenda.stream().filter(h -> !scopingModifiers.contains(h)).collect(Collectors.toList());
+                    List<History> nonscopingAgenda = sccAgenda.stream().filter(h -> !scopingModifiers.contains(h)).collect(Collectors.toList());
 
-                    histories = chartDeduce2(nonscopingAgenda,false);
+                    histories = chartDeduce2(nonscopingAgenda, false);
 
                     //Remove duplicates based on mainindex
 
@@ -523,12 +522,11 @@ public class LLProver1 extends LLProver {
 
                     if (!scopingModifiers.isEmpty()) {
                         histories.addAll(scopingModifiers);
-                        histories = chartDeduce2(histories,false);
                     }
-
-                } else {
-                    histories = chartDeduce2(sccAgenda,false);
                 }
+
+                histories = chartDeduce2(histories,false);
+
 
 
                 //End of noscope optimization
@@ -606,14 +604,9 @@ public class LLProver1 extends LLProver {
     public List<History> chartDeduce2(List<History> histories, boolean noscope) throws VariableBindingException, ProverException {
         getLOGGER().finer("Beginning a partial chart derivation...");
 
-
         if (noscope) {
-
             HashMap<String,LinkedList<History>> atomicChart = new HashMap<>();
             List<History> nonatomicChart = new ArrayList();
-
-
-
 
             //The agenda contains all histories that take part in the calculation of the histories within the SCC
             List<History> agenda = History.categorySort(histories);
@@ -704,11 +697,13 @@ public class LLProver1 extends LLProver {
                 for (History h : chart) {
                     if (h.category.left != null) {
                         if (h.category.left.toString().equals(current.category.toString())) {
+
+
                             History combined = combineHistories(h, current);
                             if (combined != null) {
 
+                                //Discriminant calculation
                                 HashSet<String> outscopes = new HashSet<>();
-
 
                                 for (Integer index : h.indexSet){
                                     if (this.scopingModifiers.contains(index))
