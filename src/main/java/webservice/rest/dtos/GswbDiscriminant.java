@@ -10,6 +10,8 @@ public class GswbDiscriminant {
     public HashSet<String> associatedSolutions;
     public LinkedHashSet<String> instantiations;
 
+    public GswbDiscriminant() {}
+
     public GswbDiscriminant(String id, String type, String identifier,  HashSet<String> associatedSolutions) {
         this.id = id;
         this.type = type;

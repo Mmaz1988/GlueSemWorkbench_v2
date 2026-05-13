@@ -8,6 +8,8 @@ public class GswbOutput {
     public Object derivation;
     public List<GswbDiscriminant> discriminants;
 
+    public GswbOutput() {}
+
     public GswbOutput(List<GswbSolution> solutions, String log, Object derivation,  List<GswbDiscriminant> discriminants)
     {
         this.solutions = solutions;

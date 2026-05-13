@@ -8,10 +8,7 @@ import glueSemantics.parser.ParserInputException;
 import glueSemantics.semantics.MeaningConstructor;
 import main.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import prover.*;
 import utilities.LexVariableHandler;
 import utilities.PrintDRT;
@@ -27,6 +24,8 @@ public class GswbController {
 
     @Autowired
     private GswbService gswbService;
+    @Autowired
+    private GswbRedisSessionService gswbRedisSessionService;
     private final static Logger LOGGER = Logger.getLogger(GswbController.class.getName());
 
     public GswbController(){}
@@ -41,9 +40,12 @@ public class GswbController {
         GlueParser gp = new GlueParser(ctx.settings);
 
         HashMap<String, GswbOutput> analyses = new HashMap<>();
+        String sessionKey = (request.sessionKey == null || request.sessionKey.isBlank()) ? "last_session" : request.sessionKey;
         StringBuilder reportBuilder = new StringBuilder()
                 .append(System.lineSeparator())
                 .append("ID:     No of meaning constructors:     Solutions:\n");
+
+        gswbRedisSessionService.clear(sessionKey);
 
         List<String> ids = sortedBatchKeys(request.premises.keySet());
 
@@ -61,10 +63,14 @@ public class GswbController {
 
             reportBuilder.append(String.format("%s\t\t%s\t\t\t%s", id, run.noOfMCs, run.countSolutions));
             reportBuilder.append(System.lineSeparator());
+
+            gswbRedisSessionService.saveBatchOutput(sessionKey, new GswbBatchOutput(new HashMap<>(analyses), reportBuilder.toString()));
         }
 
         LOGGER.info("Finished processing with GSWB ... Returning results.");
-        return new GswbBatchOutput(analyses, reportBuilder.toString());
+        GswbBatchOutput batchOutput = new GswbBatchOutput(analyses, reportBuilder.toString());
+        gswbRedisSessionService.saveBatchOutput(sessionKey, batchOutput);
+        return batchOutput;
     }
 
     @CrossOrigin
@@ -89,6 +95,27 @@ public class GswbController {
                 );
 
         return run.output;
+    }
+
+    @CrossOrigin
+    @GetMapping(value = "/gswb_batch_session/{sessionKey}/summary", produces = "application/json")
+    public HashMap<String, Object> getBatchSummary(@org.springframework.web.bind.annotation.PathVariable String sessionKey) {
+        return gswbRedisSessionService.summarizeBatchOutput(sessionKey);
+    }
+
+    @CrossOrigin
+    @GetMapping(value = "/gswb_batch_session/{sessionKey}", produces = "application/json")
+    public GswbBatchOutput getBatchSession(@org.springframework.web.bind.annotation.PathVariable String sessionKey) {
+        return gswbRedisSessionService.loadBatchOutput(sessionKey);
+    }
+
+    @CrossOrigin
+    @org.springframework.web.bind.annotation.DeleteMapping(value = "/gswb_batch_session/{sessionKey}", produces = "application/json")
+    public HashMap<String, String> deleteBatchSession(@org.springframework.web.bind.annotation.PathVariable String sessionKey) {
+        gswbRedisSessionService.clear(sessionKey);
+        HashMap<String, String> response = new HashMap<>();
+        response.put("status", "ok");
+        return response;
     }
 
     // --------------------------

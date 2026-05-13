@@ -11,9 +11,18 @@ public class GswbBatchRequest {
 
     public HashMap<String, String> premises;
     public GswbPreferences gswbPreferences;
+    public String sessionKey;
+
+    public GswbBatchRequest() {}
 
     public GswbBatchRequest(HashMap<String, String> premises, GswbPreferences settings) {
         this.premises = premises;
         this.gswbPreferences = settings;
+    }
+
+    public GswbBatchRequest(HashMap<String, String> premises, GswbPreferences settings, String sessionKey) {
+        this.premises = premises;
+        this.gswbPreferences = settings;
+        this.sessionKey = sessionKey;
     }
 }

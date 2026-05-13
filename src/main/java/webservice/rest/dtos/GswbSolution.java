@@ -7,6 +7,8 @@ public class GswbSolution {
     public String solution;
     public String id;
 
+    public GswbSolution() {}
+
     public GswbSolution(String solution, String id)
     {
     this.solution = solution;
