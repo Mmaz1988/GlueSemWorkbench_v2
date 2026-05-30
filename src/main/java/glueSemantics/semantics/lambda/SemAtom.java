@@ -120,11 +120,14 @@ public class SemAtom extends SemanticExpression {
     @Override
     public String toString()
     {
-    	if (SemanticParser.settings.getSemanticOutputStyle() == Settings.NLTK)
-    	{
-    			return name.toUpperCase();
-    	}
-    	else if (SemanticParser.settings.getSemanticOutputStyle() == Settings.PROLOG) {
+	    if (SemanticParser.settings.getSemanticOutputStyle() == Settings.NLTK)
+	    {
+		    return name.toUpperCase();
+	    }
+	    else if (SemanticParser.settings.getSemanticOutputStyle() == Settings.LFGXDRT) {
+	        return (getSort() == SemSort.VAR) ? name.toUpperCase() : name.toLowerCase();
+	    }
+	    else if (SemanticParser.settings.getSemanticOutputStyle() == Settings.PROLOG) {
             if (getSort() == SemSort.VAR) {
                 return name.toUpperCase();
             }
@@ -140,10 +143,12 @@ public class SemAtom extends SemanticExpression {
     }
 
     public String toStringTyped() {
-    	if (SemanticParser.settings.getSemanticOutputStyle() == Settings.NLTK)
-    		return name.toUpperCase();
-    	else 
-    		return name + "_" + getType().toString();
+	    if (SemanticParser.settings.getSemanticOutputStyle() == Settings.NLTK)
+		    return name.toUpperCase();
+	    else if (SemanticParser.settings.getSemanticOutputStyle() == Settings.LFGXDRT)
+	        return (getSort() == SemSort.VAR) ? name.toUpperCase() : name.toLowerCase();
+	    else 
+		    return name + "_" + getType().toString();
     }
 
 

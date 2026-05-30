@@ -31,6 +31,7 @@ public class Settings {
     public static final int PLAIN = 0;
     public static final int PROLOG = 1;
     public static final int NLTK = 3;
+    public static final int LFGXDRT = 5;
     // TODO implement latex output
     //private final int LATEX = 2;
 
@@ -299,4 +300,3 @@ public class Settings {
         this.maxMsBeforeCalculatingDummy = maxMsBeforeCalculatingDummy;
     }
 }
-

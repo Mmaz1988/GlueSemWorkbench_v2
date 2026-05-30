@@ -20,6 +20,7 @@ package glueSemantics.semantics.lambda;
 import glueSemantics.parser.SemanticParser;
 import glueSemantics.semantics.FunctionalAbstraction;
 import glueSemantics.semantics.SemanticRepresentation;
+import main.Settings;
 import prover.ProverException;
 
 import java.util.HashSet;
@@ -80,10 +81,12 @@ public class SemFunction extends SemanticExpression implements FunctionalAbstrac
     public String toString() {
         if(SemanticParser.settings.getSemanticOutputStyle() == PROLOG)
             return String.format("lam(%s,%s)",binder.toString(),funcBody.toString());
+        else if (SemanticParser.settings.getSemanticOutputStyle() == Settings.LFGXDRT)
+            return "(\\" + binder.toString() + "." + funcBody.toString() + ")";
         else if (SemanticParser.settings.getSemanticOutputStyle() == NLTK)
-        	return "\\" + binder.toStringTyped() + ".(" + funcBody.toString() +")";
+        	return "(\\" + binder.toStringTyped() + "." + funcBody.toString() +")";
         else
-        	return "[" + operator + binder.toStringTyped() + "." + funcBody.toString() + "]";
+		    return "[" + operator + binder.toStringTyped() + "." + funcBody.toString() + "]";
     }
 
 

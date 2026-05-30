@@ -283,6 +283,8 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
     public String toString() {
         if (SemanticParser.settings.getSemanticOutputStyle() == Settings.PROLOG)
             return String.format("app(%s,%s)",functor.toString(),argument.toString());
+        else if (SemanticParser.settings.getSemanticOutputStyle() == Settings.LFGXDRT)
+            return "(" + functor.toString() + "@" + argument.toString() + ")";
         else
             return functor.toString() + "(" + argument.toString() + ")";
 

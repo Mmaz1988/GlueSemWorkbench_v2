@@ -113,16 +113,22 @@ public class BinaryTerm extends SemanticExpression {
         if (operator == AND)
             if(SemanticParser.settings.getSemanticOutputStyle() == PROLOG)
                 return String.format("and(%s,%s)",left.toString(),right.toString());
+            else if (SemanticParser.settings.getSemanticOutputStyle() == main.Settings.LFGXDRT)
+                return left.toString() + " & " + right.toString();
             else
                 return left.toString() + " " + '\u2227' + " " + right.toString();
         else if (operator == IMP)
             if(SemanticParser.settings.getSemanticOutputStyle() == PROLOG)
                 return String.format("imp(%s,%s)",left.toString(),right.toString());
+            else if (SemanticParser.settings.getSemanticOutputStyle() == main.Settings.LFGXDRT)
+                return left.toString() + " -> " + right.toString();
             else
                 return left.toString() + " " + '\u2192' + " " + right.toString();
         else
         if(SemanticParser.settings.getSemanticOutputStyle() == PROLOG)
             return String.format("or(%s,%s)",left.toString(),right.toString());
+        else if (SemanticParser.settings.getSemanticOutputStyle() == main.Settings.LFGXDRT)
+            return left.toString() + " v " + right.toString();
         else
             return left.toString() + " " + '\u2228' + " " + right.toString();
     }

@@ -6,6 +6,7 @@ import glueSemantics.parser.LexicalEntries;
 import Discriminants.McDiscriminant;
 import glueSemantics.parser.ParserInputException;
 import glueSemantics.semantics.MeaningConstructor;
+import de.ukon.lfgxdrt.DrsSvgRenderer;
 import main.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -125,12 +126,14 @@ public class GswbController {
     private static final class RunContext {
         private final Settings settings;
         private final boolean displayDRT;
+        private final boolean displayLfgxDrt;
         private final String resolveSetting;
         private final boolean multistage;
 
-        private RunContext(Settings settings, boolean displayDRT, String resolveSetting, boolean multistage) {
+        private RunContext(Settings settings, boolean displayDRT, boolean displayLfgxDrt, String resolveSetting, boolean multistage) {
             this.settings = settings;
             this.displayDRT = displayDRT;
+            this.displayLfgxDrt = displayLfgxDrt;
             this.resolveSetting = resolveSetting;
             this.multistage = multistage;
         }
@@ -176,11 +179,15 @@ public class GswbController {
 
     private RunContext buildRunContext(GswbPreferences prefs) {
         boolean displayDRT = false;
+        boolean displayLfgxDrt = false;
         Settings settings = new Settings();
 
         if (prefs.outputstyle == 4) {
             displayDRT = true;
             settings.setSemanticOutputStyle(1);
+        } else if (prefs.outputstyle == Settings.LFGXDRT) {
+            displayLfgxDrt = true;
+            settings.setSemanticOutputStyle(Settings.LFGXDRT);
         } else {
             settings.setSemanticOutputStyle(prefs.outputstyle);
         }
@@ -194,7 +201,7 @@ public class GswbController {
         String resolveSetting = prefs.resolveDrs ? "true" : "false";
         boolean multistage = (settings.getProverType() == 3);
 
-        return new RunContext(settings, displayDRT, resolveSetting, multistage);
+        return new RunContext(settings, displayDRT, displayLfgxDrt, resolveSetting, multistage);
     }
 
     private SingleRunResult runAndFormatSingle(
@@ -223,9 +230,9 @@ public class GswbController {
         SolutionsAndDiscriminants formatted =
                 formatSolutionsAndDiscriminants(run.allSolutions, finalMcDiscriminants, prover.scope2instantiations, ctx.settings);
 
-        applyOptionalDrtRendering(ctx, formatted);
+        applyOptionalSemanticRendering(ctx, formatted);
 
-        List<GswbSolution> outputSolutions = toOutputSolutions(run.allSolutions);
+        List<GswbSolution> outputSolutions = toOutputSolutions(formatted.solutionIndexToObject);
 
         Object derivation = null;
         if (includeDerivation) {
@@ -333,8 +340,20 @@ public class GswbController {
         return new ProofRun(allSolutions, mcSetWithSolution, noOfMCs, countSolutions, log);
     }
 
-    private void applyOptionalDrtRendering(RunContext ctx, SolutionsAndDiscriminants formatted) {
-        if (!ctx.displayDRT || formatted.solutionStrings.isEmpty()) {
+    private void applyOptionalSemanticRendering(RunContext ctx, SolutionsAndDiscriminants formatted) {
+        if ((!ctx.displayDRT && !ctx.displayLfgxDrt) || formatted.solutionStrings.isEmpty()) {
+            return;
+        }
+        if (ctx.displayLfgxDrt) {
+            DrsSvgRenderer svgRenderer = new DrsSvgRenderer();
+            for (Integer idx : formatted.solutionIndexToObject.keySet().stream().sorted().toList()) {
+                String value = formatted.solutionIndexToObject.get(idx).solutionString;
+                try {
+                    formatted.solutionIndexToObject.get(idx).solutionString = svgRenderer.toSvg(value);
+                } catch (Exception e) {
+                    throw new RuntimeException("Failed to render SVG for solution " + idx, e);
+                }
+            }
             return;
         }
 
@@ -346,18 +365,17 @@ public class GswbController {
                 .collect(Collectors.toList());
 
         if (rendered.size() == formatted.solutionIndexToObject.keySet().size()) {
-            for (Integer idx : formatted.solutionIndexToObject.keySet()) {
+            for (Integer idx : formatted.solutionIndexToObject.keySet().stream().sorted().toList()) {
                 formatted.solutionIndexToObject.get(idx).solutionString = rendered.get(idx);
             }
         }
     }
 
-    private List<GswbSolution> toOutputSolutions(LinkedHashMap<Integer, List<SolutionObject>> allSolutions) {
+    private List<GswbSolution> toOutputSolutions(Map<Integer, SolutionObject> solutionsByIndex) {
         List<GswbSolution> outputSolutions = new ArrayList<>();
-        for (Integer key : allSolutions.keySet()) {
-            for (SolutionObject so : allSolutions.get(key)) {
-                outputSolutions.add(new GswbSolution(so.solutionString, so.solutionId));
-            }
+        for (Integer idx : solutionsByIndex.keySet().stream().sorted().toList()) {
+            SolutionObject so = solutionsByIndex.get(idx);
+            outputSolutions.add(new GswbSolution(so.solutionString, so.solutionId));
         }
         return outputSolutions;
     }
@@ -451,7 +469,9 @@ public class GswbController {
 
     private String buildSolutionString(Settings settings, Integer key, int i, SolutionObject so) {
         StringBuilder solutionBuilder = new StringBuilder();
-        if (settings.getSemanticOutputStyle() == 1) {
+        if (settings.getSemanticOutputStyle() == Settings.LFGXDRT) {
+            solutionBuilder.append(so.solution.getSemTerm().toString());
+        } else if (settings.getSemanticOutputStyle() == 1) {
             solutionBuilder.append("solution").append("(").append(key).append(i).append(",");
             solutionBuilder.append(so.solution.getSemTerm().toString());
             solutionBuilder.append(").");
