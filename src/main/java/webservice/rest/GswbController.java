@@ -1,6 +1,9 @@
 package webservice.rest;
 
 import Discriminants.ScopeDiscriminant;
+import de.ukon.lfgxdrt.DrsParser;
+import de.ukon.lfgxdrt.SemanticExpression;
+import de.ukon.lfgxdrt.drs_elements.DRS;
 import glueSemantics.parser.GlueParser;
 import glueSemantics.parser.LexicalEntries;
 import Discriminants.McDiscriminant;
@@ -33,7 +36,7 @@ public class GswbController {
 
     @CrossOrigin
     @PostMapping(value = "/gswb_batch_proof", produces = "application/json", consumes = "application/json")
-    public GswbBatchOutput glueBatchDeduce(@RequestBody GswbBatchRequest request) throws ParserInputException {
+    public GswbBatchOutput glueBatchDeduce(@RequestBody GswbBatchRequest request) throws Exception {
 
         RunContext ctx = buildRunContext(request.gswbPreferences);
         LOGGER.info("Received request: " + request.toString() + "\n" + "Applying settings...");
@@ -76,7 +79,7 @@ public class GswbController {
 
     @CrossOrigin
     @PostMapping(value = "/deduce", produces = "application/json", consumes = "application/json")
-    public GswbOutput glueDeduce(@RequestBody GswbRequest request) throws ParserInputException {
+    public GswbOutput glueDeduce(@RequestBody GswbRequest request) throws Exception {
 
         RunContext ctx = buildRunContext(request.gswbPreferences);
         LOGGER.info("Received request: " + request.toString() + "\n" + "Applying settings...");
@@ -127,14 +130,12 @@ public class GswbController {
         private final Settings settings;
         private final boolean displayDRT;
         private final boolean displayLfgxDrt;
-        private final String resolveSetting;
         private final boolean multistage;
 
-        private RunContext(Settings settings, boolean displayDRT, boolean displayLfgxDrt, String resolveSetting, boolean multistage) {
+        private RunContext(Settings settings, boolean displayDRT, boolean displayLfgxDrt, boolean multistage) {
             this.settings = settings;
             this.displayDRT = displayDRT;
             this.displayLfgxDrt = displayLfgxDrt;
-            this.resolveSetting = resolveSetting;
             this.multistage = multistage;
         }
     }
@@ -197,11 +198,12 @@ public class GswbController {
         settings.setExplainFail(prefs.explainFail);
         settings.setParseSemantics(prefs.parseSem);
         settings.setNaturalDeductionOutput(prefs.naturalDeductionStyle);
+        settings.setBetaReduce(prefs.betaReduce);
+        settings.setResolveDrs(prefs.resolveDrs);
 
-        String resolveSetting = prefs.resolveDrs ? "true" : "false";
         boolean multistage = (settings.getProverType() == 3);
 
-        return new RunContext(settings, displayDRT, displayLfgxDrt, resolveSetting, multistage);
+        return new RunContext(settings, displayDRT, displayLfgxDrt, multistage);
     }
 
     private SingleRunResult runAndFormatSingle(
@@ -210,7 +212,7 @@ public class GswbController {
             GlueParser gp,
             boolean batchMode,
             boolean includeDerivation
-    ) throws ParserInputException {
+    ) throws Exception {
 
         LLProverAndLog proverAndLog = createProver(ctx.settings);
         LLProver prover = proverAndLog.prover;
@@ -336,20 +338,32 @@ public class GswbController {
                 e.printStackTrace();
             }
         }
-
         return new ProofRun(allSolutions, mcSetWithSolution, noOfMCs, countSolutions, log);
     }
 
-    private void applyOptionalSemanticRendering(RunContext ctx, SolutionsAndDiscriminants formatted) {
+    private void applyOptionalSemanticRendering(RunContext ctx, SolutionsAndDiscriminants formatted) throws Exception {
         if ((!ctx.displayDRT && !ctx.displayLfgxDrt) || formatted.solutionStrings.isEmpty()) {
             return;
         }
         if (ctx.displayLfgxDrt) {
-            DrsSvgRenderer svgRenderer = new DrsSvgRenderer();
+            DrsParser drsParser = new DrsParser();
+
             for (Integer idx : formatted.solutionIndexToObject.keySet().stream().sorted().toList()) {
                 String value = formatted.solutionIndexToObject.get(idx).solutionString;
+                SemanticExpression sol = drsParser.parse(value).expression;
+                if (ctx.settings.isBetaReduce())
+                {
+                    sol = sol.betaReduce();
+
+                    if (ctx.settings.isResolveDrs()) {
+                        sol = sol.resolveMerges();
+                    }
+                }
+
+
+
                 try {
-                    formatted.solutionIndexToObject.get(idx).solutionString = svgRenderer.toSvg(value);
+                    formatted.solutionIndexToObject.get(idx).solutionString = sol.toSvg();
                 } catch (Exception e) {
                     throw new RuntimeException("Failed to render SVG for solution " + idx, e);
                 }
@@ -357,7 +371,7 @@ public class GswbController {
             return;
         }
 
-        List<String> rendered = PrintDRT.printDRT(formatted.solutionStrings, ctx.resolveSetting)
+        List<String> rendered = PrintDRT.printDRT(formatted.solutionStrings, ctx.settings.isResolveDrs())
                 .stream()
                 .flatMap(s -> Arrays.stream(s.split("####")))
                 .map(String::trim)

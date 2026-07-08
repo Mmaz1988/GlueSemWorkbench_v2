@@ -49,6 +49,7 @@ public class Settings {
     public static final int NOSEM = 2;
 
     private boolean betaReduce = true;
+    private boolean resolveDrs = true;
     private int semanticOutputStyle = PLAIN;
     private boolean debugging = false;
     private boolean partial = false;
@@ -298,5 +299,13 @@ public class Settings {
 
     public void setMaxMsBeforeCalculatingDummy(Integer maxMsBeforeCalculatingDummy) {
         this.maxMsBeforeCalculatingDummy = maxMsBeforeCalculatingDummy;
+    }
+
+    public boolean isResolveDrs() {
+        return resolveDrs;
+    }
+
+    public void setResolveDrs(boolean resolveDrs) {
+        this.resolveDrs = resolveDrs;
     }
 }

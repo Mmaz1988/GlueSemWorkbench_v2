@@ -5,7 +5,7 @@ public class GswbPreferences {
     public boolean debugging;
     public int outputstyle;
     public boolean parseSem;
-    public boolean noreduce;
+    public boolean betaReduce;
     public boolean resolveDrs;
     public boolean glueOnly;
     public boolean solutionOnly;
@@ -19,7 +19,7 @@ public class GswbPreferences {
         this.prover = 1;
         this.outputstyle = 1;
         this.parseSem = false;
-        this.noreduce = false;
+        this.betaReduce = false;
         this.resolveDrs = false;
         this.glueOnly = false;
         this.meaningOnly = false;
@@ -35,7 +35,7 @@ public class GswbPreferences {
         this.prover = prover;
         this.outputstyle = outputstyle;
         this.parseSem = parseSem;
-        this.noreduce = noreduce;
+        this.betaReduce = noreduce;
         this.resolveDrs = resolveDrs;
         this.glueOnly = false;
         this.meaningOnly = false;

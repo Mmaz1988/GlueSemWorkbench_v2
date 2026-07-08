@@ -318,7 +318,7 @@ public class WorkbenchMain {
                                 if (settings.isDrt()) {
                                     //  sl.add(solution.getSemTerm().toString() + "." + System.lineSeparator());
                                     //TODO allow for unresolved DRS in non-web version
-                                    List<String> prettyDRTlist = PrintDRT.printDRT(sl,"true");
+                                    List<String> prettyDRTlist = PrintDRT.printDRT(sl,true);
                                     if (!prettyDRTlist.isEmpty())
                                     {
                                         for (String drt : prettyDRTlist)
