@@ -42,6 +42,7 @@ public class GlueParser {
     public static final MeaningRepresentation emptyMeaning = new MeaningRepresentation("<empty>");
     // TODO add semantic parser here
     private final static Logger LOGGER = Logger.getLogger(GlueParser.class.getName());
+    private static final Pattern SOURCE_INDEX_PREFIX = Pattern.compile("^\\s*\\[(\\d+)\\]\\s*(.*)$");
 
     static {
         LOGGER.setUseParentHandlers(false);
@@ -73,6 +74,13 @@ public class GlueParser {
     }
 
     public MeaningConstructor parseMeaningConstructor(String mc, String stage) throws ParserInputException {
+        Integer sourceIndex = null;
+        Matcher sourceIndexMatcher = SOURCE_INDEX_PREFIX.matcher(mc.trim());
+        if (sourceIndexMatcher.matches()) {
+            sourceIndex = Integer.valueOf(sourceIndexMatcher.group(1));
+            mc = sourceIndexMatcher.group(2).trim();
+        }
+
         String[] mcList = mc.split(":");
         if (mcList.length == 0) {
             throw new ParserInputException("Error parsing formula '" + mc + "'. " +
@@ -119,7 +127,7 @@ public class GlueParser {
 
 
 
-        MeaningConstructor entry = new MeaningConstructor();
+        MeaningConstructor entry = new MeaningConstructor(sourceIndex);
         LLTerm glue = llparser.callParser(glueString.trim());
         SemanticRepresentation sem = null;
         if (!PARSESEMANTCS) {

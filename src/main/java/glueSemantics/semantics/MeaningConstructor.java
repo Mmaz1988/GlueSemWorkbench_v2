@@ -22,12 +22,20 @@ import glueSemantics.linearLogic.LLTerm;
 public class MeaningConstructor {
 
     String identifier;
+    private Integer sourceIndex;
     private LLTerm llTerm;
     private SemanticRepresentation sem;
 
     private boolean isNonscope;
 
     private String stage = "0";
+
+    public MeaningConstructor() {
+    }
+
+    public MeaningConstructor(Integer sourceIndex) {
+        this.sourceIndex = sourceIndex;
+    }
 
 
     public LLTerm getLlTerm() {
@@ -44,6 +52,14 @@ public class MeaningConstructor {
 
     public void setSem(SemanticRepresentation sem) {
         this.sem = sem;
+    }
+
+    public Integer getSourceIndex() {
+        return sourceIndex;
+    }
+
+    public void setSourceIndex(Integer sourceIndex) {
+        this.sourceIndex = sourceIndex;
     }
 
     public enum LexType {

@@ -43,6 +43,7 @@ public class Premise {
     private Object arg;
     public boolean used;
     private boolean nonScoping;
+    private Integer sourceIndex;
     public String stage;
 
     private LinkedList<SemAtom> assumptionVars = new LinkedList<>();
@@ -77,6 +78,7 @@ public class Premise {
         this.glueTerm = lexEn.getLlTerm();
         this.semTerm = lexEn.getSem();
         this.originalSemTerm = semTerm.clone();
+        this.sourceIndex = lexEn.getSourceIndex();
         this.used = false;
     }
 
@@ -218,4 +220,12 @@ public class Premise {
     public SemanticRepresentation getSemTerm() { return semTerm; }
 
     public void setSemTerm(SemanticExpression semTerm) { this.semTerm = semTerm; }
+
+    public Integer getSourceIndex() {
+        return sourceIndex;
+    }
+
+    public void setSourceIndex(Integer sourceIndex) {
+        this.sourceIndex = sourceIndex;
+    }
 }

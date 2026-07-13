@@ -1597,10 +1597,12 @@ public class LLProver1 extends LLProver {
                         LexVariableHandler.returnNewVar(LexVariableHandler.variableType.SemVarE), newtype);
 
                 Premise assumption = new Premise(currentSequent.getNewID(), asumptionVar, outGlue);
+                assumption.setSourceIndex(p.getSourceIndex());
 
                 compiledGlue.getLhs().getOrderedDischarges().put(assumption.getPremiseIDs().stream().findAny().get(),assumption);
 
                 Premise compiledPremise = new Premise(p.getPremiseIDs(), p.getSemTerm(), compiledGlue);
+                compiledPremise.setSourceIndex(p.getSourceIndex());
 
                 assumption.getGlueTerm().assumptions2.add(assumption);
 
@@ -1634,6 +1636,7 @@ public class LLProver1 extends LLProver {
                 }
 
                 Premise temp = new Premise(p.getPremiseIDs(),tempSem, f.getRhs());
+                temp.setSourceIndex(p.getSourceIndex());
                 LinkedList<Premise> tempList = convert(temp);
 
                 for (int i = 1; i < tempList.size(); i++) {
