@@ -526,6 +526,7 @@ public class LLProver1 extends LLProver {
                 }
 
                 histories = chartDeduce2(histories,false);
+                histories = filterInsituHistories(histories);
 
 
 
@@ -1011,6 +1012,8 @@ public class LLProver1 extends LLProver {
                     //add discriminants
                     result.scopeDiscriminants.addAll(h1.scopeDiscriminants);
                     result.scopeDiscriminants.addAll(h2.scopeDiscriminants);
+                    result.insituIndices.addAll(h1.insituIndices);
+                    result.insituIndices.addAll(h2.insituIndices);
 
                     getLOGGER().finer("Now combining " + h1.category.toString() +
                             " and " + h2.category.toString() +
@@ -1028,6 +1031,38 @@ public class LLProver1 extends LLProver {
             }
         }
         return null;
+    }
+
+    List<History> filterInsituHistories(List<History> histories) {
+        return histories.stream().filter(this::respectsInsituOrdering).collect(Collectors.toList());
+    }
+
+    boolean respectsInsituOrdering(History history) {
+        if (history.insituIndices.isEmpty()) {
+            return true;
+        }
+
+        List<Integer> modifierOrder = history.indexSet.stream()
+                .filter(this.scopingModifiers::contains)
+                .collect(Collectors.toList());
+
+        if (modifierOrder.isEmpty()) {
+            return true;
+        }
+
+        Set<Integer> seenModifiers = new HashSet<>();
+        for (Integer modifierIndex : modifierOrder) {
+            if (history.insituIndices.contains(modifierIndex)) {
+                for (Integer leftModifier : modifierOrder) {
+                    if (leftModifier < modifierIndex && !seenModifiers.contains(leftModifier)) {
+                        return false;
+                    }
+                }
+            }
+            seenModifiers.add(modifierIndex);
+        }
+
+        return true;
     }
 
     @Override
@@ -1603,6 +1638,7 @@ public class LLProver1 extends LLProver {
 
                 Premise compiledPremise = new Premise(p.getPremiseIDs(), p.getSemTerm(), compiledGlue);
                 compiledPremise.setSourceIndex(p.getSourceIndex());
+                compiledPremise.setInsitu(p.isInsitu());
 
                 assumption.getGlueTerm().assumptions2.add(assumption);
 
@@ -1637,6 +1673,7 @@ public class LLProver1 extends LLProver {
 
                 Premise temp = new Premise(p.getPremiseIDs(),tempSem, f.getRhs());
                 temp.setSourceIndex(p.getSourceIndex());
+                temp.setInsitu(p.isInsitu());
                 LinkedList<Premise> tempList = convert(temp);
 
                 for (int i = 1; i < tempList.size(); i++) {

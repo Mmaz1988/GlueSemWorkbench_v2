@@ -43,6 +43,7 @@ public class Premise {
     private Object arg;
     public boolean used;
     private boolean nonScoping;
+    private boolean insitu;
     private Integer sourceIndex;
     public String stage;
 
@@ -79,6 +80,7 @@ public class Premise {
         this.semTerm = lexEn.getSem();
         this.originalSemTerm = semTerm.clone();
         this.sourceIndex = lexEn.getSourceIndex();
+        this.insitu = lexEn.isInsitu();
         this.used = false;
     }
 
@@ -203,6 +205,14 @@ public class Premise {
 
     public void setNonScoping(boolean nonScoping) {
         this.nonScoping = nonScoping;
+    }
+
+    public boolean isInsitu() {
+        return insitu;
+    }
+
+    public void setInsitu(boolean insitu) {
+        this.insitu = insitu;
     }
 
     public LinkedHashSet<Integer> getPremiseIDs() {

@@ -41,15 +41,19 @@ public class Sequent {
          for (idCounter = 0; idCounter < lexEn.size(); idCounter++) {
              LinkedHashSet<Integer> idSet = new LinkedHashSet<>();
              idSet.add(idCounter);
-             Premise p = new Premise(idSet, lexEn.get(idCounter));
+              Premise p = new Premise(idSet, lexEn.get(idCounter));
 
-             if (lexEn.get(idCounter).isNonscope()) {
-                 p.setNonScoping(true);
-             }
+              if (lexEn.get(idCounter).isNonscope()) {
+                  p.setNonScoping(true);
+              }
 
-             if (!(p.getGlueTerm() instanceof LLAtom)) {
-                 p.stage = lexEn.get(idCounter).getStage();
-             }
+              if (lexEn.get(idCounter).isInsitu()) {
+                  p.setInsitu(true);
+              }
+
+              if (!(p.getGlueTerm() instanceof LLAtom)) {
+                  p.stage = lexEn.get(idCounter).getStage();
+              }
              lhs.add(p);
          }
      }

@@ -30,6 +30,7 @@ public class History {
     }
 
     public HashSet<String> scopeDiscriminants = new HashSet<>();
+    public Set<Integer> insituIndices = new HashSet<>();
 
     public String stage;
 
@@ -43,6 +44,9 @@ public class History {
         this.p = p;
         if (p != null && p.stage != null) {
             this.stage = p.stage;
+        }
+        if (p != null && p.isInsitu()) {
+            this.insituIndices.addAll(indexSet);
         }
         calculateMainIndex();
 
