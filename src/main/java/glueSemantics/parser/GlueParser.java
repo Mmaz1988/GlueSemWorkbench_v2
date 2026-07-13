@@ -104,14 +104,33 @@ public class GlueParser {
 
 
         boolean noscope = false;
+        boolean insitu = false;
         String glueString = "";
 
         try {
             String[] glueSide = mcList[1].split("\\|\\|");
 
-            if (glueSide.length == 2 && glueSide[1].trim().equals("noscope"))
+            if (glueSide.length == 2)
             {
-                noscope = true;
+                String[] modifiers = glueSide[1].trim().split(",");
+                for (String modifier : modifiers) {
+                    String normalizedModifier = modifier.trim().replaceAll("[.;]$", "");
+                    if (normalizedModifier.isEmpty()) {
+                        continue;
+                    }
+                    if (normalizedModifier.equals("noscope")) {
+                        noscope = true;
+                    } else if (normalizedModifier.equals("insitu")) {
+                        insitu = true;
+                    } else {
+                        throw new ParserInputException("Unsupported glue modifier: " + normalizedModifier);
+                    }
+                }
+
+                if (noscope && insitu) {
+                    throw new ParserInputException("noscope and insitu are mutually exclusive");
+                }
+
                 glueString = glueSide[0];
             }
             else
@@ -119,10 +138,11 @@ public class GlueParser {
                 glueString = mcList[1];
             }
 
+        } catch (ParserInputException e) {
+            throw e;
         } catch (Exception e)
         {
-         System.out.println("Error parsing formula '" + mc + "'. " +
-                    "Glue modifiers need to be specified after a '||'");
+         throw new ParserInputException("Error parsing formula '" + mc + "'. Glue modifiers need to be specified after a '||'");
         }
 
 
@@ -162,6 +182,7 @@ public class GlueParser {
         entry.setLlTerm(glue);
         entry.setSem(sem);
         entry.setNonscope(noscope);
+        entry.setInsitu(insitu);
         entry.setStage(stage);
 
         return entry;
@@ -462,7 +483,7 @@ public class GlueParser {
             GlueParser parser = new GlueParser();
             MeaningConstructor mc = parser.parseMeaningConstructor(scanner.nextLine());
 
-            System.out.println("Parsed meaning constructor: " + mc.getSem().toString() + ", " + mc.getLlTerm().toString() + ", " + mc.isNonscope());
+             System.out.println("Parsed meaning constructor: " + mc.getSem().toString() + ", " + mc.getLlTerm().toString() + ", " + mc.isNonscope() + ", " + mc.isInsitu());
 
 
 

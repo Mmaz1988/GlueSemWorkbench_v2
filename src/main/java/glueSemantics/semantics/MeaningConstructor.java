@@ -27,6 +27,7 @@ public class MeaningConstructor {
     private SemanticRepresentation sem;
 
     private boolean isNonscope;
+    private boolean isInsitu;
 
     private String stage = "0";
 
@@ -90,6 +91,14 @@ public class MeaningConstructor {
 
     public void setNonscope(boolean nonscope) {
         isNonscope = nonscope;
+    }
+
+    public boolean isInsitu() {
+        return isInsitu;
+    }
+
+    public void setInsitu(boolean insitu) {
+        isInsitu = insitu;
     }
 
     public String getStage() {
