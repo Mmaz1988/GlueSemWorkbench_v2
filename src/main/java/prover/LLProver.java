@@ -4,6 +4,7 @@ import glueSemantics.linearLogic.Premise;
 import glueSemantics.linearLogic.Sequent;
 import glueSemantics.parser.LexicalEntries;
 import glueSemantics.semantics.MeaningConstructor;
+import glueSemantics.semantics.LfgxDrtSemanticRepresentation;
 import main.InputOutputProcessor;
 import main.Settings;
 import main.WorkbenchMain;
@@ -53,6 +54,30 @@ public abstract class LLProver {
     public abstract StringBuilder getProofBuilder();
 
     public abstract void setProofBuilder(StringBuilder proofBuilder);
+
+    public Premise ensureLfgxDrtSemantic(Premise premise) throws Exception {
+        if (premise == null || getSettings() == null || getSettings().getSemanticOutputStyle() != Settings.LFGXDRT) {
+            return premise;
+        }
+        if (premise.getSemTerm() instanceof LfgxDrtSemanticRepresentation) {
+            return premise;
+        }
+
+        LfgxDrtSemanticRepresentation converted = LfgxDrtSemanticRepresentation.fromGswb((glueSemantics.semantics.lambda.SemanticExpression) premise.getSemTerm());
+        Premise normalized = new Premise(premise.getPremiseIDs(), converted, premise.getGlueTerm().clone());
+        normalized.setSourceIndex(premise.getSourceIndex());
+        normalized.setInsitu(premise.isInsitu());
+        normalized.setNonScoping(premise.isNonScoping());
+        normalized.stage = premise.stage;
+        return normalized;
+    }
+
+    protected de.ukon.lfgxdrt.SemanticExpression asLfgExpression(glueSemantics.semantics.SemanticRepresentation semanticRepresentation) throws Exception {
+        if (semanticRepresentation instanceof LfgxDrtSemanticRepresentation wrapped) {
+            return wrapped.getDelegate();
+        }
+        return LfgxDrtSemanticRepresentation.fromGswb((glueSemantics.semantics.lambda.SemanticExpression) semanticRepresentation).getDelegate();
+    }
 
 
     public List<SolutionObject> searchProof(Integer key, LexicalEntries lexicalEntries) throws VariableBindingException, ProverException {

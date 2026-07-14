@@ -1,7 +1,6 @@
 package webservice.rest;
 
 import Discriminants.ScopeDiscriminant;
-import de.ukon.lfgxdrt.DrsParser;
 import de.ukon.lfgxdrt.SemanticExpression;
 import de.ukon.lfgxdrt.drs_elements.DRS;
 import glueSemantics.parser.GlueParser;
@@ -346,12 +345,12 @@ public class GswbController {
             return;
         }
         if (ctx.displayLfgxDrt) {
-            DrsParser drsParser = new DrsParser();
-
             for (Integer idx : formatted.solutionIndexToObject.keySet().stream().sorted().toList()) {
                 SolutionObject so = formatted.solutionIndexToObject.get(idx);
-                String value = so.solutionString;
-                SemanticExpression sol = drsParser.parse(value).expression;
+                if (!(so.solution.getSemTerm() instanceof glueSemantics.semantics.LfgxDrtSemanticRepresentation)) {
+                    throw new RuntimeException("Expected LFGxDRT semantic payload for solution " + idx);
+                }
+                SemanticExpression sol = (SemanticExpression) so.solution.getSemTerm();
                 if (ctx.settings.isBetaReduce())
                 {
                     sol = sol.betaReduce();

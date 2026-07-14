@@ -1,6 +1,7 @@
 package prover;
 
 import glueSemantics.linearLogic.*;
+import glueSemantics.semantics.LfgxDrtSemanticRepresentation;
 import glueSemantics.semantics.SemanticRepresentation;
 import glueSemantics.semantics.lambda.*;
 import main.InputOutputProcessor;
@@ -1479,9 +1480,25 @@ public class LLProver3 extends LLProver {
 
     public SemanticRepresentation combine(Premise func, Premise argument) throws ProverException
     {
+        if (getSettings().getSemanticOutputStyle() == Settings.LFGXDRT) {
+            try {
+                de.ukon.lfgxdrt.SemanticExpression lfgFunc = asLfgExpression(func.getSemTerm());
+                de.ukon.lfgxdrt.SemanticExpression lfgArg = asLfgExpression(argument.getSemTerm());
+                de.ukon.lfgxdrt.SemanticExpression reduced = new de.ukon.lfgxdrt.lambda_elements.FuncApp(lfgFunc, lfgArg);
+                if (getSettings().isBetaReduce()) {
+                    reduced = reduced.betaReduce();
+                }
+                LfgxDrtSemanticRepresentation wrapped = new LfgxDrtSemanticRepresentation(reduced);
+                wrapped.setSourceIndices(func.getSemTerm().getSourceIndices());
+                wrapped.addSourceIndices(argument.getSemTerm().getSourceIndices());
+                return wrapped;
+            } catch (Exception e) {
+                throw new ProverException("Failed to combine LFGxDRT semantics: " + e.getMessage());
+            }
+        }
         SemanticRepresentation reducedSem;
         if (getSettings().isBetaReduce()) {
-            //    System.out.println("Beta reduced: " + func.getSemTerm().toString() + ", " + argument.getSemTerm().toString());
+        //    System.out.println("Beta reduced: " + func.getSemTerm().toString() + ", " + argument.getSemTerm().toString());
             reducedSem = new FuncApp(func.getSemTerm(), argument.getSemTerm()).betaReduce();
             //    System.out.println("To:" + reducedSem.toString());
         } else

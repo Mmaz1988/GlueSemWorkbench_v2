@@ -126,6 +126,13 @@ public class History {
                 for (Premise q : arg)
                 {
 
+                    try {
+                        p = prover.ensureLfgxDrtSemantic(p);
+                        q = prover.ensureLfgxDrtSemantic(q);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Failed to prepare LFGxDRT semantics", e);
+                    }
+
                     prover.db.attemptedCombination++;
                     Premise r = prover.combinePremises(p,q);
                     SolutionObject so = new SolutionObject(r);
@@ -180,6 +187,12 @@ public class History {
             {
                 for (Premise q : arg)
                 {
+                    try {
+                        p = prover.ensureLfgxDrtSemantic(p);
+                        q = prover.ensureLfgxDrtSemantic(q);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Failed to prepare LFGxDRT semantics", e);
+                    }
                     /* TODO this optimization only applies inside an SCC. To do this, we need to calculate solutions of histories that go into an SCC?
                     Premise r = null;
                     if (this.prover.getSettings().isParseSemantics())
