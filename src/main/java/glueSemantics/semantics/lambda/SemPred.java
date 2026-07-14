@@ -40,6 +40,7 @@ public class SemPred extends SemanticExpression {
         this.predForm = predForm;
         argList.add(arg0);
         this.setType(T);
+        this.unionSourceIndicesFrom(arg0);
     }
 
 
@@ -48,6 +49,7 @@ public class SemPred extends SemanticExpression {
         argList.add(arg0);
         argList.add(arg1);
         this.setType(T);
+        this.unionSourceIndicesFrom(arg0, arg1);
     }
 
     public SemPred(String predForm, SemanticRepresentation arg0, SemanticRepresentation arg1, SemanticRepresentation arg2) {
@@ -56,18 +58,21 @@ public class SemPred extends SemanticExpression {
         argList.add(arg1);
         argList.add(arg2);
         this.setType(T);
+        this.unionSourceIndicesFrom(arg0, arg1, arg2);
     }
 
     public SemPred(String predForm, ArrayList<SemanticRepresentation> args) {
         this.predForm = predForm;
         this.argList = args;
         this.setType(T);
+        this.unionSourceIndicesFrom(args);
     }
 
     public SemPred(SemPred p) {
         this.predForm = p.predForm;
         this.argList = new ArrayList<>(p.argList);
         this.setType(T);
+        this.copySourceIndicesFrom(p);
 
     }
 

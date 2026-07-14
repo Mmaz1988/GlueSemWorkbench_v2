@@ -18,6 +18,7 @@ public class SemSet extends SemanticExpression {
 
         this.members = members;
         setType(type);
+        this.unionSourceIndicesFrom(members);
 
         if (!checkMembers())
         {
@@ -62,7 +63,9 @@ public class SemSet extends SemanticExpression {
                 e.printStackTrace();
             }
         }
-        return new SemSet(out,out.get(0).getType());
+        SemSet reduced = new SemSet(out,out.get(0).getType());
+        reduced.copySourceIndicesFrom(this);
+        return reduced;
     }
 
     @Override
@@ -79,12 +82,16 @@ public class SemSet extends SemanticExpression {
             }
         }
 
-        return new SemSet(newMembers,this.getType());
+        SemSet applied = new SemSet(newMembers,this.getType());
+        applied.unionSourceIndicesFrom(this, var, arg);
+        return applied;
     }
 
     @Override
     public SemanticExpression clone() {
-        return new SemSet(this.members,getType());
+        SemSet clone = new SemSet(this.members,getType());
+        clone.copySourceIndicesFrom(this);
+        return clone;
 
     }
 

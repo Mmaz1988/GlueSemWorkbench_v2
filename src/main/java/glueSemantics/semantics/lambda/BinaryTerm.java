@@ -38,12 +38,14 @@ public class BinaryTerm extends SemanticExpression {
         this.left = left;
         this.right = right;
         this.operator = operator;
+        this.unionSourceIndicesFrom(left, right);
     }
 
     public BinaryTerm(BinaryTerm b) {
         this.left = b.left;
         this.right = b.right;
         this.operator = b.operator;
+        this.copySourceIndicesFrom(b);
     }
 
     public SemanticRepresentation getLeft() {
@@ -73,12 +75,16 @@ public class BinaryTerm extends SemanticExpression {
 
     @Override
     public SemanticRepresentation betaReduce() throws ProverException {
-        return new BinaryTerm(left.betaReduce(),operator,right.betaReduce());
+        BinaryTerm reduced = new BinaryTerm(left.betaReduce(),operator,right.betaReduce());
+        reduced.copySourceIndicesFrom(this);
+        return reduced;
     }
 
     @Override
     public SemanticRepresentation applyTo(SemanticRepresentation var, SemanticRepresentation arg) throws ProverException {
-        return new BinaryTerm(left.applyTo(var,arg),operator,right.applyTo(var,arg));
+        BinaryTerm applied = new BinaryTerm(left.applyTo(var,arg),operator,right.applyTo(var,arg));
+        applied.unionSourceIndicesFrom(this, var, arg);
+        return applied;
     }
 
     @Override

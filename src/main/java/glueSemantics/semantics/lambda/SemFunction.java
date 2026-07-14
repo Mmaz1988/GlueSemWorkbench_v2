@@ -49,6 +49,7 @@ public class SemFunction extends SemanticExpression implements FunctionalAbstrac
         //this.funcBody = funcBody;
         this.instantiateFunctionalAbstraction(binder,funcBody);
         this.setType(new SemType(binder.getType(),funcBody.getType()));
+        this.unionSourceIndicesFrom(funcBody);
     }
 
 
@@ -57,6 +58,7 @@ public class SemFunction extends SemanticExpression implements FunctionalAbstrac
         this.binder = f.binder;
         this.funcBody = f.funcBody.clone();
         this.setType(f.getType());
+        this.copySourceIndicesFrom(f);
     }
 
     @Override
@@ -92,11 +94,15 @@ public class SemFunction extends SemanticExpression implements FunctionalAbstrac
 
     @Override
     public SemanticRepresentation betaReduce() throws ProverException {
-        return new SemFunction(this.binder,funcBody.betaReduce());
+        SemFunction reduced = new SemFunction(this.binder,funcBody.betaReduce());
+        reduced.copySourceIndicesFrom(this);
+        return reduced;
     }
 
     public SemanticRepresentation applyTo(SemanticRepresentation var, SemanticRepresentation arg) throws ProverException {
-        return new SemFunction(this.binder,this.funcBody.applyTo(var, arg));
+        SemFunction applied = new SemFunction(this.binder,this.funcBody.applyTo(var, arg));
+        applied.unionSourceIndicesFrom(this, var, arg);
+        return applied;
     }
 
     @Override

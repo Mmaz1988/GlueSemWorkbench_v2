@@ -58,6 +58,7 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
             System.out.println("External meaning representation.");
         }
 
+        this.copySourceIndicesFrom(fa);
 
         //Test version
         //this.compiled = fa.compiled;
@@ -92,9 +93,10 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
                 } else {
                     newSet.add(newFA);
                 }
-                }
+            }
 
             SemSet out = new SemSet(newSet,newSet.get(0).getType());
+            out.unionSourceIndicesFrom(this);
             return out;
 
         } else if (argument instanceof SemSet)
@@ -112,6 +114,7 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
                     }
                 }
                 SemSet out = new SemSet(newSet, newSet.get(0).getType());
+                out.unionSourceIndicesFrom(this);
                 return out.betaReduce();
             }
         }
@@ -151,7 +154,11 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
           //      else
                     if (newBody instanceof SemFunction)
                         return newBody;
-                    else return  newBody.betaReduce();
+                    else {
+                        SemanticRepresentation reduced = newBody.betaReduce();
+                        reduced.addSourceIndices(this.getSourceIndices());
+                        return reduced;
+                    }
 
             }
         }
@@ -185,7 +192,9 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
 
             if (arg.equals(this.argument))
                 return this;
-            return new FuncApp(this,arg);
+            FuncApp continued = new FuncApp(this,arg);
+            continued.unionSourceIndicesFrom(this, arg);
+            return continued;
 
          //   return new MeaningRepresentation(String.format("app(%s,%s)",functor.toString(),arg.toString()));
         }
@@ -301,6 +310,8 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
             setType(SemType.AtomicType.T);
             System.out.println("External meaning representation.");
         }
+
+        this.unionSourceIndicesFrom(func, arg);
     }
 
 

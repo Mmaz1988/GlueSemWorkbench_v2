@@ -40,6 +40,7 @@ public class SemQuantEx extends SemanticExpression {
         this.binder = binder;
         this.quantBody = quantBody;
         this.setType(type);
+        this.unionSourceIndicesFrom(quantBody);
     }
 
     private SemQuantEx(SemQuantEx s) {
@@ -47,6 +48,7 @@ public class SemQuantEx extends SemanticExpression {
         this.binder = s.binder;
         this.setType(s.getType());
         this.quantBody = s.quantBody.clone();
+        this.copySourceIndicesFrom(s);
     }
 
     public enum SemQuant {

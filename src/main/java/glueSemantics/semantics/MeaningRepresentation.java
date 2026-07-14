@@ -17,6 +17,7 @@
 
 package glueSemantics.semantics;
 
+import glueSemantics.semantics.lambda.SemanticExpression;
 import glueSemantics.semantics.lambda.SemAtom;
 import glueSemantics.semantics.lambda.SemType;
 
@@ -31,13 +32,12 @@ import java.util.Set;
  */
 
 //TODO make to string plain if no Settings are available
-public class MeaningRepresentation implements SemanticRepresentation{
+public class MeaningRepresentation extends SemanticExpression implements SemanticRepresentation {
     private final String formula;
-    private SemType type;
 
     public MeaningRepresentation(String formula) {
         this.formula = formula;
-        this.type = new SemType(SemType.AtomicType.T);
+        this.setType(new SemType(SemType.AtomicType.T));
     }
 
     @Override
@@ -52,14 +52,27 @@ public class MeaningRepresentation implements SemanticRepresentation{
 
     @Override
     public SemType getType() {
-        return this.type;
+        return super.getType();
     }
 
-    public void setType(SemType type) {this.type = type;}
+    public void setType(SemType type) {super.setType(type);}
 
     @Override
-    public SemanticRepresentation clone() {
-        return new MeaningRepresentation(this.formula);
+    public Set<Integer> getSourceIndices() {
+        return super.getSourceIndices();
+    }
+
+    @Override
+    public void setSourceIndices(Set<Integer> sourceIndices) {
+        super.setSourceIndices(sourceIndices);
+    }
+
+    @Override
+    public MeaningRepresentation clone() {
+        MeaningRepresentation clone = new MeaningRepresentation(this.formula);
+        clone.setType(getType());
+        clone.setSourceIndices(getSourceIndices());
+        return clone;
     }
 
     @Override

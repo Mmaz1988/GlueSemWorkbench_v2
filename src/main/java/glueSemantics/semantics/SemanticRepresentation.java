@@ -21,6 +21,8 @@ import glueSemantics.semantics.lambda.SemAtom;
 import glueSemantics.semantics.lambda.SemType;
 import prover.ProverException;
 
+import java.util.LinkedHashSet;
+import java.util.Collection;
 import java.util.Set;
 
 public interface SemanticRepresentation {
@@ -32,6 +34,28 @@ public interface SemanticRepresentation {
     public SemType getType();
 
     public void setType(SemType type);
+
+    public Set<Integer> getSourceIndices();
+
+    public void setSourceIndices(Set<Integer> sourceIndices);
+
+    default void addSourceIndex(Integer sourceIndex) {
+        if (sourceIndex == null) {
+            return;
+        }
+        Set<Integer> sourceIndices = new LinkedHashSet<>(getSourceIndices());
+        sourceIndices.add(sourceIndex);
+        setSourceIndices(sourceIndices);
+    }
+
+    default void addSourceIndices(Collection<Integer> sourceIndices) {
+        if (sourceIndices == null || sourceIndices.isEmpty()) {
+            return;
+        }
+        Set<Integer> merged = new LinkedHashSet<>(getSourceIndices());
+        merged.addAll(sourceIndices);
+        setSourceIndices(merged);
+    }
 
     public SemanticRepresentation clone();
 

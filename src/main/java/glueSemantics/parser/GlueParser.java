@@ -160,6 +160,10 @@ public class GlueParser {
 
         }
 
+        if (sourceIndex != null && sem != null) {
+            sem.addSourceIndex(sourceIndex);
+        }
+
         //TODO experiment
 
 

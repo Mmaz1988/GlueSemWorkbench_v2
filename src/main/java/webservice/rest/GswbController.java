@@ -349,7 +349,8 @@ public class GswbController {
             DrsParser drsParser = new DrsParser();
 
             for (Integer idx : formatted.solutionIndexToObject.keySet().stream().sorted().toList()) {
-                String value = formatted.solutionIndexToObject.get(idx).solutionString;
+                SolutionObject so = formatted.solutionIndexToObject.get(idx);
+                String value = so.solutionString;
                 SemanticExpression sol = drsParser.parse(value).expression;
                 if (ctx.settings.isBetaReduce())
                 {
@@ -360,10 +361,18 @@ public class GswbController {
                     }
                 }
 
+                sol.addSourceIndices(so.sourceIndices);
+
+                try {
+                    so.graph = sol.toJson();
+                } catch (Exception e) {
+                    throw new RuntimeException("Failed to render LiGER graph for solution " + idx, e);
+                }
+
 
 
                 try {
-                    formatted.solutionIndexToObject.get(idx).solutionString = sol.toSvg();
+                    so.solutionString = sol.toSvg();
                 } catch (Exception e) {
                     throw new RuntimeException("Failed to render SVG for solution " + idx, e);
                 }
@@ -389,7 +398,7 @@ public class GswbController {
         List<GswbSolution> outputSolutions = new ArrayList<>();
         for (Integer idx : solutionsByIndex.keySet().stream().sorted().toList()) {
             SolutionObject so = solutionsByIndex.get(idx);
-            outputSolutions.add(new GswbSolution(so.solutionString, so.solutionId));
+            outputSolutions.add(new GswbSolution(so.solutionString, so.solutionId, new ArrayList<>(so.sourceIndices), so.graph));
         }
         return outputSolutions;
     }
