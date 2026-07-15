@@ -58,20 +58,20 @@ public class MeaningRepresentation extends SemanticExpression implements Semanti
     public void setType(SemType type) {super.setType(type);}
 
     @Override
-    public Set<Integer> getSourceIndices() {
-        return super.getSourceIndices();
+    public Integer getSourceIndex() {
+        return super.getSourceIndex();
     }
 
     @Override
-    public void setSourceIndices(Set<Integer> sourceIndices) {
-        super.setSourceIndices(sourceIndices);
+    public void setSourceIndex(Integer sourceIndex) {
+        super.setSourceIndex(sourceIndex);
     }
 
     @Override
     public MeaningRepresentation clone() {
         MeaningRepresentation clone = new MeaningRepresentation(this.formula);
         clone.setType(getType());
-        clone.setSourceIndices(getSourceIndices());
+        clone.setSourceIndex(getSourceIndex());
         return clone;
     }
 

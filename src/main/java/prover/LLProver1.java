@@ -197,6 +197,7 @@ public class LLProver1 extends LLProver {
                 proofBuilder.append(resultBuilder.toString());
                 getLOGGER().info("Found the following glue derivation(s):\n" + resultBuilder.toString());
 
+
             }
         }
 
@@ -1211,8 +1212,9 @@ public class LLProver1 extends LLProver {
                     {
                         Premise p = discharges.removeLast().getValue();
 
-                        if (temp instanceof SemSet)
-                        {
+                        if (getSettings().getSemanticOutputStyle() == Settings.LFGXDRT) {
+                            temp = wrapLfgAbstractionBody(temp, (SemAtom) p.getSemTerm());
+                        } else if (temp instanceof SemSet) {
                             List<SemanticRepresentation> newSem = new ArrayList<>();
                             for (SemanticRepresentation m : ((SemSet) temp).getMembers())
                             {
@@ -1224,7 +1226,7 @@ public class LLProver1 extends LLProver {
                             temp = new SemFunction((SemAtom) p.getSemTerm(), temp);
                         }
                         argumentGlueClone.getAssumptions2().remove(p);
-                       }
+                        }
                     argumentClone = new Premise(argument.getPremiseIDs(),temp,argumentGlueClone);
 
                     SemanticRepresentation reducedSem = null;
@@ -1510,8 +1512,6 @@ public class LLProver1 extends LLProver {
                     reduced = reduced.betaReduce();
                 }
                 LfgxDrtSemanticRepresentation wrapped = new LfgxDrtSemanticRepresentation(reduced);
-                wrapped.setSourceIndices(func.getSemTerm().getSourceIndices());
-                wrapped.addSourceIndices(argument.getSemTerm().getSourceIndices());
                 return wrapped;
             } catch (Exception e) {
                 throw new ProverException("Failed to combine LFGxDRT semantics: " + e.getMessage());

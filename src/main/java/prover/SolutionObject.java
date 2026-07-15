@@ -6,7 +6,6 @@ import glueSemantics.linearLogic.Premise;
 import java.util.LinkedHashMap;
 
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 
 public class SolutionObject {
     public String solutionId;
@@ -14,14 +13,14 @@ public class SolutionObject {
     public HashSet<String> scopeDiscriminants = new HashSet<>();
     public HashSet<McDiscriminant> mcDiscriminants = new HashSet<>();
     public String solutionString;
-    public LinkedHashSet<Integer> sourceIndices = new LinkedHashSet<>();
+    public Integer sourceIndex;
     public LinkedHashMap<String, Object> graph;
 
 
     public SolutionObject(Premise solution) {
         this.solution = solution;
         if (solution != null && solution.getSemTerm() != null) {
-            this.sourceIndices.addAll(solution.getSemTerm().getSourceIndices());
+            this.sourceIndex = solution.getSemTerm().getSourceIndex();
         }
     }
 
@@ -29,7 +28,7 @@ public class SolutionObject {
         this.solution = solution;
         this.scopeDiscriminants = discriminants;
         if (solution != null && solution.getSemTerm() != null) {
-            this.sourceIndices.addAll(solution.getSemTerm().getSourceIndices());
+            this.sourceIndex = solution.getSemTerm().getSourceIndex();
         }
     }
 

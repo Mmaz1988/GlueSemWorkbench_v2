@@ -51,7 +51,7 @@ public class SemAtom extends SemanticExpression {
         this.name = a.name;
         this.sort = a.sort;
         this.setType(a.getType());
-        this.copySourceIndicesFrom(a);
+        this.copySourceIndexFrom(a);
     }
 
 

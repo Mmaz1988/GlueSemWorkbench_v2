@@ -1,13 +1,12 @@
 package webservice.rest.dtos;
 
 import java.util.LinkedHashMap;
-import java.util.List;
 
 public class GswbSolution {
 
     public String solution;
     public String id;
-    public List<Integer> sourceIndices;
+    public Integer sourceIndex;
     public LinkedHashMap<String, Object> graph;
 
     public GswbSolution() {}
@@ -18,18 +17,18 @@ public class GswbSolution {
     this.id = id;
     }
 
-    public GswbSolution(String solution, String id, List<Integer> sourceIndices)
+    public GswbSolution(String solution, String id, Integer sourceIndex)
     {
     this.solution = solution;
     this.id = id;
-    this.sourceIndices = sourceIndices;
+    this.sourceIndex = sourceIndex;
     }
 
-    public GswbSolution(String solution, String id, List<Integer> sourceIndices, LinkedHashMap<String, Object> graph)
+    public GswbSolution(String solution, String id, Integer sourceIndex, LinkedHashMap<String, Object> graph)
     {
         this.solution = solution;
         this.id = id;
-        this.sourceIndices = sourceIndices;
+        this.sourceIndex = sourceIndex;
         this.graph = graph;
     }
 }

@@ -1212,7 +1212,11 @@ public class LLProver3 extends LLProver {
                     while (!discharges.isEmpty())
                     {
                         Premise p = discharges.removeLast().getValue();
-                        temp = new SemFunction((SemAtom) p.getSemTerm(),temp);
+                        if (getSettings().getSemanticOutputStyle() == Settings.LFGXDRT) {
+                            temp = wrapLfgAbstractionBody(temp, (SemAtom) p.getSemTerm());
+                        } else {
+                            temp = new SemFunction((SemAtom) p.getSemTerm(),temp);
+                        }
                         argumentGlueClone.getAssumptions2().remove(p);
                     }
                     argumentClone = new Premise(argument.getPremiseIDs(),temp,argumentGlueClone);
@@ -1489,8 +1493,6 @@ public class LLProver3 extends LLProver {
                     reduced = reduced.betaReduce();
                 }
                 LfgxDrtSemanticRepresentation wrapped = new LfgxDrtSemanticRepresentation(reduced);
-                wrapped.setSourceIndices(func.getSemTerm().getSourceIndices());
-                wrapped.addSourceIndices(argument.getSemTerm().getSourceIndices());
                 return wrapped;
             } catch (Exception e) {
                 throw new ProverException("Failed to combine LFGxDRT semantics: " + e.getMessage());

@@ -18,7 +18,9 @@ public class SemSet extends SemanticExpression {
 
         this.members = members;
         setType(type);
-        this.unionSourceIndicesFrom(members);
+        if (!members.isEmpty()) {
+            this.copySourceIndexFrom(members.get(0));
+        }
 
         if (!checkMembers())
         {
@@ -64,7 +66,7 @@ public class SemSet extends SemanticExpression {
             }
         }
         SemSet reduced = new SemSet(out,out.get(0).getType());
-        reduced.copySourceIndicesFrom(this);
+        reduced.copySourceIndexFrom(this);
         return reduced;
     }
 
@@ -83,14 +85,14 @@ public class SemSet extends SemanticExpression {
         }
 
         SemSet applied = new SemSet(newMembers,this.getType());
-        applied.unionSourceIndicesFrom(this, var, arg);
+        applied.copySourceIndexFrom(this);
         return applied;
     }
 
     @Override
     public SemanticExpression clone() {
         SemSet clone = new SemSet(this.members,getType());
-        clone.copySourceIndicesFrom(this);
+        clone.copySourceIndexFrom(this);
         return clone;
 
     }

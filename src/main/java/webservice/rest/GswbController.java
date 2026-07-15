@@ -360,7 +360,7 @@ public class GswbController {
                     }
                 }
 
-                sol.addSourceIndices(so.sourceIndices);
+                ((glueSemantics.semantics.lambda.SemanticExpression) sol).setSourceIndex(so.sourceIndex);
 
                 try {
                     so.graph = sol.toJson();
@@ -397,7 +397,7 @@ public class GswbController {
         List<GswbSolution> outputSolutions = new ArrayList<>();
         for (Integer idx : solutionsByIndex.keySet().stream().sorted().toList()) {
             SolutionObject so = solutionsByIndex.get(idx);
-            outputSolutions.add(new GswbSolution(so.solutionString, so.solutionId, new ArrayList<>(so.sourceIndices), so.graph));
+            outputSolutions.add(new GswbSolution(so.solutionString, so.solutionId, so.sourceIndex, so.graph));
         }
         return outputSolutions;
     }

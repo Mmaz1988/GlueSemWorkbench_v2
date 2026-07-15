@@ -8,6 +8,8 @@ import glueSemantics.semantics.LfgxDrtSemanticRepresentation;
 import main.InputOutputProcessor;
 import main.Settings;
 import main.WorkbenchMain;
+import glueSemantics.semantics.lambda.SemAtom;
+import glueSemantics.semantics.lambda.SemType;
 import utilities.Debugging;
 
 import java.util.*;
@@ -63,7 +65,7 @@ public abstract class LLProver {
             return premise;
         }
 
-        LfgxDrtSemanticRepresentation converted = LfgxDrtSemanticRepresentation.fromGswb((glueSemantics.semantics.lambda.SemanticExpression) premise.getSemTerm());
+        LfgxDrtSemanticRepresentation converted = LfgxDrtSemanticRepresentation.fromGswb((glueSemantics.semantics.lambda.SemanticExpression) premise.getSemTerm(), premise.getSourceIndex());
         Premise normalized = new Premise(premise.getPremiseIDs(), converted, premise.getGlueTerm().clone());
         normalized.setSourceIndex(premise.getSourceIndex());
         normalized.setInsitu(premise.isInsitu());
@@ -76,7 +78,41 @@ public abstract class LLProver {
         if (semanticRepresentation instanceof LfgxDrtSemanticRepresentation wrapped) {
             return wrapped.getDelegate();
         }
-        return LfgxDrtSemanticRepresentation.fromGswb((glueSemantics.semantics.lambda.SemanticExpression) semanticRepresentation).getDelegate();
+        Integer sourceIndex = semanticRepresentation.getSourceIndex();
+        return LfgxDrtSemanticRepresentation.fromGswb((glueSemantics.semantics.lambda.SemanticExpression) semanticRepresentation, sourceIndex).getDelegate();
+    }
+
+    protected de.ukon.lfgxdrt.SemanticExpression asLfgAbstractionBody(glueSemantics.semantics.SemanticRepresentation semanticRepresentation) throws Exception {
+        if (semanticRepresentation instanceof LfgxDrtSemanticRepresentation wrapped) {
+            return wrapped.getDelegate();
+        }
+        return LfgxDrtSemanticRepresentation.fromGswb((glueSemantics.semantics.lambda.SemanticExpression) semanticRepresentation, semanticRepresentation.getSourceIndex()).getDelegate();
+    }
+
+    protected de.ukon.lfgxdrt.lambda_elements.LambdaVariable toLfgVariable(SemAtom atom) {
+        de.ukon.lfgxdrt.lambda_elements.LambdaVariable variable = new de.ukon.lfgxdrt.lambda_elements.LambdaVariable(atom.getName(), toLfgType(atom.getType()));
+        variable.setSourceIndex(atom.getSourceIndex());
+        return variable;
+    }
+
+    protected de.ukon.lfgxdrt.lambda_elements.SemType toLfgType(SemType type) {
+        if (type == null) {
+            return null;
+        }
+        if (type.getLeft() == null) {
+            return new de.ukon.lfgxdrt.lambda_elements.SemType(type.toString());
+        }
+        return new de.ukon.lfgxdrt.lambda_elements.SemType(toLfgType(type.getLeft()), toLfgType(type.getRight()));
+    }
+
+    protected glueSemantics.semantics.SemanticRepresentation wrapLfgAbstractionBody(glueSemantics.semantics.SemanticRepresentation temp, SemAtom binder) throws ProverException {
+        try {
+            de.ukon.lfgxdrt.SemanticExpression lfgTemp = asLfgAbstractionBody(temp);
+            de.ukon.lfgxdrt.lambda_elements.LambdaFunction abstraction = new de.ukon.lfgxdrt.lambda_elements.LambdaFunction(toLfgVariable(binder), lfgTemp);
+            return new LfgxDrtSemanticRepresentation(abstraction);
+        } catch (Exception e) {
+            throw new ProverException("Failed to build LFGx abstraction: " + e.getMessage());
+        }
     }
 
 

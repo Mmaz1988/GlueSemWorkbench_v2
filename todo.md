@@ -2,6 +2,8 @@
 
 #Fixes/Bugs
 
+- LFGxDRT mode still builds discharged-argument lambda wrappers with the GSWB AST inside `combinePremises(...)` (`new SemFunction((SemAtom) p.getSemTerm(), temp)`). This can flatten or overwrite provenance before the LFGx AST sees it. Replace this discharge-expansion path with the LFGxDRT AST equivalent.
+
 #Additional functions:
 
 - add more lexicon items:

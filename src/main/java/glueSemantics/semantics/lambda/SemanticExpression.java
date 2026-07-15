@@ -19,14 +19,13 @@ package glueSemantics.semantics.lambda;
 
 import glueSemantics.semantics.SemanticRepresentation;
 
-import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 
 public abstract class SemanticExpression implements SemanticRepresentation {
     private SemType type;
-    private LinkedHashSet<Integer> sourceIndices = new LinkedHashSet<>();
+    private Integer sourceIndex;
 
 
     public SemanticExpression() {
@@ -45,44 +44,20 @@ public abstract class SemanticExpression implements SemanticRepresentation {
     }
 
     @Override
-    public Set<Integer> getSourceIndices() {
-        return new LinkedHashSet<>(sourceIndices);
+    public Integer getSourceIndex() {
+        return sourceIndex;
     }
 
     @Override
-    public void setSourceIndices(Set<Integer> sourceIndices) {
-        this.sourceIndices = sourceIndices == null ? new LinkedHashSet<>() : new LinkedHashSet<>(sourceIndices);
+    public void setSourceIndex(Integer sourceIndex) {
+        this.sourceIndex = sourceIndex;
     }
 
-    protected void copySourceIndicesFrom(SemanticRepresentation other) {
+    protected void copySourceIndexFrom(SemanticRepresentation other) {
         if (other == null) {
             return;
         }
-        setSourceIndices(other.getSourceIndices());
-    }
-
-    protected void unionSourceIndicesFrom(SemanticRepresentation... parents) {
-        LinkedHashSet<Integer> merged = new LinkedHashSet<>(sourceIndices);
-        if (parents != null) {
-            for (SemanticRepresentation parent : parents) {
-                if (parent != null) {
-                    merged.addAll(parent.getSourceIndices());
-                }
-            }
-        }
-        this.sourceIndices = merged;
-    }
-
-    protected void unionSourceIndicesFrom(Collection<? extends SemanticRepresentation> parents) {
-        LinkedHashSet<Integer> merged = new LinkedHashSet<>(sourceIndices);
-        if (parents != null) {
-            for (SemanticRepresentation parent : parents) {
-                if (parent != null) {
-                    merged.addAll(parent.getSourceIndices());
-                }
-            }
-        }
-        this.sourceIndices = merged;
+        setSourceIndex(other.getSourceIndex());
     }
 
     //public abstract SemanticRepresentation betaReduce();
