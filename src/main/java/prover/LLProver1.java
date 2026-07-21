@@ -31,6 +31,8 @@ public class LLProver1 extends LLProver {
     private LinkedList<History> finalPartialHistories = new LinkedList<>();
     private StringBuilder proofBuilder;
     private HashSet<Integer> goalIDs = new HashSet<>();
+    private boolean enforceInsitu = true;
+    private IdentityHashMap<SolutionObject, Integer> solutionViolationCounts = new IdentityHashMap<>();
     public GraphAnalysis analysis;
     public LinkedList<Premise> agenda = new LinkedList<>();
 
@@ -56,11 +58,13 @@ public class LLProver1 extends LLProver {
         //clear field variables for new deduction
        // this.proofBuilder = new StringBuilder();
         this.finalHistories.clear();
-        this.finalPartialHistories.clear();
-        this.goalIDs.clear();
-        this.getSolutions().clear();
-        this.nonScopingModifiers = new HashSet<>();
-        this.scopingModifiers = new HashSet<>();
+         this.finalPartialHistories.clear();
+         this.goalIDs.clear();
+         this.getSolutions().clear();
+         this.solutionViolationCounts.clear();
+         this.nonScopingModifiers = new HashSet<>();
+         this.scopingModifiers = new HashSet<>();
+         this.enforceInsitu = true;
         this.discriminants = new HashSet<>();
         this.db = new Debugging();
         this.currentSequent = seq;
@@ -173,33 +177,46 @@ public class LLProver1 extends LLProver {
                 }
             }
 
-            List<LLTerm> copy = new ArrayList<LLTerm>(initialCategories);
-            categoryGraph = calculateCategoryGraph(copy, category2premiseMapping);
+             List<LLTerm> copy = new ArrayList<>(initialCategories);
+             categoryGraph = calculateCategoryGraph(copy, category2premiseMapping);
+             scc = deduceFromGraph(categoryGraph, goalCategory);
 
-            //Deduces from graph and returns the graph
-            scc = deduceFromGraph(categoryGraph, goalCategory);
-/*
-        Set<History> compressedFinalHistories = CGNode.compressHistories(finalHistories);
-        setFinalHistories(new LinkedList<>(compressedFinalHistories));
-*/
-            getLOGGER().fine("Starting semantic calculations...");
+             getLOGGER().fine("Starting semantic calculations...");
+             StringBuilder resultBuilder = new StringBuilder();
+             calculateSemanticSolutions(resultBuilder, false);
 
-            StringBuilder resultBuilder = new StringBuilder();
+             if (getSolutions().isEmpty() && getSettings().isAllowRelaxedGraph()) {
+                 getLOGGER().warning("No strict Lev proof found; retrying with insitu enforcement relaxed.");
 
-            if (!finalHistories.isEmpty()) {
-                for (History solution : finalHistories) {
-                    //getSolutions().addAll();
-                    for (SolutionObject so : solution.calculateSolutions(resultBuilder)) {
-                        so.scopeDiscriminants.addAll(solution.scopeDiscriminants);
-                        getSolutions().add(so);
-                    }
-                }
-                proofBuilder.append(resultBuilder.toString());
-                getLOGGER().info("Found the following glue derivation(s):\n" + resultBuilder.toString());
+                 this.enforceInsitu = false;
+                 this.finalHistories.clear();
+                 this.finalPartialHistories.clear();
+                 this.getSolutions().clear();
+                 this.solutionViolationCounts.clear();
+                 this.nonScopingModifiers = new HashSet<>();
+                 this.scopingModifiers = new HashSet<>();
+                 this.discriminants = new HashSet<>();
 
+                 copy = new ArrayList<>(initialCategories);
+                 categoryGraph = calculateCategoryGraph(copy, category2premiseMapping);
+                 scc = deduceFromGraph(categoryGraph, goalCategory);
 
-            }
-        }
+                 resultBuilder = new StringBuilder();
+                 calculateSemanticSolutions(resultBuilder, true);
+
+                 if (!getSolutions().isEmpty()) {
+                     int bestViolations = solutionViolationCounts.values().stream()
+                             .min(Integer::compareTo).orElse(0);
+                     getLOGGER().warning("Relaxed Lev proof found with " + bestViolations
+                             + " insitu violation(s); solutions=" + getSolutions().size());
+                 }
+             }
+
+             proofBuilder.append(resultBuilder.toString());
+             if (!resultBuilder.isEmpty()) {
+                 getLOGGER().info("Found the following glue derivation(s):\n" + resultBuilder);
+             }
+         }
 
        // System.out.println(resultBuilder);
         // System.out.println(System.lineSeparator());
@@ -240,6 +257,23 @@ public class LLProver1 extends LLProver {
             }
         }
 
+    }
+
+    private void calculateSemanticSolutions(StringBuilder resultBuilder, boolean relaxed) throws VariableBindingException, ProverException {
+        if (finalHistories.isEmpty()) {
+            return;
+        }
+
+        for (History solution : finalHistories) {
+            int violationCount = relaxed ? insituViolationCount(solution) : 0;
+            for (SolutionObject so : solution.calculateSolutions(resultBuilder)) {
+                so.scopeDiscriminants.addAll(solution.scopeDiscriminants);
+                getSolutions().add(so);
+                solutionViolationCounts.put(so, violationCount);
+            }
+        }
+
+        getSolutions().sort(Comparator.comparingInt(so -> solutionViolationCounts.getOrDefault(so, 0)));
     }
 
     public Graph<Graph<CGNode,DefaultEdge>,DefaultEdge> deduceFromGraph(Graph<CGNode, DefaultEdge> categoryGraph, String goalCategory) throws VariableBindingException, ProverException {
@@ -528,7 +562,9 @@ public class LLProver1 extends LLProver {
                 }
 
                 histories = chartDeduce2(histories,false);
-                histories = filterInsituHistories(histories);
+                if (enforceInsitu) {
+                    histories = filterInsituHistories(histories);
+                }
 
 
 
@@ -1040,8 +1076,12 @@ public class LLProver1 extends LLProver {
     }
 
     boolean respectsInsituOrdering(History history) {
+        return insituViolationCount(history) == 0;
+    }
+
+    int insituViolationCount(History history) {
         if (history.insituIndices.isEmpty()) {
-            return true;
+            return 0;
         }
 
         List<Integer> modifierOrder = history.indexSet.stream()
@@ -1049,22 +1089,23 @@ public class LLProver1 extends LLProver {
                 .collect(Collectors.toList());
 
         if (modifierOrder.isEmpty()) {
-            return true;
+            return 0;
         }
 
+        int violations = 0;
         Set<Integer> seenModifiers = new HashSet<>();
         for (Integer modifierIndex : modifierOrder) {
             if (history.insituIndices.contains(modifierIndex)) {
                 for (Integer leftModifier : modifierOrder) {
                     if (leftModifier < modifierIndex && !seenModifiers.contains(leftModifier)) {
-                        return false;
+                        violations++;
                     }
                 }
             }
             seenModifiers.add(modifierIndex);
         }
 
-        return true;
+        return violations;
     }
 
     @Override
@@ -1130,7 +1171,7 @@ public class LLProver1 extends LLProver {
                 SemanticRepresentation reducedSem = null;
 
                 try {
-                reducedSem = combine(func, argumentClone).betaReduce();
+                reducedSem = combine(func, argumentClone);
                 } catch(Exception e)
                 {
                     getLOGGER().warning("Failed to combine functor: " + func.toString() + " and argument: " +
@@ -1231,7 +1272,7 @@ public class LLProver1 extends LLProver {
 
                     SemanticRepresentation reducedSem = null;
                     try {
-                        reducedSem = combine(func, argumentClone).betaReduce();
+                        reducedSem = combine(func, argumentClone);
                     } catch(Exception e)
                     {
                         getLOGGER().warning("Failed to combine functor: " + func.toString() + " and argument: " +
@@ -1352,7 +1393,7 @@ public class LLProver1 extends LLProver {
                 SemanticRepresentation reducedSem = null;
 
                 try {
-                    reducedSem = combine(func, argumentClone).betaReduce();
+                reducedSem = combine(func, argumentClone);
                 } catch(Exception e)
                 {
                     getLOGGER().warning("Failed to combine functor: " + func.toString() + " and argument: " +
@@ -1450,7 +1491,7 @@ public class LLProver1 extends LLProver {
 
                     SemanticRepresentation reducedSem = null;
                     try {
-                        reducedSem = combine(func, argumentClone).betaReduce();
+                        reducedSem = combine(func, argumentClone);
                     } catch(Exception e)
                     {
                         getLOGGER().warning("Failed to combine functor: " + func.toString() + " and argument: " +

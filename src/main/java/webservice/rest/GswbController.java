@@ -193,11 +193,15 @@ public class GswbController {
         }
 
         settings.setProverType(prefs.prover);
+        settings.setAllowRelaxedGraph(true);
         settings.setDebugging(prefs.debugging);
         settings.setExplainFail(prefs.explainFail);
         settings.setParseSemantics(prefs.parseSem);
         settings.setNaturalDeductionOutput(prefs.naturalDeductionStyle);
-        settings.setBetaReduce(prefs.betaReduce);
+        // DRS resolution requires beta reduction. Keep the effective settings
+        // consistent even when a client sends an invalid combination.
+        boolean betaReduce = prefs.betaReduce || prefs.resolveDrs;
+        settings.setBetaReduce(betaReduce);
         settings.setResolveDrs(prefs.resolveDrs);
 
         boolean multistage = (settings.getProverType() == 3);
@@ -350,28 +354,35 @@ public class GswbController {
                 if (!(so.solution.getSemTerm() instanceof glueSemantics.semantics.LfgxDrtSemanticRepresentation)) {
                     throw new RuntimeException("Expected LFGxDRT semantic payload for solution " + idx);
                 }
-                SemanticExpression sol = (SemanticExpression) so.solution.getSemTerm();
-                if (ctx.settings.isBetaReduce())
-                {
+                glueSemantics.semantics.LfgxDrtSemanticRepresentation wrapped =
+                        (glueSemantics.semantics.LfgxDrtSemanticRepresentation) so.solution.getSemTerm();
+                SemanticExpression sol = wrapped.getDelegate();
+                String assembledSolution = sol.toString();
+                LOGGER.fine("Assembled LFGxDRT solution " + idx + ": " + assembledSolution);
+                if (ctx.settings.isBetaReduce()) {
                     sol = sol.betaReduce();
+                }
+                if (ctx.settings.isResolveDrs()) {
+                    sol = sol.resolveMerges();
+                }
 
-                    if (ctx.settings.isResolveDrs()) {
-                        sol = sol.resolveMerges();
+                sol.setSourceIndex(so.sourceIndex);
+
+                // SVG supports unresolved lambda/function-application structure;
+                // LiGER graph conversion requires beta-reduced semantics.
+                so.graph = null;
+                if (ctx.settings.isBetaReduce()) {
+                    try {
+                        so.graph = sol.toJson();
+                    } catch (Exception e) {
+                        LOGGER.warning("Could not render LiGER graph for solution " + idx + ": " + e.getMessage());
                     }
                 }
 
-                ((glueSemantics.semantics.lambda.SemanticExpression) sol).setSourceIndex(so.sourceIndex);
-
-                try {
-                    so.graph = sol.toJson();
-                } catch (Exception e) {
-                    throw new RuntimeException("Failed to render LiGER graph for solution " + idx, e);
-                }
-
 
 
                 try {
-                    so.solutionString = sol.toSvg();
+                    so.solutionString = new DrsSvgRenderer().toSvg(sol);
                 } catch (Exception e) {
                     throw new RuntimeException("Failed to render SVG for solution " + idx, e);
                 }

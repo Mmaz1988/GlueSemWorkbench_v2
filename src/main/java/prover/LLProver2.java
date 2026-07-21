@@ -364,7 +364,7 @@ public class LLProver2 extends LLProver{
 
                 SemanticRepresentation reducedSem = null;
                 try {
-                    reducedSem = combine(func, argumentClone).betaReduce();
+                    reducedSem = combine(func, argumentClone);
                 } catch(Exception e)
                 {
                     getLOGGER().warning("Failed to combine functor: " + func.toString() + " and argument: " +
@@ -463,7 +463,7 @@ public class LLProver2 extends LLProver{
 
                     SemanticRepresentation reducedSem = null;
                     try {
-                        reducedSem = combine(func, argumentClone).betaReduce();
+                        reducedSem = combine(func, argumentClone);
                     } catch(Exception e)
                     {
                         getLOGGER().warning("Failed to combine functor: " + func.toString() + " and argument: " +
@@ -596,7 +596,7 @@ public class LLProver2 extends LLProver{
 
                 SemanticRepresentation reducedSem = null;
                 try {
-                    reducedSem = combine(func, argumentClone).betaReduce();
+                    reducedSem = combine(func, argumentClone);
                 } catch(Exception e)
                 {
                     getLOGGER().warning("Failed to combine functor: " + func.toString() + " and argument: " +
@@ -691,7 +691,7 @@ public class LLProver2 extends LLProver{
 
                     SemanticRepresentation reducedSem = null;
                     try {
-                        reducedSem = combine(func, argumentClone).betaReduce();
+                        reducedSem = combine(func, argumentClone);
                     } catch(Exception e)
                     {
                         getLOGGER().warning("Failed to combine functor: " + func.toString() + " and argument: " +

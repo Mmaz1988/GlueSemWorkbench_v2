@@ -60,6 +60,7 @@ public class Settings {
     private boolean solutionOnly = false;
     private boolean testExpression = false;
     private boolean visualize = false;
+    private boolean allowRelaxedGraph = true;
     private int proverType = HEPPLE;
 
     private int naturalDeductionOutput = NDFULL;
@@ -189,6 +190,14 @@ public class Settings {
 
     public void setProverType(int proverType) {
         this.proverType = proverType;
+    }
+
+    public boolean isAllowRelaxedGraph() {
+        return allowRelaxedGraph;
+    }
+
+    public void setAllowRelaxedGraph(boolean allowRelaxedGraph) {
+        this.allowRelaxedGraph = allowRelaxedGraph;
     }
     public boolean isVisualize() {
         return this.visualize;
