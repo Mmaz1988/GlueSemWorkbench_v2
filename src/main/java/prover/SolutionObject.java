@@ -13,6 +13,7 @@ public class SolutionObject {
     public HashSet<String> scopeDiscriminants = new HashSet<>();
     public HashSet<McDiscriminant> mcDiscriminants = new HashSet<>();
     public String solutionString;
+    public String semantic;
     public Integer sourceIndex;
     public LinkedHashMap<String, Object> graph;
 

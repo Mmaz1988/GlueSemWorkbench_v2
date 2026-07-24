@@ -8,6 +8,8 @@ public class GswbSolution {
     public String id;
     public Integer sourceIndex;
     public LinkedHashMap<String, Object> graph;
+    public String semantic;
+    public String anaphoraMapping;
 
     public GswbSolution() {}
 
@@ -30,5 +32,11 @@ public class GswbSolution {
         this.id = id;
         this.sourceIndex = sourceIndex;
         this.graph = graph;
+    }
+
+    public GswbSolution(String solution, String id, Integer sourceIndex,
+                        LinkedHashMap<String, Object> graph, String semantic) {
+        this(solution, id, sourceIndex, graph);
+        this.semantic = semantic;
     }
 }

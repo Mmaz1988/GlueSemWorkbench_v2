@@ -2,7 +2,11 @@ package webservice.rest;
 
 import Discriminants.ScopeDiscriminant;
 import de.ukon.lfgxdrt.SemanticExpression;
+import de.ukon.lfgxdrt.DrsParser;
 import de.ukon.lfgxdrt.drs_elements.DRS;
+import de.ukon.lfgxdrt.drs_elements.AnaphoraMapping;
+import de.ukon.lfgxdrt.drs_elements.AnaphoraRelation;
+import de.ukon.lfgxdrt.drs_elements.DiscourseReferent;
 import glueSemantics.parser.GlueParser;
 import glueSemantics.parser.LexicalEntries;
 import Discriminants.McDiscriminant;
@@ -98,6 +102,86 @@ public class GswbController {
                 );
 
         return run.output;
+    }
+
+    @CrossOrigin
+    @PostMapping(value = "/generate_pcdrs", produces = "application/json", consumes = "application/json")
+    public GswbPcdrsOutput generatePcdrs(@RequestBody GswbPcdrsRequest request) throws Exception {
+        if (request == null || request.semantic == null || request.semantic.isBlank()) {
+            throw new IllegalArgumentException("A semantic DRS is required to generate PCDRS solutions.");
+        }
+
+        LOGGER.info("PCDRS request received: parentSolutionId=" + request.parentSolutionId
+                + ", semantic=" + request.semantic
+                + ", mergedStructureKeys="
+                + (request.mergedStructure == null ? "[]" : request.mergedStructure.keySet()));
+
+        SemanticExpression expression = new DrsParser().parse(request.semantic).expression;
+        if (!(expression instanceof DRS drs)) {
+            throw new IllegalArgumentException("PCDRS generation requires a DRS semantic expression.");
+        }
+
+        LinkedHashMap<String, String> nodeNames = extractNodeNames(request.mergedStructure);
+        LinkedHashMap<String, LinkedHashSet<String>> candidates = extractPossibleAntFacts(request.mergedStructure, nodeNames);
+        LOGGER.info("PCDRS semantic node names: " + nodeNames);
+        List<LinkedHashMap<String, String>> mappings = expandAnaphoraMappings(candidates);
+        LOGGER.info("PCDRS possible-ant candidates: " + candidates);
+        if (mappings.isEmpty()) {
+            mappings = List.of(new LinkedHashMap<>());
+        }
+        LOGGER.info("PCDRS mapping branches: " + mappings.size());
+
+        String parentId = request.parentSolutionId == null || request.parentSolutionId.isBlank()
+                ? "solution"
+                : request.parentSolutionId;
+        List<GswbSolution> solutions = new ArrayList<>();
+        for (int i = 0; i < mappings.size(); i++) {
+            AnaphoraMapping mapping = toAnaphoraMapping(mappings.get(i));
+            LOGGER.info("PCDRS branch " + (i + 1) + ": mapping=" + mapping.toString());
+            DRS pcdrs = drs.withAnaphoraMapping(mapping);
+            LOGGER.info("PCDRS branch " + (i + 1) + ": combined DRS=" + pcdrs.toString());
+            GswbSolution solution = new GswbSolution(
+                    new DrsSvgRenderer().toSvg(pcdrs),
+                    parentId + "-pcdrs-" + (i + 1),
+                    drs.getSourceIndex(),
+                    null,
+                    pcdrs.toString());
+            solution.anaphoraMapping = mapping.toString();
+            solutions.add(solution);
+        }
+
+        LOGGER.info("PCDRS rendering complete: solutions=" + solutions.size());
+
+        return new GswbPcdrsOutput(request.parentSolutionId, solutions);
+    }
+
+    @CrossOrigin
+    @PostMapping(value = "/collapse_anaphora", produces = "application/json", consumes = "application/json")
+    public GswbSolution collapseAnaphora(@RequestBody GswbCollapseAnaphoraRequest request) throws Exception {
+        if (request == null || request.semantic == null || request.semantic.isBlank()) {
+            throw new IllegalArgumentException("A PCDRS semantic is required to collapse anaphora.");
+        }
+
+        LOGGER.info("Collapse anaphora request received: parentSolutionId=" + request.parentSolutionId
+                + ", semantic=" + request.semantic);
+        SemanticExpression expression = new DrsParser().parse(request.semantic).expression;
+        if (!(expression instanceof DRS drs)) {
+            throw new IllegalArgumentException("Anaphora collapse requires a DRS semantic expression.");
+        }
+
+        DRS collapsed = drs.collapseAnaphora();
+        String parentId = request.parentSolutionId == null || request.parentSolutionId.isBlank()
+                ? "solution"
+                : request.parentSolutionId;
+        GswbSolution result = new GswbSolution(
+                new DrsSvgRenderer().toSvg(collapsed),
+                parentId + "-collapsed",
+                collapsed.getSourceIndex(),
+                null,
+                collapsed.toString());
+        LOGGER.info("Anaphora collapse complete: solutionId=" + result.id
+                + ", semantic=" + result.semantic);
+        return result;
     }
 
     @CrossOrigin
@@ -366,6 +450,9 @@ public class GswbController {
                     sol = sol.resolveMerges();
                 }
 
+                // Expose the parseable semantic form used for graph/SVG rendering.
+                so.semantic = sol.toString();
+
                 sol.setSourceIndex(so.sourceIndex);
 
                 // SVG supports unresolved lambda/function-application structure;
@@ -408,9 +495,98 @@ public class GswbController {
         List<GswbSolution> outputSolutions = new ArrayList<>();
         for (Integer idx : solutionsByIndex.keySet().stream().sorted().toList()) {
             SolutionObject so = solutionsByIndex.get(idx);
-            outputSolutions.add(new GswbSolution(so.solutionString, so.solutionId, so.sourceIndex, so.graph));
+            outputSolutions.add(new GswbSolution(so.solutionString, so.solutionId, so.sourceIndex, so.graph,
+                    so.semantic));
         }
         return outputSolutions;
+    }
+
+    private LinkedHashMap<String, String> extractNodeNames(Map<String, Object> structure) {
+        LinkedHashMap<String, String> nodeNames = new LinkedHashMap<>();
+        collectNodeNames(structure, nodeNames);
+        return nodeNames;
+    }
+
+    private void collectNodeNames(Object value, LinkedHashMap<String, String> nodeNames) {
+        if (value instanceof Map<?, ?> map) {
+            if ("NAME".equals(String.valueOf(map.get("relationLabel")))) {
+                Object source = map.containsKey("fsNode") ? map.get("fsNode") : map.get("sourceNode");
+                Object target = map.containsKey("fsValue") ? map.get("fsValue") : map.get("targetNode");
+                if (source != null && target != null) {
+                    nodeNames.put(String.valueOf(source).trim(), String.valueOf(target).trim());
+                }
+            }
+            for (Object child : map.values()) {
+                collectNodeNames(child, nodeNames);
+            }
+        } else if (value instanceof Iterable<?> iterable) {
+            for (Object child : iterable) {
+                collectNodeNames(child, nodeNames);
+            }
+        }
+    }
+
+    private LinkedHashMap<String, LinkedHashSet<String>> extractPossibleAntFacts(
+            Map<String, Object> structure, Map<String, String> nodeNames) {
+        LinkedHashMap<String, LinkedHashSet<String>> candidates = new LinkedHashMap<>();
+        collectPossibleAntFacts(structure, nodeNames, candidates);
+        return candidates;
+    }
+
+    private void collectPossibleAntFacts(Object value,
+                                         Map<String, String> nodeNames,
+                                         LinkedHashMap<String, LinkedHashSet<String>> candidates) {
+        if (value instanceof Map<?, ?> map) {
+            Object relation = map.get("relationLabel");
+            Object source = map.containsKey("fsNode") ? map.get("fsNode") : map.get("sourceNode");
+            Object target = map.containsKey("fsValue") ? map.get("fsValue") : map.get("targetNode");
+            if ("POSSIBLE-ANT".equals(String.valueOf(relation)) && source != null && target != null) {
+                String sourceId = String.valueOf(source).trim();
+                String targetId = String.valueOf(target).trim();
+                String sourceName = nodeNames.get(sourceId);
+                String targetName = nodeNames.get(targetId);
+                if (sourceName == null || targetName == null) {
+                    LOGGER.warning("Ignoring POSSIBLE-ANT without NAME features: source="
+                            + sourceId + ", target=" + targetId);
+                } else if (!sourceName.isEmpty() && !targetName.isEmpty()) {
+                    candidates.computeIfAbsent(sourceName, ignored -> new LinkedHashSet<>()).add(targetName);
+                }
+            }
+            for (Object child : map.values()) {
+                collectPossibleAntFacts(child, nodeNames, candidates);
+            }
+        } else if (value instanceof Iterable<?> iterable) {
+            for (Object child : iterable) {
+                collectPossibleAntFacts(child, nodeNames, candidates);
+            }
+        }
+    }
+
+    private List<LinkedHashMap<String, String>> expandAnaphoraMappings(
+            LinkedHashMap<String, LinkedHashSet<String>> candidates) {
+        List<LinkedHashMap<String, String>> results = new ArrayList<>();
+        results.add(new LinkedHashMap<>());
+        for (Map.Entry<String, LinkedHashSet<String>> entry : candidates.entrySet()) {
+            List<LinkedHashMap<String, String>> next = new ArrayList<>();
+            for (LinkedHashMap<String, String> partial : results) {
+                for (String antecedent : entry.getValue()) {
+                    LinkedHashMap<String, String> expanded = new LinkedHashMap<>(partial);
+                    expanded.put(entry.getKey(), antecedent);
+                    next.add(expanded);
+                }
+            }
+            results = next;
+        }
+        return results;
+    }
+
+    private AnaphoraMapping toAnaphoraMapping(Map<String, String> mapping) {
+        AnaphoraMapping result = new AnaphoraMapping();
+        for (Map.Entry<String, String> entry : mapping.entrySet()) {
+            result.addRelation(new AnaphoraRelation(
+                    new DiscourseReferent(entry.getKey()), entry.getValue()));
+        }
+        return result;
     }
 
     private LLProverAndLog createProver(Settings settings) {
