@@ -122,6 +122,11 @@ public class GswbController {
         SemanticExpression expression = hasCanonicalGraph(request.mergedStructure)
                 ? DrsGraphParser.parse(request.mergedStructure)
                 : new DrsParser().parse(request.semantic).expression;
+        if (!(expression instanceof DRS)) {
+            LOGGER.info("PCDRS graph expression is unresolved: " + expression.getClass().getSimpleName()
+                    + "; resolving merges before generating PCDRS");
+            expression = expression.resolveMerges();
+        }
         if (!(expression instanceof DRS drs)) {
             throw new IllegalArgumentException("PCDRS generation requires a DRS semantic expression.");
         }
@@ -197,9 +202,14 @@ public class GswbController {
             throw new IllegalArgumentException("At least one canonical semantic graph is required");
         }
 
+        LOGGER.info("Sequence merge received: graphs=" + request.graphs.size()
+                + ", semantics=" + (request.semantics == null ? 0 : request.semantics.size()));
         List<SemanticExpression> expressions = new ArrayList<>();
         for (LinkedHashMap<String, Object> graph : request.graphs) {
-            expressions.add(DrsGraphParser.parse(graph));
+            SemanticExpression expression = DrsGraphParser.parse(graph);
+            expressions.add(expression);
+            LOGGER.info("Sequence graph reconstructed: source=" + expression.getSourceIndex()
+                    + ", expression=" + expression.toString());
         }
         SemanticExpression merged = DrsSequenceMerger.merge(expressions);
         SemanticExpression resolvedExpression = merged.resolveMerges();
@@ -207,14 +217,29 @@ public class GswbController {
             throw new IllegalStateException("Sequence merge did not resolve to a DRS");
         }
 
+        SemanticExpression displayExpression = merged;
+        if (request.semantics != null && request.semantics.size() == request.graphs.size()
+                && request.semantics.stream().allMatch(value -> value != null && !value.isBlank())) {
+            List<SemanticExpression> displayExpressions = new ArrayList<>();
+            for (String semantic : request.semantics) {
+                displayExpressions.add(new DrsParser().parse(semantic).expression);
+            }
+            displayExpression = DrsSequenceMerger.merge(displayExpressions);
+            LOGGER.info("Sequence display expression reconstructed from semantic strings: "
+                    + displayExpression.toString());
+        }
+        LOGGER.info("Sequence graph merge resolved: source=" + resolved.getSourceIndex()
+                + ", graphNodes=" + graphNodeCount(resolved.toJson())
+                + ", graphEdges=" + graphEdgeCount(resolved.toJson()));
+
         String parentId = request.parentSolutionId == null || request.parentSolutionId.isBlank()
                 ? "sequence" : request.parentSolutionId;
         return new GswbSolution(
-                new DrsSvgRenderer().toSvg(merged),
+                new DrsSvgRenderer().toSvg(displayExpression),
                 parentId + "-drs-merge",
                 merged.getSourceIndex(),
                 resolved.toJson(),
-                merged.toString());
+                displayExpression.toString());
     }
 
     @CrossOrigin
@@ -536,6 +561,14 @@ public class GswbController {
     private boolean hasCanonicalGraph(LinkedHashMap<String, Object> structure) {
         return structure != null && structure.get("nodes") instanceof List<?>
                 && structure.get("edges") instanceof List<?>;
+    }
+
+    private int graphNodeCount(LinkedHashMap<String, Object> graph) {
+        return graph.get("nodes") instanceof List<?> nodes ? nodes.size() : 0;
+    }
+
+    private int graphEdgeCount(LinkedHashMap<String, Object> graph) {
+        return graph.get("edges") instanceof List<?> edges ? edges.size() : 0;
     }
 
     private LinkedHashMap<String, String> extractNodeNames(Map<String, Object> structure) {
