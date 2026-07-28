@@ -3,6 +3,7 @@ package webservice.rest;
 import Discriminants.ScopeDiscriminant;
 import de.ukon.lfgxdrt.SemanticExpression;
 import de.ukon.lfgxdrt.DrsParser;
+import de.ukon.lfgxdrt.DrsSequenceMerger;
 import de.ukon.lfgxdrt.drs_elements.DRS;
 import de.ukon.lfgxdrt.drs_elements.AnaphoraMapping;
 import de.ukon.lfgxdrt.drs_elements.AnaphoraRelation;
@@ -182,6 +183,34 @@ public class GswbController {
         LOGGER.info("Anaphora collapse complete: solutionId=" + result.id
                 + ", semantic=" + result.semantic);
         return result;
+    }
+
+    @CrossOrigin
+    @PostMapping(value = "/merge_sequence_semantics", produces = "application/json", consumes = "application/json")
+    public GswbSolution mergeSequenceSemantics(@RequestBody GswbSequenceMergeRequest request) throws Exception {
+        if (request == null || request.semantics == null || request.semantics.isEmpty()
+                || request.semantics.stream().anyMatch(value -> value == null || value.isBlank())) {
+            throw new IllegalArgumentException("At least one composed DRS is required");
+        }
+
+        List<SemanticExpression> expressions = new ArrayList<>();
+        for (String semantic : request.semantics) {
+            expressions.add(new DrsParser().parse(semantic).expression);
+        }
+        SemanticExpression merged = DrsSequenceMerger.merge(expressions);
+        SemanticExpression resolvedExpression = merged.resolveMerges();
+        if (!(resolvedExpression instanceof DRS resolved)) {
+            throw new IllegalStateException("Sequence merge did not resolve to a DRS");
+        }
+
+        String parentId = request.parentSolutionId == null || request.parentSolutionId.isBlank()
+                ? "sequence" : request.parentSolutionId;
+        return new GswbSolution(
+                new DrsSvgRenderer().toSvg(merged),
+                parentId + "-drs-merge",
+                merged.getSourceIndex(),
+                resolved.toJson(),
+                merged.toString());
     }
 
     @CrossOrigin
@@ -450,10 +479,9 @@ public class GswbController {
                     sol = sol.resolveMerges();
                 }
 
-                // Expose the parseable semantic form used for graph/SVG rendering.
-                so.semantic = sol.toString();
-
                 sol.setSourceIndex(so.sourceIndex);
+                // Source provenance belongs to graph JSON; keep the public semantic text clean.
+                so.semantic = sol.toString();
 
                 // SVG supports unresolved lambda/function-application structure;
                 // LiGER graph conversion requires beta-reduced semantics.
@@ -503,6 +531,18 @@ public class GswbController {
 
     private LinkedHashMap<String, String> extractNodeNames(Map<String, Object> structure) {
         LinkedHashMap<String, String> nodeNames = new LinkedHashMap<>();
+        Object nodes = structure == null ? null : structure.get("nodes");
+        if (nodes instanceof Iterable<?> nodeList) {
+            for (Object node : nodeList) {
+                if (!(node instanceof Map<?, ?> nodeMap) || nodeMap.get("id") == null) {
+                    continue;
+                }
+                if (nodeMap.get("avp") instanceof Map<?, ?> avp && avp.get("NAME") != null) {
+                    nodeNames.put(String.valueOf(nodeMap.get("id")).trim(),
+                            String.valueOf(avp.get("NAME")).trim());
+                }
+            }
+        }
         collectNodeNames(structure, nodeNames);
         return nodeNames;
     }
