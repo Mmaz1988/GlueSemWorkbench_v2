@@ -39,4 +39,5 @@ public class GswbSolution {
         this(solution, id, sourceIndex, graph);
         this.semantic = semantic;
     }
+
 }

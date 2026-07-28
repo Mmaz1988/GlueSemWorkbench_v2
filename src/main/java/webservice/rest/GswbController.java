@@ -3,6 +3,7 @@ package webservice.rest;
 import Discriminants.ScopeDiscriminant;
 import de.ukon.lfgxdrt.SemanticExpression;
 import de.ukon.lfgxdrt.DrsParser;
+import de.ukon.lfgxdrt.DrsGraphParser;
 import de.ukon.lfgxdrt.DrsSequenceMerger;
 import de.ukon.lfgxdrt.drs_elements.DRS;
 import de.ukon.lfgxdrt.drs_elements.AnaphoraMapping;
@@ -108,8 +109,9 @@ public class GswbController {
     @CrossOrigin
     @PostMapping(value = "/generate_pcdrs", produces = "application/json", consumes = "application/json")
     public GswbPcdrsOutput generatePcdrs(@RequestBody GswbPcdrsRequest request) throws Exception {
-        if (request == null || request.semantic == null || request.semantic.isBlank()) {
-            throw new IllegalArgumentException("A semantic DRS is required to generate PCDRS solutions.");
+        if (request == null || (!hasCanonicalGraph(request.mergedStructure)
+                && (request.semantic == null || request.semantic.isBlank()))) {
+            throw new IllegalArgumentException("A semantic DRS or canonical graph is required to generate PCDRS solutions.");
         }
 
         LOGGER.info("PCDRS request received: parentSolutionId=" + request.parentSolutionId
@@ -117,7 +119,9 @@ public class GswbController {
                 + ", mergedStructureKeys="
                 + (request.mergedStructure == null ? "[]" : request.mergedStructure.keySet()));
 
-        SemanticExpression expression = new DrsParser().parse(request.semantic).expression;
+        SemanticExpression expression = hasCanonicalGraph(request.mergedStructure)
+                ? DrsGraphParser.parse(request.mergedStructure)
+                : new DrsParser().parse(request.semantic).expression;
         if (!(expression instanceof DRS drs)) {
             throw new IllegalArgumentException("PCDRS generation requires a DRS semantic expression.");
         }
@@ -188,14 +192,14 @@ public class GswbController {
     @CrossOrigin
     @PostMapping(value = "/merge_sequence_semantics", produces = "application/json", consumes = "application/json")
     public GswbSolution mergeSequenceSemantics(@RequestBody GswbSequenceMergeRequest request) throws Exception {
-        if (request == null || request.semantics == null || request.semantics.isEmpty()
-                || request.semantics.stream().anyMatch(value -> value == null || value.isBlank())) {
-            throw new IllegalArgumentException("At least one composed DRS is required");
+        if (request == null || request.graphs == null || request.graphs.isEmpty()
+                || request.graphs.stream().anyMatch(Objects::isNull)) {
+            throw new IllegalArgumentException("At least one canonical semantic graph is required");
         }
 
         List<SemanticExpression> expressions = new ArrayList<>();
-        for (String semantic : request.semantics) {
-            expressions.add(new DrsParser().parse(semantic).expression);
+        for (LinkedHashMap<String, Object> graph : request.graphs) {
+            expressions.add(DrsGraphParser.parse(graph));
         }
         SemanticExpression merged = DrsSequenceMerger.merge(expressions);
         SemanticExpression resolvedExpression = merged.resolveMerges();
@@ -527,6 +531,11 @@ public class GswbController {
                     so.semantic));
         }
         return outputSolutions;
+    }
+
+    private boolean hasCanonicalGraph(LinkedHashMap<String, Object> structure) {
+        return structure != null && structure.get("nodes") instanceof List<?>
+                && structure.get("edges") instanceof List<?>;
     }
 
     private LinkedHashMap<String, String> extractNodeNames(Map<String, Object> structure) {
