@@ -16,6 +16,9 @@ public class SolutionObject {
     public String semantic;
     public Integer sourceIndex;
     public LinkedHashMap<String, Object> graph;
+    public String proofId;
+    public String solutionKey;
+    public String mcSetId;
 
 
     public SolutionObject(Premise solution) {

@@ -752,7 +752,9 @@ public class LLProver1 extends LLProver {
                                     outscopes.add(newScoping);
                                     recordScopeSourceIndices(newScoping, sourceIndices(h, index), sourceIndices(current, index1));
                                     scope2instantiations.putIfAbsent(newScoping, new LinkedHashSet<>());
-                                    scope2instantiations.get(newScoping).add(this.agenda.get(index).getGlueTerm().toStringNotation() + " : " + this.agenda.get(index).getSemTerm() + " <\n\t" + this.agenda.get(index1).getGlueTerm().toStringNotation() + " : " + this.agenda.get(index1).getSemTerm());
+                                     String instantiation = this.agenda.get(index).getGlueTerm().toStringNotation() + " : " + this.agenda.get(index).getSemTerm() + " <\n\t" + this.agenda.get(index1).getGlueTerm().toStringNotation() + " : " + this.agenda.get(index1).getSemTerm();
+                                     scope2instantiations.get(newScoping).add(instantiation);
+                                     recordScopeInstantiation(newScoping, instantiation);
                                 }
                                 combined.scopeDiscriminants.addAll(outscopes);
                                 agendaIterator.add(combined);
@@ -772,8 +774,10 @@ public class LLProver1 extends LLProver {
                                     outscopes.add(newScoping);
                                     recordScopeSourceIndices(newScoping, sourceIndices(current, index), sourceIndices(h, index1));
                                     scope2instantiations.putIfAbsent(newScoping, new LinkedHashSet<>());
-                                    scope2instantiations.get(newScoping).add(this.agenda.get(index).getGlueTerm().toStringNotation() + " : " + this.agenda.get(index).getSemTerm() + " <\n\t" +
-                                            this.agenda.get(index1).getGlueTerm().toStringNotation() + " : " + this.agenda.get(index1).getSemTerm());
+                                     String instantiation = this.agenda.get(index).getGlueTerm().toStringNotation() + " : " + this.agenda.get(index).getSemTerm() + " <\n\t" +
+                                             this.agenda.get(index1).getGlueTerm().toStringNotation() + " : " + this.agenda.get(index1).getSemTerm();
+                                     scope2instantiations.get(newScoping).add(instantiation);
+                                     recordScopeInstantiation(newScoping, instantiation);
                                 }
 
                                 combined.scopeDiscriminants.addAll(outscopes);
@@ -801,6 +805,24 @@ public class LLProver1 extends LLProver {
                 groups.add(left);
                 groups.add(right);
             }
+            if (currentProofOrigin != null && !currentProofOrigin.isBlank()) {
+                LinkedHashMap<String, List<LinkedHashSet<Integer>>> originGroups =
+                        scope2SourceIndexGroupsByOrigin.computeIfAbsent(currentProofOrigin, ignored -> new LinkedHashMap<>());
+                List<LinkedHashSet<Integer>> groupsForOrigin = originGroups.computeIfAbsent(scope, ignored -> new ArrayList<>());
+                if (groupsForOrigin.isEmpty()) {
+                    groupsForOrigin.add(left);
+                    groupsForOrigin.add(right);
+                }
+            }
+        }
+
+        private void recordScopeInstantiation(String scope, String instantiation) {
+            if (currentProofOrigin == null || currentProofOrigin.isBlank()) {
+                return;
+            }
+            LinkedHashMap<String, LinkedHashSet<String>> originInstantiations =
+                    scope2InstantiationsByOrigin.computeIfAbsent(currentProofOrigin, ignored -> new LinkedHashMap<>());
+            originInstantiations.computeIfAbsent(scope, ignored -> new LinkedHashSet<>()).add(instantiation);
         }
 
         private Collection<Integer> sourceIndices(History history, Integer modifierIndex) {

@@ -47,8 +47,6 @@ public class GswbController {
     public GswbBatchOutput glueBatchDeduce(@RequestBody GswbBatchRequest request) throws Exception {
 
         RunContext ctx = buildRunContext(request.gswbPreferences);
-        LOGGER.info("Received request: " + request.toString() + "\n" + "Applying settings...");
-
         GlueParser gp = new GlueParser(ctx.settings);
 
         HashMap<String, GswbOutput> analyses = new HashMap<>();
@@ -91,23 +89,42 @@ public class GswbController {
     public GswbOutput glueDeduce(@RequestBody GswbRequest request) throws Exception {
 
         RunContext ctx = buildRunContext(request.gswbPreferences);
-        LOGGER.info("Received request: " + request.toString() + "\n" + "Applying settings...");
+        LOGGER.info("Received /deduce request: proofs="
+                + (request.proofs == null ? 0 : request.proofs.size())
+                + ", premisesLength=" + (request.premises == null ? 0 : request.premises.length())
+                + ", hasStructure=" + (request.structure != null));
 
         GlueParser gp = new GlueParser(ctx.settings);
 
-        InputOutputProcessor.process(request.premises);
-        String input = InputOutputProcessor.translate(request.premises);
+        SingleRunResult run;
+        if (request.proofs != null && !request.proofs.isEmpty()) {
+            ParsedProofInputs parsed = parseProofInputs(request.proofs, gp, ctx.multistage);
+            LOGGER.info("Parsed structured proof inputs: records=" + request.proofs.size()
+                    + ", mcSets=" + parsed.entries.lexicalEntries.size()
+                    + ", origins=" + parsed.origins.size());
+            run = runAndFormatSingle(
+                    parsed.entries,
+                    parsed.origins,
+                    ctx,
+                    false, // single mode
+                    true,  // includeDerivation
+                    request.structure
+            );
+        } else {
+            InputOutputProcessor.process(request.premises);
+            String input = InputOutputProcessor.translate(request.premises);
+            run = runAndFormatSingle(
+                    input,
+                    ctx,
+                    gp,
+                    false, // single mode
+                    true,  // includeDerivation
+                    request.structure
+            );
+        }
 
-        SingleRunResult run =
-                runAndFormatSingle(
-                        input,
-                        ctx,
-                        gp,
-                        false, // single mode
-                        true,  // includeDerivation
-                        request.structure
-                );
-
+        LOGGER.info("Completed /deduce request: solutions=" + run.output.solutions.size()
+                + ", discriminants=" + run.output.discriminants.size());
         return run.output;
     }
 
@@ -239,12 +256,15 @@ public class GswbController {
 
         String parentId = request.parentSolutionId == null || request.parentSolutionId.isBlank()
                 ? "sequence" : request.parentSolutionId;
-        return new GswbSolution(
+        GswbSolution output = new GswbSolution(
                 new DrsSvgRenderer().toSvg(displayExpression),
                 parentId + "-drs-merge",
                 merged.getSourceIndex(),
                 resolved.toJson(),
                 displayExpression.toString());
+        output.solutionKey = request.solutionKey;
+        output.mcSetId = request.mcSetId;
+        return output;
     }
 
     @CrossOrigin
@@ -324,6 +344,16 @@ public class GswbController {
         }
     }
 
+    private static final class ParsedProofInputs {
+        private final LexicalEntries entries;
+        private final Map<Integer, GswbProofInput> origins;
+
+        private ParsedProofInputs(LexicalEntries entries, Map<Integer, GswbProofInput> origins) {
+            this.entries = entries;
+            this.origins = origins;
+        }
+    }
+
     private RunContext buildRunContext(GswbPreferences prefs) {
         boolean displayDRT = false;
         boolean displayLfgxDrt = false;
@@ -364,6 +394,18 @@ public class GswbController {
             boolean includeDerivation,
             LinkedHashMap<String, Object> structure
     ) throws Exception {
+        LexicalEntries mcs = gp.parseMeaningConstructorString(premiseInput, ctx.multistage);
+        return runAndFormatSingle(mcs, Collections.emptyMap(), ctx, batchMode, includeDerivation, structure);
+    }
+
+    private SingleRunResult runAndFormatSingle(
+            LexicalEntries mcs,
+            Map<Integer, GswbProofInput> origins,
+            RunContext ctx,
+            boolean batchMode,
+            boolean includeDerivation,
+            LinkedHashMap<String, Object> structure
+    ) throws Exception {
 
         LLProverAndLog proverAndLog = createProver(ctx.settings);
         LLProver prover = proverAndLog.prover;
@@ -371,9 +413,7 @@ public class GswbController {
 
         LOGGER.info("Running prover...");
 
-        LexicalEntries mcs = gp.parseMeaningConstructorString(premiseInput, ctx.multistage);
-
-        ProofRun run = runProofsOverLexicalEntries(mcs, prover, sb, ctx.settings, batchMode);
+        ProofRun run = runProofsOverLexicalEntries(mcs, prover, sb, batchMode, origins);
 
         LexicalEntries filteredMcs = filterLexicalEntriesByKeySet(mcs, run.mcSetWithSolution);
         List<McDiscriminant> finalMcDiscriminants = filteredMcs.calculateDiscriminants();
@@ -382,7 +422,9 @@ public class GswbController {
 
         SolutionsAndDiscriminants formatted =
                 formatSolutionsAndDiscriminants(run.allSolutions, finalMcDiscriminants, prover.scope2instantiations,
-                        prover.scope2SourceIndexGroups, structure, ctx.settings);
+                        prover.scope2InstantiationsByOrigin,
+                        prover.scope2SourceIndexGroups, prover.scope2SourceIndexGroupsByOrigin,
+                        structure, ctx.settings, origins);
 
         applyOptionalSemanticRendering(ctx, formatted);
 
@@ -394,7 +436,7 @@ public class GswbController {
         }
 
         List<GswbDiscriminant> outputDiscriminants =
-                toOutputDiscriminants(formatted.finalScopeDiscriminants, finalMcDiscriminants);
+                toOutputDiscriminants(formatted.finalScopeDiscriminants, finalMcDiscriminants, origins);
 
         LexVariableHandler.resetVars();
 
@@ -408,6 +450,48 @@ public class GswbController {
                 run.noOfMCs,
                 run.countSolutions
         );
+    }
+
+    private ParsedProofInputs parseProofInputs(
+            List<GswbProofInput> proofInputs,
+            GlueParser gp,
+            boolean multistage
+    ) throws Exception {
+        LinkedHashMap<Integer, List<MeaningConstructor>> combined = new LinkedHashMap<>();
+        Map<Integer, GswbProofInput> origins = new LinkedHashMap<>();
+        int nextKey = 1;
+
+        for (GswbProofInput proofInput : proofInputs) {
+            if (proofInput == null || proofInput.meaningConstructors == null
+                    || proofInput.meaningConstructors.isBlank()) {
+                continue;
+            }
+
+            InputOutputProcessor.process(proofInput.meaningConstructors);
+            String translated = InputOutputProcessor.translate(proofInput.meaningConstructors);
+            LexicalEntries local = gp.parseMeaningConstructorString(translated, multistage);
+            for (Map.Entry<Integer, List<MeaningConstructor>> localEntry : local.lexicalEntries.entrySet()) {
+                GswbProofInput origin = copyProofInput(proofInput);
+                String baseMcSetId = proofInput.mcSetId == null || proofInput.mcSetId.isBlank()
+                        ? proofInput.proofId : proofInput.mcSetId;
+                origin.mcSetId = baseMcSetId + ":" + localEntry.getKey();
+                combined.put(nextKey, localEntry.getValue());
+                origins.put(nextKey, origin);
+                nextKey++;
+            }
+        }
+
+        return new ParsedProofInputs(new LexicalEntries(combined), origins);
+    }
+
+    private GswbProofInput copyProofInput(GswbProofInput input) {
+        GswbProofInput copy = new GswbProofInput();
+        copy.proofId = input.proofId;
+        copy.solutionKey = input.solutionKey;
+        copy.mcSetId = input.mcSetId;
+        copy.meaningConstructors = input.meaningConstructors;
+        copy.structure = input.structure;
+        return copy;
     }
 
     private Object buildDerivationIfEnabled(Settings settings, LLProver prover) {
@@ -455,8 +539,8 @@ public class GswbController {
             LexicalEntries mcs,
             LLProver prover,
             StringBuilder sb,
-            Settings settings,
-            boolean batchMode
+            boolean batchMode,
+            Map<Integer, GswbProofInput> origins
     ) {
         int noOfMCs = 0;
         int countSolutions = 0;
@@ -464,10 +548,15 @@ public class GswbController {
         LinkedHashMap<Integer, List<SolutionObject>> allSolutions = new LinkedHashMap<>();
         HashSet<Integer> mcSetWithSolution = new HashSet<>();
 
+        prover.scope2SourceIndexGroupsByOrigin.clear();
+        prover.scope2InstantiationsByOrigin.clear();
+
         String log = "";
 
         for (Integer key : mcs.lexicalEntries.keySet()) {
             try {
+                GswbProofInput origin = origins.get(key);
+                prover.currentProofOrigin = origin == null ? null : originTag(origin);
                 noOfMCs += mcs.lexicalEntries.get(key).size();
 
                 List<SolutionObject> solutions = prover.searchProof(key, mcs);
@@ -485,6 +574,7 @@ public class GswbController {
                 }
 
                 sb.setLength(0);
+                prover.currentProofOrigin = null;
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -559,8 +649,12 @@ public class GswbController {
         List<GswbSolution> outputSolutions = new ArrayList<>();
         for (Integer idx : solutionsByIndex.keySet().stream().sorted().toList()) {
             SolutionObject so = solutionsByIndex.get(idx);
-            outputSolutions.add(new GswbSolution(so.solutionString, so.solutionId, so.sourceIndex, so.graph,
-                    so.semantic));
+            GswbSolution output = new GswbSolution(so.solutionString, so.solutionId, so.sourceIndex, so.graph,
+                    so.semantic);
+            output.proofId = so.proofId;
+            output.solutionKey = so.solutionKey;
+            output.mcSetId = so.mcSetId;
+            outputSolutions.add(output);
         }
         return outputSolutions;
     }
@@ -713,9 +807,12 @@ public class GswbController {
             LinkedHashMap<Integer, List<SolutionObject>> allSolutions,
             List<McDiscriminant> finalMcDiscriminants,
             LinkedHashMap<String, LinkedHashSet<String>> scope2instantiations,
+            LinkedHashMap<String, LinkedHashMap<String, LinkedHashSet<String>>> scope2InstantiationsByOrigin,
             LinkedHashMap<String, List<LinkedHashSet<Integer>>> scope2SourceIndexGroups,
+            LinkedHashMap<String, LinkedHashMap<String, List<LinkedHashSet<Integer>>>> scope2SourceIndexGroupsByOrigin,
             LinkedHashMap<String, Object> structure,
-            Settings settings
+            Settings settings,
+            Map<Integer, GswbProofInput> origins
     ) {
         Map<Integer, SolutionObject> solutionIndexToObject = new HashMap<>();
         List<String> solutions = new ArrayList<>();
@@ -729,6 +826,12 @@ public class GswbController {
             for (int i = 0; i < allSolutions.get(key).size(); i++) {
 
                 SolutionObject currentSO = allSolutions.get(key).get(i);
+                GswbProofInput origin = origins.get(key);
+                if (origin != null) {
+                    currentSO.proofId = origin.proofId;
+                    currentSO.solutionKey = origin.solutionKey;
+                    currentSO.mcSetId = origin.mcSetId;
+                }
 
                 String currentSolution = buildSolutionString(settings, key, i, currentSO).trim();
 
@@ -741,14 +844,19 @@ public class GswbController {
                 for (String sd : currentSO.scopeDiscriminants) {
                     ScopeDiscriminant existing = scopeDiscriminants.get(sd);
                     if (existing == null) {
+                        LinkedHashSet<String> instantiations = instantiationsFor(sd, origin,
+                                scope2instantiations, scope2InstantiationsByOrigin);
                         ScopeDiscriminant newSD =
-                                new ScopeDiscriminant("sc" + scopeDiscriminantIndex, sd, new HashSet<>(), scope2instantiations.getOrDefault(sd, new LinkedHashSet<>()));
+                        new ScopeDiscriminant("sc" + scopeDiscriminantIndex, sd, new HashSet<>(), instantiations);
                         newSD.solutionIds.add("s" + solutionIndex);
+                        addOrigin(newSD, origin);
                         scopeDiscriminants.put(sd, newSD);
                         scopeDiscriminantIndex++;
                     } else {
                         existing.solutionIds.add("s" + solutionIndex);
-                        existing.instantiations.addAll(scope2instantiations.get(sd));
+                        addOrigin(existing, origin);
+                        existing.instantiations.addAll(instantiationsFor(sd, origin,
+                                scope2instantiations, scope2InstantiationsByOrigin));
                     }
                 }
 
@@ -763,60 +871,148 @@ public class GswbController {
 
         List<ScopeDiscriminant> finalScopeDiscriminants =
                 finalizeScopeDiscriminants(scopeDiscriminants, solutions.size());
+        reconcileDiscriminantOrigins(finalScopeDiscriminants, solutionIndexToObject,
+                scope2InstantiationsByOrigin, !origins.isEmpty());
 
-        enrichScopeSurfaceLabels(finalScopeDiscriminants, scope2SourceIndexGroups, structure);
+        enrichScopeSurfaceLabels(finalScopeDiscriminants, scope2SourceIndexGroups,
+                        scope2SourceIndexGroupsByOrigin, structure, origins);
 
         return new SolutionsAndDiscriminants(solutions, solutionIndexToObject, finalScopeDiscriminants);
     }
 
+    private void reconcileDiscriminantOrigins(
+            List<ScopeDiscriminant> discriminants,
+            Map<Integer, SolutionObject> solutionsByIndex,
+            LinkedHashMap<String, LinkedHashMap<String, LinkedHashSet<String>>> instantiationsByOrigin,
+            boolean hasStructuredOrigins
+    ) {
+        if (!hasStructuredOrigins) {
+            return;
+        }
+        for (ScopeDiscriminant discriminant : discriminants) {
+            discriminant.originIds.clear();
+            discriminant.instantiations.clear();
+            for (String solutionId : discriminant.solutionIds) {
+                SolutionObject solution = solutionsByIndex.values().stream()
+                        .filter(candidate -> solutionId.equals(candidate.solutionId))
+                        .findFirst()
+                        .orElse(null);
+                String originId = solution == null
+                        ? null
+                        : (solution.mcSetId == null || solution.mcSetId.isBlank()
+                        ? solution.proofId : solution.mcSetId);
+                if (originId == null || originId.isBlank()) {
+                    continue;
+                }
+                discriminant.originIds.add(originId);
+                LinkedHashMap<String, LinkedHashSet<String>> values = instantiationsByOrigin.get(originId);
+                if (values != null) {
+                    discriminant.instantiations.addAll(values.getOrDefault(
+                            discriminant.scopeConstraint, new LinkedHashSet<>()));
+                }
+            }
+        }
+    }
+
+    private LinkedHashSet<String> instantiationsFor(
+            String scope,
+            GswbProofInput origin,
+            LinkedHashMap<String, LinkedHashSet<String>> allInstantiations,
+            LinkedHashMap<String, LinkedHashMap<String, LinkedHashSet<String>>> instantiationsByOrigin
+    ) {
+        String originId = originTag(origin);
+        if (originId != null) {
+            LinkedHashMap<String, LinkedHashSet<String>> originValues = instantiationsByOrigin.get(originId);
+            if (originValues != null && originValues.containsKey(scope)) {
+                return new LinkedHashSet<>(originValues.get(scope));
+            }
+        }
+        return new LinkedHashSet<>(allInstantiations.getOrDefault(scope, new LinkedHashSet<>()));
+    }
+
     private void enrichScopeSurfaceLabels(List<ScopeDiscriminant> discriminants,
                                           LinkedHashMap<String, List<LinkedHashSet<Integer>>> groupsByScope,
-                                          LinkedHashMap<String, Object> structure) {
-        if (structure == null || discriminants.isEmpty()) {
+                                          LinkedHashMap<String, LinkedHashMap<String, List<LinkedHashSet<Integer>>>> groupsByOrigin,
+                                          LinkedHashMap<String, Object> structure,
+                                          Map<Integer, GswbProofInput> origins) {
+        if (discriminants.isEmpty()) {
             return;
         }
 
-        List<ScopeDiscriminant> resolvable = discriminants.stream()
-                .filter(d -> groupsByScope.containsKey(d.scopeConstraint))
-                .toList();
-        List<List<Integer>> groups = new ArrayList<>();
-        for (ScopeDiscriminant discriminant : resolvable) {
-            for (LinkedHashSet<Integer> group : groupsByScope.get(discriminant.scopeConstraint)) {
-                groups.add(new ArrayList<>(group));
+        for (ScopeDiscriminant discriminant : discriminants) {
+            boolean hasGlobalGroups = groupsByScope.containsKey(discriminant.scopeConstraint);
+            boolean hasOriginGroups = groupsByOrigin.values().stream()
+                    .anyMatch(groups -> groups.containsKey(discriminant.scopeConstraint));
+            if (!hasGlobalGroups && !hasOriginGroups) {
+                continue;
+            }
+            if (discriminant.originIds.isEmpty()) {
+                List<LinkedHashSet<Integer>> sourceGroups = groupsByScope.get(discriminant.scopeConstraint);
+                if (sourceGroups == null) {
+                    sourceGroups = groupsByOrigin.values().stream()
+                            .map(groups -> groups.get(discriminant.scopeConstraint))
+                            .filter(Objects::nonNull)
+                            .findFirst()
+                            .orElse(null);
+                }
+                String label = resolveSurfaceLabel(discriminant, sourceGroups, structure);
+                if (label != null) {
+                    discriminant.surfaceLabel = label;
+                }
+                continue;
+            }
+            for (String originId : discriminant.originIds) {
+                LinkedHashMap<String, List<LinkedHashSet<Integer>>> originGroups = groupsByOrigin.get(originId);
+                List<LinkedHashSet<Integer>> sourceGroups = originGroups == null
+                        ? groupsByScope.get(discriminant.scopeConstraint)
+                        : originGroups.get(discriminant.scopeConstraint);
+                LinkedHashMap<String, Object> originStructure = origins.values().stream()
+                        .filter(origin -> originId.equals(originTag(origin)))
+                        .map(origin -> origin.structure)
+                        .filter(Objects::nonNull)
+                        .findFirst()
+                        .orElse(null);
+                String label = resolveSurfaceLabel(discriminant, sourceGroups, originStructure);
+                if (label != null) {
+                    discriminant.surfaceLabelsByOrigin.put(originId, label);
+                    if (discriminant.surfaceLabel == null) {
+                        discriminant.surfaceLabel = label;
+                    }
+                }
             }
         }
-        if (groups.isEmpty()) return;
+    }
 
+    private String resolveSurfaceLabel(ScopeDiscriminant discriminant,
+                                       List<LinkedHashSet<Integer>> sourceGroups,
+                                       LinkedHashMap<String, Object> structure) {
+        if (structure == null || sourceGroups == null || sourceGroups.isEmpty()) {
+            return null;
+        }
         try {
             Map<String, Object> request = new LinkedHashMap<>();
             request.put("structure", structure);
-            request.put("sourceIndexGroups", groups);
-            Map<?, ?> response = restTemplate.postForObject(
-                    ligerApiUrl + "/resolve_source_spans", request, Map.class);
+            request.put("sourceIndexGroups", sourceGroups.stream().map(ArrayList::new).toList());
+            Map<?, ?> response = restTemplate.postForObject(ligerApiUrl + "/resolve_source_spans", request, Map.class);
             List<?> spans = response == null || !(response.get("spans") instanceof List<?> values)
                     ? List.of() : values;
-            int offset = 0;
-            for (ScopeDiscriminant discriminant : resolvable) {
-                List<String> parts = new ArrayList<>();
-                int count = groupsByScope.get(discriminant.scopeConstraint).size();
-                for (int i = 0; i < count && offset + i < spans.size(); i++) {
-                    if (spans.get(offset + i) instanceof Map<?, ?> span) {
-                        Object rawText = span.get("text");
-                        String text = rawText == null ? "" : String.valueOf(rawText).trim();
-                        Object start = span.get("start");
-                        Object end = span.get("end");
-                        if (!text.isEmpty()) {
-                            parts.add(text + (start != null && end != null ? "[" + start + "-" + end + "]" : ""));
-                        }
+            List<String> parts = new ArrayList<>();
+            for (Object spanValue : spans) {
+                if (spanValue instanceof Map<?, ?> span) {
+                    Object rawText = span.get("text");
+                    String text = rawText == null ? "" : String.valueOf(rawText).trim();
+                    Object start = span.get("start");
+                    Object end = span.get("end");
+                    if (!text.isEmpty()) {
+                        parts.add(text + (start != null && end != null ? "[" + start + "-" + end + "]" : ""));
                     }
                 }
-                offset += count;
-                if (!parts.isEmpty()) {
-                    discriminant.surfaceLabel = String.join(" > ", parts);
-                }
             }
+            return parts.isEmpty() ? null : String.join(" > ", parts);
         } catch (Exception e) {
-            LOGGER.warning("Could not resolve scope discriminant surface labels: " + e.getMessage());
+            LOGGER.warning("Could not resolve scope discriminant surface label for "
+                    + discriminant.discriminantID + ": " + e.getMessage());
+            return null;
         }
     }
 
@@ -858,16 +1054,48 @@ public class GswbController {
 
     private List<GswbDiscriminant> toOutputDiscriminants(
             List<ScopeDiscriminant> scopeDiscriminants,
-            List<McDiscriminant> mcDiscriminants
+            List<McDiscriminant> mcDiscriminants,
+            Map<Integer, GswbProofInput> origins
     ) {
         List<GswbDiscriminant> out = new ArrayList<>();
         for (ScopeDiscriminant d : scopeDiscriminants) {
-            out.add(new GswbDiscriminant(d.discriminantID, "scope", d.scopeConstraint, d.solutionIds, d.instantiations, d.surfaceLabel));
+            GswbDiscriminant output = new GswbDiscriminant(d.discriminantID, "scope", d.scopeConstraint,
+                    d.solutionIds, d.instantiations, d.surfaceLabel);
+            output.originIds = d.originIds;
+            output.surfaceLabelsByOrigin = d.surfaceLabelsByOrigin;
+            out.add(output);
         }
         for (McDiscriminant mc : mcDiscriminants) {
-            out.add(new GswbDiscriminant(mc.discriminantID, "MCs", mc.meaningConstructor, mc.associatedSolutions));
+            GswbDiscriminant output = new GswbDiscriminant(mc.discriminantID, "MCs", mc.meaningConstructor,
+                    mc.associatedSolutions);
+            for (Integer mcSetId : mc.mcSetIds) {
+                GswbProofInput origin = origins.get(mcSetId);
+                String originId = originTag(origin);
+                if (originId != null) {
+                    mc.originIds.add(originId);
+                }
+            }
+            output.originIds = mc.originIds;
+            out.add(output);
         }
         return out;
+    }
+
+    private void addOrigin(ScopeDiscriminant discriminant, GswbProofInput origin) {
+        String originId = originTag(origin);
+        if (originId == null || originId.isBlank()) {
+            return;
+        }
+        discriminant.originIds.add(originId);
+    }
+
+    private String originTag(GswbProofInput origin) {
+        if (origin == null) {
+            return null;
+        }
+        return origin.mcSetId == null || origin.mcSetId.isBlank()
+                ? origin.proofId
+                : origin.mcSetId;
     }
 
     private static double entropy(int k, int n) {

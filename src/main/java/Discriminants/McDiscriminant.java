@@ -9,6 +9,7 @@ public class McDiscriminant {
     public String meaningConstructor;
     public HashSet<Integer> mcSetIds;
     public HashSet<String> associatedSolutions = new HashSet<>();
+    public HashSet<String> originIds = new HashSet<>();
 
 
     public McDiscriminant(String discriminantID, String meaningConstructor, HashSet<Integer> mcSetIds) {

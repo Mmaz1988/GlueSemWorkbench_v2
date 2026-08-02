@@ -10,6 +10,9 @@ public class GswbSolution {
     public LinkedHashMap<String, Object> graph;
     public String semantic;
     public String anaphoraMapping;
+    public String proofId;
+    public String solutionKey;
+    public String mcSetId;
 
     public GswbSolution() {}
 

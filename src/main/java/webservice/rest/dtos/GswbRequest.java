@@ -1,6 +1,7 @@
 package webservice.rest.dtos;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 
 public class GswbRequest {
 
@@ -8,6 +9,7 @@ public class GswbRequest {
     public GswbPreferences gswbPreferences;
     public String sessionKey;
     public LinkedHashMap<String, Object> structure;
+    public List<GswbProofInput> proofs;
 
     public GswbRequest() {}
 

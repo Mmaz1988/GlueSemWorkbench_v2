@@ -2,6 +2,8 @@ package webservice.rest.dtos;
 
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 public class GswbDiscriminant {
     public String id;
@@ -10,6 +12,8 @@ public class GswbDiscriminant {
     public HashSet<String> associatedSolutions;
     public LinkedHashSet<String> instantiations;
     public String surfaceLabel;
+    public Set<String> originIds;
+    public Map<String, String> surfaceLabelsByOrigin;
 
     public GswbDiscriminant() {}
 
