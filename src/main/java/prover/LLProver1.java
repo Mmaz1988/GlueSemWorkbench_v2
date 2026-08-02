@@ -64,6 +64,7 @@ public class LLProver1 extends LLProver {
          this.solutionViolationCounts.clear();
          this.nonScopingModifiers = new HashSet<>();
          this.scopingModifiers = new HashSet<>();
+         this.scope2SourceIndexGroups.clear();
          this.enforceInsitu = true;
         this.discriminants = new HashSet<>();
         this.db = new Debugging();
@@ -744,20 +745,14 @@ public class LLProver1 extends LLProver {
                                 //Discriminant calculation
                                 HashSet<String> outscopes = new HashSet<>();
 
-                                for (Integer index : h.indexSet){
-                                    if (this.scopingModifiers.contains(index))
-                                    {
-                                        for (Integer index1 : current.indexSet)
-                                        {
-                                           if (this.scopingModifiers.contains(index1))
-                                           {
-                                               String newScoping = this.agenda.get(index).getGlueTerm().toString() + " < " + this.agenda.get(index1).getGlueTerm().toString();
-                                               outscopes.add(newScoping);
-                                               scope2instantiations.putIfAbsent(newScoping, new LinkedHashSet<>());
-                                               scope2instantiations.get(newScoping).add(this.agenda.get(index).getGlueTerm().toStringNotation() + " : " + this.agenda.get(index).getSemTerm() + " <\n\t" + this.agenda.get(index1).getGlueTerm().toStringNotation() + " : " + this.agenda.get(index1).getSemTerm());
-                                           }
-                                        }
-                                    }
+                                Integer index = firstScopingModifier(h.indexSet);
+                                Integer index1 = firstScopingModifier(current.indexSet);
+                                if (index != null && index1 != null) {
+                                    String newScoping = this.agenda.get(index).getGlueTerm().toString() + " < " + this.agenda.get(index1).getGlueTerm().toString();
+                                    outscopes.add(newScoping);
+                                    recordScopeSourceIndices(newScoping, sourceIndices(h, index), sourceIndices(current, index1));
+                                    scope2instantiations.putIfAbsent(newScoping, new LinkedHashSet<>());
+                                    scope2instantiations.get(newScoping).add(this.agenda.get(index).getGlueTerm().toStringNotation() + " : " + this.agenda.get(index).getSemTerm() + " <\n\t" + this.agenda.get(index1).getGlueTerm().toStringNotation() + " : " + this.agenda.get(index1).getSemTerm());
                                 }
                                 combined.scopeDiscriminants.addAll(outscopes);
                                 agendaIterator.add(combined);
@@ -770,21 +765,15 @@ public class LLProver1 extends LLProver {
                             if (combined != null) {
 
                                 HashSet<String> outscopes = new HashSet<>();
-                                for (Integer index : current.indexSet){
-                                    if (this.scopingModifiers.contains(index))
-                                    {
-                                        for (Integer index1 : h.indexSet)
-                                        {
-                                            if (this.scopingModifiers.contains(index1))
-                                            {
-                                                String newScoping = this.agenda.get(index).getGlueTerm().toString() + " < " + this.agenda.get(index1).getGlueTerm().toString();
-                                                outscopes.add(newScoping);
-                                                scope2instantiations.putIfAbsent(newScoping, new LinkedHashSet<>());
-                                                scope2instantiations.get(newScoping).add(this.agenda.get(index).getGlueTerm().toStringNotation() + " : " + this.agenda.get(index).getSemTerm() + " <\n\t" +
-                                                        this.agenda.get(index1).getGlueTerm().toStringNotation() + " : " + this.agenda.get(index1).getSemTerm());
-                                            }
-                                        }
-                                    }
+                                Integer index = firstScopingModifier(current.indexSet);
+                                Integer index1 = firstScopingModifier(h.indexSet);
+                                if (index != null && index1 != null) {
+                                    String newScoping = this.agenda.get(index).getGlueTerm().toString() + " < " + this.agenda.get(index1).getGlueTerm().toString();
+                                    outscopes.add(newScoping);
+                                    recordScopeSourceIndices(newScoping, sourceIndices(current, index), sourceIndices(h, index1));
+                                    scope2instantiations.putIfAbsent(newScoping, new LinkedHashSet<>());
+                                    scope2instantiations.get(newScoping).add(this.agenda.get(index).getGlueTerm().toStringNotation() + " : " + this.agenda.get(index).getSemTerm() + " <\n\t" +
+                                            this.agenda.get(index1).getGlueTerm().toStringNotation() + " : " + this.agenda.get(index1).getSemTerm());
                                 }
 
                                 combined.scopeDiscriminants.addAll(outscopes);
@@ -801,6 +790,37 @@ public class LLProver1 extends LLProver {
 
             }
         return chart;
+        }
+
+        private void recordScopeSourceIndices(String scope, Collection<Integer> leftIds, Collection<Integer> rightIds) {
+            List<LinkedHashSet<Integer>> groups = scope2SourceIndexGroups.computeIfAbsent(scope, ignored -> new ArrayList<>());
+            // Sequent premise IDs are zero-based; LiGER SYN-ID values are one-based.
+            LinkedHashSet<Integer> left = toSyntheticSourceIndices(leftIds);
+            LinkedHashSet<Integer> right = toSyntheticSourceIndices(rightIds);
+            if (groups.isEmpty()) {
+                groups.add(left);
+                groups.add(right);
+            }
+        }
+
+        private Collection<Integer> sourceIndices(History history, Integer modifierIndex) {
+            return history.scopeSourceIndices.getOrDefault(modifierIndex, history.indexSet);
+        }
+
+        private Integer firstScopingModifier(Collection<Integer> indices) {
+            return firstScopingModifier(indices, this.scopingModifiers);
+        }
+
+        static Integer firstScopingModifier(Collection<Integer> indices, Set<Integer> scopingModifiers) {
+            return indices.stream()
+                    .filter(scopingModifiers::contains)
+                    .findFirst()
+                    .orElse(null);
+        }
+
+        static LinkedHashSet<Integer> toSyntheticSourceIndices(Collection<Integer> premiseIds) {
+            return premiseIds.stream().map(id -> id + 1)
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
         }
 
         /*
@@ -1041,6 +1061,17 @@ public class LLProver1 extends LLProver {
                     Set<HashMap<Integer,History>> parents = Collections.singleton(parentNodes);
 
                     History result = new History( h1.category.right, union, parents,this);
+
+                    result.scopeSourceIndices.putAll(h1.scopeSourceIndices);
+                    h2.scopeSourceIndices.forEach((modifier, indices) ->
+                            result.scopeSourceIndices.putIfAbsent(modifier, indices));
+                    if (!result.category.atomic && result.category.left.equals(result.category.right)) {
+                        for (Integer modifier : this.scopingModifiers) {
+                            if (result.indexSet.contains(modifier)) {
+                                result.scopeSourceIndices.putIfAbsent(modifier, new LinkedHashSet<>(result.indexSet));
+                            }
+                        }
+                    }
 
                     if (!h1.category.right.atomic) {
                         result.discharges = h1.category.right.left.discharges;

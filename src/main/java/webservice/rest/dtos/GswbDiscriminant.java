@@ -9,6 +9,7 @@ public class GswbDiscriminant {
     public String identifier;
     public HashSet<String> associatedSolutions;
     public LinkedHashSet<String> instantiations;
+    public String surfaceLabel;
 
     public GswbDiscriminant() {}
 
@@ -25,5 +26,11 @@ public class GswbDiscriminant {
         this.identifier = identifier;
         this.associatedSolutions = associatedSolutions;
         this.instantiations = instantiations;
+    }
+
+    public GswbDiscriminant(String id, String type, String identifier, HashSet<String> associatedSolutions,
+                            LinkedHashSet<String> instantiations, String surfaceLabel) {
+        this(id, type, identifier, associatedSolutions, instantiations);
+        this.surfaceLabel = surfaceLabel;
     }
 }

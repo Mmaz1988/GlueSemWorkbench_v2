@@ -24,6 +24,7 @@ public abstract class LLProver {
 
     public HashSet<String> discriminants = new HashSet<>();
     public LinkedHashMap<String, LinkedHashSet<String>> scope2instantiations = new LinkedHashMap<>();
+    public LinkedHashMap<String, List<LinkedHashSet<Integer>>> scope2SourceIndexGroups = new LinkedHashMap<>();
 
     private final static Logger LOGGER = Logger.getLogger(WorkbenchMain.class.getName());
 

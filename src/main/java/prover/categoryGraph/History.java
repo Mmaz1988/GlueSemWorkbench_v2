@@ -31,6 +31,7 @@ public class History {
 
     public HashSet<String> scopeDiscriminants = new HashSet<>();
     public Set<Integer> insituIndices = new HashSet<>();
+    public Map<Integer, LinkedHashSet<Integer>> scopeSourceIndices = new HashMap<>();
 
     public String stage;
 

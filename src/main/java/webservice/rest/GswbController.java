@@ -17,6 +17,7 @@ import glueSemantics.semantics.MeaningConstructor;
 import de.ukon.lfgxdrt.DrsSvgRenderer;
 import main.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.bind.annotation.*;
 import prover.*;
 import utilities.LexVariableHandler;
@@ -36,6 +37,8 @@ public class GswbController {
     @Autowired
     private GswbRedisSessionService gswbRedisSessionService;
     private final static Logger LOGGER = Logger.getLogger(GswbController.class.getName());
+    private final RestTemplate restTemplate = new RestTemplate();
+    private final String ligerApiUrl = System.getenv().getOrDefault("LIGER_API_URL", "http://localhost:8080");
 
     public GswbController(){}
 
@@ -65,7 +68,8 @@ public class GswbController {
                             ctx,
                             gp,
                             true,  // batch mode
-                            false  // includeDerivation
+                            false, // includeDerivation
+                            null
                     );
 
             analyses.put(id, run.output);
@@ -100,7 +104,8 @@ public class GswbController {
                         ctx,
                         gp,
                         false, // single mode
-                        true   // includeDerivation
+                        true,  // includeDerivation
+                        request.structure
                 );
 
         return run.output;
@@ -356,7 +361,8 @@ public class GswbController {
             RunContext ctx,
             GlueParser gp,
             boolean batchMode,
-            boolean includeDerivation
+            boolean includeDerivation,
+            LinkedHashMap<String, Object> structure
     ) throws Exception {
 
         LLProverAndLog proverAndLog = createProver(ctx.settings);
@@ -375,7 +381,8 @@ public class GswbController {
         LOGGER.info("Formatting output...");
 
         SolutionsAndDiscriminants formatted =
-                formatSolutionsAndDiscriminants(run.allSolutions, finalMcDiscriminants, prover.scope2instantiations, ctx.settings);
+                formatSolutionsAndDiscriminants(run.allSolutions, finalMcDiscriminants, prover.scope2instantiations,
+                        prover.scope2SourceIndexGroups, structure, ctx.settings);
 
         applyOptionalSemanticRendering(ctx, formatted);
 
@@ -706,6 +713,8 @@ public class GswbController {
             LinkedHashMap<Integer, List<SolutionObject>> allSolutions,
             List<McDiscriminant> finalMcDiscriminants,
             LinkedHashMap<String, LinkedHashSet<String>> scope2instantiations,
+            LinkedHashMap<String, List<LinkedHashSet<Integer>>> scope2SourceIndexGroups,
+            LinkedHashMap<String, Object> structure,
             Settings settings
     ) {
         Map<Integer, SolutionObject> solutionIndexToObject = new HashMap<>();
@@ -755,7 +764,60 @@ public class GswbController {
         List<ScopeDiscriminant> finalScopeDiscriminants =
                 finalizeScopeDiscriminants(scopeDiscriminants, solutions.size());
 
+        enrichScopeSurfaceLabels(finalScopeDiscriminants, scope2SourceIndexGroups, structure);
+
         return new SolutionsAndDiscriminants(solutions, solutionIndexToObject, finalScopeDiscriminants);
+    }
+
+    private void enrichScopeSurfaceLabels(List<ScopeDiscriminant> discriminants,
+                                          LinkedHashMap<String, List<LinkedHashSet<Integer>>> groupsByScope,
+                                          LinkedHashMap<String, Object> structure) {
+        if (structure == null || discriminants.isEmpty()) {
+            return;
+        }
+
+        List<ScopeDiscriminant> resolvable = discriminants.stream()
+                .filter(d -> groupsByScope.containsKey(d.scopeConstraint))
+                .toList();
+        List<List<Integer>> groups = new ArrayList<>();
+        for (ScopeDiscriminant discriminant : resolvable) {
+            for (LinkedHashSet<Integer> group : groupsByScope.get(discriminant.scopeConstraint)) {
+                groups.add(new ArrayList<>(group));
+            }
+        }
+        if (groups.isEmpty()) return;
+
+        try {
+            Map<String, Object> request = new LinkedHashMap<>();
+            request.put("structure", structure);
+            request.put("sourceIndexGroups", groups);
+            Map<?, ?> response = restTemplate.postForObject(
+                    ligerApiUrl + "/resolve_source_spans", request, Map.class);
+            List<?> spans = response == null || !(response.get("spans") instanceof List<?> values)
+                    ? List.of() : values;
+            int offset = 0;
+            for (ScopeDiscriminant discriminant : resolvable) {
+                List<String> parts = new ArrayList<>();
+                int count = groupsByScope.get(discriminant.scopeConstraint).size();
+                for (int i = 0; i < count && offset + i < spans.size(); i++) {
+                    if (spans.get(offset + i) instanceof Map<?, ?> span) {
+                        Object rawText = span.get("text");
+                        String text = rawText == null ? "" : String.valueOf(rawText).trim();
+                        Object start = span.get("start");
+                        Object end = span.get("end");
+                        if (!text.isEmpty()) {
+                            parts.add(text + (start != null && end != null ? "[" + start + "-" + end + "]" : ""));
+                        }
+                    }
+                }
+                offset += count;
+                if (!parts.isEmpty()) {
+                    discriminant.surfaceLabel = String.join(" > ", parts);
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.warning("Could not resolve scope discriminant surface labels: " + e.getMessage());
+        }
     }
 
     private String buildSolutionString(Settings settings, Integer key, int i, SolutionObject so) {
@@ -800,7 +862,7 @@ public class GswbController {
     ) {
         List<GswbDiscriminant> out = new ArrayList<>();
         for (ScopeDiscriminant d : scopeDiscriminants) {
-            out.add(new GswbDiscriminant(d.discriminantID, "scope", d.scopeConstraint, d.solutionIds, d.instantiations));
+            out.add(new GswbDiscriminant(d.discriminantID, "scope", d.scopeConstraint, d.solutionIds, d.instantiations, d.surfaceLabel));
         }
         for (McDiscriminant mc : mcDiscriminants) {
             out.add(new GswbDiscriminant(mc.discriminantID, "MCs", mc.meaningConstructor, mc.associatedSolutions));
