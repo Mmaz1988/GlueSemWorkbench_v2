@@ -219,6 +219,36 @@ public class GswbController {
     @CrossOrigin
     @PostMapping(value = "/merge_sequence_semantics", produces = "application/json", consumes = "application/json")
     public GswbSolution mergeSequenceSemantics(@RequestBody GswbSequenceMergeRequest request) throws Exception {
+        if (request != null && request.parts != null && !request.parts.isEmpty()) {
+            List<SemanticExpression> expressions = new ArrayList<>();
+            for (GswbSequencePart part : request.parts) {
+                if (part == null || part.semantic == null || part.semantic.isBlank()) {
+                    throw new IllegalArgumentException("Every sequence part requires semantic text");
+                }
+                expressions.add(new DrsParser().parse(part.semantic).expression);
+            }
+
+            SemanticExpression merged = DrsSequenceMerger.merge(expressions);
+            SemanticExpression resolvedExpression = merged.resolveMerges();
+            if (!(resolvedExpression instanceof DRS resolved)) {
+                throw new IllegalStateException("Sequence merge did not resolve to a DRS");
+            }
+
+            String parentId = request.parentSolutionId == null || request.parentSolutionId.isBlank()
+                    ? "sequence" : request.parentSolutionId;
+            GswbSequencePart lastPart = request.parts.get(request.parts.size() - 1);
+            GswbSolution output = new GswbSolution(
+                    new DrsSvgRenderer().toSvg(merged),
+                    parentId + "-drs-merge",
+                    merged.getSourceIndex(),
+                    resolved.toJson(),
+                    merged.toString());
+            output.solutionKey = request.solutionKey != null
+                    ? request.solutionKey : lastPart.solutionKey;
+            output.mcSetId = request.mcSetId != null ? request.mcSetId : lastPart.mcSetId;
+            output.proofId = lastPart.proofId;
+            return output;
+        }
         if (request == null || request.graphs == null || request.graphs.isEmpty()
                 || request.graphs.stream().anyMatch(Objects::isNull)) {
             throw new IllegalArgumentException("At least one canonical semantic graph is required");
