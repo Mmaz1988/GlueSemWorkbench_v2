@@ -5,6 +5,8 @@ import de.ukon.lfgxdrt.SemanticExpression;
 import de.ukon.lfgxdrt.DrsParser;
 import de.ukon.lfgxdrt.DrsGraphParser;
 import de.ukon.lfgxdrt.DrsSequenceMerger;
+import de.ukon.lfgxdrt.DrsReasoningCheckBuilder;
+import de.ukon.lfgxdrt.ReasoningCheckType;
 import de.ukon.lfgxdrt.drs_elements.DRS;
 import de.ukon.lfgxdrt.drs_elements.AnaphoraMapping;
 import de.ukon.lfgxdrt.drs_elements.AnaphoraRelation;
@@ -295,6 +297,38 @@ public class GswbController {
         output.solutionKey = request.solutionKey;
         output.mcSetId = request.mcSetId;
         return output;
+    }
+
+    @CrossOrigin
+    @PostMapping(value = "/reasoning_checks", produces = "application/json", consumes = "application/json")
+    public GswbReasoningChecksOutput reasoningChecks(@RequestBody GswbReasoningChecksRequest request) throws Exception {
+        if (request == null || request.premiseParts == null || request.premiseParts.isEmpty()
+                || request.hypothesisParts == null || request.hypothesisParts.isEmpty()) {
+            throw new IllegalArgumentException("Premise and hypothesis semantic parts are required");
+        }
+        List<SemanticExpression> premiseExpressions = new ArrayList<>();
+        for (String part : request.premiseParts) {
+            premiseExpressions.add(new DrsParser().parse(part).expression);
+        }
+        List<SemanticExpression> hypothesisExpressions = new ArrayList<>();
+        for (String part : request.hypothesisParts) {
+            hypothesisExpressions.add(new DrsParser().parse(part).expression);
+        }
+        SemanticExpression premiseMerged = DrsSequenceMerger.merge(premiseExpressions).resolveMerges();
+        SemanticExpression hypothesisMerged = DrsSequenceMerger.merge(hypothesisExpressions).resolveMerges();
+        if (!(premiseMerged instanceof DRS premise) || !(hypothesisMerged instanceof DRS hypothesis)) {
+            throw new IllegalStateException("Reasoning inputs must resolve to DRS boxes");
+        }
+
+        Map<String, GswbReasoningCheck> output = new LinkedHashMap<>();
+        Map<ReasoningCheckType, DrsReasoningCheckBuilder.CheckResult> checks =
+                new DrsReasoningCheckBuilder().build(premise, hypothesis, request.typed);
+        for (ReasoningCheckType type : ReasoningCheckType.values()) {
+            DrsReasoningCheckBuilder.CheckResult check = checks.get(type);
+            output.put(type.name().toLowerCase(), new GswbReasoningCheck(
+                    check.canonicalSemantic(), check.graph(), check.semanticSvg(), check.tptp()));
+        }
+        return new GswbReasoningChecksOutput(output);
     }
 
     @CrossOrigin
