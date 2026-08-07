@@ -241,16 +241,17 @@ public class GswbController {
             if (!(resolvedExpression instanceof DRS resolved)) {
                 throw new IllegalStateException("Sequence merge did not resolve to a DRS");
             }
+            SemanticExpression displayExpression = request.resolveDrs ? resolved : merged;
 
             String parentId = request.parentSolutionId == null || request.parentSolutionId.isBlank()
                     ? "sequence" : request.parentSolutionId;
             GswbSequencePart lastPart = request.parts.get(request.parts.size() - 1);
             GswbSolution output = new GswbSolution(
-                    new DrsSvgRenderer().toSvg(merged),
+                    new DrsSvgRenderer().toSvg(displayExpression),
                     parentId + "-drs-merge",
                     merged.getSourceIndex(),
-                    resolved.toJson(),
-                    merged.toString());
+                    displayExpression.toJson(),
+                    displayExpression.toString());
             output.solutionKey = request.solutionKey != null
                     ? request.solutionKey : lastPart.solutionKey;
             output.mcSetId = request.mcSetId != null ? request.mcSetId : lastPart.mcSetId;
@@ -279,14 +280,15 @@ public class GswbController {
             throw new IllegalStateException("Sequence merge did not resolve to a DRS");
         }
 
-        SemanticExpression displayExpression = merged;
+        SemanticExpression displayExpression = request.resolveDrs ? resolved : merged;
         if (request.semantics != null && request.semantics.size() == request.graphs.size()
                 && request.semantics.stream().allMatch(value -> value != null && !value.isBlank())) {
             List<SemanticExpression> displayExpressions = new ArrayList<>();
             for (String semantic : request.semantics) {
                 displayExpressions.add(new DrsParser().parse(semantic).expression);
             }
-            displayExpression = DrsSequenceMerger.merge(displayExpressions);
+            SemanticExpression parsedDisplay = DrsSequenceMerger.merge(displayExpressions);
+            displayExpression = request.resolveDrs ? parsedDisplay.resolveMerges() : parsedDisplay;
             LOGGER.info("Sequence display expression reconstructed from semantic strings: "
                     + displayExpression.toString());
         }
@@ -300,7 +302,7 @@ public class GswbController {
                 new DrsSvgRenderer().toSvg(displayExpression),
                 parentId + "-drs-merge",
                 merged.getSourceIndex(),
-                resolved.toJson(),
+                displayExpression.toJson(),
                 displayExpression.toString());
         output.solutionKey = request.solutionKey;
         output.mcSetId = request.mcSetId;

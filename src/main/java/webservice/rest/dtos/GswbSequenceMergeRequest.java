@@ -18,6 +18,7 @@ public class GswbSequenceMergeRequest {
     public String originalSemantic;
     public String solutionKey;
     public String mcSetId;
+    public boolean resolveDrs = true;
 
     public GswbSequenceMergeRequest() {
     }
