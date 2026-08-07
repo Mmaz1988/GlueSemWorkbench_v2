@@ -7,7 +7,9 @@ public class GswbSemanticAnalysis {
     public String syntacticOrigin;
     public String semId;
     public String semString;
+    /** Reserved for a linguistic structure supplied by a coordinator; GSWB does not populate it. */
     public LinkedHashMap<String, Object> structure;
+    /** Canonical LFGxDRT semantic graph. */
     public LinkedHashMap<String, Object> graph;
     public String semType;
 

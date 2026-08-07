@@ -223,7 +223,7 @@ public class GswbController {
     public GswbSolution mergeSequenceSemantics(@RequestBody GswbSequenceMergeRequest request) throws Exception {
         if (request != null && request.parts != null && !request.parts.isEmpty()) {
             List<SemanticExpression> expressions = new ArrayList<>();
-            for (GswbSequencePart part : request.parts) {
+            for (GswbSemanticMergePart part : request.parts) {
                 if (part == null || (part.graph == null && (part.semantic == null || part.semantic.isBlank()))) {
                     throw new IllegalArgumentException("Every sequence part requires a semantic graph or semantic text");
                 }
@@ -247,15 +247,15 @@ public class GswbController {
 
             String parentId = request.parentSolutionId == null || request.parentSolutionId.isBlank()
                     ? "sequence" : request.parentSolutionId;
-            GswbSequencePart lastPart = request.parts.get(request.parts.size() - 1);
+            GswbSemanticMergePart lastPart = request.parts.get(request.parts.size() - 1);
             GswbSolution output = new GswbSolution(
                     new DrsSvgRenderer().toSvg(displayExpression),
-                    parentId + "-drs-merge",
+                    compositeSemanticId(request.parts, parentId),
                     merged.getSourceIndex(),
                     resolved.toJson(),
                     displayExpression.toString());
             output.solutionKey = request.solutionKey != null
-                    ? request.solutionKey : lastPart.solutionKey;
+                    ? request.solutionKey : lastPart.syntacticOrigin;
             output.mcSetId = request.mcSetId != null ? request.mcSetId : lastPart.mcSetId;
             output.proofId = lastPart.proofId;
             output.semanticAnalysis = semanticAnalysis(output, output.solutionKey);
@@ -321,12 +321,27 @@ public class GswbController {
         return DrsSequenceMerger.merge(displayParts);
     }
 
-    private String compositeSyntaxId(List<GswbSequencePart> parts) {
+    private String compositeSyntaxId(List<GswbSemanticMergePart> parts) {
         return parts.stream()
-                .map(part -> part.solutionKey == null || part.solutionKey.isBlank()
-                        ? part.id : part.solutionKey)
+                .map(part -> part.syntacticOrigin == null || part.syntacticOrigin.isBlank()
+                        ? part.id : part.syntacticOrigin)
                 .filter(Objects::nonNull)
                 .collect(Collectors.joining("+"));
+    }
+
+    /**
+     * Semantic identity is derived from the ordered parent semantic IDs.
+     * The parentSolutionId fallback exists only for the legacy graphs-only
+     * request, which does not transport semantic identities.
+     */
+    private String compositeSemanticId(List<GswbSemanticMergePart> parts, String legacyParentId) {
+        List<String> parentIds = parts.stream()
+                .map(part -> part.id == null || part.id.isBlank() ? part.solutionId : part.id)
+                .toList();
+        if (parentIds.stream().allMatch(id -> id != null && !id.isBlank())) {
+            return String.join("+", parentIds);
+        }
+        return legacyParentId + "-drs-merge";
     }
 
     private GswbSemanticAnalysis semanticAnalysis(GswbSolution solution, String syntacticOrigin) {
@@ -335,7 +350,7 @@ public class GswbController {
                 syntacticOrigin,
                 semId,
                 solution.semantic,
-                solution.graph,
+                null,
                 solution.graph,
                 "lfgxdrt");
     }
@@ -773,15 +788,12 @@ public class GswbController {
                 // Source provenance belongs to graph JSON; keep the public semantic text clean.
                 so.semantic = sol.toString();
 
-                // SVG supports unresolved lambda/function-application structure;
-                // LiGER graph conversion requires beta-reduced semantics.
-                so.graph = null;
-                if (ctx.settings.isBetaReduce()) {
-                    try {
-                        so.graph = sol.toJson();
-                    } catch (Exception e) {
-                        LOGGER.warning("Could not render LiGER graph for solution " + idx + ": " + e.getMessage());
-                    }
+                // Keep display text/SVG independent from the graph payload.
+                // The graph must remain available for source provenance even
+                // when the display preference leaves DRS merges unresolved.
+                so.graph = semanticGraphFor(sol);
+                if (so.graph == null) {
+                    LOGGER.warning("Could not render provenance graph for solution " + idx);
                 }
 
 
@@ -825,6 +837,19 @@ public class GswbController {
             outputSolutions.add(output);
         }
         return outputSolutions;
+    }
+
+    private LinkedHashMap<String, Object> semanticGraphFor(SemanticExpression expression) {
+        try {
+            return expression.toJson();
+        } catch (Exception ignored) {
+            try {
+                return expression.betaReduce().resolveMerges().toJson();
+            } catch (Exception e) {
+                LOGGER.warning("Could not derive a provenance graph: " + e.getMessage());
+                return null;
+            }
+        }
     }
 
     private boolean hasCanonicalGraph(LinkedHashMap<String, Object> structure) {

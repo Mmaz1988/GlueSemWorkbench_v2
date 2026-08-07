@@ -6,11 +6,12 @@ import java.util.List;
 
 public class GswbSequenceMergeRequest {
     public String id;
-    public List<GswbSequencePart> parts = new ArrayList<>();
+    /** Ordered semantic parents. Syntax structures are merged by LiGER separately. */
+    public List<GswbSemanticMergePart> parts = new ArrayList<>();
 
-    /** Parallel semantic text values for the corresponding graph entries. */
+    /** Legacy graphs-only transport; analysis clients should use parts. */
     public List<String> semantics = new ArrayList<>();
-    /** Canonical semantic graph payloads when provenance is supplied separately. */
+    /** Legacy parallel graph transport; analysis clients should use parts. */
     public List<LinkedHashMap<String, Object>> graphs = new ArrayList<>();
     public String parentSolutionId;
     public String rootSolutionId;
