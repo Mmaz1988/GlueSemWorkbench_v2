@@ -300,6 +300,63 @@ public class GswbController {
     }
 
     @CrossOrigin
+    @PostMapping(value = "/semantic_to_tptp", produces = "application/json", consumes = "application/json")
+    public GswbTptpOutput semanticToTptp(@RequestBody GswbTptpRequest request) throws Exception {
+        if (request == null || request.semantic == null || request.semantic.isBlank()) {
+            throw new IllegalArgumentException("A resolved semantic representation is required");
+        }
+        SemanticExpression expression = new DrsParser().parse(request.semantic).expression;
+        if (!(expression instanceof DRS drs)) {
+            throw new IllegalArgumentException("TPTP translation requires a resolved DRS");
+        }
+        return new GswbTptpOutput(drs.toTPTPString(request.typed));
+    }
+
+    @CrossOrigin
+    @PostMapping(value = "/reasoning_check_asts", produces = "application/json", consumes = "application/json")
+    public GswbReasoningCheckAstsOutput reasoningCheckAsts(@RequestBody GswbReasoningCheckAstsRequest request) throws Exception {
+        if (request == null || request.premiseAsts == null || request.premiseAsts.isEmpty()
+                || request.hypothesisAsts == null || request.hypothesisAsts.isEmpty()) {
+            throw new IllegalArgumentException("Premise and hypothesis ASTs are required");
+        }
+
+        List<SemanticExpression> premiseExpressions = request.premiseAsts.stream()
+                .map(part -> {
+                    try {
+                        return DrsGraphParser.parse(part);
+                    } catch (Exception e) {
+                        throw new IllegalArgumentException("Could not parse premise AST", e);
+                    }
+                }).toList();
+        List<SemanticExpression> hypothesisExpressions = request.hypothesisAsts.stream()
+                .map(part -> {
+                    try {
+                        return DrsGraphParser.parse(part);
+                    } catch (Exception e) {
+                        throw new IllegalArgumentException("Could not parse hypothesis AST", e);
+                    }
+                }).toList();
+
+        SemanticExpression premiseExpression = DrsSequenceMerger.merge(premiseExpressions).resolveMerges();
+        SemanticExpression hypothesisExpression = DrsSequenceMerger.merge(hypothesisExpressions).resolveMerges();
+        if (!(premiseExpression instanceof DRS premise) || !(hypothesisExpression instanceof DRS hypothesis)) {
+            throw new IllegalStateException("Reasoning inputs must resolve to DRS boxes");
+        }
+
+        LinkedHashMap<String, GswbReasoningCheckAst> output = new LinkedHashMap<>();
+        for (Map.Entry<ReasoningCheckType, SemanticExpression> entry :
+                new DrsReasoningCheckBuilder().buildAsts(premise, hypothesis).entrySet()) {
+            // Resolve only the sequence merge wrappers. Keep the resulting
+            // check AST, including its operators and source indexes, for the
+            // provenance-sensitive post-processing stage.
+            SemanticExpression ast = entry.getValue().resolveMerges();
+            output.put(entry.getKey().name().toLowerCase(),
+                    new GswbReasoningCheckAst(ast.toString(), ast.toJson()));
+        }
+        return new GswbReasoningCheckAstsOutput(output);
+    }
+
+    @CrossOrigin
     @PostMapping(value = "/reasoning_checks", produces = "application/json", consumes = "application/json")
     public GswbReasoningChecksOutput reasoningChecks(@RequestBody GswbReasoningChecksRequest request) throws Exception {
         if (request == null || request.premiseParts == null || request.premiseParts.isEmpty()
@@ -325,8 +382,7 @@ public class GswbController {
                 new DrsReasoningCheckBuilder().build(premise, hypothesis, request.typed);
         for (ReasoningCheckType type : ReasoningCheckType.values()) {
             DrsReasoningCheckBuilder.CheckResult check = checks.get(type);
-            output.put(type.name().toLowerCase(), new GswbReasoningCheck(
-                    check.canonicalSemantic(), check.graph(), check.semanticSvg(), check.tptp()));
+            output.put(type.name().toLowerCase(), new GswbReasoningCheck(check.tptp()));
         }
         return new GswbReasoningChecksOutput(output);
     }
@@ -441,7 +497,10 @@ public class GswbController {
         settings.setNaturalDeductionOutput(prefs.naturalDeductionStyle);
         // DRS resolution requires beta reduction. Keep the effective settings
         // consistent even when a client sends an invalid combination.
-        boolean betaReduce = prefs.betaReduce || prefs.resolveDrs;
+        // LFGxDRT AST graphs are required by the provenance-sensitive NLI
+        // post-processing path, so this mode must always expose beta-reduced
+        // semantic graphs even when the UI leaves the display toggle off.
+        boolean betaReduce = displayLfgxDrt || prefs.betaReduce || prefs.resolveDrs;
         settings.setBetaReduce(betaReduce);
         settings.setResolveDrs(prefs.resolveDrs);
 
