@@ -242,6 +242,8 @@ public class GswbController {
                 throw new IllegalStateException("Sequence merge did not resolve to a DRS");
             }
             SemanticExpression displayExpression = mergeForDisplay(expressions, request.resolveDrs);
+            LOGGER.info("Sequence display expression: resolveEach=" + request.resolveDrs
+                    + ", expression=" + displayExpression);
 
             String parentId = request.parentSolutionId == null || request.parentSolutionId.isBlank()
                     ? "sequence" : request.parentSolutionId;
