@@ -250,7 +250,7 @@ public class GswbController {
                     new DrsSvgRenderer().toSvg(displayExpression),
                     parentId + "-drs-merge",
                     merged.getSourceIndex(),
-                    displayExpression.toJson(),
+                    resolved.toJson(),
                     displayExpression.toString());
             output.solutionKey = request.solutionKey != null
                     ? request.solutionKey : lastPart.solutionKey;
@@ -301,7 +301,7 @@ public class GswbController {
                 new DrsSvgRenderer().toSvg(displayExpression),
                 parentId + "-drs-merge",
                 merged.getSourceIndex(),
-                displayExpression.toJson(),
+                resolved.toJson(),
                 displayExpression.toString());
         output.solutionKey = request.solutionKey;
         output.mcSetId = request.mcSetId;
