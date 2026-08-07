@@ -241,7 +241,7 @@ public class GswbController {
             if (!(resolvedExpression instanceof DRS resolved)) {
                 throw new IllegalStateException("Sequence merge did not resolve to a DRS");
             }
-            SemanticExpression displayExpression = request.resolveDrs ? resolved : merged;
+            SemanticExpression displayExpression = mergeForDisplay(expressions, request.resolveDrs);
 
             String parentId = request.parentSolutionId == null || request.parentSolutionId.isBlank()
                     ? "sequence" : request.parentSolutionId;
@@ -280,15 +280,14 @@ public class GswbController {
             throw new IllegalStateException("Sequence merge did not resolve to a DRS");
         }
 
-        SemanticExpression displayExpression = request.resolveDrs ? resolved : merged;
+        SemanticExpression displayExpression = mergeForDisplay(expressions, request.resolveDrs);
         if (request.semantics != null && request.semantics.size() == request.graphs.size()
                 && request.semantics.stream().allMatch(value -> value != null && !value.isBlank())) {
             List<SemanticExpression> displayExpressions = new ArrayList<>();
             for (String semantic : request.semantics) {
                 displayExpressions.add(new DrsParser().parse(semantic).expression);
             }
-            SemanticExpression parsedDisplay = DrsSequenceMerger.merge(displayExpressions);
-            displayExpression = request.resolveDrs ? parsedDisplay.resolveMerges() : parsedDisplay;
+            displayExpression = mergeForDisplay(displayExpressions, request.resolveDrs);
             LOGGER.info("Sequence display expression reconstructed from semantic strings: "
                     + displayExpression.toString());
         }
@@ -311,6 +310,13 @@ public class GswbController {
             output.synSemMapping.put(request.solutionKey, List.of(output.id));
         }
         return output;
+    }
+
+    private SemanticExpression mergeForDisplay(List<SemanticExpression> expressions, boolean resolveEach) {
+        List<SemanticExpression> displayParts = resolveEach
+                ? expressions.stream().map(SemanticExpression::resolveMerges).toList()
+                : expressions;
+        return DrsSequenceMerger.merge(displayParts);
     }
 
     private String compositeSyntaxId(List<GswbSequencePart> parts) {
