@@ -8,11 +8,9 @@ public class GswbSequenceMergeRequest {
     public String id;
     public List<GswbSequencePart> parts = new ArrayList<>();
 
-    /** Compatibility for the currently shipped client. New callers must use parts. */
-    @Deprecated
+    /** Parallel semantic text values for the corresponding graph entries. */
     public List<String> semantics = new ArrayList<>();
-    /** Compatibility for the currently shipped client. New callers must use parts. */
-    @Deprecated
+    /** Canonical semantic graph payloads when provenance is supplied separately. */
     public List<LinkedHashMap<String, Object>> graphs = new ArrayList<>();
     public String parentSolutionId;
     public String rootSolutionId;
