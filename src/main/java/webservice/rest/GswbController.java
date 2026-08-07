@@ -250,6 +250,7 @@ public class GswbController {
             output.mcSetId = request.mcSetId != null ? request.mcSetId : lastPart.mcSetId;
             output.proofId = lastPart.proofId;
             output.semanticAnalysis = semanticAnalysis(output, output.solutionKey);
+            output.synSemMapping.put(compositeSyntaxId(request.parts), List.of(output.id));
             return output;
         }
         if (request == null || request.graphs == null || request.graphs.isEmpty()
@@ -298,7 +299,18 @@ public class GswbController {
         output.solutionKey = request.solutionKey;
         output.mcSetId = request.mcSetId;
         output.semanticAnalysis = semanticAnalysis(output, output.solutionKey);
+        if (request.solutionKey != null && !request.solutionKey.isBlank()) {
+            output.synSemMapping.put(request.solutionKey, List.of(output.id));
+        }
         return output;
+    }
+
+    private String compositeSyntaxId(List<GswbSequencePart> parts) {
+        return parts.stream()
+                .map(part -> part.solutionKey == null || part.solutionKey.isBlank()
+                        ? part.id : part.solutionKey)
+                .filter(Objects::nonNull)
+                .collect(Collectors.joining("+"));
     }
 
     private GswbSemanticAnalysis semanticAnalysis(GswbSolution solution, String syntacticOrigin) {
@@ -791,6 +803,9 @@ public class GswbController {
             output.solutionKey = so.solutionKey;
             output.mcSetId = so.mcSetId;
             output.semanticAnalysis = semanticAnalysis(output, so.solutionKey);
+            if (so.solutionKey != null && !so.solutionKey.isBlank()) {
+                output.synSemMapping.put(so.solutionKey, List.of(output.id));
+            }
             outputSolutions.add(output);
         }
         return outputSolutions;

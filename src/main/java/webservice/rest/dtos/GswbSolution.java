@@ -1,6 +1,7 @@
 package webservice.rest.dtos;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 
 public class GswbSolution {
 
@@ -14,6 +15,7 @@ public class GswbSolution {
     public String solutionKey;
     public String mcSetId;
     public GswbSemanticAnalysis semanticAnalysis;
+    public LinkedHashMap<String, List<String>> synSemMapping = new LinkedHashMap<>();
 
     public GswbSolution() {}
 
