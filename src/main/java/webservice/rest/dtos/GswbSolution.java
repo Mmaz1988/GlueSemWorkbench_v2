@@ -13,6 +13,7 @@ public class GswbSolution {
     public String proofId;
     public String solutionKey;
     public String mcSetId;
+    public GswbSemanticAnalysis semanticAnalysis;
 
     public GswbSolution() {}
 

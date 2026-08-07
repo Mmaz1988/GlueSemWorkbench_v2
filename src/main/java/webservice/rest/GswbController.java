@@ -249,6 +249,7 @@ public class GswbController {
                     ? request.solutionKey : lastPart.solutionKey;
             output.mcSetId = request.mcSetId != null ? request.mcSetId : lastPart.mcSetId;
             output.proofId = lastPart.proofId;
+            output.semanticAnalysis = semanticAnalysis(output, output.solutionKey);
             return output;
         }
         if (request == null || request.graphs == null || request.graphs.isEmpty()
@@ -296,7 +297,19 @@ public class GswbController {
                 displayExpression.toString());
         output.solutionKey = request.solutionKey;
         output.mcSetId = request.mcSetId;
+        output.semanticAnalysis = semanticAnalysis(output, output.solutionKey);
         return output;
+    }
+
+    private GswbSemanticAnalysis semanticAnalysis(GswbSolution solution, String syntacticOrigin) {
+        String semId = solution.id == null ? "semantic" : solution.id;
+        return new GswbSemanticAnalysis(
+                syntacticOrigin,
+                semId,
+                solution.semantic,
+                solution.graph,
+                solution.graph,
+                "lfgxdrt");
     }
 
     @CrossOrigin
@@ -777,6 +790,7 @@ public class GswbController {
             output.proofId = so.proofId;
             output.solutionKey = so.solutionKey;
             output.mcSetId = so.mcSetId;
+            output.semanticAnalysis = semanticAnalysis(output, so.solutionKey);
             outputSolutions.add(output);
         }
         return outputSolutions;
