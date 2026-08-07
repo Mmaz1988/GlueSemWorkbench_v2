@@ -224,10 +224,16 @@ public class GswbController {
         if (request != null && request.parts != null && !request.parts.isEmpty()) {
             List<SemanticExpression> expressions = new ArrayList<>();
             for (GswbSequencePart part : request.parts) {
-                if (part == null || part.semantic == null || part.semantic.isBlank()) {
-                    throw new IllegalArgumentException("Every sequence part requires semantic text");
+                if (part == null || (part.graph == null && (part.semantic == null || part.semantic.isBlank()))) {
+                    throw new IllegalArgumentException("Every sequence part requires a semantic graph or semantic text");
                 }
-                expressions.add(new DrsParser().parse(part.semantic).expression);
+                SemanticExpression expression = part.graph != null
+                        ? DrsGraphParser.parse(part.graph)
+                        : new DrsParser().parse(part.semantic).expression;
+                expressions.add(expression);
+                LOGGER.info("Sequence part reconstructed: source=" + expression.getSourceIndex()
+                        + ", representation=" + (part.graph != null ? "graph" : "semantic")
+                        + ", expression=" + expression);
             }
 
             SemanticExpression merged = DrsSequenceMerger.merge(expressions);
