@@ -352,7 +352,15 @@ public class GswbController {
         return legacyParentId + "-drs-merge";
     }
 
+    /** Sequence-merge outputs are LFGxDRT-only by construction (sequencing is only exposed
+     *  for that semantic type), so their SVG (already rendered into solution.solution) and
+     *  semType are unconditional. */
     private GswbSemanticAnalysis semanticAnalysis(GswbSolution solution, String syntacticOrigin) {
+        return semanticAnalysis(solution, syntacticOrigin, solution.solution, SemanticModel.LFGXDRT.value());
+    }
+
+    private GswbSemanticAnalysis semanticAnalysis(GswbSolution solution, String syntacticOrigin,
+                                                   String svg, String semType) {
         String semId = solution.id == null ? "semantic" : solution.id;
         return new GswbSemanticAnalysis(
                 syntacticOrigin,
@@ -360,7 +368,8 @@ public class GswbController {
                 solution.semantic,
                 null,
                 solution.graph,
-                "lfgxdrt");
+                semType,
+                svg);
     }
 
     @CrossOrigin
@@ -615,7 +624,7 @@ public class GswbController {
 
         applyOptionalSemanticRendering(ctx, formatted);
 
-        List<GswbSolution> outputSolutions = toOutputSolutions(formatted.solutionIndexToObject);
+        List<GswbSolution> outputSolutions = toOutputSolutions(formatted.solutionIndexToObject, ctx.displayLfgxDrt);
 
         Object derivation = null;
         if (includeDerivation) {
@@ -674,6 +683,7 @@ public class GswbController {
     private GswbProofInput copyProofInput(GswbProofInput input) {
         GswbProofInput copy = new GswbProofInput();
         copy.proofId = input.proofId;
+        copy.sentenceId = input.sentenceId;
         copy.solutionKey = input.solutionKey;
         copy.mcSetId = input.mcSetId;
         copy.meaningConstructors = input.meaningConstructors;
@@ -829,7 +839,7 @@ public class GswbController {
         }
     }
 
-    private List<GswbSolution> toOutputSolutions(Map<Integer, SolutionObject> solutionsByIndex) {
+    private List<GswbSolution> toOutputSolutions(Map<Integer, SolutionObject> solutionsByIndex, boolean isLfgxdrt) {
         List<GswbSolution> outputSolutions = new ArrayList<>();
         for (Integer idx : solutionsByIndex.keySet().stream().sorted().toList()) {
             SolutionObject so = solutionsByIndex.get(idx);
@@ -838,7 +848,11 @@ public class GswbController {
             output.proofId = so.proofId;
             output.solutionKey = so.solutionKey;
             output.mcSetId = so.mcSetId;
-            output.semanticAnalysis = semanticAnalysis(output, so.solutionKey);
+            // solutionString is only ever rendered as SVG in LFGxDRT display mode
+            // (applyOptionalSemanticRendering); in prolog-drt mode it's plain DRT/solution text.
+            String svg = isLfgxdrt ? output.solution : null;
+            String semType = isLfgxdrt ? SemanticModel.LFGXDRT.value() : SemanticModel.PROLOG_DRT.value();
+            output.semanticAnalysis = semanticAnalysis(output, so.solutionKey, svg, semType);
             if (so.solutionKey != null && !so.solutionKey.isBlank()) {
                 output.synSemMapping.put(so.solutionKey, List.of(output.id));
             }
@@ -1032,13 +1046,21 @@ public class GswbController {
                     currentSO.proofId = origin.proofId;
                     currentSO.solutionKey = origin.solutionKey;
                     currentSO.mcSetId = origin.mcSetId;
+                    currentSO.sentenceId = origin.sentenceId;
                 }
 
                 String currentSolution = buildSolutionString(settings, key, i, currentSO).trim();
 
+                String idPrefix = origin != null && origin.sentenceId != null && !origin.sentenceId.isBlank()
+                        ? origin.sentenceId
+                        : origin != null && origin.solutionKey != null && !origin.solutionKey.isBlank()
+                        ? origin.solutionKey
+                        : null;
+                String currentSolutionId = idPrefix != null ? idPrefix + "-s" + solutionIndex : "s" + solutionIndex;
+
                 for (McDiscriminant d : finalMcDiscriminants) {
                     if (d.mcSetIds.contains(key)) {
-                        d.associatedSolutions.add("s" + solutionIndex);
+                        d.associatedSolutions.add(currentSolutionId);
                     }
                 }
 
@@ -1049,12 +1071,12 @@ public class GswbController {
                                 scope2instantiations, scope2InstantiationsByOrigin);
                         ScopeDiscriminant newSD =
                         new ScopeDiscriminant("sc" + scopeDiscriminantIndex, sd, new HashSet<>(), instantiations);
-                        newSD.solutionIds.add("s" + solutionIndex);
+                        newSD.solutionIds.add(currentSolutionId);
                         addOrigin(newSD, origin);
                         scopeDiscriminants.put(sd, newSD);
                         scopeDiscriminantIndex++;
                     } else {
-                        existing.solutionIds.add("s" + solutionIndex);
+                        existing.solutionIds.add(currentSolutionId);
                         addOrigin(existing, origin);
                         existing.instantiations.addAll(instantiationsFor(sd, origin,
                                 scope2instantiations, scope2InstantiationsByOrigin));
@@ -1062,7 +1084,7 @@ public class GswbController {
                 }
 
                 currentSO.solutionString = currentSolution;
-                currentSO.solutionId = "s" + solutionIndex;
+                currentSO.solutionId = currentSolutionId;
 
                 solutions.add(currentSolution);
                 solutionIndexToObject.put(solutionIndex, currentSO);

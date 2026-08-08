@@ -12,6 +12,8 @@ public class GswbSemanticAnalysis {
     /** Canonical LFGxDRT semantic graph. */
     public LinkedHashMap<String, Object> graph;
     public String semType;
+    /** Rendered DRS SVG for this solution, when available (LFGxDRT display mode only). */
+    public String svg;
 
     public GswbSemanticAnalysis() {
     }
@@ -19,11 +21,18 @@ public class GswbSemanticAnalysis {
     public GswbSemanticAnalysis(String syntacticOrigin, String semId, String semString,
                                 LinkedHashMap<String, Object> structure,
                                 LinkedHashMap<String, Object> graph, String semType) {
+        this(syntacticOrigin, semId, semString, structure, graph, semType, null);
+    }
+
+    public GswbSemanticAnalysis(String syntacticOrigin, String semId, String semString,
+                                LinkedHashMap<String, Object> structure,
+                                LinkedHashMap<String, Object> graph, String semType, String svg) {
         this.syntacticOrigin = syntacticOrigin;
         this.semId = semId;
         this.semString = semString;
         this.structure = structure;
         this.graph = graph;
         this.semType = semType;
+        this.svg = svg;
     }
 }

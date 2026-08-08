@@ -19,6 +19,7 @@ public class SolutionObject {
     public String proofId;
     public String solutionKey;
     public String mcSetId;
+    public String sentenceId;
 
 
     public SolutionObject(Premise solution) {
