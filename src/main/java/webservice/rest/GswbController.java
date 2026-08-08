@@ -181,6 +181,7 @@ public class GswbController {
                     null,
                     pcdrs.toString());
             solution.anaphoraMapping = mapping.toString();
+            solution.anaphoraRelations = AnaphoraMappingConverter.toDto(mapping);
             solutions.add(solution);
         }
 
@@ -213,6 +214,13 @@ public class GswbController {
                 collapsed.getSourceIndex(),
                 null,
                 collapsed.toString());
+        // The mapping being resolved lives on the pre-collapse DRS -- collapseAnaphora()
+        // folds it into the DRS's own conditions, so `collapsed.anaphoraMapping` is typically
+        // empty by the time we get here.
+        if (drs.anaphoraMapping != null) {
+            result.anaphoraMapping = drs.anaphoraMapping.toString();
+            result.anaphoraRelations = AnaphoraMappingConverter.toDto(drs.anaphoraMapping);
+        }
         LOGGER.info("Anaphora collapse complete: solutionId=" + result.id
                 + ", semantic=" + result.semantic);
         return result;
