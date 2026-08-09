@@ -259,6 +259,71 @@ public class GswbController {
         return result;
     }
 
+    /**
+     * Batched form of /collapse_anaphora + /semantic_to_tptp for a single PCDRS mapping: the
+     * chat client's postProcessReasoningCheckAsts() needs the context DRS plus all four NLI
+     * check DRSes collapsed against the same mapping and translated to TPTP -- previously 5
+     * separate collapse+translate round trips per mapping (10 HTTP requests). For a discourse
+     * with N candidate mappings that's up to 10*N concurrent requests, which is enough to
+     * saturate this single embedded Tomcat instance under load. Folding all items for one
+     * mapping into one request cuts that to 1*N. Each item is processed exactly like
+     * /collapse_anaphora followed by /semantic_to_tptp; a failure on one item does not fail
+     * the batch, it just yields an empty tptp for that item (mirroring the client's previous
+     * per-item catchError(() => of('')) fallback) so the caller can still gate on which of the
+     * requested items came back non-empty.
+     */
+    @CrossOrigin
+    @PostMapping(value = "/collapse_and_tptp_batch", produces = "application/json", consumes = "application/json")
+    public GswbCollapseAndTptpBatchOutput collapseAndTptpBatch(@RequestBody GswbCollapseAndTptpBatchRequest request) throws Exception {
+        if (request == null || request.items == null || request.items.isEmpty()) {
+            throw new IllegalArgumentException("At least one semantic item is required to collapse and translate.");
+        }
+
+        AnaphoraMapping mapping = (request.anaphoraRelations != null && !request.anaphoraRelations.isEmpty())
+                ? AnaphoraMappingConverter.fromDto(request.anaphoraRelations)
+                : null;
+
+        LinkedHashMap<String, GswbTptpBatchResult> results = new LinkedHashMap<>();
+        for (GswbTptpBatchItem item : request.items) {
+            if (item == null || item.name == null || item.semantic == null || item.semantic.isBlank()) {
+                throw new IllegalArgumentException("Every batch item requires a name and a non-blank semantic.");
+            }
+            try {
+                SemanticExpression expression = new DrsParser().parse(item.semantic).expression;
+                if (!(expression instanceof DRS parsedDrs)) {
+                    throw new IllegalArgumentException("Anaphora collapse requires a DRS semantic expression.");
+                }
+                DRS mappedDrs = mapping != null ? parsedDrs.withAnaphoraMapping(mapping) : parsedDrs;
+                boolean hasMapping = mappedDrs.anaphoraMapping != null && mappedDrs.anaphoraMapping.relations != null
+                        && !mappedDrs.anaphoraMapping.relations.isEmpty();
+                DRS collapsed = parsedDrs;
+                if (hasMapping) {
+                    try {
+                        collapsed = mappedDrs.collapseAnaphoraUnchecked();
+                    } catch (IllegalStateException e) {
+                        LOGGER.warning("Anaphora collapse could not resolve a mapped referent for parentSolutionId="
+                                + request.parentSolutionId + ", item=" + item.name + ": " + e.getMessage()
+                                + "; returning the uncollapsed DRS");
+                    }
+                }
+                results.put(item.name, new GswbTptpBatchResult(collapsed.toTPTPString(request.typed), collapsed.toString()));
+            } catch (RuntimeException e) {
+                LOGGER.warning("Collapse/TPTP batch item failed for parentSolutionId=" + request.parentSolutionId
+                        + ", item=" + item.name + ": " + e.getMessage() + "; returning an empty result for this item");
+                results.put(item.name, new GswbTptpBatchResult("", null));
+            }
+        }
+
+        GswbCollapseAndTptpBatchOutput output = new GswbCollapseAndTptpBatchOutput();
+        output.parentSolutionId = request.parentSolutionId;
+        output.results = results;
+        if (mapping != null) {
+            output.anaphoraMapping = mapping.toString();
+            output.anaphoraRelations = request.anaphoraRelations;
+        }
+        return output;
+    }
+
     @CrossOrigin
     @PostMapping(value = "/merge_sequence_semantics", produces = "application/json", consumes = "application/json")
     public GswbSolution mergeSequenceSemantics(@RequestBody GswbSequenceMergeRequest request) throws Exception {
