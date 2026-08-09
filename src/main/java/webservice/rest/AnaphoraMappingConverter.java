@@ -43,10 +43,19 @@ final class AnaphoraMappingConverter {
             if (dto == null || dto.pronounReferentId == null || dto.antecedent == null) {
                 continue;
             }
-            result.addRelation(new AnaphoraRelation(
-                    new DiscourseReferent(dto.pronounReferentId),
-                    dto.antecedent,
-                    dto.stateLabel));
+            // The pronoun this relation is reapplied to is always a *freshly re-parsed* referent
+            // (semantic is re-parsed from scratch server-side, see collapseAnaphora() below) --
+            // its .name/.id are whatever DrsParser/DrsGraphParser derive from the text, which only
+            // ever matches pronoun.toSimpleString() (the plain display form, e.g. "x3"), not the
+            // original in-memory pronounReferentId (which can be a richer internal id/name that no
+            // longer exists once the DRS has been serialized and reparsed). Use pronounDisplay as
+            // the name so DRS.collapseAnaphoraUnchecked()'s .name/.toSimpleString() lookups match;
+            // keep pronounReferentId as .id too, for any caller still working with the original,
+            // non-round-tripped in-memory object.
+            DiscourseReferent pronoun = new DiscourseReferent(
+                    dto.pronounDisplay != null ? dto.pronounDisplay : dto.pronounReferentId);
+            pronoun.id = dto.pronounReferentId;
+            result.addRelation(new AnaphoraRelation(pronoun, dto.antecedent, dto.stateLabel));
         }
         return result;
     }

@@ -214,21 +214,27 @@ public class GswbController {
         boolean hasMapping = mappedDrs.anaphoraMapping != null && mappedDrs.anaphoraMapping.relations != null
                 && !mappedDrs.anaphoraMapping.relations.isEmpty();
         // No mapping means no antecedent was found for this branch (e.g. the pronoun-binding
-        // rules didn't resolve it) -- there is nothing to collapse, and calling
-        // collapseAnaphora() on a DRS with unresolved `ant(...)` markers but no mapping throws.
-        // Fall back to the clean, unmapped DRS rather than crashing the whole reasoning turn
-        // over one unresolved branch. A non-empty mapping can still leave some `ant(...)`
-        // markers unmapped (e.g. a multi-pronoun DRS where only one pronoun's candidate
-        // resolved) -- collapseAnaphora() throws IllegalStateException for those too, so the
-        // same graceful fallback applies. Falling back to `mappedDrs` itself (rather than
-        // `parsedDrs`) would be wrong here: its toString() still embeds the unresolved mapping
-        // as a trailing `,A:[...]` annotation, which downstream /semantic_to_tptp cannot parse.
+        // rules didn't resolve it) -- there is nothing to collapse. Fall back to the clean,
+        // unmapped DRS rather than crashing the whole reasoning turn over one unresolved branch.
+        //
+        // Accessibility for a mapping is already validated once, upstream, when the
+        // postprocessing rules produced it (see /generate_pcdrs) -- it must not be re-derived
+        // here just because `semantic` happens to wrap premise/hypothesis in negation or
+        // implication (one of the four NLI check shapes). collapseAnaphoraUnchecked() seeds the
+        // referent lookup with every referent in the whole tree up front, so a mapping that's
+        // valid on the flat merge stays valid inside the negated/implicational check forms too,
+        // instead of collapseAnaphora()'s own (naive, per-scope) accessibility gate spuriously
+        // rejecting it. The try/catch below is now only a defensive net for a mapping that
+        // references a referent that genuinely doesn't exist anywhere in this DRS (e.g. a
+        // malformed request) -- falling back to `mappedDrs` itself would be wrong here: its
+        // toString() still embeds the unresolved mapping as a trailing `,A:[...]` annotation,
+        // which downstream /semantic_to_tptp cannot parse.
         DRS collapsed = parsedDrs;
         if (hasMapping) {
             try {
-                collapsed = mappedDrs.collapseAnaphora();
+                collapsed = mappedDrs.collapseAnaphoraUnchecked();
             } catch (IllegalStateException e) {
-                LOGGER.warning("Anaphora collapse could not resolve every marker for parentSolutionId="
+                LOGGER.warning("Anaphora collapse could not resolve a mapped referent for parentSolutionId="
                         + request.parentSolutionId + ": " + e.getMessage() + "; returning the uncollapsed DRS");
             }
         }
