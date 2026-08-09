@@ -1,6 +1,7 @@
 package webservice.rest.dtos;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 
 public class GswbCollapseAnaphoraRequest {
     public SemanticModel semanticModel = SemanticModel.LFGXDRT;
@@ -15,6 +16,11 @@ public class GswbCollapseAnaphoraRequest {
     public String collapsedSemantic;
     public String normalizedSemantic;
     public String anaphoraMapping;
+    /** The structured mapping computed once by /generate_pcdrs, reused here so the same
+     *  binding is applied consistently to `semantic` regardless of which check/branch it
+     *  came from -- must be supplied explicitly since `semantic` is re-parsed from scratch
+     *  and carries no mapping of its own. */
+    public List<AnaphoraRelationDto> anaphoraRelations;
 
     public GswbCollapseAnaphoraRequest() {
     }

@@ -200,11 +200,38 @@ public class GswbController {
         LOGGER.info("Collapse anaphora request received: parentSolutionId=" + request.parentSolutionId
                 + ", semantic=" + request.semantic);
         SemanticExpression expression = new DrsParser().parse(request.semantic).expression;
-        if (!(expression instanceof DRS drs)) {
+        if (!(expression instanceof DRS parsedDrs)) {
             throw new IllegalArgumentException("Anaphora collapse requires a DRS semantic expression.");
         }
 
-        DRS collapsed = drs.collapseAnaphora();
+        // `semantic` is re-parsed from scratch and carries no mapping of its own -- the
+        // mapping computed once by /generate_pcdrs must be reapplied explicitly here so the
+        // same binding is reused consistently across every check/branch that needs it.
+        DRS mappedDrs = parsedDrs;
+        if (request.anaphoraRelations != null && !request.anaphoraRelations.isEmpty()) {
+            mappedDrs = parsedDrs.withAnaphoraMapping(AnaphoraMappingConverter.fromDto(request.anaphoraRelations));
+        }
+        boolean hasMapping = mappedDrs.anaphoraMapping != null && mappedDrs.anaphoraMapping.relations != null
+                && !mappedDrs.anaphoraMapping.relations.isEmpty();
+        // No mapping means no antecedent was found for this branch (e.g. the pronoun-binding
+        // rules didn't resolve it) -- there is nothing to collapse, and calling
+        // collapseAnaphora() on a DRS with unresolved `ant(...)` markers but no mapping throws.
+        // Fall back to the clean, unmapped DRS rather than crashing the whole reasoning turn
+        // over one unresolved branch. A non-empty mapping can still leave some `ant(...)`
+        // markers unmapped (e.g. a multi-pronoun DRS where only one pronoun's candidate
+        // resolved) -- collapseAnaphora() throws IllegalStateException for those too, so the
+        // same graceful fallback applies. Falling back to `mappedDrs` itself (rather than
+        // `parsedDrs`) would be wrong here: its toString() still embeds the unresolved mapping
+        // as a trailing `,A:[...]` annotation, which downstream /semantic_to_tptp cannot parse.
+        DRS collapsed = parsedDrs;
+        if (hasMapping) {
+            try {
+                collapsed = mappedDrs.collapseAnaphora();
+            } catch (IllegalStateException e) {
+                LOGGER.warning("Anaphora collapse could not resolve every marker for parentSolutionId="
+                        + request.parentSolutionId + ": " + e.getMessage() + "; returning the uncollapsed DRS");
+            }
+        }
         String parentId = request.parentSolutionId == null || request.parentSolutionId.isBlank()
                 ? "solution"
                 : request.parentSolutionId;
@@ -217,9 +244,9 @@ public class GswbController {
         // The mapping being resolved lives on the pre-collapse DRS -- collapseAnaphora()
         // folds it into the DRS's own conditions, so `collapsed.anaphoraMapping` is typically
         // empty by the time we get here.
-        if (drs.anaphoraMapping != null) {
-            result.anaphoraMapping = drs.anaphoraMapping.toString();
-            result.anaphoraRelations = AnaphoraMappingConverter.toDto(drs.anaphoraMapping);
+        if (hasMapping) {
+            result.anaphoraMapping = mappedDrs.anaphoraMapping.toString();
+            result.anaphoraRelations = AnaphoraMappingConverter.toDto(mappedDrs.anaphoraMapping);
         }
         LOGGER.info("Anaphora collapse complete: solutionId=" + result.id
                 + ", semantic=" + result.semantic);
