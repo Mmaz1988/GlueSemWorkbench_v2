@@ -228,14 +228,17 @@ public class GswbController {
         // references a referent that genuinely doesn't exist anywhere in this DRS (e.g. a
         // malformed request) -- falling back to `mappedDrs` itself would be wrong here: its
         // toString() still embeds the unresolved mapping as a trailing `,A:[...]` annotation,
-        // which downstream /semantic_to_tptp cannot parse.
+        // which downstream /semantic_to_tptp cannot parse. `parsedDrs` embeds it too whenever
+        // the caller's `semantic` string carried one, so the fallback is stripped explicitly.
         DRS collapsed = parsedDrs;
         if (hasMapping) {
             try {
                 collapsed = mappedDrs.collapseAnaphoraUnchecked();
             } catch (IllegalStateException e) {
                 LOGGER.warning("Anaphora collapse could not resolve a mapped referent for parentSolutionId="
-                        + request.parentSolutionId + ": " + e.getMessage() + "; returning the uncollapsed DRS");
+                        + request.parentSolutionId + ": " + e.getMessage()
+                        + "; returning the uncollapsed DRS without the mapping");
+                collapsed = parsedDrs.withoutMappings();
             }
         }
         String parentId = request.parentSolutionId == null || request.parentSolutionId.isBlank()
@@ -297,16 +300,29 @@ public class GswbController {
                 boolean hasMapping = mappedDrs.anaphoraMapping != null && mappedDrs.anaphoraMapping.relations != null
                         && !mappedDrs.anaphoraMapping.relations.isEmpty();
                 DRS collapsed = parsedDrs;
+                String degraded = null;
                 if (hasMapping) {
                     try {
                         collapsed = mappedDrs.collapseAnaphoraUnchecked();
                     } catch (IllegalStateException e) {
+                        degraded = "anaphora mapping could not be applied: " + e.getMessage();
                         LOGGER.warning("Anaphora collapse could not resolve a mapped referent for parentSolutionId="
                                 + request.parentSolutionId + ", item=" + item.name + ": " + e.getMessage()
-                                + "; returning the uncollapsed DRS");
+                                + "; translating without the mapping instead");
                     }
                 }
-                results.put(item.name, new GswbTptpBatchResult(collapsed.toTPTPString(request.typed), collapsed.toString()));
+                // Translate a mapping-free DRS unconditionally. A successful collapse folds the
+                // mapping into the conditions and leaves nothing to strip, so this is a no-op on
+                // the happy path. On the fallback path it is what makes the fallback usable at
+                // all: toTPTPString() refuses any DRS that still carries a mapping, and the DRS
+                // parsed from `semantic` carries the inline `A:[...]` the caller sent, so the
+                // whole item used to come back with empty TPTP -- indistinguishable, to the
+                // client, from a translation that simply produced nothing. The dropped binding is
+                // reported via `degraded` rather than silently absorbed.
+                DRS translatable = collapsed.withoutMappings();
+                results.put(item.name,
+                        new GswbTptpBatchResult(translatable.toTPTPString(request.typed),
+                                translatable.toString(), degraded));
             } catch (RuntimeException e) {
                 LOGGER.warning("Collapse/TPTP batch item failed for parentSolutionId=" + request.parentSolutionId
                         + ", item=" + item.name + ": " + e.getMessage() + "; returning an empty result for this item");
