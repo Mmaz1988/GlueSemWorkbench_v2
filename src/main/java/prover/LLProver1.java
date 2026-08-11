@@ -215,7 +215,7 @@ public class LLProver1 extends LLProver {
 
              proofBuilder.append(resultBuilder.toString());
              if (!resultBuilder.isEmpty()) {
-                 getLOGGER().info("Found the following glue derivation(s):\n" + resultBuilder);
+                 getLOGGER().fine("Found the following glue derivation(s):\n" + resultBuilder);
              }
          }
 

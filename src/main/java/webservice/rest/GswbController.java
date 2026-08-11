@@ -139,7 +139,9 @@ public class GswbController {
         }
 
         LOGGER.info("PCDRS request received: parentSolutionId=" + request.parentSolutionId
-                + ", semantic=" + request.semantic
+                + ", mergedStructureKeys="
+                + (request.mergedStructure == null ? 0 : request.mergedStructure.keySet().size()));
+        LOGGER.fine("PCDRS request semantic: " + request.semantic
                 + ", mergedStructureKeys="
                 + (request.mergedStructure == null ? "[]" : request.mergedStructure.keySet()));
 
@@ -157,9 +159,9 @@ public class GswbController {
 
         LinkedHashMap<String, String> nodeNames = extractNodeNames(request.mergedStructure);
         LinkedHashMap<String, LinkedHashSet<String>> candidates = extractPossibleAntFacts(request.mergedStructure, nodeNames);
-        LOGGER.info("PCDRS semantic node names: " + nodeNames);
+        LOGGER.fine("PCDRS semantic node names: " + nodeNames);
         List<LinkedHashMap<String, String>> mappings = expandAnaphoraMappings(candidates);
-        LOGGER.info("PCDRS possible-ant candidates: " + candidates);
+        LOGGER.fine("PCDRS possible-ant candidates: " + candidates);
         if (mappings.isEmpty()) {
             mappings = List.of(new LinkedHashMap<>());
         }
@@ -171,9 +173,9 @@ public class GswbController {
         List<GswbSolution> solutions = new ArrayList<>();
         for (int i = 0; i < mappings.size(); i++) {
             AnaphoraMapping mapping = toAnaphoraMapping(mappings.get(i));
-            LOGGER.info("PCDRS branch " + (i + 1) + ": mapping=" + mapping.toString());
+            LOGGER.fine("PCDRS branch " + (i + 1) + ": mapping=" + mapping.toString());
             DRS pcdrs = drs.withAnaphoraMapping(mapping);
-            LOGGER.info("PCDRS branch " + (i + 1) + ": combined DRS=" + pcdrs.toString());
+            LOGGER.fine("PCDRS branch " + (i + 1) + ": combined DRS=" + pcdrs.toString());
             GswbSolution solution = new GswbSolution(
                     new DrsSvgRenderer().toSvg(pcdrs),
                     parentId + "-pcdrs-" + (i + 1),
@@ -198,7 +200,8 @@ public class GswbController {
         }
 
         LOGGER.info("Collapse anaphora request received: parentSolutionId=" + request.parentSolutionId
-                + ", semantic=" + request.semantic);
+                + ", relations=" + (request.anaphoraRelations == null ? 0 : request.anaphoraRelations.size()));
+        LOGGER.fine("Collapse anaphora request semantic: " + request.semantic);
         SemanticExpression expression = new DrsParser().parse(request.semantic).expression;
         if (!(expression instanceof DRS parsedDrs)) {
             throw new IllegalArgumentException("Anaphora collapse requires a DRS semantic expression.");
@@ -257,8 +260,8 @@ public class GswbController {
             result.anaphoraMapping = mappedDrs.anaphoraMapping.toString();
             result.anaphoraRelations = AnaphoraMappingConverter.toDto(mappedDrs.anaphoraMapping);
         }
-        LOGGER.info("Anaphora collapse complete: solutionId=" + result.id
-                + ", semantic=" + result.semantic);
+        LOGGER.info("Anaphora collapse complete: solutionId=" + result.id);
+        LOGGER.fine("Anaphora collapse result semantic: " + result.semantic);
         return result;
     }
 
@@ -330,6 +333,16 @@ public class GswbController {
             }
         }
 
+        // One line per call, counts and ids only: this endpoint runs once per
+        // mapping branch, so anything DRS-bearing here belongs at FINE.
+        long translated = results.values().stream()
+                .filter(result -> result.tptp != null && !result.tptp.isBlank())
+                .count();
+        LOGGER.info("Collapse/TPTP batch complete: parentSolutionId=" + request.parentSolutionId
+                + ", items=" + request.items.size()
+                + ", translated=" + translated
+                + ", mapped=" + (mapping != null));
+
         GswbCollapseAndTptpBatchOutput output = new GswbCollapseAndTptpBatchOutput();
         output.parentSolutionId = request.parentSolutionId;
         output.results = results;
@@ -353,7 +366,7 @@ public class GswbController {
                         ? DrsGraphParser.parse(part.graph)
                         : new DrsParser().parse(part.semantic).expression;
                 expressions.add(expression);
-                LOGGER.info("Sequence part reconstructed: source=" + expression.getSourceIndex()
+                LOGGER.fine("Sequence part reconstructed: source=" + expression.getSourceIndex()
                         + ", representation=" + (part.graph != null ? "graph" : "semantic")
                         + ", expression=" + expression);
             }
@@ -364,7 +377,7 @@ public class GswbController {
                 throw new IllegalStateException("Sequence merge did not resolve to a DRS");
             }
             SemanticExpression displayExpression = mergeForDisplay(expressions, request.resolveDrs);
-            LOGGER.info("Sequence display expression: resolveEach=" + request.resolveDrs
+            LOGGER.fine("Sequence display expression: resolveEach=" + request.resolveDrs
                     + ", expression=" + displayExpression);
 
             String parentId = request.parentSolutionId == null || request.parentSolutionId.isBlank()
@@ -395,7 +408,7 @@ public class GswbController {
         for (LinkedHashMap<String, Object> graph : request.graphs) {
             SemanticExpression expression = DrsGraphParser.parse(graph);
             expressions.add(expression);
-            LOGGER.info("Sequence graph reconstructed: source=" + expression.getSourceIndex()
+            LOGGER.fine("Sequence graph reconstructed: source=" + expression.getSourceIndex()
                     + ", expression=" + expression.toString());
         }
         SemanticExpression merged = DrsSequenceMerger.merge(expressions);
@@ -412,7 +425,7 @@ public class GswbController {
                 displayExpressions.add(new DrsParser().parse(semantic).expression);
             }
             displayExpression = mergeForDisplay(displayExpressions, request.resolveDrs);
-            LOGGER.info("Sequence display expression reconstructed from semantic strings: "
+            LOGGER.fine("Sequence display expression reconstructed from semantic strings: "
                     + displayExpression.toString());
         }
         LOGGER.info("Sequence graph merge resolved: source=" + resolved.getSourceIndex()
@@ -721,14 +734,14 @@ public class GswbController {
         LLProver prover = proverAndLog.prover;
         StringBuilder sb = proverAndLog.sb;
 
-        LOGGER.info("Running prover...");
+        LOGGER.fine("Running prover...");
 
         ProofRun run = runProofsOverLexicalEntries(mcs, prover, sb, batchMode, origins);
 
         LexicalEntries filteredMcs = filterLexicalEntriesByKeySet(mcs, run.mcSetWithSolution);
         List<McDiscriminant> finalMcDiscriminants = filteredMcs.calculateDiscriminants();
 
-        LOGGER.info("Formatting output...");
+        LOGGER.fine("Formatting output...");
 
         SolutionsAndDiscriminants formatted =
                 formatSolutionsAndDiscriminants(run.allSolutions, finalMcDiscriminants, prover.scope2instantiations,

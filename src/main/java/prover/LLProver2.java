@@ -259,7 +259,7 @@ public class LLProver2 extends LLProver{
         //Calculate number of all values of all keys in atomicChart and nonAtomicChart
         db.chartSize = atomicChart.values().stream().mapToInt(List::size).sum() + nonAtomicChart.values().stream().mapToInt(List::size).sum();
 
-        getLOGGER().info("Found the following glue derivation(s):\n" + proofBuilder.toString());
+        getLOGGER().fine("Found the following glue derivation(s):\n" + proofBuilder.toString());
 
         proofBuilder.append(System.lineSeparator());
         proofBuilder.append(System.lineSeparator());
@@ -272,18 +272,18 @@ public class LLProver2 extends LLProver{
 
             List<Premise> sortedSolutions = partialSolutions.stream().sorted(Comparator.comparingInt(o -> o.getPremiseIDs().size())).collect(Collectors.toList());
 
-            getLOGGER().info("Input premises:");
+            getLOGGER().fine("Input premises:");
 
             for (Premise p : currentSequent.getLhs())
             {
-                getLOGGER().info(p + " " + p.getPremiseIDs());
+                getLOGGER().fine(p + " " + p.getPremiseIDs());
             }
 
-            getLOGGER().info("Partial solutions:");
+            getLOGGER().fine("Partial solutions:");
 
             for (Premise p : sortedSolutions)
             {
-                getLOGGER().info(p + " " + p.getPremiseIDs());
+                getLOGGER().fine(p + " " + p.getPremiseIDs());
             }
 
         }

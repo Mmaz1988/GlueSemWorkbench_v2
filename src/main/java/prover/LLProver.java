@@ -143,7 +143,10 @@ public abstract class LLProver {
             StringBuilder resultBuilder = new StringBuilder();
 
         if (!mute) {
-            LOGGER.info(this.getProofBuilder().toString());
+            // Whole proof text, once per proof: only the web path reaches this
+            // (the CLI builds and prints its own output in WorkbenchMain), so
+            // it is debug detail here, not a result.
+            LOGGER.fine(this.getProofBuilder().toString());
         }
 
             StringBuilder solutionBuilder = new StringBuilder();
@@ -163,7 +166,7 @@ public abstract class LLProver {
             }
                  */
             if (!mute) {
-                LOGGER.info(solutionBuilder.toString());
+                LOGGER.fine(solutionBuilder.toString());
             }
 
             //  LOGGER.info(String.format("Found %d solution(s) for derivation with id S%d",solutions.size(),key) );

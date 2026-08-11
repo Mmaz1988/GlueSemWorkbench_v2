@@ -24,5 +24,9 @@
 hs_err_pid*
 *.iml
 *.xml
+# ... but the build's own resources are source, not IDE noise. Without this,
+# src/main/resources/logback-spring.xml is silently untracked (pom.xml only
+# survives because it was added before the *.xml rule).
+!src/main/resources/*.xml
 .idea
 stanford-corenlp-full-2017-06-09/

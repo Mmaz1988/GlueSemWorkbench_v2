@@ -25,6 +25,9 @@ import java.io.*;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -43,6 +46,33 @@ public class WorkbenchMain {
 
     private static boolean naturalDeduction = false;
     private static String searchForGoal = "";
+
+    /**
+     * The arguments Spring (and through it logback) needs to see.
+     *
+     * GSWB parses its own flags in main() and used to start the web service with
+     * {@code new String[0]}, which silently dropped Spring's {@code --key=value}
+     * options -- including {@code --logging.file.name}, so asking for a log file
+     * on the command line had no effect at all. Forward those through, and
+     * translate the {@code -log <dir>} alias into one for symmetry with -web:
+     *
+     *   java -jar jars/gswb.jar -web -log logs
+     *   java -jar jars/gswb.jar -web --logging.file.name=logs/gswb.log
+     */
+    static String[] springArgs(String[] args) {
+        List<String> forwarded = new ArrayList<>();
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].startsWith("--")) {
+                forwarded.add(args[i]);
+            } else if (args[i].equals("-log") && i + 1 < args.length) {
+                String fileName = "gswb-"
+                        + DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss").format(LocalDateTime.now()) + ".log";
+                forwarded.add("--logging.file.name=" + Paths.get(args[i + 1], fileName));
+                i++;
+            }
+        }
+        return forwarded.toArray(new String[0]);
+    }
 
     public static void main(String[] args) {
         /*
@@ -183,7 +213,7 @@ public class WorkbenchMain {
         if (settings.isWebService()) {
             LOGGER.info("Running system as web service ...");
             WebApplication web = new WebApplication();
-            web.main(new String[0]);
+            web.main(springArgs(args));
         } else {
 
             String betaReduce = "on";

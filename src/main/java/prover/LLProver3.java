@@ -180,7 +180,7 @@ public class LLProver3 extends LLProver {
                     getSolutions().addAll(solution.calculateSolutions(resultBuilder));
                 }
                 proofBuilder.append(resultBuilder.toString());
-                getLOGGER().info("Found the following glue derivation(s):\n" + resultBuilder.toString());
+                getLOGGER().fine("Found the following glue derivation(s):\n" + resultBuilder.toString());
 
             }
         }
@@ -661,7 +661,7 @@ public class LLProver3 extends LLProver {
                     {
                         stagedSccAgenda.get(newStage).add(h);
                     }
-                    getLOGGER().info("Raised history with category: " + h.category);
+                    getLOGGER().fine("Raised history with category: " + h.category);
                 }
             }
         }
@@ -1868,7 +1868,7 @@ public class LLProver3 extends LLProver {
             if (!chart.isEmpty())
             {
                 this.db.discardedHistories = this.db.discardedHistories + histories.size() - chart.size();
-                getLOGGER().info("Discarded " + (histories.size() - chart.size()) + " histories");
+                getLOGGER().fine("Discarded " + (histories.size() - chart.size()) + " histories");
                 return new HashSet<>(chart);
             }
         }
@@ -1909,7 +1909,7 @@ public class LLProver3 extends LLProver {
                 chart.add(current);
             }
         }
-        getLOGGER().info("Discarded " + (histories.size() - chart.size()) + " histories");
+        getLOGGER().fine("Discarded " + (histories.size() - chart.size()) + " histories");
         return chart;
     }
 
