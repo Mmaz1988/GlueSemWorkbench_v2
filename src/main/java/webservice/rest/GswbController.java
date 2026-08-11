@@ -199,7 +199,9 @@ public class GswbController {
 
         LOGGER.info("Collapse anaphora request received: parentSolutionId=" + request.parentSolutionId
                 + ", semantic=" + request.semantic);
-        SemanticExpression expression = new DrsParser().parse(request.semantic).expression;
+        // Same as the batch form below: accept an unresolved `A + B` merge string, which is
+        // what /merge_sequence_semantics hands back for a multi-sentence prior.
+        SemanticExpression expression = new DrsParser().parse(request.semantic).expression.resolveMerges();
         if (!(expression instanceof DRS parsedDrs)) {
             throw new IllegalArgumentException("Anaphora collapse requires a DRS semantic expression.");
         }
@@ -292,7 +294,14 @@ public class GswbController {
                 throw new IllegalArgumentException("Every batch item requires a name and a non-blank semantic.");
             }
             try {
-                SemanticExpression expression = new DrsParser().parse(item.semantic).expression;
+                // resolveMerges() first: a caller's semantic is routinely a `A + B` merge
+                // string rather than a single box -- /merge_sequence_semantics returns its
+                // top-level merge unresolved, so the discourse prior handed back to the
+                // client and then sent here as the `context` item is exactly that shape.
+                // Without this the instanceof below rejects it, the catch turns that into an
+                // empty tptp for the item, and the caller sees a translation that produced
+                // nothing rather than an input it could have accepted.
+                SemanticExpression expression = new DrsParser().parse(item.semantic).expression.resolveMerges();
                 if (!(expression instanceof DRS parsedDrs)) {
                     throw new IllegalArgumentException("Anaphora collapse requires a DRS semantic expression.");
                 }
