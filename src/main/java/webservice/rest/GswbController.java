@@ -296,6 +296,16 @@ public class GswbController {
             }
             try {
                 SemanticExpression expression = new DrsParser().parse(item.semantic).expression;
+                // Every other item in this batch ("sequence", the four checks) is guaranteed
+                // resolved by its producer (/generate_pcdrs, DrsReasoningCheckBuilder) before it
+                // ever gets here. "context" is the one item that is not: it is the caller's
+                // premiseSemantic passed straight through, and with resolveDrs=false (chat's
+                // default) that text still has its top-level "+" merges unresolved, so it parses
+                // to a DrsMerge rather than a DRS. Resolve it here, the same way /generate_pcdrs
+                // already does for exactly this case, instead of rejecting it.
+                if (!(expression instanceof DRS)) {
+                    expression = expression.resolveMerges();
+                }
                 if (!(expression instanceof DRS parsedDrs)) {
                     throw new IllegalArgumentException("Anaphora collapse requires a DRS semantic expression.");
                 }
@@ -329,7 +339,8 @@ public class GswbController {
             } catch (RuntimeException e) {
                 LOGGER.warning("Collapse/TPTP batch item failed for parentSolutionId=" + request.parentSolutionId
                         + ", item=" + item.name + ": " + e.getMessage() + "; returning an empty result for this item");
-                results.put(item.name, new GswbTptpBatchResult("", null));
+                results.put(item.name,
+                        new GswbTptpBatchResult("", null, "translation failed: " + e.getMessage()));
             }
         }
 
