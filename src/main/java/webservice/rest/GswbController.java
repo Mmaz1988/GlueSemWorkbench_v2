@@ -59,18 +59,19 @@ public class GswbController {
 
         gswbRedisSessionService.clear(sessionKey);
 
-        List<String> ids = sortedBatchKeys(request.premises.keySet());
+        List<String> ids = sortedBatchKeys(request.items.keySet());
 
         for (String id : ids) {
-            SingleRunResult run =
-                    runAndFormatSingle(
-                            request.premises.get(id),
-                            ctx,
-                            gp,
-                            true,  // batch mode
-                            false, // includeDerivation
-                            null
-                    );
+            // The same payload /deduce takes, so a batch parse yields the same per-sentence
+            // result -- structure, proofs, per-origin provenance and surface labels
+            // included. A batch endpoint is N single calls with shared setup (the run
+            // context, the parser, and progressive persistence below); it may not take or
+            // return less.
+            GswbRequest item = request.items.get(id);
+            if (item == null) {
+                continue;
+            }
+            SingleRunResult run = deduceOne(item, ctx, gp, true, false);
 
             analyses.put(id, run.output);
 
@@ -97,37 +98,38 @@ public class GswbController {
                 + ", hasStructure=" + (request.structure != null));
 
         GlueParser gp = new GlueParser(ctx.settings);
+        SingleRunResult run = deduceOne(request, ctx, gp, false, true);
 
-        SingleRunResult run;
+        LOGGER.info("Completed /deduce request: solutions=" + run.output.solutions.size()
+                + ", discriminants=" + run.output.discriminants.size());
+        return run.output;
+    }
+
+    /** One sentence's deduction: the structured-proofs path when the caller supplies
+     *  {@code proofs} (one {@link GswbProofInput} per syntactic origin), the flat-premises
+     *  path otherwise.
+     *
+     *  Extracted so {@code /gswb_batch_proof} is literally N of these rather than a
+     *  parallel implementation that could only take flat premises. Without a structure and
+     *  origins, {@code resolveSurfaceLabel} returns null before it even calls LiGER's
+     *  {@code /resolve_source_spans}, so every batch discriminant came back with no
+     *  surface label and no origin ids, and every solution id was a bare {@code s0}
+     *  repeated across sentences. See
+     *  xleplusglue/docs/plans/SHARED_PIPELINE_PLAN.md, Stage 4 and invariant I6.
+     */
+    private SingleRunResult deduceOne(GswbRequest request, RunContext ctx, GlueParser gp,
+                                      boolean batchMode, boolean includeDerivation) throws Exception {
         if (request.proofs != null && !request.proofs.isEmpty()) {
             ParsedProofInputs parsed = parseProofInputs(request.proofs, gp, ctx.multistage);
             LOGGER.info("Parsed structured proof inputs: records=" + request.proofs.size()
                     + ", mcSets=" + parsed.entries.lexicalEntries.size()
                     + ", origins=" + parsed.origins.size());
-            run = runAndFormatSingle(
-                    parsed.entries,
-                    parsed.origins,
-                    ctx,
-                    false, // single mode
-                    true,  // includeDerivation
-                    request.structure
-            );
-        } else {
-            InputOutputProcessor.process(request.premises);
-            String input = InputOutputProcessor.translate(request.premises);
-            run = runAndFormatSingle(
-                    input,
-                    ctx,
-                    gp,
-                    false, // single mode
-                    true,  // includeDerivation
-                    request.structure
-            );
+            return runAndFormatSingle(
+                    parsed.entries, parsed.origins, ctx, batchMode, includeDerivation, request.structure);
         }
-
-        LOGGER.info("Completed /deduce request: solutions=" + run.output.solutions.size()
-                + ", discriminants=" + run.output.discriminants.size());
-        return run.output;
+        InputOutputProcessor.process(request.premises);
+        String input = InputOutputProcessor.translate(request.premises);
+        return runAndFormatSingle(input, ctx, gp, batchMode, includeDerivation, request.structure);
     }
 
     @CrossOrigin
