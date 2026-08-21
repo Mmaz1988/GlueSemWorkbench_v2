@@ -30,3 +30,6 @@ hs_err_pid*
 !src/main/resources/*.xml
 .idea
 stanford-corenlp-full-2017-06-09/
+
+*.md
+!**./docs/*
