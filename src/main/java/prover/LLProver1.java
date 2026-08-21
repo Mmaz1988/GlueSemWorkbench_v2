@@ -798,9 +798,8 @@ public class LLProver1 extends LLProver {
 
         private void recordScopeSourceIndices(String scope, Collection<Integer> leftIds, Collection<Integer> rightIds) {
             List<LinkedHashSet<Integer>> groups = scope2SourceIndexGroups.computeIfAbsent(scope, ignored -> new ArrayList<>());
-            // Sequent premise IDs are zero-based; LiGER SYN-ID values are one-based.
-            LinkedHashSet<Integer> left = toSyntheticSourceIndices(leftIds);
-            LinkedHashSet<Integer> right = toSyntheticSourceIndices(rightIds);
+            LinkedHashSet<Integer> left = resolveRealSourceIndices(leftIds);
+            LinkedHashSet<Integer> right = resolveRealSourceIndices(rightIds);
             if (groups.isEmpty()) {
                 groups.add(left);
                 groups.add(right);
@@ -840,9 +839,23 @@ public class LLProver1 extends LLProver {
                     .orElse(null);
         }
 
-        static LinkedHashSet<Integer> toSyntheticSourceIndices(Collection<Integer> premiseIds) {
-            return premiseIds.stream().map(id -> id + 1)
-                    .collect(Collectors.toCollection(LinkedHashSet::new));
+        // Premise IDs are agenda-internal derivation positions, not SYN-IDs - they're assigned
+        // purely by list order, while LiGER-contributed MCs occupy a derivation slot without a
+        // real SYN-ID (MeaningConstructor.sourceIndex is null for those). Resolve through the
+        // premise's own sourceIndex instead of assuming position == SYN-ID - 1, and drop premises
+        // with no real SYN-ID rather than let them shift every later grammar MC's apparent index.
+        private LinkedHashSet<Integer> resolveRealSourceIndices(Collection<Integer> premiseIds) {
+            LinkedHashSet<Integer> result = new LinkedHashSet<>();
+            for (Integer id : premiseIds) {
+                if (id == null || id < 0 || id >= agenda.size()) {
+                    continue;
+                }
+                Integer sourceIndex = agenda.get(id).getSourceIndex();
+                if (sourceIndex != null) {
+                    result.add(sourceIndex);
+                }
+            }
+            return result;
         }
 
         /*

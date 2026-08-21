@@ -42,7 +42,7 @@ public class GlueParser {
     public static final MeaningRepresentation emptyMeaning = new MeaningRepresentation("<empty>");
     // TODO add semantic parser here
     private final static Logger LOGGER = Logger.getLogger(GlueParser.class.getName());
-    private static final Pattern SOURCE_INDEX_PREFIX = Pattern.compile("^\\s*\\[(\\d+)\\]\\s*(.*)$");
+    private static final Pattern SOURCE_INDEX_PREFIX = Pattern.compile("^\\s*\\[([^\\]]+)\\]\\s*(.*)$");
 
     static {
         LOGGER.setUseParentHandlers(false);
@@ -77,8 +77,14 @@ public class GlueParser {
         Integer sourceIndex = null;
         Matcher sourceIndexMatcher = SOURCE_INDEX_PREFIX.matcher(mc.trim());
         if (sourceIndexMatcher.matches()) {
-            sourceIndex = Integer.valueOf(sourceIndexMatcher.group(1));
+            String sourceLabel = sourceIndexMatcher.group(1).trim();
             mc = sourceIndexMatcher.group(2).trim();
+            if (sourceLabel.matches("\\d+")) {
+                sourceIndex = Integer.valueOf(sourceLabel);
+            } else {
+                LOGGER.warning("Meaning constructor source label '[" + sourceLabel + "]' is not numeric; " +
+                        "stripping it from the meaning without recording a source index.");
+            }
         }
 
         String[] mcList = mc.split(":");
