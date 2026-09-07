@@ -487,7 +487,7 @@ public class LLProver1 extends LLProver {
                 List<History> sccAgenda = new ArrayList<>();
                 sccAgenda.addAll(sccHistories);
 
-                List<History> histories = new ArrayList<>(sccAgenda);
+                List<History> histories = new ArrayList<>();
 
                 if (!nonScopingModifiers.isEmpty()) {
                     List<History> scopingModifiers = sccAgenda.stream().filter(h -> !this.nonScopingModifiers.contains(h.mainIndex) && h.category.left != null &&
@@ -559,10 +559,12 @@ public class LLProver1 extends LLProver {
 
                     if (!scopingModifiers.isEmpty()) {
                         histories.addAll(scopingModifiers);
+                        histories = chartDeduce2(histories, false);
                     }
-                }
 
-                histories = chartDeduce2(histories,false);
+                } else {
+                    histories = chartDeduce2(sccAgenda, false);
+                }
                 if (enforceInsitu) {
                     histories = filterInsituHistories(histories);
                 }
