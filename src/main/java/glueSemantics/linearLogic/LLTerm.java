@@ -87,6 +87,10 @@ public abstract class LLTerm {
         return super.toString();
     }
 
+    public String toStringNotation() {
+        return super.toString();
+    }
+
     public abstract boolean isModifier();
 
     // This is not a regular clone() method, it just calls the copy constructor
@@ -98,6 +102,8 @@ public abstract class LLTerm {
 
 
     public abstract List<LLAtom> returnAllAtoms();
+
+    public abstract String toUTF8();
 
  /*TODO update this method
     String printAssumptions() {
@@ -300,6 +306,31 @@ public abstract class LLTerm {
         this.XtXchecked = true;
         return this.XtX;
     }
+
+    public boolean isImpureXtX() {
+
+        if (this.isXtX()){
+            return true;
+        }
+        try {
+            LLFormula myObj = ((LLFormula)this);
+            if (myObj.getRhs() instanceof LLFormula)  {
+                LLTerm right = ((LLFormula)myObj.getRhs()).getRhs();
+                while (right instanceof LLFormula) {
+                    right = ((LLFormula)right).getRhs();
+                }
+                if (myObj.getLhs().toString().equals(right.toString()))    {
+                    return true;
+                }
+                return myObj.getRhs().isImpureXtX();
+            }
+        }
+        catch(Exception e){
+            // Do nothing.
+        }
+        return false;
+    }
+
     /* End of this code block added for optimization-1 */
 
 

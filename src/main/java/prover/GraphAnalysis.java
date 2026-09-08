@@ -12,28 +12,330 @@ import org.jgrapht.ext.JGraphXAdapter;
 import org.jgrapht.graph.DefaultEdge;
 import prover.categoryGraph.CGNode;
 import prover.categoryGraph.History;
+import webservice.rest.dtos.GswbEdge;
+import webservice.rest.dtos.GswbGraph;
+import webservice.rest.dtos.GswbGraphComponent;
+import webservice.rest.dtos.GswbNode;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class GraphAnalysis {
 
     private Graph<Graph<CGNode,DefaultEdge>,DefaultEdge> stronglyConnectedGraph;
+
+    private Graph<CGNode,DefaultEdge> currentGraph;
+
+    private HashMap<Premise,Set<String>> compiledToPremiseMapping;
     private String goalCategory;
     private mxGraphComponent graphComponent;
     private HashMap<mxCell,mxGraphComponent> sccMap = new HashMap<>();
+
+    private final static Logger LOGGER = Logger.getLogger(GraphAnalysis.class.getName());
 
     public GraphAnalysis(String goalCategory, Graph<Graph<CGNode,DefaultEdge>,DefaultEdge> stronglyConnectedGraph)
     {
         this.goalCategory = goalCategory;
         this.stronglyConnectedGraph = stronglyConnectedGraph;
+    }
+
+    public GraphAnalysis(String goalCategory, Graph<Graph<CGNode,DefaultEdge>,DefaultEdge> stronglyConnectedGraph, Graph<CGNode,DefaultEdge> currentGraph)
+    {
+        this.goalCategory = goalCategory;
+        this.stronglyConnectedGraph = stronglyConnectedGraph;
+        this.currentGraph = currentGraph;
+    }
+
+    public GraphAnalysis(String goalCategory, Graph<Graph<CGNode,DefaultEdge>,DefaultEdge> stronglyConnectedGraph,
+                         Graph<CGNode,DefaultEdge> currentGraph, HashMap<Premise, Set<String>> compiledToPremiseMapping)
+    {
+        this.goalCategory = goalCategory;
+        this.stronglyConnectedGraph = stronglyConnectedGraph;
+        this.currentGraph = currentGraph;
+        this.compiledToPremiseMapping = compiledToPremiseMapping;
+    }
+
+    public GswbGraph returnJSONGraph()
+    {
+        List<GswbGraphComponent> graphComponents = new ArrayList<>();
+
+
+        HashMap<String,Set<GswbNode>> categoryToPremiseMapping = new HashMap<>();
+
+        for (Premise p : compiledToPremiseMapping.keySet())
+        {
+            GswbNode premiseNode = new GswbNode();
+            premiseNode.data = new HashMap<>();
+            premiseNode.data.put("id",p.getGlueTerm().category().toString());
+            premiseNode.data.put("text",p.getGlueTerm().toUTF8());
+            premiseNode.data.put("color", "orange");
+            premiseNode.data.put("solutions",Collections.singleton(p.toString()));
+
+          // graphComponents.add(premiseNode);
+
+            for (String c : compiledToPremiseMapping.get(p))
+            {
+                if (!categoryToPremiseMapping.containsKey(c))
+                {
+                    categoryToPremiseMapping.put(c,new HashSet<>());
+                }
+                categoryToPremiseMapping.get(c).add(premiseNode);
+            }
+
+        }
+
+
+
+
+        //Create Gswbgraph nodes
+        for (Graph<CGNode,DefaultEdge> g : this.stronglyConnectedGraph.vertexSet())
+        {
+            GswbNode gswbNode = new GswbNode();
+            gswbNode.data = new HashMap<>();
+            gswbNode.data.put("id",g.toString());
+            if (g.edgeSet().isEmpty())
+            {
+                CGNode currentNode = g.vertexSet().stream().findAny().get();
+                if (currentNode.nodeType.equals(CGNode.type.CATEGORY)) {
+                    gswbNode.data.put("text", currentNode.categoryObject.toUTF8());
+                } else {
+                    gswbNode.data.put("text", currentNode.category);
+
+                }
+                if (currentNode.toString().equals(goalCategory))
+                {
+                    gswbNode.data.put("color", "yellow");
+
+                } else  if (currentNode.histories.isEmpty())
+                {
+                    gswbNode.data.put("color", "red");
+                } else
+                {
+                    gswbNode.data.put("color", "blue");
+                }
+
+                Set<String> solutions = new HashSet<>();
+
+                if (currentNode.histories != null && !currentNode.histories.isEmpty())
+                {
+                    for (History h : currentNode.histories)
+                    {
+                        try {
+                            solutions.addAll(h.calculateSolutions().stream().map(x -> x.solution.toString()).collect(Collectors.toList()));
+                        } catch(Exception e)
+                        {
+                            LOGGER.fine("History with category " + h.category + "has no solutions to calculate.");
+                        }}
+                }
+                if (!solutions.isEmpty()) {
+                    gswbNode.data.put("solutions", solutions);
+                }else
+                {
+                    if (currentNode.histories != null && !currentNode.histories.isEmpty()) {
+                        History h = currentNode.histories.stream().findAny().get();
+                        gswbNode.data.put("solutions", Collections.singleton(h.p.toString()));
+                    }
+                }
+
+                if (categoryToPremiseMapping.containsKey(currentNode.category.toString()))
+                {
+
+                    List<GswbEdge> incomingEdges = new ArrayList<>();
+
+                    for (GswbNode gn : categoryToPremiseMapping.get(currentNode.category.toString()))
+                    {
+                        GswbEdge parent = new GswbEdge((String) gn.data.get("id"),g.toString());
+                        parent.data.put("edge_type","parent");
+                        graphComponents.add(gn);
+                        graphComponents.add(parent);
+                    }
+
+
+
+                }
+
+
+
+
+                /*
+                //create a set of all values in compiledToPremiseMapping and map them to Premise.getGlueTerm().category.toString()
+                Set<Premise> values = new HashSet<>(compiledToPremiseMapping.values());
+              //  Set<String> valuesAsString = values.stream().map(x -> x.getGlueTerm().category().toString()).collect(Collectors.toSet());
+
+                for (Premise value : values)
+                {
+                    GswbNode premiseNode = new GswbNode();
+                    premiseNode.data = new HashMap<>();
+                    premiseNode.data.put("id",value.getGlueTerm().category().toString());
+                    premiseNode.data.put("color", "blue");
+
+                    Set<String> originalPremises = Collections.singleton(value.toString());
+                    premiseNode.data.put("solutions", originalPremises);
+
+                    graphComponents.add(premiseNode);
+
+                    if (compiledToPremiseMapping.containsKey(currentNode.category.toString()))
+                    {
+                        GswbEdge ge = new GswbEdge(value.getGlueTerm().category().toString(),
+                                currentNode.category.toString());
+                        ge.data.put("edge_type","default");
+                        graphComponents.add(ge);
+                    }
+
+                }
+
+                 */
+
+
+            } else
+            {
+                gswbNode.data.put("color", "green");
+
+                gswbNode.data.put("text",g.vertexSet().stream()
+                                .map(x -> x.categoryObject != null ? x.categoryObject.toUTF8() : x.category.toString())
+                                .collect(Collectors.toSet())
+                                .stream()
+                                .collect(Collectors.joining(", ")));
+
+                //g is a strongly connected component: Create subraph
+                Set<CGNode> nodes = new HashSet<>(g.vertexSet());
+                List<GswbGraphComponent> subGraphList = new ArrayList<>();
+
+                //subgraph nodes
+                for (CGNode node : nodes) {
+                    GswbNode subGraphNode = new GswbNode();
+                    subGraphNode.data = new HashMap<>();
+
+                    subGraphNode.data.put("id", node.toString());
+                    if (node.nodeType.equals(CGNode.type.CATEGORY)) {
+                        subGraphNode.data.put("text", node.categoryObject.toUTF8());
+                    } else {
+                        subGraphNode.data.put("text", node.category);
+                    }
+
+                    if (node.toString().equals(goalCategory)) {
+                        subGraphNode.data.put("color", "yellow");
+                    } else {
+                        subGraphNode.data.put("color", "green");
+                    }
+
+                    List<String> solutions = new ArrayList<>();
+                    if (node.histories != null && !node.histories.isEmpty()) {
+                        for (History h : node.histories) {
+                            try {
+                                solutions.addAll(h.calculateSolutions().stream().map(x -> x.solution.toString()).collect(Collectors.toList()));
+                            } catch (Exception e) {
+                                LOGGER.fine("History with category " + h.category + "has no solutions to calculate.");
+                            }
+                        }
+                    }
+                    if (!solutions.isEmpty()) {
+                        subGraphNode.data.put("solutions", solutions);
+                    } else
+                    {if (node.histories != null && !node.histories.isEmpty()) {
+                        History h = node.histories.stream().findAny().get();
+                        subGraphNode.data.put("solutions", Collections.singleton(h.p.toString()));
+                    }
+                    }
+
+
+                    if (categoryToPremiseMapping.containsKey(node.toString())) {
+
+
+                        for (GswbNode gn : categoryToPremiseMapping.get(node.toString())) {
+                            GswbEdge parent = new GswbEdge((String) gn.data.get("id"), node.toString());
+                            parent.data.put("edge_type", "parent");
+                            subGraphList.add(gn);
+                            subGraphList.add(parent);
+                        }
+                    }
+                        subGraphList.add(subGraphNode);
+                    }
+                //Create subgraph Edges
+                for (DefaultEdge e : g.edgeSet())
+                {
+                    GswbEdge ge = new GswbEdge(g.getEdgeSource(e).toString(),
+                            g.getEdgeTarget(e).toString());
+                    ge.data.put("edge_type","default");
+                    subGraphList.add(ge);
+                }
+
+                Set<DefaultEdge> incomingEdges = this.stronglyConnectedGraph.incomingEdgesOf(g);
+
+                for (DefaultEdge e : incomingEdges)
+                {
+                 Set<CGNode> sourceSet = this.stronglyConnectedGraph.getEdgeSource(e).vertexSet();
+                 Set<CGNode> targetSet = this.stronglyConnectedGraph.getEdgeTarget(e).vertexSet();
+
+                 for (CGNode currentSource : sourceSet)
+                 {
+
+                    Set<DefaultEdge> outSet = this.currentGraph.outgoingEdgesOf(currentSource);
+                    outSet = outSet.stream().filter(x -> targetSet.contains(this.currentGraph.getEdgeTarget(x))).collect(Collectors.toSet());
+
+                    if (!outSet.isEmpty()) {
+                        for (DefaultEdge e1 : outSet) {
+                            GswbEdge ge = new GswbEdge(this.currentGraph.getEdgeSource(e1).toString(),
+                                    this.currentGraph.getEdgeTarget(e1).toString());
+                            ge.data.put("edge_type","external");
+                            subGraphList.add(ge);
+                        }
+                        GswbNode subgraphNode = new GswbNode();
+                        subgraphNode.data = new HashMap<>();
+                        subgraphNode.data.put("id",currentSource.toString());
+                        if (currentSource.nodeType.equals(CGNode.type.CATEGORY)) {
+                            subgraphNode.data.put("text", currentSource.categoryObject.toUTF8());
+                        } else {
+                            subgraphNode.data.put("text", currentSource.category);
+                        }
+                        subgraphNode.data.put("color","blue");
+
+                        List<String> solutions = new ArrayList<>();
+                        if (currentSource.histories != null && !currentSource.histories.isEmpty())
+                        {
+                            for (History h : currentSource.histories)
+                            {
+                                try {
+                                    solutions.addAll(h.calculateSolutions().stream().map(x -> x.solution.toString()).collect(Collectors.toList()));
+                                } catch(Exception exc)
+                                {
+                                    LOGGER.fine("History with category " + h.category + "has no solutions to calculate.");
+                                }}
+                        }
+
+                        if (!solutions.isEmpty()) {
+                            subgraphNode.data.put("solutions", solutions);
+                        }
+
+                        subGraphList.add(subgraphNode);
+                    }
+                    }
+                }
+
+                gswbNode.data.put("subgraph",new GswbGraph(subGraphList));
+            }
+
+            graphComponents.add(gswbNode);
+        }
+
+        //create gswbGraph edges
+        for (DefaultEdge e : this.stronglyConnectedGraph.edgeSet())
+        {
+            GswbEdge ge = new GswbEdge(stronglyConnectedGraph.getEdgeSource(e).toString(),
+                                        stronglyConnectedGraph.getEdgeTarget(e).toString());
+            ge.data.put("edge_type","default");
+            graphComponents.add(ge);
+        }
+
+
+
+        return new GswbGraph(graphComponents);
     }
 
     public void displayGraph()
@@ -220,14 +522,14 @@ class inspectProofAdapter extends MouseAdapter {
                 testFrame.setModalityType(Dialog.DEFAULT_MODALITY_TYPE);
 
                 StringBuilder intermediateResultBuilder = new StringBuilder();
-                List<Premise> solutions = new ArrayList();
+                List<SolutionObject> solutions = new ArrayList();
 
                 for (History h : ((CGNode) ((Graph) ((mxCell) cell).getValue()).vertexSet().stream().findAny().get()).histories)
                 {
 
                     if (h.parents.size() == 1 && h.parents.stream().findAny().get().isEmpty())
                     {
-                        solutions.add(h.p);
+                        solutions.add(new SolutionObject(h.p));
                     }
                     else {
                         try {
@@ -240,7 +542,8 @@ class inspectProofAdapter extends MouseAdapter {
                     }
                 }
 
-                for (Premise h : solutions) {
+                for (SolutionObject so : solutions) {
+                    Premise h = so.solution;
                     intermediateResultBuilder.append(h.toString() + " " + h.getPremiseIDs().toString());
                     intermediateResultBuilder.append("<br>");
 
@@ -276,14 +579,14 @@ class inspectSCCAdapter extends MouseAdapter {
                 testFrame.setModalityType(Dialog.DEFAULT_MODALITY_TYPE);
 
                 StringBuilder intermediateResultBuilder = new StringBuilder();
-                List<Premise> solutions = new ArrayList();
+                List<SolutionObject> solutions = new ArrayList();
 
                 for (History h : ((CGNode) ((mxCell) cell).getValue()).histories)
                 {
 
                     if (h.parents.size() == 1 && h.parents.stream().findAny().get().isEmpty())
                     {
-                        solutions.add(h.p);
+                        solutions.add(new SolutionObject(h.p));
                     }
                     else {
                         try {
@@ -296,7 +599,8 @@ class inspectSCCAdapter extends MouseAdapter {
                     }
                 }
 
-                for (Premise h : solutions) {
+                for (SolutionObject so : solutions) {
+                    Premise h = so.solution;
                     intermediateResultBuilder.append(h.toString() + " " + h.getPremiseIDs().toString());
                     intermediateResultBuilder.append("<br>");
 

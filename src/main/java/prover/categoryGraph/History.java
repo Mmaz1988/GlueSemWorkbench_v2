@@ -4,15 +4,17 @@ import glueSemantics.linearLogic.Category;
 import glueSemantics.linearLogic.Premise;
 import prover.LLProver;
 import prover.ProverException;
+import prover.SolutionObject;
 import prover.VariableBindingException;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class History {
 
     public LLProver prover;
     public Category category;
-    public Set<Integer> indexSet;
+    public LinkedHashSet<Integer> indexSet;
     public Integer mainIndex;
     public Integer lastModifierMainIndex;
     public Set<Integer> requirements = new HashSet<>();
@@ -27,14 +29,26 @@ public class History {
         OTHER
     }
 
+    public HashSet<String> scopeDiscriminants = new HashSet<>();
+    public Set<Integer> insituIndices = new HashSet<>();
+    public Map<Integer, LinkedHashSet<Integer>> scopeSourceIndices = new HashMap<>();
 
-    public History(Category category, Set<Integer> indexSet, Set<HashMap<Integer,History>> parents, Premise p, LLProver prover)
+    public String stage;
+
+    public List<SolutionObject> results;
+    public History(Category category, LinkedHashSet<Integer> indexSet, Set<HashMap<Integer,History>> parents, Premise p, LLProver prover)
     {
         this.prover = prover;
         this.category = category;
         this.indexSet = indexSet;
         this.parents = parents;
         this.p = p;
+        if (p != null && p.stage != null) {
+            this.stage = p.stage;
+        }
+        if (p != null && p.isInsitu()) {
+            this.insituIndices.addAll(indexSet);
+        }
         calculateMainIndex();
 
         /*
@@ -57,7 +71,7 @@ public class History {
 
     }
 
-    public History(Category category, Set<Integer> indexSet, Set<HashMap<Integer,History>> parents, LLProver prover)
+    public History(Category category, LinkedHashSet<Integer> indexSet, Set<HashMap<Integer,History>> parents, LLProver prover)
     {
         this.prover = prover;
         this.category = category;
@@ -75,9 +89,14 @@ public class History {
         return category.toString() + " " + indexSet + " (" + parents + ")";
     }
 
-    public List<Premise> calculateSolutions(StringBuilder resultBuilder) throws VariableBindingException, ProverException {
+    public List<SolutionObject> calculateSolutions(StringBuilder resultBuilder) throws VariableBindingException, ProverException {
 
-        List<Premise> results = new ArrayList<>();
+        if (results != null)
+        {
+            return results;
+        }
+
+        List<SolutionObject> results = new ArrayList<>();
 
         for (HashMap<Integer,History> parentLinks : parents)
         {
@@ -90,7 +109,7 @@ public class History {
                 func.add(parentLinks.get(0).p);
             } else
             {
-                func.addAll(parentLinks.get(0).calculateSolutions(resultBuilder));
+                func.addAll(parentLinks.get(0).calculateSolutions(resultBuilder).stream().map(x -> x.solution).collect(Collectors.toList()));
             }
 
             if (parentLinks.get(1).p != null)
@@ -98,7 +117,7 @@ public class History {
                 arg.add(parentLinks.get(1).p);
             } else
             {
-                arg.addAll(parentLinks.get(1).calculateSolutions(resultBuilder));
+                arg.addAll(parentLinks.get(1).calculateSolutions(resultBuilder).stream().map(x -> x.solution).collect(Collectors.toList()));
             }
 
             for (Premise p : func)
@@ -108,11 +127,22 @@ public class History {
                 for (Premise q : arg)
                 {
 
-                    Premise r = prover.combinePremises(p,q,resultBuilder);
-                    if (r != null)
-                    {
-                        prover.db.combinations++;
-                        results.add(r);
+                    try {
+                        p = prover.ensureLfgxDrtSemantic(p);
+                        q = prover.ensureLfgxDrtSemantic(q);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Failed to prepare LFGxDRT semantics", e);
+                    }
+
+                    prover.db.attemptedCombination++;
+                    Premise r = prover.combinePremises(p,q);
+                    SolutionObject so = new SolutionObject(r);
+                    if (r != null ) {
+                        if (r.getPremiseIDs().equals(this.indexSet)) {
+                            resultBuilder.append("Combining function " + p.toString() + " with argument " + q.toString() + " to get " + r.toString() + "\n");
+                            prover.db.combinations++;
+                            results.add(so);
+                        }
                     }
                 }
             }
@@ -120,7 +150,10 @@ public class History {
         }
 
 
-
+        if (!results.isEmpty())
+        {
+            this.results = results;
+        }
 
         return results;
 
@@ -128,9 +161,9 @@ public class History {
 
     }
 
-    public List<Premise> calculateSolutions() throws VariableBindingException, ProverException {
+    public List<SolutionObject> calculateSolutions() throws VariableBindingException, ProverException {
 
-        List<Premise> results = new ArrayList<>();
+        List<SolutionObject> results = new ArrayList<>();
 
         for (HashMap<Integer,History> parentLinks : parents)
         {
@@ -142,24 +175,52 @@ public class History {
                 func.add(parentLinks.get(0).p);
             } else
             {
-                func.addAll(parentLinks.get(0).calculateSolutions());
+                func.addAll(parentLinks.get(0).calculateSolutions().stream().map(x -> x.solution).collect(Collectors.toList()));
             }
             if (parentLinks.get(1).p != null)
             {
                 arg.add(parentLinks.get(1).p);
             } else
             {
-                arg.addAll(parentLinks.get(1).calculateSolutions());
+                arg.addAll(parentLinks.get(1).calculateSolutions().stream().map(x -> x.solution).collect(Collectors.toList()));
             }
             for (Premise p : func)
             {
                 for (Premise q : arg)
                 {
-                    Premise r = prover.combinePremises(p,q);
-                    if (r != null)
+                    try {
+                        p = prover.ensureLfgxDrtSemantic(p);
+                        q = prover.ensureLfgxDrtSemantic(q);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Failed to prepare LFGxDRT semantics", e);
+                    }
+                    /* TODO this optimization only applies inside an SCC. To do this, we need to calculate solutions of histories that go into an SCC?
+                    Premise r = null;
+                    if (this.prover.getSettings().isParseSemantics())
                     {
-                        prover.db.combinations++;
-                        results.add(r);
+                        if (SemanticExpression.nonScopingQuantifiers((SemanticExpression) p.getSemTerm(), (SemanticExpression) q.getSemTerm()))
+                        {
+                            if (parentLinks.get(0).mainIndex < parentLinks.get(1).mainIndex)
+                            {
+                                r = prover.combinePremises(p,q);
+                            }
+                        } else
+                        {
+                            r = prover.combinePremises(p,q);
+                        }
+                    } else {
+                        r = prover.combinePremises(p, q);
+                    }
+
+                     */
+                    prover.db.attemptedCombination++;
+                    Premise r = prover.combinePremises(p,q);
+                    SolutionObject so = new SolutionObject(r);
+                    if (r != null ) {
+                        if (r.getPremiseIDs().equals(this.indexSet)) {
+                            prover.db.combinations++;
+                            results.add(so);
+                        }
                     }
                 }
             }
@@ -179,6 +240,40 @@ public class History {
         }
 
     }
+
+    public static List<History> categorySort(List<History> histories){
+        List<History> output = new ArrayList<>();
+        HashMap<Integer,List<History>> sortByDepth = new HashMap<>();
+
+        for (History h : histories)
+        {
+            Integer depthCounter = 0;
+            Category current = h.category;
+
+            while(current.left != null)
+            {
+                depthCounter++;
+                current = current.right;
+            }
+
+            sortByDepth.computeIfAbsent(depthCounter, k -> new ArrayList<>());
+            sortByDepth.get(depthCounter).add(h);
+        }
+
+        //sort keys of sortByDepth inascending order
+        List<Integer> sortedKeys = new ArrayList<>(sortByDepth.keySet());
+        Collections.sort(sortedKeys);
+
+        for (Integer i : sortedKeys)
+        {
+            //sort histories in sortByDepth.get(i) by mainIndex
+            output.addAll(sortByDepth.get(i).stream().sorted(Comparator.comparingInt(o -> o.mainIndex)).collect(Collectors.toList()));
+        }
+
+        return output;
+
+    }
+
 
     public String printParentGraph() {
 

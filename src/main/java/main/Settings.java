@@ -30,136 +30,291 @@ public class Settings {
  //Outputnodes
     public static final int PLAIN = 0;
     public static final int PROLOG = 1;
-    public static final int NLTK = 3; 
+    public static final int NLTK = 3;
+    public static final int LFGXDRT = 5;
     // TODO implement latex output
     //private final int LATEX = 2;
 
     //Provers
     public static  final int HEPPLE = 0;
     public static final int LEV = 1;
+    public static final int Multi = 2;
 
-    private static boolean betaReduce = true;
-    private static int semanticOutputStyle = PLAIN;
-    private static boolean debugging = false;
-    private static boolean partial = false;
-    private static boolean glueOnly = false;
-    private static boolean multipleEntries;
-    private static boolean outputFile;
-    private static boolean parseSemantics = false;
-    private static boolean solutionOnly = false;
-    private static boolean testExpression = false;
-    private static boolean visualize = false;
-    private static int proverType = HEPPLE;
+    //resources
+    public String resources = "gswb_resources/";
+
+    //naturaldeduction output
+    public static final int NDFULL = 0;
+    public static final int NDREDUCED = 1;
+    public static final int NOSEM = 2;
+
+    private boolean betaReduce = true;
+    private boolean resolveDrs = true;
+    private int semanticOutputStyle = PLAIN;
+    private boolean debugging = false;
+    private boolean partial = false;
+    private boolean glueOnly = false;
+    private boolean multipleEntries;
+    private boolean outputFile;
+    private boolean parseSemantics = false;
+    private boolean solutionOnly = false;
+    private boolean testExpression = false;
+    private boolean visualize = false;
+    private boolean allowRelaxedGraph = true;
+    private int proverType = HEPPLE;
+
+    private int naturalDeductionOutput = NDFULL;
+
+
+    private String explanation = "";
+    private boolean explainFail = false;
+    public static boolean printIDs = false;
+    private boolean assureGlueParsing = false;
+
+    private boolean webService = false;
+    private boolean drt = false;
+
+    private boolean onlyMeaningSide = false;
+    private boolean stdIn = false;
+    private boolean stdOut = false;
+    private String inputFileName = "";
+    private String outputFileName = "";
+
+    private Integer maxSolutions = 100000;
+
+    private Integer maxMsBeforeCalculatingDummy = 180000;
 
     public Settings() {
     }
 
     public Settings (boolean betaReduce, int semanticOutputStyle) {
-        Settings.betaReduce = betaReduce;
-        Settings.semanticOutputStyle = semanticOutputStyle;
-        debugging = false;
-        partial = false;
-        glueOnly = false;
-        parseSemantics = false;
-        solutionOnly = false;
-        testExpression = false;
-        proverType = HEPPLE;
+        this.betaReduce = betaReduce;
+        this.semanticOutputStyle = semanticOutputStyle;
+        this.drt = false;
+        this.debugging = false;
+        this.partial = false;
+        this.glueOnly = false;
+        this.parseSemantics = false;
+        this.solutionOnly = false;
+        this.testExpression = false;
+        this.proverType = HEPPLE;
+        this.explainFail = false;
+        this.onlyMeaningSide = false;
+        this.stdIn = false;
+        this.stdOut = false;
     }
 
     public boolean isBetaReduce() {
-        return betaReduce;
+        return this.betaReduce;
     }
 
-    public void setBetaReduce(boolean betaReduce) {
-        Settings.betaReduce = betaReduce;
+    public void setBetaReduce(boolean betaReduce) {this.betaReduce = betaReduce;
     }
 
     public int getSemanticOutputStyle() {
-        return semanticOutputStyle;
+        return this.semanticOutputStyle;
     }
 
     public void setSemanticOutputStyle(int semanticOutputStyle) {
-        Settings.semanticOutputStyle = semanticOutputStyle;
+        this.semanticOutputStyle = semanticOutputStyle;
     }
 
     public boolean isDebugging() {
-        return debugging;
+        return this.debugging;
     }
 
     public void setDebugging(boolean debugging) {
-        Settings.debugging = debugging;
+        this.debugging = debugging;
     }
 
     public boolean isPartial() {
-        return partial;
+        return this.partial;
     }
 
     public void setPartial(boolean partial) {
-        Settings.partial = partial;
+        this.partial = partial;
     }
 
     public boolean isGlueOnly() {
-        return glueOnly;
+        return this.glueOnly;
     }
 
     public void setGlueOnly(boolean glueOnly) {
-        Settings.glueOnly = glueOnly;
+        glueOnly = this.glueOnly;
     }
 
     public boolean isMultipleEntries() {
-        return multipleEntries;
+        return this.multipleEntries;
     }
 
     public void setMultipleEntries(boolean multipleEntries) {
-        Settings.multipleEntries = multipleEntries;
+        this.multipleEntries = multipleEntries;
     }
 
     public boolean isOutputFile() {
-        return outputFile;
+        return this.outputFile;
     }
 
     public void setOutputFile(boolean outputFile) {
-        Settings.outputFile = outputFile;
+        this.outputFile = outputFile;
     }
 
     public boolean isParseSemantics() {
-        return parseSemantics;
+        return this.parseSemantics;
     }
 
     public void setParseSemantics(boolean parseSemantics) {
-        Settings.parseSemantics = parseSemantics;
+        this.parseSemantics = parseSemantics;
     }
 
 
     public Boolean getSolutionOnly() {
-        return solutionOnly;
+        return this.solutionOnly;
     }
 
     public void setSolutionOnly(Boolean solutionOnly) {
-        Settings.solutionOnly = solutionOnly;
+        this.solutionOnly = solutionOnly;
     }
 
     public Boolean getTestExpression() {
-        return testExpression;
+        return this.testExpression;
     }
 
     public void setTestExpression(Boolean testExpression) {
-        Settings.testExpression = testExpression;
+        this.testExpression = testExpression;
     }
 
     public int getProverType() {
-        return proverType;
+        return this.proverType;
     }
 
     public void setProverType(int proverType) {
-        Settings.proverType = proverType;
-    }
-    public static boolean isVisualize() {
-        return visualize;
+        this.proverType = proverType;
     }
 
-    public static void setVisualize(boolean visualize) {
-        Settings.visualize = visualize;
+    public boolean isAllowRelaxedGraph() {
+        return allowRelaxedGraph;
     }
 
+    public void setAllowRelaxedGraph(boolean allowRelaxedGraph) {
+        this.allowRelaxedGraph = allowRelaxedGraph;
+    }
+    public boolean isVisualize() {
+        return this.visualize;
+    }
+
+    public void setVisualize(boolean visualize) {this.visualize = visualize;
+    }
+
+    public boolean isWebService() {
+        return this.webService;
+    }
+
+    public void setWebService(boolean webService) {
+        this.webService = webService;
+    }
+
+    public String getExplanation() {
+        return this.explanation;
+    }
+
+    public void setExplanation(String explanation) {
+        this.explanation = explanation;
+    }
+
+    public boolean isExplainFail() {
+        return this.explainFail;
+    }
+
+    public void setExplainFail(boolean explainFail) {
+        this.explainFail = explainFail;
+    }
+
+    public boolean isAssureGlueParsing() {
+        return this.assureGlueParsing;
+    }
+
+    public void setAssureGlueParsing(boolean assureGlueParsing) {
+        this.assureGlueParsing = assureGlueParsing;
+    }
+
+    public int getNaturalDeductionOutput() {
+        return naturalDeductionOutput;
+    }
+
+    public void setNaturalDeductionOutput(int naturalDeductionOutput) {
+        this.naturalDeductionOutput = naturalDeductionOutput;
+    }
+
+    public boolean isDrt() {
+        return drt;
+    }
+
+    public void setDrt(boolean drt) {
+        this.drt = drt;
+    }
+
+    public boolean isOnlyMeaningSide() {
+        return onlyMeaningSide;
+    }
+
+    public void setOnlyMeaningSide(boolean onlyMeaningSide) {
+        this.onlyMeaningSide = onlyMeaningSide;
+    }
+
+    public boolean isStdIn() {
+        return stdIn;
+    }
+
+    public void setStdIn(boolean stdIn) {
+        this.stdIn = stdIn;
+    }
+
+    public boolean isStdOut() {
+        return stdOut;
+    }
+
+    public void setStdOut(boolean stdOut) {
+        this.stdOut = stdOut;
+    }
+
+    public String getInputFileName() {
+        return inputFileName;
+    }
+
+    public void setInputFileName(String inputFileName) {
+        this.inputFileName = inputFileName;
+    }
+
+    public String getOutputFileName() {
+        return outputFileName;
+    }
+
+    public void setOutputFileName(String outputFileName) {
+        this.outputFileName = outputFileName;
+    }
+
+    public Integer getMaxSolutions() {
+        return maxSolutions;
+    }
+
+    public void setMaxSolutions(Integer maxSolutions) {
+        this.maxSolutions = maxSolutions;
+    }
+
+    public Integer getMaxMsBeforeCalculatingDummy() {
+        return maxMsBeforeCalculatingDummy;
+    }
+
+    public void setMaxMsBeforeCalculatingDummy(Integer maxMsBeforeCalculatingDummy) {
+        this.maxMsBeforeCalculatingDummy = maxMsBeforeCalculatingDummy;
+    }
+
+    public boolean isResolveDrs() {
+        return resolveDrs;
+    }
+
+    public void setResolveDrs(boolean resolveDrs) {
+        this.resolveDrs = resolveDrs;
+    }
 }

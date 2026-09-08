@@ -1,0 +1,289 @@
+{
+//1: Quantifier ambiguity; 2 solutions
+h : h_e
+student : (s_e -o s_t)
+student : (g_e -o g_t)
+a : ((s_e -o s_t) -o ((s_e -o f_t) -o f_t))
+every : ((g_e -o g_t) -o ((g_e -o f_t) -o f_t))
+give: (h_e -o (s_e -o (g_e -o f_t)))
+}
+{
+//2: Staging to disambiguate; 1 solution
+h : h_e
+student : (s_e -o s_t)
+a : ((s_e -o s_t) -o ((s_e -o f_t) -o f_t))
+{
+grade : (g_e -o g_t)
+every : ((g_e -o g_t) -o ((g_e -o f_t) -o f_t))
+give: (h_e -o (s_e -o (g_e -o f_t)))
+}
+}
+{
+//3: super simple staging example; 1 solution
+1 : a
+{
+3 : (a -o a)
+{
+2 : (a -o a)
+}
+}
+}
+{
+//4: embedded modifier; 2 solutions
+a : a
+b1 : b
+b2 : b
+{
+c : (b -o (a -o a))
+{
+d : (b -o (a -o a))
+}
+}
+}
+{
+//5: pseudo modifier; 2 solutions
+a : a
+b1 : b
+b2 : b
+{
+c : (a -o (b -o a))
+{
+d : (a -o (b -o a))
+}
+}
+}
+{
+//6: higher order pseudo modifier; 4 solutions
+a : (a -o (a -o a))
+c : ((a -o b) -o a)
+{
+d : ((a -o b) -o a)
+a1 : (a -o b)
+a2 : (a -o b)
+}
+}
+{
+//7: staging + no scope; 1 solution
+a : a
+{
+b : (a -o a)
+{
+c : (a -o a)
+c : (a -o a) || noscope
+c : (a -o a) || noscope
+}
+}
+}
+{
+//8: staging + no scope; 2 solutions
+a : a
+{
+b : (a -o a)
+{
+c : (a -o a)
+c1 : (a -o a)
+c2 : (a -o a) || noscope
+c3 : (a -o a) || noscope
+}
+}
+}
+//9: atomics are never embedded in a stage but globally available. 1 solution
+{
+end : (a -o e)
+{
+a : a
+b : (a -o a)
+{
+c : (a -o a)
+}
+}
+}
+{
+//10: adjective test; 1 solution
+//Grammar
+[/x_e.dog(x)] : (9_e -o 8_t)
+[/P_<e,t>.[/Q_<e,t>.Ex_e[P(x)&Q(x)]]] : ((9_e -o 8_t) -o ((7_e -o 11_t) -o 11_t))
+[/P_<e,t>.[/x_e.(black(x)&P(x))]] : ((9_e -o 8_t) -o (9_e -o 8_t)) || noscope
+[/P_<e,t>.[/x_e.(big(x)&P(x))]] : ((9_e -o 8_t) -o (9_e -o 8_t)) || noscope
+[/x_e.appear(x)] : (7_e -o 11_t)
+}
+//11: very complex test; 24 solutions
+{
+m1 : (v_t -o v_t)
+m2 : (v_t -o v_t)
+{
+e : v_t
+v : (v_t -o v_t) || noscope
+arg1 : (v_t -o (n1_e -o v_t)) || noscope
+arg2 : (v_t -o (n2_e -o v_t)) || noscope
+arg3 : (v_t -o (n3_e -o v_t)) || noscope
+a : ((n1_e -o n1_t) -o ((n1_e -o v_t) -o v_t))
+every : ((n2_e -o n2_t) -o ((n2_e -o v_t) -o v_t))
+some : ((n3_e -o n3_t) -o ((n3_e -o v_t) -o v_t))
+{
+big : ((n1_e -o n1_t) -o (n1_e -o n1_t)) || noscope
+black : ((n1_e -o n1_t) -o (n1_e -o n1_t)) || noscope
+dog : (n1_e -o n1_t)
+}
+{
+fubl : ((n2_e -o n2_t) -o (n2_e -o n2_t))
+bubl : ((n2_e -o n2_t) -o (n2_e -o n2_t))
+cat : (n2_e -o n2_t)
+}
+{
+fubl : ((n3_e -o n3_t) -o (n3_e -o n3_t)) || noscope
+bubl : ((n3_e -o n3_t) -o (n3_e -o n3_t)) || noscope
+cat : (n3_e -o n3_t)
+}
+}
+}
+// 12 Elevating unused formulas; 1 solution
+{
+{
+1 : ((c_e -o c_t) -o c_t)
+2 : (c_e -o c_t)
+{
+3 : (a_e -o (b_e -o b_t))
+4 : a_e
+5 : ((b_e -o b_t) -o ((c_e -o c_t) -o (c_e -o c_t)))
+}
+}
+}
+//13 elevation with noscope; 1 solution
+{
+{
+1 : ((c_e -o c_t) -o c_t)
+2 : (c_e -o c_t)
+{
+3 : (a_e -o (b_e -o b_t))
+4 : a_e
+5 : ((b_e -o b_t) -o ((c_e -o c_t) -o (c_e -o c_t))) || noscope
+}
+}
+}
+//14 Discontinuous cycle; 4 solutions
+{
+c : (4_x -o 4_p)
+a : (4_x -o 4_x)
+g : 4_x
+{
+b : (4_x -o 4_x)
+d : (4_p -o (4_x -o 4_x))
+e : (4_p -o 4_p)
+f : (4_p -o 4_p)
+h : 4_p
+}
+}
+//15 works; 2 solutions
+{
+c : (4_x -o 4_p)
+a : (4_x -o 4_x)
+g : 4_x
+{
+b : (4_x -o 4_x) || noscope
+d : (4_p -o (4_x -o 4_x))
+e : (4_p -o 4_p)
+f : (4_p -o 4_p)
+h : 4_p
+}
+}
+}
+//16 Test fails with noscope; no solutions (discontinuous applications blocked by noscope)
+{
+c : (4_x -o 4_p)
+a : (4_x -o 4_x)
+g : 4_x
+{
+b : (4_x -o 4_x) || noscope
+d : (4_p -o (4_x -o 4_x))
+e : (4_p -o 4_p) || noscope
+f : (4_p -o 4_p) || noscope
+h : 4_p
+}
+}
+//17 Test fails with noscope; 1 solution
+{
+c : (4_x -o 4_p)
+a : (4_x -o 4_x)
+g : 4_x
+{
+b : (4_x -o 4_x) || noscope
+d : (4_p -o (4_x -o 4_x))
+e : (4_p -o 4_p)
+f : (4_p -o 4_p) || noscope
+h : 4_p
+}
+}
+{
+//18 discontinuous cycle (4_p -o 4_p not solved in embedded stage); 1 solution
+5 : (4_x -o 4_p)
+4 : (4_x -o 4_x)
+3 : 4_x
+{
+2 : (((2_e -o 4_p) -o 4_p) -o (4_x -o 4_x)) || noscope
+1 : ((2_e -o 4_p) -o 4_p)
+}
+}
+{
+//19 Complex example from Findlay and Haug. Modified with noscope; 1 solution
+\V.(V(\E.( [],[] ))) : (4_x -o 4_p)
+\V.\F.(V(\E.((([],[PRESUPPOSITION(([T],[ time_T, TPR_T(`now`))])), Time_{E,T}])) + F_E))) : (4_x -o 4_x)
+\F.(([E],[ obtain_E]) + F_E ) : 4_x
+{
+{
+  \Q.\V.\F.(Q(\X.(V(\E.(([], [at_{E,X}]) + F_E)))))) : (((2_e -o 4_p) -o 4_p) -o (4_x -o 4_x)) || noscope
+  \P.\Q.(([],[PRESUPPOSITION((([X],[]) + P_X))]) + Q_X) : ((2_e -o 2_t) -o ((2_e -o 4_p) -o 4_p))
+  \X.([], [Name_{X, `suffolk`}]) : (2_e -o 2_t)
+}
+{
+  \Q.\V.\F.(Q(\X.(V(\E.(([], [nsubj_{E,X}]) + F_E)))))) : (((3_e -o 4_p) -o 4_p) -o (4_x -o 4_x)) || noscope
+  \P.(([],[PRESUPPOSITION(([X], [ female_X]))]) + P_X) : ((3_e -o 4_p) -o 4_p)
+}
+{
+  \Q.\P.\X.((Q(\Y.([], [of_{X,Y}])) + P_X)) : (((8_e -o 6_p) -o 6_p) -o ((6_e -o 6_t) -o (6_e -o 6_t)))
+  \P.\Q.(([],[PRESUPPOSITION((([X],[]) + P_X))]) + Q_X) : ((8_e -o 8_t) -o ((8_e -o 6_p) -o 6_p))
+  \X.([], [Name_{X, `science`}]) : (8_e -o 8_t)
+  \P.\Q.(([X],[]) + P_X + Q_X ) : ((6_e -o 6_t) -o ((6_e -o 4_p) -o 4_p))
+  \Q.\V.\F.(Q(\X.(V(\E.(([], [obj_{E,X}]) + F_E)))))) : (((6_e -o 4_p) -o 4_p) -o (4_x -o 4_x)) || noscope
+  \X.([],[bachelor_X] ) : (6_e -o 6_t)
+}
+{
+  \Q.\V.\F.(Q(\X.(V(\E.(([], [in_{E,X}]) + F_E)))))) : (((10_e -o 4_p) -o 4_p) -o (4_x -o 4_x)) || noscope
+  \P.\Q.(([X],[]) + P_X + Q_X ) : ((10_e -o 10_t) -o ((10_e -o 4_p) -o 4_p))
+  \X.([],[psychology_X] ) : (10_e -o 10_t)
+}
+{
+  \Q.\P.\F.P(\E(([X], [advmod_{E,X}]) + F_E + Q_X)) : ((13_v -o 13_t) -o (14_x -o 14_x))
+  \X.(([],[ late_X])) : (13_v -o 13_t)
+  \V.\F.(V(\E.((([],[PRESUPPOSITION(([T],[ time_T, TPR_T(`now`))])), Time_{E,T}])) + F_E))) : (14_x -o 14_x) || noscope
+  \F.(([E],[ attend_E]) + F_E ) : 14_x
+  \V.\F.(V(\E.(([X], [PRESUPPOSITION(([X], [ entity_X]))), nsubj_{E,X}) + F_E))) : (14_x -o 14_x) || noscope
+  \V.\U.\F.(U(F) + V(\G.([],[]))) : (14_x -o (4_x -o 4_x))
+{
+    \Q.\P.\X.(([Y], [compound_{X,Y}]) + Q_Y + P_X)  : ((15_e -o 15_t) -o ((16_e -o 16_t) -o (16_e -o 16_t)))
+    \X.([], [Name_{X, `boston`}]) : (15_e -o 15_t)
+    \P.\Q.(([],[PRESUPPOSITION((([X],[]) + P_X))]) + Q_X) : ((16_e -o 16_t) -o ((16_e -o 14_p) -o 14_p))
+    \Q.\V.\F.(Q(\X.(V(\E.(([], [obj_{E,X}]) + F_E)))))) : (((16_e -o 14_p) -o 14_p) -o (14_x -o 14_x))
+    \X.([], [Name_{X, `university`}]) : (16_e -o 16_t)
+}
+}
+{
+    \Q.\P.\X.(([Y], [compound_{X,Y}]) + Q_Y + P_X)  : ((23_e -o 23_t) -o ((24_e -o 24_t) -o (24_e -o 24_t)))
+    \X.([], [Name_{X, `sport`}]) : (23_e -o 23_t)
+    \Q.\P.\X.((Q(\Y.([], [in_{X,Y}])) + P_X)) : (((24_e -o 19_p) -o 19_p) -o ((19_e -o 19_t) -o (19_e -o 19_t))) || noscope
+    \P.\Q.(([X],[]) + P_X + Q_X ) : ((24_e -o 24_t) -o ((24_e -o 19_p) -o 19_p))
+    \X.([],[psychology_X] ) : (24_e -o 24_t)
+    \Q.\P.\X.((Q(\Y.([], [of_{X,Y}])) + P_X)) : (((21_e -o 19_p) -o 19_p) -o ((19_e -o 19_t) -o (19_e -o 19_t))) || noscope
+    \P.\Q.(([X],[]) + P_X + Q_X ) : ((21_e -o 21_t) -o ((21_e -o 19_p) -o 19_p))
+    \X.([],[education_X] ) : (21_e -o 21_t)
+    \P.\Q.(([X],[]) + P_X + Q_X )  : ((19_e -o 19_t) -o ((19_e -o 14_p) -o 14_p))
+    \Q.\V.\F.(Q(\X.(V(\E.(([], [for_{E,X}]) + F_E)))))) : (((19_e -o 14_p) -o 14_p) -o (14_x -o 14_x))
+    \X.([],[master_X] ) : (19_e -o 19_t)
+{
+      \P.\Q.(([X],[]) + P_X + Q_X ) : ((26_e -o 26_t) -o ((26_e -o 24_p) -o 24_p))
+      \X.([],[counseling_X] ) : (26_e -o 26_t)
+      \Q.\P.\X.((Q(\Y.([], [nmod_{X,Y}])) + P_X)) : (((26_e -o 24_p) -o 24_p) -o ((19_e -o 19_t) -o (19_e -o 19_t)))
+}
+}
+}
+}

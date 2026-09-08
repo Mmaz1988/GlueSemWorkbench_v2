@@ -40,6 +40,7 @@ public class SemQuantEx extends SemanticExpression {
         this.binder = binder;
         this.quantBody = quantBody;
         this.setType(type);
+        this.copySourceIndexFrom(quantBody);
     }
 
     private SemQuantEx(SemQuantEx s) {
@@ -47,6 +48,7 @@ public class SemQuantEx extends SemanticExpression {
         this.binder = s.binder;
         this.setType(s.getType());
         this.quantBody = s.quantBody.clone();
+        this.copySourceIndexFrom(s);
     }
 
     public enum SemQuant {
@@ -78,6 +80,16 @@ public class SemQuantEx extends SemanticExpression {
     }
 
     @Override
+    public boolean bindsVar(SemAtom var) {
+        return this.quantBody.bindsVar(var);
+    }
+
+    @Override
+    public boolean containsQuantExpression() {
+        return true;
+    }
+
+    @Override
     public Set<SemAtom> findBoundVariables() {
         Set<SemAtom> out = new HashSet<>();
         out.add(binder);
@@ -90,12 +102,16 @@ public class SemQuantEx extends SemanticExpression {
         if (quantifier == UNI) {
             if (SemanticParser.settings.getSemanticOutputStyle() == PROLOG)
                 return String.format("all(%s,%s)", binder.toString(), quantBody.toString());
+            else if (SemanticParser.settings.getSemanticOutputStyle() == main.Settings.LFGXDRT)
+                return "A" + binder.toString() + "[" + quantBody.toString() + "]";
             else
                 return '\u2200' + binder.toString() + "[" + quantBody.toString() + "]";
         }
         else if (quantifier == EX) {
             if (SemanticParser.settings.getSemanticOutputStyle() == PROLOG)
                 return String.format("some(%s,%s)", binder.toString(), quantBody.toString());
+            else if (SemanticParser.settings.getSemanticOutputStyle() == main.Settings.LFGXDRT)
+                return "E" + binder.toString() + "[" + quantBody.toString() + "]";
             else
                 return '\u2203' + binder.toString() + "[" + quantBody.toString() + "]";
         }
@@ -103,6 +119,8 @@ public class SemQuantEx extends SemanticExpression {
         {
             if(SemanticParser.settings.getSemanticOutputStyle() == PROLOG)
                 return String.format("the(%s,%s)",binder.toString(),quantBody.toString());
+            else if (SemanticParser.settings.getSemanticOutputStyle() == main.Settings.LFGXDRT)
+                return "I" + binder.toString() + "[" + quantBody.toString() + "]";
             else
                 return '\u03B9' + binder.toString() + "[" + quantBody.toString() + "]";
         }

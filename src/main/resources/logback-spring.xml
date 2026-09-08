@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    GSWB had no src/main/resources at all, so there was nothing to turn a level
+    down with: every java.util.logging call in the controllers and provers went
+    out at whatever JUL defaulted to, once per item per mapping.
+
+    The LevelChangePropagator below is what makes those existing JUL call sites
+    obey this file (resetJUL hands JUL's loggers their levels from logback), so
+    the call sites themselves stay as they are; rewriting ~40 of them to SLF4J
+    would be churn without benefit.
+
+    Raise application detail with GSWB_LOG_LEVEL=DEBUG (env var or -D); JUL FINE
+    maps to logback DEBUG, so the per-item collapse/prover lines come back.
+
+    Modelled on ../liger/src/main/resources/logback-spring.xml; keep the two in
+    step when either changes.
+-->
+<configuration scan="true">
+    <include resource="org/springframework/boot/logging/logback/base.xml"/>
+
+    <logger name="webservice" level="${GSWB_LOG_LEVEL:-INFO}"/>
+    <logger name="prover" level="${GSWB_LOG_LEVEL:-INFO}"/>
+    <logger name="glueSemantics" level="${GSWB_LOG_LEVEL:-INFO}"/>
+    <logger name="main" level="${GSWB_LOG_LEVEL:-INFO}"/>
+    <logger name="utilities" level="${GSWB_LOG_LEVEL:-INFO}"/>
+
+    <logger name="javax.activation" level="WARN"/>
+    <logger name="javax.mail" level="WARN"/>
+    <logger name="javax.xml.bind" level="WARN"/>
+    <logger name="ch.qos.logback" level="WARN"/>
+    <logger name="com.sun.xml.internal.bind" level="WARN"/>
+    <logger name="com.zaxxer" level="WARN"/>
+    <logger name="io.undertow" level="WARN"/>
+    <logger name="org.apache" level="WARN"/>
+    <logger name="org.apache.catalina.startup.DigesterFactory" level="OFF"/>
+    <logger name="org.hibernate" level="WARN"/>
+    <logger name="org.hibernate.validator" level="WARN"/>
+    <logger name="org.springframework" level="INFO"/>
+    <logger name="org.springframework.web" level="WARN"/>
+    <logger name="org.springframework.security" level="WARN"/>
+    <logger name="org.springframework.cache" level="WARN"/>
+    <logger name="org.springframework.messaging" level="WARN"/>
+    <logger name="org.springframework.jndi" level="INFO"/>
+    <logger name="javax.management" level="WARN"/>
+    <logger name="javax.management.remote.rmi" level="INFO"/>
+    <logger name="jdk.event.security" level="WARN"/>
+
+    <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
+        <resetJUL>true</resetJUL>
+    </contextListener>
+
+    <!-- The base.xml include above already attaches a rolling FILE appender to
+         root, so a per-run log needs only a path: pass Spring's
+         logging.file.name option (double-dashed, as usual) after the -web
+         argument, or use the -log &lt;dir&gt; alias in WorkbenchMain, which fills a
+         timestamped name in for you. Without either, FILE still writes, to
+         logback's default ${java.io.tmpdir}/spring.log (rolled daily, 7 days
+         kept); detaching it when no path is given would need a logback &lt;if&gt;,
+         i.e. janino on the classpath. Listing CONSOLE below re-uses base.xml's
+         appender instance rather than adding a second one, so console lines are
+         not duplicated. -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+</configuration>

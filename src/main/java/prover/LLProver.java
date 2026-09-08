@@ -2,18 +2,32 @@ package prover;
 
 import glueSemantics.linearLogic.Premise;
 import glueSemantics.linearLogic.Sequent;
+import glueSemantics.parser.LexicalEntries;
+import glueSemantics.semantics.MeaningConstructor;
+import glueSemantics.semantics.LfgxDrtSemanticRepresentation;
+import main.InputOutputProcessor;
 import main.Settings;
 import main.WorkbenchMain;
+import glueSemantics.semantics.lambda.SemAtom;
+import glueSemantics.semantics.lambda.SemType;
 import utilities.Debugging;
 
-import java.util.LinkedList;
+import java.util.*;
 import java.util.logging.Logger;
 
 public abstract class LLProver {
     public Debugging db;
-    private static Settings settings;
-    private LinkedList<Premise> solutions = new LinkedList<>();
+    private Settings settings;
+    private LinkedList<SolutionObject> solutions = new LinkedList<>();
 
+    private LexicalEntries lexicalEntries;
+
+    public HashSet<String> discriminants = new HashSet<>();
+    public LinkedHashMap<String, LinkedHashSet<String>> scope2instantiations = new LinkedHashMap<>();
+    public LinkedHashMap<String, LinkedHashMap<String, LinkedHashSet<String>>> scope2InstantiationsByOrigin = new LinkedHashMap<>();
+    public LinkedHashMap<String, List<LinkedHashSet<Integer>>> scope2SourceIndexGroups = new LinkedHashMap<>();
+    public LinkedHashMap<String, LinkedHashMap<String, List<LinkedHashSet<Integer>>>> scope2SourceIndexGroupsByOrigin = new LinkedHashMap<>();
+    public String currentProofOrigin;
 
     private final static Logger LOGGER = Logger.getLogger(WorkbenchMain.class.getName());
 
@@ -23,20 +37,20 @@ public abstract class LLProver {
 
     public abstract Premise combinePremises(Premise functor, Premise argument, StringBuilder proofBuilder) throws VariableBindingException, ProverException;
     public abstract Premise combinePremises(Premise functor, Premise argument) throws VariableBindingException, ProverException;
-    public LinkedList<Premise> getSolutions() {
+    public LinkedList<SolutionObject> getSolutions() {
         return solutions;
     }
 
-    public void setSolutions(LinkedList<Premise> solutions) {
+    public void setSolutions(LinkedList<SolutionObject> solutions) {
         this.solutions = solutions;
     }
 
-    public static Settings getSettings() {
-        return settings;
+    public Settings getSettings() {
+        return this.settings;
     }
 
-    public static void setSettings(Settings settings) {
-        LLProver.settings = settings;
+    public void setSettings(Settings settings) {
+        this.settings = settings;
     }
 
     public static Logger getLOGGER() {
@@ -46,5 +60,166 @@ public abstract class LLProver {
     public abstract StringBuilder getProofBuilder();
 
     public abstract void setProofBuilder(StringBuilder proofBuilder);
+
+    public Premise ensureLfgxDrtSemantic(Premise premise) throws Exception {
+        if (premise == null || getSettings() == null || getSettings().getSemanticOutputStyle() != Settings.LFGXDRT) {
+            return premise;
+        }
+        if (premise.getSemTerm() instanceof LfgxDrtSemanticRepresentation) {
+            return premise;
+        }
+
+        LfgxDrtSemanticRepresentation converted = LfgxDrtSemanticRepresentation.fromGswb((glueSemantics.semantics.lambda.SemanticExpression) premise.getSemTerm(), premise.getSourceIndex());
+        Premise normalized = new Premise(premise.getPremiseIDs(), converted, premise.getGlueTerm().clone());
+        normalized.setSourceIndex(premise.getSourceIndex());
+        normalized.setInsitu(premise.isInsitu());
+        normalized.setNonScoping(premise.isNonScoping());
+        normalized.stage = premise.stage;
+        return normalized;
+    }
+
+    protected de.ukon.lfgxdrt.SemanticExpression asLfgExpression(glueSemantics.semantics.SemanticRepresentation semanticRepresentation) throws Exception {
+        if (semanticRepresentation instanceof LfgxDrtSemanticRepresentation wrapped) {
+            return wrapped.getDelegate();
+        }
+        Integer sourceIndex = semanticRepresentation.getSourceIndex();
+        return LfgxDrtSemanticRepresentation.fromGswb((glueSemantics.semantics.lambda.SemanticExpression) semanticRepresentation, sourceIndex).getDelegate();
+    }
+
+    protected de.ukon.lfgxdrt.SemanticExpression asLfgAbstractionBody(glueSemantics.semantics.SemanticRepresentation semanticRepresentation) throws Exception {
+        if (semanticRepresentation instanceof LfgxDrtSemanticRepresentation wrapped) {
+            return wrapped.getDelegate();
+        }
+        return LfgxDrtSemanticRepresentation.fromGswb((glueSemantics.semantics.lambda.SemanticExpression) semanticRepresentation, semanticRepresentation.getSourceIndex()).getDelegate();
+    }
+
+    protected de.ukon.lfgxdrt.lambda_elements.LambdaVariable toLfgVariable(SemAtom atom) {
+        de.ukon.lfgxdrt.lambda_elements.LambdaVariable variable = new de.ukon.lfgxdrt.lambda_elements.LambdaVariable(atom.getName(), toLfgType(atom.getType()));
+        variable.setSourceIndex(atom.getSourceIndex());
+        return variable;
+    }
+
+    protected de.ukon.lfgxdrt.lambda_elements.SemType toLfgType(SemType type) {
+        if (type == null) {
+            return null;
+        }
+        if (type.getLeft() == null) {
+            return new de.ukon.lfgxdrt.lambda_elements.SemType(type.toString());
+        }
+        return new de.ukon.lfgxdrt.lambda_elements.SemType(toLfgType(type.getLeft()), toLfgType(type.getRight()));
+    }
+
+    protected glueSemantics.semantics.SemanticRepresentation wrapLfgAbstractionBody(glueSemantics.semantics.SemanticRepresentation temp, SemAtom binder) throws ProverException {
+        try {
+            de.ukon.lfgxdrt.SemanticExpression lfgTemp = asLfgAbstractionBody(temp);
+            de.ukon.lfgxdrt.lambda_elements.LambdaFunction abstraction = new de.ukon.lfgxdrt.lambda_elements.LambdaFunction(toLfgVariable(binder), lfgTemp);
+            return new LfgxDrtSemanticRepresentation(abstraction);
+        } catch (Exception e) {
+            throw new ProverException("Failed to build LFGx abstraction: " + e.getMessage());
+        }
+    }
+
+
+    public List<SolutionObject> searchProof(Integer key, LexicalEntries lexicalEntries) throws VariableBindingException, ProverException {
+        return searchProof(key, lexicalEntries, false);
+    }
+
+    public List<SolutionObject> searchProof(Integer key, LexicalEntries lexicalEntries, Boolean mute) throws VariableBindingException, ProverException {
+
+        this.lexicalEntries = lexicalEntries;
+        try {
+        if (!mute)
+        {
+            LOGGER.info(String.format("Found %d lexical entries for proof with id S%d",lexicalEntries.lexicalEntries.get(key).size(),key));
+        }
+
+            Sequent testseq = new Sequent(lexicalEntries.lexicalEntries.get(key));
+
+            deduce(testseq);
+            List<SolutionObject> result = new ArrayList<>(getSolutions());
+
+
+            // LOGGER.info("Found the following deduction(s):\n");
+            StringBuilder resultBuilder = new StringBuilder();
+
+        if (!mute) {
+            // Whole proof text, once per proof: only the web path reaches this
+            // (the CLI builds and prints its own output in WorkbenchMain), so
+            // it is debug detail here, not a result.
+            LOGGER.fine(this.getProofBuilder().toString());
+        }
+
+            StringBuilder solutionBuilder = new StringBuilder();
+            solutionBuilder.append(String.format("Found the following solutions for proof with id S%d:\n",key));
+
+                for (SolutionObject so : result) {
+                    Premise p = so.solution;
+                    solutionBuilder.append(InputOutputProcessor.restoreBackLinearLogicSide(p.toString()));
+
+            }
+
+                /*
+                if(this.settings.isExplainFail() && this instanceof LLProver2)
+                {
+                    settings.setExplanation(failExplainer.explain( ((LLProver2) this).getNonAtomicChart(), ((LLProver2) this).getAtomicChart(),true));
+                solutionBuilder.append("None!");
+            }
+                 */
+            if (!mute) {
+                LOGGER.fine(solutionBuilder.toString());
+            }
+
+            //  LOGGER.info(String.format("Found %d solution(s) for derivation with id S%d",solutions.size(),key) );
+
+            /*
+            if (settings.isPartial()) {
+                for (Premise part : prover.getDatabase())
+                {
+                    if (part.getPremiseIDs().size() > 1)
+                    {
+                        partial.add(part.toString());
+                    }
+                }
+
+                for (Premise part : prover.getModifiers())
+                {
+                    if (part.getPremiseIDs().size() > 1)
+                    {
+                        partial.add(part.toString());
+                    }
+                }
+            }
+
+            */
+
+
+            if (settings.isDebugging() && !mute) {
+                LOGGER.info(String.format("Generated debugging report for proof with id S%d:\n" + db.toString(),key));
+                LOGGER.info(String.format("Finished glue derivation of proof with id S%d.",key));
+            }
+
+            if (settings.getProverType() == 1 && settings.isVisualize())
+            {
+                //visualization.getContentPane().add(((LLProver1) prover).analysis.displayGraph());
+                ((LLProver1) this).analysis.displayGraph();
+                //    visualization.setVisible(true);
+            }
+
+            return result;
+
+
+        } catch (ProverException e) {
+            e.printStackTrace();
+        }
+    return null;
+    }
+
+    public LexicalEntries getLexicalEntries() {
+        return lexicalEntries;
+    }
+
+    public void setLexicalEntries(LexicalEntries lexicalEntries) {
+        this.lexicalEntries = lexicalEntries;
+    }
 
 }

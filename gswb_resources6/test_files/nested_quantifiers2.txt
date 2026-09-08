@@ -1,0 +1,16 @@
+{
+every : ((g_e -o g_t) -o ((g_e -o f_t) -o f_t))
+rep : (g_e -o g_t)
+of : ((g_e -o g_t) -o (g_e -o (j_e -o g_t)))
+a-company : ((j_e -o g_t) -o g_t)
+a-sample : ((h_e -o f_t) -o f_t)
+see : (g_e -o (h_e -o f_t))
+}
+{
+every : ((g_e -o g_t) -o ((g_e -o f_t) -o f_t))
+rep : (g_e -o g_t)
+of : ((g_e -o g_t) -o (g_e -o (j_e -o g_t)))
+a-company : ((j_e -o f_t) -o f_t)
+a-sample : ((h_e -o f_t) -o f_t)
+see : (g_e -o (h_e -o f_t))
+}

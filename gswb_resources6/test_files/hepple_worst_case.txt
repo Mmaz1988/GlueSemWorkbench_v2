@@ -1,0 +1,11 @@
+{
+x : AX_t.(X_t -o X_t)
+x : AY_t.(Y_t -o Y_t)
+x : AZ_t.(Z_t -o Z_t)
+a : (a_t -o a_t)
+a : (a_t -o a_t)
+b : (b_t -o b_t)
+b : (b_t -o b_t)
+c : (a_t -o b_t)
+d : a_t
+}

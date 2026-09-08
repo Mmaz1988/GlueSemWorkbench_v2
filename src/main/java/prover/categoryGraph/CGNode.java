@@ -1,5 +1,6 @@
 package prover.categoryGraph;
 
+import glueSemantics.linearLogic.Category;
 import prover.LLProver;
 
 import java.util.*;
@@ -13,6 +14,7 @@ public class CGNode {
     }
     public LLProver prover;
     public String category;
+    public Category categoryObject;
     public type nodeType;
     public Set<History> histories = new HashSet<>();
 
@@ -22,6 +24,16 @@ public class CGNode {
         this.nodeType = nodeType;
         this.prover = prover;
     }
+
+    public CGNode(Category category, type nodeType, LLProver prover)
+    {
+        this.category = category.toString();
+        this.categoryObject = category;
+        this.nodeType = nodeType;
+        this.prover = prover;
+    }
+
+
 
     @Override
     public String toString()
@@ -94,7 +106,9 @@ public class CGNode {
                             History h2 = chartIter.next();
 
                             if (!(h1.equals(h2)) && h1.category.toString().equals(h2.category.toString()) &&
-                                    h1.indexSet.equals(h2.indexSet) && h1.discharges.equals(h2.discharges) && (h1.requirements.equals(h2.requirements))) {
+                                    h1.indexSet.equals(h2.indexSet) && h1.discharges.equals(h2.discharges) && (h1.requirements.equals(h2.requirements))
+                                    && h1.scopeDiscriminants.equals(h2.scopeDiscriminants)
+                                    && h1.insituIndices.equals(h2.insituIndices) ) {
 
                                 Set<HashMap<Integer, History>> nh = new HashSet<>();
                                 nh.addAll(h1.parents);
@@ -104,6 +118,10 @@ public class CGNode {
                                 h3.discharges = h1.discharges;
                                 h3.requirements = h1.requirements;
 
+                                h3.scopeDiscriminants.addAll(h1.scopeDiscriminants);
+                                h3.scopeDiscriminants.addAll(h2.scopeDiscriminants);
+                                h3.insituIndices.addAll(h1.insituIndices);
+                                h3.insituIndices.addAll(h2.insituIndices);
 
                                 added = true;
                                 chartIter.remove();
@@ -131,49 +149,8 @@ public class CGNode {
     }
 
 
-    public static Set<History> compressHistories(List<History> histories)
-    {
-        Set<History> chart = new HashSet<>();
-
-        if (histories.size() > 1) {
-            List<History> agenda = new ArrayList<>(histories);
-
-            while (!agenda.isEmpty()) {
-                ListIterator<History> iter = agenda.listIterator();
-                while (iter.hasNext()) {
-                    History h1 = iter.next();
-                    iter.remove();
-
-                    Boolean added = false;
-                    for (History h2 : chart) {
-
-                        if (!(h1.equals(h2)) && h1.category.toString().equals(h2.category.toString()) &&
-                                h1.indexSet.equals(h2.indexSet) && h1.discharges.equals(h2.discharges) && (h1.requirements.equals(h2.requirements))) {
-
-                            Set<HashMap<Integer, History>> nh = new HashSet<>();
-                            nh.addAll(h1.parents);
-                            nh.addAll(h2.parents);
-                            h2.parents = nh;
-                            added = true;
-                            break;
-                        }
-                    }
-                    if (!added)
-                    {
-                        chart.add(h1);
-                    }
-                }
-            }
-            if (!chart.isEmpty())
-            {
-              return chart;
-            }
-        }
-        return null;
-    }
 
 
 
     }
-
 

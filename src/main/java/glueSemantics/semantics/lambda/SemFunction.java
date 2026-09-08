@@ -20,6 +20,7 @@ package glueSemantics.semantics.lambda;
 import glueSemantics.parser.SemanticParser;
 import glueSemantics.semantics.FunctionalAbstraction;
 import glueSemantics.semantics.SemanticRepresentation;
+import main.Settings;
 import prover.ProverException;
 
 import java.util.HashSet;
@@ -48,6 +49,7 @@ public class SemFunction extends SemanticExpression implements FunctionalAbstrac
         //this.funcBody = funcBody;
         this.instantiateFunctionalAbstraction(binder,funcBody);
         this.setType(new SemType(binder.getType(),funcBody.getType()));
+        this.copySourceIndexFrom(funcBody);
     }
 
 
@@ -56,6 +58,7 @@ public class SemFunction extends SemanticExpression implements FunctionalAbstrac
         this.binder = f.binder;
         this.funcBody = f.funcBody.clone();
         this.setType(f.getType());
+        this.copySourceIndexFrom(f);
     }
 
     @Override
@@ -80,25 +83,41 @@ public class SemFunction extends SemanticExpression implements FunctionalAbstrac
     public String toString() {
         if(SemanticParser.settings.getSemanticOutputStyle() == PROLOG)
             return String.format("lam(%s,%s)",binder.toString(),funcBody.toString());
+        else if (SemanticParser.settings.getSemanticOutputStyle() == Settings.LFGXDRT)
+            return "(\\" + binder.toString() + "." + funcBody.toString() + ")";
         else if (SemanticParser.settings.getSemanticOutputStyle() == NLTK)
-        	return "\\" + binder.toStringTyped() + ".(" + funcBody.toString() +")";
+        	return "(\\" + binder.toStringTyped() + "." + funcBody.toString() +")";
         else
-        	return "[" + operator + binder.toStringTyped() + "." + funcBody.toString() + "]";
+		    return "[" + operator + binder.toStringTyped() + "." + funcBody.toString() + "]";
     }
 
 
     @Override
     public SemanticRepresentation betaReduce() throws ProverException {
-        return new SemFunction(this.binder,funcBody.betaReduce());
+        SemFunction reduced = new SemFunction(this.binder,funcBody.betaReduce());
+        reduced.copySourceIndexFrom(this);
+        return reduced;
     }
 
     public SemanticRepresentation applyTo(SemanticRepresentation var, SemanticRepresentation arg) throws ProverException {
-        return new SemFunction(this.binder,this.funcBody.applyTo(var, arg));
+        SemFunction applied = new SemFunction(this.binder,this.funcBody.applyTo(var, arg));
+        applied.copySourceIndexFrom(this);
+        return applied;
     }
 
     @Override
     public SemanticExpression clone() {
         return new SemFunction(this);
+    }
+
+    @Override
+    public boolean bindsVar(SemAtom var) {
+      return  this.funcBody.bindsVar(var);
+    }
+
+    @Override
+    public boolean containsQuantExpression() {
+        return this.funcBody.containsQuantExpression();
     }
 
     @Override
@@ -108,5 +127,6 @@ public class SemFunction extends SemanticExpression implements FunctionalAbstrac
         out.addAll(funcBody.findBoundVariables());
         return out;
     }
+
 
 }

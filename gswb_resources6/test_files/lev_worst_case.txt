@@ -1,0 +1,88 @@
+{
+a : (a_t -o a_t)
+a : (a_t -o a_t)
+b : (b_t -o b_t)
+b : (b_t -o b_t)
+b : (b_t -o b_t)
+b : (b_t -o b_t)
+b : (b_t -o b_t)
+c : (a_t -o b_t)
+d : a_t
+}
+{
+a : (a_t -o a_t)
+a : (a_t -o a_t)
+a : (a_t -o a_t)
+b : (b_t -o b_t)
+b : (b_t -o b_t)
+b : (b_t -o b_t)
+b : (b_t -o b_t)
+c : (a_t -o b_t)
+d : a_t
+}
+{
+a : (a_t -o a_t)
+a : (a_t -o a_t)
+a : (a_t -o a_t)
+b : (b_t -o b_t)
+b : (b_t -o b_t)
+b : (b_t -o b_t)
+b : (b_t -o b_t)
+c : (a_t -o b_t)
+d : a_t
+}
+{
+a : (a_t -o a_t)
+a : (a_t -o a_t)
+a : (a_t -o a_t)
+b : (b_t -o b_t)
+b : (b_t -o b_t)
+b : (b_t -o b_t)
+b : (b_t -o b_t)
+c : (a_t -o b_t)
+d : a_t
+}
+{
+a : (a_t -o a_t)
+a : (a_t -o a_t)
+a : (a_t -o a_t)
+a : (a_t -o a_t)
+b : (b_t -o b_t)
+b : (b_t -o b_t)
+b : (b_t -o b_t)
+c : (a_t -o b_t)
+d : a_t
+}
+{
+a : (a_t -o a_t)
+a : (a_t -o a_t)
+a : (a_t -o a_t)
+a : (a_t -o a_t)
+b : (b_t -o b_t)
+b : (b_t -o b_t)
+b : (b_t -o b_t)
+c : (a_t -o b_t)
+d : a_t
+}
+{
+a : (a_t -o a_t)
+a : (a_t -o a_t)
+a : (a_t -o a_t)
+a : (a_t -o a_t)
+b : (b_t -o b_t)
+b : (b_t -o b_t)
+b : (b_t -o b_t)
+c : (a_t -o b_t)
+d : a_t
+}
+{
+a : (a_t -o a_t)
+a : (a_t -o a_t)
+a : (a_t -o a_t)
+a : (a_t -o a_t)
+a : (a_t -o a_t)
+b : (b_t -o b_t)
+b : (b_t -o b_t)
+c : (a_t -o b_t)
+d : a_t
+}

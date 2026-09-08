@@ -31,7 +31,24 @@ public interface SemanticRepresentation {
 
     public SemType getType();
 
+    public void setType(SemType type);
+
+    public Integer getSourceIndex();
+
+    public void setSourceIndex(Integer sourceIndex);
+
+    default void addSourceIndex(Integer sourceIndex) {
+        if (sourceIndex == null || getSourceIndex() != null) {
+            return;
+        }
+        setSourceIndex(sourceIndex);
+    }
+
     public SemanticRepresentation clone();
 
     public Set<SemAtom> findBoundVariables();
+
+    public boolean bindsVar(SemAtom var);
+
+    public boolean containsQuantExpression();
 }

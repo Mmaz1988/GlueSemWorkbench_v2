@@ -38,12 +38,14 @@ public class BinaryTerm extends SemanticExpression {
         this.left = left;
         this.right = right;
         this.operator = operator;
+        this.copySourceIndexFrom(left);
     }
 
     public BinaryTerm(BinaryTerm b) {
         this.left = b.left;
         this.right = b.right;
         this.operator = b.operator;
+        this.copySourceIndexFrom(b);
     }
 
     public SemanticRepresentation getLeft() {
@@ -73,17 +75,31 @@ public class BinaryTerm extends SemanticExpression {
 
     @Override
     public SemanticRepresentation betaReduce() throws ProverException {
-        return new BinaryTerm(left.betaReduce(),operator,right.betaReduce());
+        BinaryTerm reduced = new BinaryTerm(left.betaReduce(),operator,right.betaReduce());
+        reduced.copySourceIndexFrom(this);
+        return reduced;
     }
 
     @Override
     public SemanticRepresentation applyTo(SemanticRepresentation var, SemanticRepresentation arg) throws ProverException {
-        return new BinaryTerm(left.applyTo(var,arg),operator,right.applyTo(var,arg));
+        BinaryTerm applied = new BinaryTerm(left.applyTo(var,arg),operator,right.applyTo(var,arg));
+        applied.copySourceIndexFrom(this);
+        return applied;
     }
 
     @Override
     public SemanticExpression clone() {
         return new BinaryTerm(this);
+    }
+
+    @Override
+    public boolean bindsVar(SemAtom var) {
+        return this.left.bindsVar(var) || this.right.bindsVar(var);
+    }
+
+    @Override
+    public boolean containsQuantExpression() {
+        return this.left.containsQuantExpression() ||this.right.containsQuantExpression();
     }
 
     @Override
@@ -103,16 +119,22 @@ public class BinaryTerm extends SemanticExpression {
         if (operator == AND)
             if(SemanticParser.settings.getSemanticOutputStyle() == PROLOG)
                 return String.format("and(%s,%s)",left.toString(),right.toString());
+            else if (SemanticParser.settings.getSemanticOutputStyle() == main.Settings.LFGXDRT)
+                return left.toString() + " & " + right.toString();
             else
                 return left.toString() + " " + '\u2227' + " " + right.toString();
         else if (operator == IMP)
             if(SemanticParser.settings.getSemanticOutputStyle() == PROLOG)
                 return String.format("imp(%s,%s)",left.toString(),right.toString());
+            else if (SemanticParser.settings.getSemanticOutputStyle() == main.Settings.LFGXDRT)
+                return left.toString() + " -> " + right.toString();
             else
                 return left.toString() + " " + '\u2192' + " " + right.toString();
         else
         if(SemanticParser.settings.getSemanticOutputStyle() == PROLOG)
             return String.format("or(%s,%s)",left.toString(),right.toString());
+        else if (SemanticParser.settings.getSemanticOutputStyle() == main.Settings.LFGXDRT)
+            return left.toString() + " v " + right.toString();
         else
             return left.toString() + " " + '\u2228' + " " + right.toString();
     }

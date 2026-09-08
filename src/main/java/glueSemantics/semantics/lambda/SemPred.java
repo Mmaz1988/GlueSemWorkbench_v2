@@ -29,6 +29,8 @@ import static glueSemantics.semantics.lambda.SemType.AtomicType.T;
 public class SemPred extends SemanticExpression {
 
     private final String predForm;
+
+
     // Does a stack make sense here? We always want to have the same number of args!
     // Maybe a Hashmap is better
     private ArrayList<SemanticRepresentation> argList = new ArrayList<>();
@@ -38,6 +40,7 @@ public class SemPred extends SemanticExpression {
         this.predForm = predForm;
         argList.add(arg0);
         this.setType(T);
+        this.copySourceIndexFrom(arg0);
     }
 
 
@@ -46,6 +49,7 @@ public class SemPred extends SemanticExpression {
         argList.add(arg0);
         argList.add(arg1);
         this.setType(T);
+        this.copySourceIndexFrom(arg0);
     }
 
     public SemPred(String predForm, SemanticRepresentation arg0, SemanticRepresentation arg1, SemanticRepresentation arg2) {
@@ -54,18 +58,23 @@ public class SemPred extends SemanticExpression {
         argList.add(arg1);
         argList.add(arg2);
         this.setType(T);
+        this.copySourceIndexFrom(arg0);
     }
 
     public SemPred(String predForm, ArrayList<SemanticRepresentation> args) {
         this.predForm = predForm;
         this.argList = args;
         this.setType(T);
+        if (!args.isEmpty()) {
+            this.copySourceIndexFrom(args.get(0));
+        }
     }
 
     public SemPred(SemPred p) {
         this.predForm = p.predForm;
         this.argList = new ArrayList<>(p.argList);
         this.setType(T);
+        this.copySourceIndexFrom(p);
 
     }
 
@@ -132,6 +141,28 @@ public class SemPred extends SemanticExpression {
     }
 
     @Override
+    public boolean bindsVar(SemAtom var) {
+        for (SemanticRepresentation arg : this.argList)
+        {
+            if (arg.bindsVar(var))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean containsQuantExpression() {
+        for (SemanticRepresentation arg : this.argList)
+        {
+            if (arg.containsQuantExpression())
+            {return true;}
+        }
+        return false;
+    }
+
+    @Override
     public Set<SemAtom> findBoundVariables() {
         Set<SemAtom> out = new HashSet<>();
         for (SemanticRepresentation sr : argList)
@@ -140,4 +171,13 @@ public class SemPred extends SemanticExpression {
         }
         return out;
     }
+
+    public ArrayList<SemanticRepresentation> getArgList() {
+        return argList;
+    }
+
+    public void setArgList(ArrayList<SemanticRepresentation> argList) {
+        this.argList = argList;
+    }
+
 }

@@ -18,6 +18,9 @@ public class SemSet extends SemanticExpression {
 
         this.members = members;
         setType(type);
+        if (!members.isEmpty()) {
+            this.copySourceIndexFrom(members.get(0));
+        }
 
         if (!checkMembers())
         {
@@ -62,7 +65,9 @@ public class SemSet extends SemanticExpression {
                 e.printStackTrace();
             }
         }
-        return new SemSet(out,out.get(0).getType());
+        SemSet reduced = new SemSet(out,out.get(0).getType());
+        reduced.copySourceIndexFrom(this);
+        return reduced;
     }
 
     @Override
@@ -79,13 +84,41 @@ public class SemSet extends SemanticExpression {
             }
         }
 
-        return new SemSet(newMembers,this.getType());
+        SemSet applied = new SemSet(newMembers,this.getType());
+        applied.copySourceIndexFrom(this);
+        return applied;
     }
 
     @Override
     public SemanticExpression clone() {
-        return new SemSet(this.members,getType());
+        SemSet clone = new SemSet(this.members,getType());
+        clone.copySourceIndexFrom(this);
+        return clone;
 
+    }
+
+    @Override
+    public boolean bindsVar(SemAtom var) {
+        for (SemanticRepresentation member : this.members)
+        {
+            if (member.bindsVar(var))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean containsQuantExpression() {
+        for (SemanticRepresentation member : this.members)
+        {
+            if (member.containsQuantExpression())
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

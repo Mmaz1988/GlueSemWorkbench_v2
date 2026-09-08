@@ -86,13 +86,20 @@ public class LLQuantEx extends LLTerm {
         return "A" + var.toString() + "." + scope.toString();
     }
 
+    @Override
+    public String toStringNotation() {
+        return "A" + var.toStringNotation() + "." + scope.toStringNotation();
+    }
 
     public void updateBoundVariables(LLAtom var)
     {
         scope.updateBoundVariables(var);
     }
 
-
+    public String toUTF8()
+    {
+        return "\\forall " + var.toUTF8() + "." + scope.toUTF8();
+    }
 
     public LLAtom getVar() {
         return var;

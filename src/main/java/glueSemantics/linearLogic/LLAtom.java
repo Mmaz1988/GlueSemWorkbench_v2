@@ -89,13 +89,21 @@ public class LLAtom extends LLTerm {
         }
         */
 
-        return this.toPlainString();
+        return name + "_" + getType().toString();
 
     }
 
 
     public String toPlainString() {
         return name;
+    }
+
+    public String toStringNotation() {
+        return name + "_" + getType().toString();
+    }
+
+    public String toUTF8() {
+            return name + Category.semTypesToUTF8.get(this.getType().toString());
     }
 
 

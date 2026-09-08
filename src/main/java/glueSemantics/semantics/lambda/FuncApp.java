@@ -25,6 +25,7 @@ import main.Settings;
 import prover.ProverException;
 import utilities.LexVariableHandler;
 
+import java.lang.reflect.Member;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -57,6 +58,7 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
             System.out.println("External meaning representation.");
         }
 
+        this.copySourceIndexFrom(fa);
 
         //Test version
         //this.compiled = fa.compiled;
@@ -84,22 +86,37 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
             for (SemanticRepresentation m : ((SemSet) functor).getMembers())
             {
                 FuncApp newFA = new FuncApp(m,argument);
-                newSet.add(newFA);
+                SemanticRepresentation msem = newFA.betaReduce();
+
+                if (msem instanceof SemSet){
+                    newSet.addAll(((SemSet) msem).getMembers());
+                } else {
+                    newSet.add(newFA);
+                }
             }
 
             SemSet out = new SemSet(newSet,newSet.get(0).getType());
-            return out.betaReduce();
+            out.copySourceIndexFrom(this);
+            return out;
 
         } else if (argument instanceof SemSet)
         {
-            List<SemanticRepresentation> newSet = new ArrayList<>();
-            for (SemanticRepresentation m : ((SemSet) argument).getMembers())
-            {
-                FuncApp newFA = new FuncApp(functor,m);
-                newSet.add(newFA);
+
+            if (!(functor instanceof SemFunction && ((SemFunction) functor).getBinder().getType().equals("a"))) {
+                List<SemanticRepresentation> newSet = new ArrayList<>();
+                for (SemanticRepresentation m : ((SemSet) argument).getMembers()) {
+                    FuncApp newFA = new FuncApp(functor, m);
+                    SemanticRepresentation msem = newFA.betaReduce();
+                    if (msem instanceof SemSet) {
+                        newSet.addAll(((SemSet) msem).getMembers());
+                    } else {
+                        newSet.add(newFA);
+                    }
+                }
+                SemSet out = new SemSet(newSet, newSet.get(0).getType());
+                out.copySourceIndexFrom(this);
+                return out.betaReduce();
             }
-            SemSet out = new SemSet(newSet,newSet.get(0).getType());
-            return out.betaReduce();
         }
 
 
@@ -123,8 +140,12 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
             SemFunction lambda = (SemFunction) this.functor;
 
             //For end beta reduction
-
-            if (lambda.getBinder().getType().equals(arg.getType()) || arg.getType().getSimple().equals(SemType.AtomicType.TEMP) ) {
+            //TODO This crashes when the argument is a set with complex type
+            if (lambda.getBinder().getType().equals(arg.getType())  ||
+               lambda.getBinder().getType().getSimple().equals(SemType.AtomicType.ALT) ||
+                lambda.getBinder().getType().getSimple().equals(SemType.AtomicType.TEMP) ||
+                    arg.getType().getSimple().equals(SemType.AtomicType.TEMP)
+                ) {
                 SemanticRepresentation newBody = lambda.getFuncBody();
                 newBody = newBody.applyTo(lambda.getBinder(), arg);
                 newBody = newBody.betaReduce();
@@ -133,7 +154,11 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
           //      else
                     if (newBody instanceof SemFunction)
                         return newBody;
-                    else return  newBody.betaReduce();
+                    else {
+                        SemanticRepresentation reduced = newBody.betaReduce();
+                        reduced.setSourceIndex(this.getSourceIndex());
+                        return reduced;
+                    }
 
             }
         }
@@ -167,7 +192,9 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
 
             if (arg.equals(this.argument))
                 return this;
-            return new FuncApp(this,arg);
+            FuncApp continued = new FuncApp(this,arg);
+            continued.copySourceIndexFrom(this);
+            return continued;
 
          //   return new MeaningRepresentation(String.format("app(%s,%s)",functor.toString(),arg.toString()));
         }
@@ -234,6 +261,16 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
     }
 
     @Override
+    public boolean bindsVar(SemAtom var) {
+        return this.functor.bindsVar(var) || this.argument.bindsVar(var);
+    }
+
+    @Override
+    public boolean containsQuantExpression() {
+        return this.functor.containsQuantExpression() || this.argument.containsQuantExpression();
+    }
+
+    @Override
     public Set<SemAtom> findBoundVariables() {
         Set<SemAtom> out = new HashSet<>();
         out.addAll(functor.findBoundVariables());
@@ -255,6 +292,8 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
     public String toString() {
         if (SemanticParser.settings.getSemanticOutputStyle() == Settings.PROLOG)
             return String.format("app(%s,%s)",functor.toString(),argument.toString());
+        else if (SemanticParser.settings.getSemanticOutputStyle() == Settings.LFGXDRT)
+            return "(" + functor.toString() + "@" + argument.toString() + ")";
         else
             return functor.toString() + "(" + argument.toString() + ")";
 
@@ -271,6 +310,8 @@ public class FuncApp extends SemanticExpression implements FunctionalApplication
             setType(SemType.AtomicType.T);
             System.out.println("External meaning representation.");
         }
+
+        this.copySourceIndexFrom(func);
     }
 
 

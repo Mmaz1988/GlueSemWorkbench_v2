@@ -1,13 +1,8 @@
 package main;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 import glueSemantics.linearLogic.Premise;
+
+import java.util.*;
 
 public class failExplainer {
 	private static StringBuilder explanationString = new StringBuilder();
@@ -368,7 +363,7 @@ public class failExplainer {
 			it = failExplainingList.iterator();
 			while (it.hasNext()) {
 				Integer arr = it.next();
-				explanationString.append(NaturalDeductionProof.getNaturalDeductionProof(premises.get(arr))+ System.lineSeparator()+ System.lineSeparator());
+				explanationString.append(NaturalDeductionProof.getNaturalDeductionProof(premises.get(arr),0)+ System.lineSeparator()+ System.lineSeparator());
 			}
 		}
 		
@@ -459,7 +454,7 @@ public class failExplainer {
 			it = failExplainingList.iterator();
 			while (it.hasNext()) {
 				Integer arr = it.next();
-				explanationString.append(NaturalDeductionProof.getNaturalDeductionProof(premises.get(arr))+ System.lineSeparator()+ System.lineSeparator());
+				explanationString.append(NaturalDeductionProof.getNaturalDeductionProof(premises.get(arr),0)+ System.lineSeparator()+ System.lineSeparator());
 			}
 		}
 		

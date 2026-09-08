@@ -17,15 +17,13 @@
 
 package glueSemantics.linearLogic;
 
-import glueSemantics.semantics.LexicalEntry;
+import glueSemantics.semantics.MeaningConstructor;
 import glueSemantics.semantics.SemanticRepresentation;
 import glueSemantics.semantics.lambda.SemAtom;
 import glueSemantics.semantics.lambda.SemanticExpression;
+import main.Settings;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.*;
 
 public class Premise {
     //Definitions for colored console output
@@ -36,7 +34,7 @@ public class Premise {
     public static final String ANSI_BLUE = "\u001B[34m";
 
 
-    private HashSet<Integer> premiseIDs;
+    private LinkedHashSet<Integer> premiseIDs;
     private LLTerm glueTerm;
     private SemanticRepresentation semTerm;
 
@@ -44,34 +42,22 @@ public class Premise {
     private Object func;
     private Object arg;
     public boolean used;
-
-    public HashSet<Integer> getPremiseIDs() {
-        return premiseIDs;
-    }
-
-    public LLTerm getGlueTerm() {
-        return glueTerm;
-    }
-
-    public void setGlueTerm(LLTerm glueTerm) {
-        this.glueTerm = glueTerm;
-    }
-
-    public SemanticRepresentation getSemTerm() { return semTerm; }
-
-    public void setSemTerm(SemanticExpression semTerm) { this.semTerm = semTerm; }
+    private boolean nonScoping;
+    private boolean insitu;
+    private Integer sourceIndex;
+    public String stage;
 
     private LinkedList<SemAtom> assumptionVars = new LinkedList<>();
     private LinkedList<SemAtom> binderVars = new LinkedList<>();
 
-    public Premise(HashSet<Integer> premiseIDs, LLTerm llterm) {
+    public Premise(LinkedHashSet<Integer> premiseIDs, LLTerm llterm) {
         this.premiseIDs = premiseIDs;
         this.glueTerm = llterm;
         this.glueTerm.setPolarity(true);
         this.used = false;
     }
 
-    public Premise(HashSet<Integer> premiseIDs, SemanticRepresentation semTerm, LLTerm glueTerm) {
+    public Premise(LinkedHashSet<Integer> premiseIDs, SemanticRepresentation semTerm, LLTerm glueTerm) {
         this.premiseIDs = premiseIDs;
         this.glueTerm = glueTerm;
         this.semTerm = semTerm;
@@ -79,7 +65,7 @@ public class Premise {
         this.used = false;
     }
 
-    public Premise(HashSet<Integer> premiseIDs, SemanticRepresentation semTerm, SemanticRepresentation originalSemTerm, LLTerm glueTerm) {
+    public Premise(LinkedHashSet<Integer> premiseIDs, SemanticRepresentation semTerm, SemanticRepresentation originalSemTerm, LLTerm glueTerm) {
         this.premiseIDs = premiseIDs;
         this.glueTerm = glueTerm;
         this.semTerm = semTerm;
@@ -88,11 +74,13 @@ public class Premise {
     }
 
     //For work with Lexicon
-    public Premise(HashSet<Integer> premiseIDs, LexicalEntry lexEn) {
+    public Premise(LinkedHashSet<Integer> premiseIDs, MeaningConstructor lexEn) {
         this.premiseIDs = premiseIDs;
         this.glueTerm = lexEn.getLlTerm();
         this.semTerm = lexEn.getSem();
         this.originalSemTerm = semTerm.clone();
+        this.sourceIndex = lexEn.getSourceIndex();
+        this.insitu = lexEn.isInsitu();
         this.used = false;
     }
 
@@ -100,7 +88,20 @@ public class Premise {
     @Override
     public String toString() {
         //return ANSI_BLUE + glueTerm + ANSI_RESET + " : " + ANSI_YELLOW + semTerm + ANSI_RESET +  premiseIDs;
-        return glueTerm + " : " + semTerm; //
+
+        String premise = glueTerm + " : " + semTerm;
+
+
+        if (Settings.printIDs) {
+            //TODO condition to some setting?
+            if (premiseIDs.size() == 1) {
+                premise = premiseIDs + " " + premise;
+            } else {
+                premise = premise + " " + premiseIDs;
+            }
+        }
+
+        return premise; //
         // +  premiseIDs;
     }
 
@@ -197,4 +198,44 @@ public class Premise {
     }
     public Premise comb_a;
     public Premise comb_b;
+
+    public boolean isNonScoping() {
+        return this.nonScoping;
+    }
+
+    public void setNonScoping(boolean nonScoping) {
+        this.nonScoping = nonScoping;
+    }
+
+    public boolean isInsitu() {
+        return insitu;
+    }
+
+    public void setInsitu(boolean insitu) {
+        this.insitu = insitu;
+    }
+
+    public LinkedHashSet<Integer> getPremiseIDs() {
+        return premiseIDs;
+    }
+
+    public LLTerm getGlueTerm() {
+        return glueTerm;
+    }
+
+    public void setGlueTerm(LLTerm glueTerm) {
+        this.glueTerm = glueTerm;
+    }
+
+    public SemanticRepresentation getSemTerm() { return semTerm; }
+
+    public void setSemTerm(SemanticExpression semTerm) { this.semTerm = semTerm; }
+
+    public Integer getSourceIndex() {
+        return sourceIndex;
+    }
+
+    public void setSourceIndex(Integer sourceIndex) {
+        this.sourceIndex = sourceIndex;
+    }
 }

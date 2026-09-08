@@ -18,10 +18,11 @@
 package glueSemantics.linearLogic;
 
 
-import glueSemantics.semantics.LexicalEntry;
+import glueSemantics.semantics.MeaningConstructor;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 public class Sequent {
@@ -35,23 +36,25 @@ public class Sequent {
     }
 
 
-
-    public Sequent(List<LLTerm> parsedTerms,String msg) {
-        lhs = new ArrayList<>();
-        for (idCounter = 0; idCounter < parsedTerms.size(); idCounter++) {
-            HashSet<Integer> idSet = new HashSet<>();
-            idSet.add(idCounter);
-            lhs.add(new Premise(idSet, parsedTerms.get(idCounter)));
-        }
-    }
-
-
-     public Sequent(List<LexicalEntry> lexEn) {
+     public Sequent(List<MeaningConstructor> lexEn) {
          lhs = new ArrayList<>();
          for (idCounter = 0; idCounter < lexEn.size(); idCounter++) {
-             HashSet<Integer> idSet = new HashSet<>();
+             LinkedHashSet<Integer> idSet = new LinkedHashSet<>();
              idSet.add(idCounter);
-             lhs.add(new Premise(idSet, lexEn.get(idCounter)));
+              Premise p = new Premise(idSet, lexEn.get(idCounter));
+
+              if (lexEn.get(idCounter).isNonscope()) {
+                  p.setNonScoping(true);
+              }
+
+              if (lexEn.get(idCounter).isInsitu()) {
+                  p.setInsitu(true);
+              }
+
+              if (!(p.getGlueTerm() instanceof LLAtom)) {
+                  p.stage = lexEn.get(idCounter).getStage();
+              }
+             lhs.add(p);
          }
      }
 
@@ -64,8 +67,8 @@ public class Sequent {
         return maxIDSet;
     }
 
-    public HashSet<Integer> getNewID() {
-        HashSet<Integer> newID = new HashSet<>();
+    public LinkedHashSet<Integer> getNewID() {
+        LinkedHashSet<Integer> newID = new LinkedHashSet<>();
         newID.add(idCounter++);
         return newID;
     }

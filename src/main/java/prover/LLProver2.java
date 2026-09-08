@@ -1,6 +1,7 @@
 package prover;
 
 import glueSemantics.linearLogic.*;
+import glueSemantics.semantics.LfgxDrtSemanticRepresentation;
 import glueSemantics.semantics.SemanticRepresentation;
 import glueSemantics.semantics.lambda.*;
 import main.InputOutputProcessor;
@@ -28,7 +29,7 @@ public class LLProver2 extends LLProver{
     // A chart that associates variables that are compiled out with their original formula.
     // This is necessary to instantiate variables that are atmoic elements rather than variables that occur in formulas.
 
-    private LinkedList<Premise> agenda;
+    private LinkedList<Premise> agenda = new LinkedList<>();
 
     private StringBuilder outputFileBuilder;
 
@@ -42,7 +43,7 @@ public class LLProver2 extends LLProver{
 
     /**
      * LLProver version 2.0
-     * LLProver1 implements a procedure for Glue semantics derivations based on Lev (2007), chapter 5
+     * LLProver2 implements a procedure for Glue semantics derivations based on Lev (2007), chapter 5
      * The original idea for this procedure has been described in Hepple (1996).
      * The present version avoids the need for accidental binding.
      *
@@ -59,7 +60,13 @@ public class LLProver2 extends LLProver{
     }
 
     public void deduce(Sequent seq) throws ProverException, VariableBindingException {
-        LinkedList<Premise> agenda = new LinkedList<>();
+
+        //Clear charts before new deduce call
+        atomicChart.clear();
+        nonAtomicChart.clear();
+        agenda.clear();
+        goalIDs.clear();
+        getSolutions().clear();
 
         this.db = new Debugging();
 
@@ -141,6 +148,7 @@ public class LLProver2 extends LLProver{
                         for (String category : nonAtomicChart.keySet()) {
 
                             for (Premise q : nonAtomicChart.get(category)) {
+                                db.attemptedCombination++;
                                 combined = combinePremises(p, q,proofBuilder);
                                 if (combined != null && validPremise(combined)) {
                                     db.combinations++;
@@ -153,6 +161,7 @@ public class LLProver2 extends LLProver{
 
                         if (nonAtomicChart.containsKey(p.getGlueTerm().category().toString())) {
                             for (Premise q : nonAtomicChart.get(p.getGlueTerm().category().toString())) {
+                                db.attemptedCombination++;
                                 combined = combinePremises(q, p,proofBuilder);
                                 if (combined != null && validPremise(combined)) {
                                     db.combinations++;
@@ -166,6 +175,7 @@ public class LLProver2 extends LLProver{
                     for (String key : nonAtomicChart.keySet()) {
                         if (isVar(key)) {
                             for (Premise q : nonAtomicChart.get(key)) {
+                                db.attemptedCombination++;
                                 combined = combinePremises(q, p,proofBuilder);
                                 if (combined != null && validPremise(combined)) {
                                     db.combinations++;
@@ -183,6 +193,7 @@ public class LLProver2 extends LLProver{
                         for (String key : atomicChart.keySet()) {
 
                             for (Premise q : atomicChart.get(key)) {
+                                db.attemptedCombination++;
                                 combined = combinePremises(p, q,proofBuilder);
                                 if (combined != null && validPremise(combined)) {
                                     iter.add(combined);
@@ -193,6 +204,7 @@ public class LLProver2 extends LLProver{
                     } else {
                         if (atomicChart.containsKey(((LLFormula) p.getGlueTerm()).getLhs().category().toString())) {
                             for (Premise q : atomicChart.get(((LLFormula) p.getGlueTerm()).getLhs().category().toString())) {
+                                db.attemptedCombination++;
                                 combined = combinePremises(p, q,proofBuilder);
                                 if (combined != null && validPremise(combined)) {
                                     iter.add(combined);
@@ -204,6 +216,7 @@ public class LLProver2 extends LLProver{
                         for (String category : atomicChart.keySet()) {
                             if (Character.isUpperCase(category.charAt(0))) {
                                 for (Premise q : atomicChart.get(category)) {
+                                    db.attemptedCombination++;
                                     combined = combinePremises(p, q,proofBuilder);
                                     if (combined != null && validPremise(combined)) {
                                         iter.add(combined);
@@ -243,7 +256,10 @@ public class LLProver2 extends LLProver{
 
         db.computationTime = endTime - startTime;
 
-        getLOGGER().info("Found the following glue derivation(s):\n" + proofBuilder.toString());
+        //Calculate number of all values of all keys in atomicChart and nonAtomicChart
+        db.chartSize = atomicChart.values().stream().mapToInt(List::size).sum() + nonAtomicChart.values().stream().mapToInt(List::size).sum();
+
+        getLOGGER().fine("Found the following glue derivation(s):\n" + proofBuilder.toString());
 
         proofBuilder.append(System.lineSeparator());
         proofBuilder.append(System.lineSeparator());
@@ -256,18 +272,18 @@ public class LLProver2 extends LLProver{
 
             List<Premise> sortedSolutions = partialSolutions.stream().sorted(Comparator.comparingInt(o -> o.getPremiseIDs().size())).collect(Collectors.toList());
 
-            getLOGGER().info("Input premises:");
+            getLOGGER().fine("Input premises:");
 
             for (Premise p : currentSequent.getLhs())
             {
-                getLOGGER().info(p + " " + p.getPremiseIDs());
+                getLOGGER().fine(p + " " + p.getPremiseIDs());
             }
 
-            getLOGGER().info("Partial solutions:");
+            getLOGGER().fine("Partial solutions:");
 
             for (Premise p : sortedSolutions)
             {
-                getLOGGER().info(p + " " + p.getPremiseIDs());
+                getLOGGER().fine(p + " " + p.getPremiseIDs());
             }
 
         }
@@ -337,7 +353,7 @@ public class LLProver2 extends LLProver{
 
         Premise combined = null;
 
-        HashSet<Integer> combined_IDs = new HashSet<>();
+        LinkedHashSet<Integer> combined_IDs = new LinkedHashSet<>();
         if (((LLFormula) func.getGlueTerm()).getLhs().checkEquivalence(argumentClone.getGlueTerm())
                 && Collections.disjoint(func.getPremiseIDs(), argument.getPremiseIDs())) {
             combined_IDs.addAll(func.getPremiseIDs());
@@ -348,7 +364,7 @@ public class LLProver2 extends LLProver{
 
                 SemanticRepresentation reducedSem = null;
                 try {
-                    reducedSem = combine(func, argumentClone).betaReduce();
+                    reducedSem = combine(func, argumentClone);
                 } catch(Exception e)
                 {
                     getLOGGER().warning("Failed to combine functor: " + func.toString() + " and argument: " +
@@ -434,7 +450,11 @@ public class LLProver2 extends LLProver{
                     while (!discharges.isEmpty())
                     {
                         Premise p = discharges.removeLast().getValue();
-                        temp = new SemFunction((SemAtom) p.getSemTerm(),temp);
+                        if (getSettings().getSemanticOutputStyle() == Settings.LFGXDRT) {
+                            temp = wrapLfgAbstractionBody(temp, (SemAtom) p.getSemTerm());
+                        } else {
+                            temp = new SemFunction((SemAtom) p.getSemTerm(),temp);
+                        }
                         argumentGlueClone.getAssumptions2().remove(p);
 
                     }
@@ -443,7 +463,7 @@ public class LLProver2 extends LLProver{
 
                     SemanticRepresentation reducedSem = null;
                     try {
-                        reducedSem = combine(func, argumentClone).betaReduce();
+                        reducedSem = combine(func, argumentClone);
                     } catch(Exception e)
                     {
                         getLOGGER().warning("Failed to combine functor: " + func.toString() + " and argument: " +
@@ -493,7 +513,11 @@ public class LLProver2 extends LLProver{
           //  System.out.println("Combining " + f + " and " + a);
             // System.out.println("to: " + combined.toString());
 
+
             //TODO sdout vs file
+
+          //  System.out.println("Now combining " + f + " and " +  a);
+
             if (true)
             {
                 proofBuilder.append("Combining " + InputOutputProcessor.restoreBackLinearLogicSide(f) + " and " + InputOutputProcessor.restoreBackLinearLogicSide(a));
@@ -504,6 +528,7 @@ public class LLProver2 extends LLProver{
                 combined.comb_b = argument;
                 
             }
+
 
 
         }
@@ -560,7 +585,7 @@ public class LLProver2 extends LLProver{
 
         Premise combined = null;
 
-        HashSet<Integer> combined_IDs = new HashSet<>();
+        LinkedHashSet<Integer> combined_IDs = new LinkedHashSet<>();
         if (((LLFormula) func.getGlueTerm()).getLhs().checkEquivalence(argumentClone.getGlueTerm())
                 && Collections.disjoint(func.getPremiseIDs(), argument.getPremiseIDs())) {
             combined_IDs.addAll(func.getPremiseIDs());
@@ -571,7 +596,7 @@ public class LLProver2 extends LLProver{
 
                 SemanticRepresentation reducedSem = null;
                 try {
-                    reducedSem = combine(func, argumentClone).betaReduce();
+                    reducedSem = combine(func, argumentClone);
                 } catch(Exception e)
                 {
                     getLOGGER().warning("Failed to combine functor: " + func.toString() + " and argument: " +
@@ -666,7 +691,7 @@ public class LLProver2 extends LLProver{
 
                     SemanticRepresentation reducedSem = null;
                     try {
-                        reducedSem = combine(func, argumentClone).betaReduce();
+                        reducedSem = combine(func, argumentClone);
                     } catch(Exception e)
                     {
                         getLOGGER().warning("Failed to combine functor: " + func.toString() + " and argument: " +
@@ -724,11 +749,25 @@ public class LLProver2 extends LLProver{
 
     }
 
-    public static SemanticRepresentation combine(Premise func, Premise argument) throws ProverException
+    public SemanticRepresentation combine(Premise func, Premise argument) throws ProverException
     {
+        if (getSettings().getSemanticOutputStyle() == Settings.LFGXDRT) {
+            try {
+                de.ukon.lfgxdrt.SemanticExpression lfgFunc = asLfgExpression(func.getSemTerm());
+                de.ukon.lfgxdrt.SemanticExpression lfgArg = asLfgExpression(argument.getSemTerm());
+                de.ukon.lfgxdrt.SemanticExpression reduced = new de.ukon.lfgxdrt.lambda_elements.FuncApp(lfgFunc, lfgArg);
+                if (getSettings().isBetaReduce()) {
+                    reduced = reduced.betaReduce();
+                }
+                LfgxDrtSemanticRepresentation wrapped = new LfgxDrtSemanticRepresentation(reduced);
+                return wrapped;
+            } catch (Exception e) {
+                throw new ProverException("Failed to combine LFGxDRT semantics: " + e.getMessage());
+            }
+        }
         SemanticRepresentation reducedSem;
         if (getSettings().isBetaReduce()) {
-            //    System.out.println("Beta reduced: " + func.getSemTerm().toString() + ", " + argument.getSemTerm().toString());
+        //    System.out.println("Beta reduced: " + func.getSemTerm().toString() + ", " + argument.getSemTerm().toString());
             reducedSem = new FuncApp(func.getSemTerm(), argument.getSemTerm()).betaReduce();
             //    System.out.println("To:" + reducedSem.toString());
         } else
@@ -792,6 +831,15 @@ public class LLProver2 extends LLProver{
                 premises.add(p);
                 atomicChart.put(p.getGlueTerm().category().toString(), premises);
 
+            }
+        } else if (p.getGlueTerm() instanceof LLQuantEx) {
+            String category = ((LLFormula) ((LLQuantEx) p.getGlueTerm()).getScope()).getLhs().category().toString();
+            if (nonAtomicChart.containsKey(category)) {
+                nonAtomicChart.get(category).add(p);
+            } else {
+                List<Premise> premises = new ArrayList<>();
+                premises.add(p);
+                nonAtomicChart.put(category, premises);
             }
         }
     }
@@ -939,6 +987,12 @@ public class LLProver2 extends LLProver{
                 LLFormula newLogic = new LLFormula(f.getLhs(), tempList.getFirst().getGlueTerm(),
                         tempList.getFirst().getGlueTerm().isPolarity(), f.getVariable());
                 p.setGlueTerm(newLogic);
+            } else if (p.getGlueTerm() instanceof LLQuantEx) {
+                //Case for uncompiled quantifiers
+                LLTerm temp = ((LLQuantEx) p.getGlueTerm()).getScope();
+                Premise tempPremise = new Premise(p.getPremiseIDs(), p.getSemTerm(), temp);
+                LinkedList<Premise> tempList = convert(tempPremise);
+                return tempList;
             }
         }
         compiled.addFirst(p);
@@ -981,7 +1035,7 @@ public class LLProver2 extends LLProver{
     {
         if (p.getPremiseIDs().equals(goalIDs))
         {
-            getSolutions().add(p);
+            getSolutions().add(new SolutionObject(p));
         }
     }
 
@@ -1025,5 +1079,3 @@ public class LLProver2 extends LLProver{
     public void setProofBuilder(StringBuilder proofBuilder) {
     }
     }
-
-

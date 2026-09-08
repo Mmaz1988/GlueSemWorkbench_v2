@@ -20,7 +20,8 @@ package utilities;
 import java.util.*;
 
 public abstract class LexVariableHandler {
-    private static final int MAXINDEX = 100;
+    //TODO reset indices when max is reached
+    private static final int MAXINDEX = 1000;
 
     private static Integer sentenceID;
     private static Integer connectorID;
@@ -36,7 +37,11 @@ public abstract class LexVariableHandler {
         SemVarW,
         SemVarI,
         SemVarV,
+        SemVarD,
         SemVarX,
+        SemVarT,
+        SemVarTemp,
+        SemVarAlt,
         SemVarComp,
         SentenceID,
         connectorNode
@@ -81,7 +86,22 @@ Possibly add more types, e.g. SemVarE, SemVarT etc.
         usedVars.put(variableType.SemVarV,
                 new ArrayList<String>());
 
+        usedVars.put(variableType.SemVarD,
+                new ArrayList<String>());
+
         usedVars.put(variableType.SemVarComp,
+                new ArrayList<String>());
+
+        usedVars.put(variableType.SemVarT,
+                new ArrayList<String>());
+
+        usedVars.put(variableType.SemVarTemp,
+                new ArrayList<String>());
+
+        usedVars.put(variableType.SemVarX,
+                new ArrayList<String>());
+
+        usedVars.put(variableType.SemVarAlt,
                 new ArrayList<String>());
 
         return usedVars;
@@ -126,6 +146,18 @@ Possibly add more types, e.g. SemVarE, SemVarT etc.
 
         reservedVars.put(variableType.SemVarV,
                 new ArrayList<String>(Collections.singletonList("e")));
+
+        reservedVars.put(variableType.SemVarD,
+                new ArrayList<String>(Collections.singletonList("d")));
+
+        reservedVars.put(variableType.SemVarT,
+                new ArrayList<String>(Collections.singletonList("p")));
+
+        reservedVars.put(variableType.SemVarTemp,
+                new ArrayList<String>(Collections.singletonList("t")));
+
+        reservedVars.put(variableType.SemVarAlt,
+                new ArrayList<String>(Collections.singletonList("a")));
 
         //Variables for Semantics predicates of complex type
          reservedVars.put(variableType.SemVarComp,
