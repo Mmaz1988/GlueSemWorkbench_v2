@@ -137,6 +137,15 @@ public class GlueParser {
                     throw new ParserInputException("noscope and insitu are mutually exclusive");
                 }
 
+                // Insitu ordering is decided by surface position, which is read off the numeric
+                // source label. Without one the premise carries no surface position, so the prover
+                // cannot rank it and silently ignores the modifier.
+                if (insitu && sourceIndex == null) {
+                    LOGGER.warning("Meaning constructor '" + mc + "' is marked insitu but has no " +
+                            "numeric source label; insitu ordering is derived from surface position, " +
+                            "so the modifier has no effect.");
+                }
+
                 glueString = glueSide[0];
             }
             else

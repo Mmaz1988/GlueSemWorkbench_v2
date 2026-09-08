@@ -1152,9 +1152,24 @@ public class LLProver1 extends LLProver {
             return 0;
         }
 
-        List<Integer> modifierOrder = history.indexSet.stream()
-                .filter(this.scopingModifiers::contains)
-                .collect(Collectors.toList());
+        // Only premises with a real SYN-ID carry surface-order information. LiGER-contributed MCs
+        // occupy a derivation slot without one (Premise.getSourceIndex() == null), so their agenda
+        // position says nothing about where they sit in the string - the same reasoning as in
+        // resolveRealSourceIndices. Comparing an insitu element against such a premise counts a
+        // violation that no derivation can discharge, which empties the chart and forces the
+        // relaxed retry. Drop them, and order the rest by SYN-ID rather than by agenda position
+        // (the two coincide only as long as no unindexed MC precedes a grammar MC).
+        LinkedHashMap<Integer, Integer> modifierOrder = new LinkedHashMap<>();
+        for (Integer premiseId : history.indexSet) {
+            if (!this.scopingModifiers.contains(premiseId)) {
+                continue;
+            }
+            Integer sourceIndex = realSourceIndex(premiseId);
+            if (sourceIndex == null) {
+                continue;
+            }
+            modifierOrder.put(premiseId, sourceIndex);
+        }
 
         if (modifierOrder.isEmpty()) {
             return 0;
@@ -1162,18 +1177,28 @@ public class LLProver1 extends LLProver {
 
         int violations = 0;
         Set<Integer> seenModifiers = new HashSet<>();
-        for (Integer modifierIndex : modifierOrder) {
-            if (history.insituIndices.contains(modifierIndex)) {
-                for (Integer leftModifier : modifierOrder) {
-                    if (leftModifier < modifierIndex && !seenModifiers.contains(leftModifier)) {
+        for (Map.Entry<Integer, Integer> modifier : modifierOrder.entrySet()) {
+            if (history.insituIndices.contains(modifier.getKey())) {
+                for (Map.Entry<Integer, Integer> leftModifier : modifierOrder.entrySet()) {
+                    if (leftModifier.getValue() < modifier.getValue()
+                            && !seenModifiers.contains(leftModifier.getKey())) {
                         violations++;
                     }
                 }
             }
-            seenModifiers.add(modifierIndex);
+            seenModifiers.add(modifier.getKey());
         }
 
         return violations;
+    }
+
+    // Assumptions inherit the SYN-ID of the premise they were compiled out of, so two entries here
+    // can share a source index; the strict '<' above ranks those as equal rather than crossing.
+    private Integer realSourceIndex(Integer premiseId) {
+        if (premiseId == null || agenda == null || premiseId < 0 || premiseId >= agenda.size()) {
+            return null;
+        }
+        return agenda.get(premiseId).getSourceIndex();
     }
 
     @Override
