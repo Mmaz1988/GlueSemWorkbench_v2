@@ -194,6 +194,32 @@ public class GswbController {
         return new GswbPcdrsOutput(request.parentSolutionId, solutions);
     }
 
+    /** Renders PCDRS branches to the SVG /generate_pcdrs produced for them (see PcdrsRenderer
+     *  for which semantic to send), so a client can show rendered branches without persisting
+     *  every SVG. One request for many branches;
+     *  an item that cannot be parsed or rendered comes back with no `solution` rather than
+     *  failing the batch. */
+    @CrossOrigin
+    @PostMapping(value = "/render_pcdrs", produces = "application/json", consumes = "application/json")
+    public GswbPcdrsOutput renderPcdrs(@RequestBody GswbRenderPcdrsRequest request) {
+        List<GswbSolution> solutions = new ArrayList<>();
+        List<GswbRenderPcdrsRequest.Item> items = request == null || request.items == null ? List.of() : request.items;
+        for (GswbRenderPcdrsRequest.Item item : items) {
+            String svg = null;
+            try {
+                svg = PcdrsRenderer.toSvg(item.semantic, item.anaphoraRelations);
+            } catch (Exception e) {
+                LOGGER.warning("Could not render PCDRS " + item.id + ": " + e.getMessage());
+            }
+            GswbSolution solution = new GswbSolution(svg, item.id, null, null, item.semantic);
+            solution.anaphoraRelations = item.anaphoraRelations;
+            solutions.add(solution);
+        }
+        LOGGER.info("PCDRS render complete: items=" + items.size()
+                + ", rendered=" + solutions.stream().filter(solution -> solution.solution != null).count());
+        return new GswbPcdrsOutput(null, solutions);
+    }
+
     @CrossOrigin
     @PostMapping(value = "/collapse_anaphora", produces = "application/json", consumes = "application/json")
     public GswbSolution collapseAnaphora(@RequestBody GswbCollapseAnaphoraRequest request) throws Exception {
