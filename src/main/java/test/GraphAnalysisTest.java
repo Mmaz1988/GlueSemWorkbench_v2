@@ -5,11 +5,13 @@ import org.jgrapht.alg.connectivity.KosarajuStrongConnectivityInspector;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 import org.junit.jupiter.api.Test;
+import glueSemantics.linearLogic.Category;
 import prover.GraphAnalysis;
 import prover.categoryGraph.CGNode;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -65,5 +67,47 @@ public class GraphAnalysisTest {
         graph.addEdge(n.get("b"), n.get("a"));
 
         assertEquals(List.of(), new GraphAnalysis("goal", null).sccOutputs(componentOf(graph, n.get("a"))));
+    }
+
+    @Test
+    void aCategoryStringIsPrettyPrintedLikeAParsedCategory() {
+        assertEquals("gₑ", Category.toUTF8("g_e"));
+        assertEquals("(gₑ ⊸ fₜ) ⊸ hₜ", Category.toUTF8("(g_e -o f_t) -o h_t"));
+        assertEquals("gₑ ⊸ fₜₑₘₚ", Category.toUTF8("g_e -o f_temp"));
+    }
+
+    @Test
+    void anUnknownTypeStaysAsWrittenInsteadOfPrintingNull() {
+        assertEquals("g_q ⊸ fₜ", Category.toUTF8("g_q -o f_t"));
+        assertEquals("g_q", new Category("g_q", Set.of()).toUTF8());
+        // As before: only an atom with exactly one "_" gets a subscript.
+        assertEquals("x_1_e", Category.toUTF8("x_1_e"));
+    }
+
+    /**
+     * Why category nodes are printed from the parsed category, not from their string: toString()
+     * drops brackets, so both groupings print alike. The string form keeps what it is given.
+     */
+    @Test
+    void theParsedFormKeepsBracketsThatToStringDrops() {
+        Category leftNested = new Category(new Category(new Category("g_e", Set.of()), new Category("f_t", Set.of()), Set.of()),
+                new Category("h_t", Set.of()), Set.of());
+
+        assertEquals("(gₑ ⊸ fₜ) ⊸ hₜ", leftNested.toUTF8());
+        assertEquals("g_e -o f_t -o h_t", leftNested.toString());
+        assertEquals("gₑ ⊸ fₜ ⊸ hₜ", Category.toUTF8(leftNested.toString()));
+    }
+
+    @Test
+    void aComponentsOutputsArePrettyPrinted() {
+        Graph<CGNode, DefaultEdge> graph = new DefaultDirectedGraph<>(DefaultEdge.class);
+        Map<String, CGNode> n = nodes(graph, "g_e -o f_t", "f_t", "h_t");
+        graph.addEdge(n.get("g_e -o f_t"), n.get("f_t"));
+        graph.addEdge(n.get("f_t"), n.get("g_e -o f_t"));
+        graph.addEdge(n.get("g_e -o f_t"), n.get("h_t"));
+
+        GraphAnalysis analysis = new GraphAnalysis("h_t", null, graph);
+
+        assertEquals(List.of("gₑ ⊸ fₜ"), analysis.sccOutputs(componentOf(graph, n.get("f_t"))));
     }
 }

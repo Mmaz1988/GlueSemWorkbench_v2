@@ -3,6 +3,8 @@ package glueSemantics.linearLogic;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Category {
 
@@ -64,14 +66,7 @@ public class Category {
         if (atomic)
         {
             //Split into constant and type (at _)
-            String[] split = category.split("_");
-            if (split.length == 2)
-            {
-                return split[0] + semTypesToUTF8.get(split[1]);
-            } else
-            {
-                return category;
-            }
+            return atomToUTF8(category);
         } else
         {
             String left = this.left.toUTF8();
@@ -85,6 +80,33 @@ public class Category {
         }
     }
 
+
+    /** An atom of a category written as text: anything but blanks and brackets. */
+    private static final Pattern ATOM = Pattern.compile("[^\\s()]+");
+
+    /**
+     * Pretty-prints a category given only as text ("(g_e -o f_t) -o h_t"), as {@link #toUTF8()}
+     * does a parsed one: "-o" becomes "⊸" and each atom is printed by {@link #atomToUTF8}. For
+     * graph nodes that carry only their category's string.
+     */
+    public static String toUTF8(String category) {
+        Matcher m = ATOM.matcher(category);
+        StringBuilder sb = new StringBuilder();
+        while (m.find()) {
+            String atom = m.group();
+            m.appendReplacement(sb, Matcher.quoteReplacement(atom.equals("-o") ? "⊸" : atomToUTF8(atom)));
+        }
+        m.appendTail(sb);
+        return sb.toString();
+    }
+
+    /** An atom with a known semantic type after its one "_" gets it as a subscript (g_e → gₑ);
+     *  anything else stays as written (an unknown type used to print as "null"). */
+    private static String atomToUTF8(String atom) {
+        String[] split = atom.split("_");
+        String subscript = split.length == 2 ? semTypesToUTF8.get(split[1]) : null;
+        return subscript == null ? atom : split[0] + subscript;
+    }
 
     @Override
     public boolean equals(Object obj) {

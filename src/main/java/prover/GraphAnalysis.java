@@ -6,6 +6,7 @@ import com.mxgraph.layout.mxGraphLayout;
 import com.mxgraph.model.mxCell;
 import com.mxgraph.swing.mxGraphComponent;
 import com.mxgraph.util.mxConstants;
+import glueSemantics.linearLogic.Category;
 import glueSemantics.linearLogic.Premise;
 import org.jgrapht.Graph;
 import org.jgrapht.ext.JGraphXAdapter;
@@ -102,12 +103,7 @@ public class GraphAnalysis {
             if (g.edgeSet().isEmpty())
             {
                 CGNode currentNode = g.vertexSet().stream().findAny().get();
-                if (currentNode.nodeType.equals(CGNode.type.CATEGORY)) {
-                    gswbNode.data.put("text", currentNode.categoryObject.toUTF8());
-                } else {
-                    gswbNode.data.put("text", currentNode.category);
-
-                }
+                gswbNode.data.put("text", display(currentNode));
                 if (currentNode.toString().equals(goalCategory))
                 {
                     gswbNode.data.put("color", "yellow");
@@ -201,7 +197,7 @@ public class GraphAnalysis {
                 gswbNode.data.put("outputs", sccOutputs(g));
 
                 gswbNode.data.put("text",g.vertexSet().stream()
-                                .map(x -> x.categoryObject != null ? x.categoryObject.toUTF8() : x.category.toString())
+                                .map(GraphAnalysis::display)
                                 .collect(Collectors.toSet())
                                 .stream()
                                 .collect(Collectors.joining(", ")));
@@ -216,11 +212,7 @@ public class GraphAnalysis {
                     subGraphNode.data = new HashMap<>();
 
                     subGraphNode.data.put("id", node.toString());
-                    if (node.nodeType.equals(CGNode.type.CATEGORY)) {
-                        subGraphNode.data.put("text", node.categoryObject.toUTF8());
-                    } else {
-                        subGraphNode.data.put("text", node.category);
-                    }
+                    subGraphNode.data.put("text", display(node));
 
                     if (node.toString().equals(goalCategory)) {
                         subGraphNode.data.put("color", "yellow");
@@ -292,11 +284,7 @@ public class GraphAnalysis {
                         GswbNode subgraphNode = new GswbNode();
                         subgraphNode.data = new HashMap<>();
                         subgraphNode.data.put("id",currentSource.toString());
-                        if (currentSource.nodeType.equals(CGNode.type.CATEGORY)) {
-                            subgraphNode.data.put("text", currentSource.categoryObject.toUTF8());
-                        } else {
-                            subgraphNode.data.put("text", currentSource.category);
-                        }
+                        subgraphNode.data.put("text", display(currentSource));
                         subgraphNode.data.put("color","blue");
 
                         List<String> solutions = new ArrayList<>();
@@ -361,8 +349,10 @@ public class GraphAnalysis {
         return outputs.stream().map(GraphAnalysis::display).distinct().sorted().toList();
     }
 
-    private static String display(CGNode node) {
-        return node.categoryObject != null ? node.categoryObject.toUTF8() : node.category;
+    /** A node's category pretty-printed (subscripted types, ⊸), whether it carries the parsed
+     *  category or, like a connector node, only its string. The explanation graph shows this. */
+    static String display(CGNode node) {
+        return node.categoryObject != null ? node.categoryObject.toUTF8() : Category.toUTF8(node.category);
     }
 
     public void displayGraph()
