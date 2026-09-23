@@ -86,7 +86,10 @@ public class GraphAnalysisTest {
 
     /**
      * Why category nodes are printed from the parsed category, not from their string: toString()
-     * drops brackets, so both groupings print alike. The string form keeps what it is given.
+     * drops brackets, so both groupings print alike. Latent only: categories come from compiled
+     * premises, whose antecedents are atomic, so the string is unambiguous in practice; it would
+     * matter if an X -o X modifier stayed uncompiled (Lev's optimization-1, commented out).
+     * The string form keeps what it is given.
      */
     @Test
     void theParsedFormKeepsBracketsThatToStringDrops() {
