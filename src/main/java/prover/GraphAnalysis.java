@@ -196,6 +196,9 @@ public class GraphAnalysis {
             } else
             {
                 gswbNode.data.put("color", "green");
+                // What the component produces, for a readable label: its id is the whole
+                // component written out.
+                gswbNode.data.put("outputs", sccOutputs(g));
 
                 gswbNode.data.put("text",g.vertexSet().stream()
                                 .map(x -> x.categoryObject != null ? x.categoryObject.toUTF8() : x.category.toString())
@@ -336,6 +339,30 @@ public class GraphAnalysis {
 
 
         return new GswbGraph(graphComponents);
+    }
+
+    /**
+     * What a strongly connected component produces: its members with an edge to a node outside
+     * it, or, when there is none (the derivation ends in it), its goal. Shown as they are in the
+     * component's "text", sorted. Empty when the full category graph is not known.
+     */
+    public List<String> sccOutputs(Graph<CGNode, DefaultEdge> scc) {
+        if (currentGraph == null) {
+            return List.of();
+        }
+        Set<CGNode> members = scc.vertexSet();
+        List<CGNode> outputs = members.stream()
+                .filter(v -> currentGraph.containsVertex(v) && currentGraph.outgoingEdgesOf(v).stream()
+                        .anyMatch(e -> !members.contains(currentGraph.getEdgeTarget(e))))
+                .toList();
+        if (outputs.isEmpty()) {
+            outputs = members.stream().filter(v -> v.toString().equals(goalCategory)).toList();
+        }
+        return outputs.stream().map(GraphAnalysis::display).distinct().sorted().toList();
+    }
+
+    private static String display(CGNode node) {
+        return node.categoryObject != null ? node.categoryObject.toUTF8() : node.category;
     }
 
     public void displayGraph()
