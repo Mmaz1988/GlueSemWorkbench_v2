@@ -109,7 +109,7 @@ public class GswbController {
     public GswbOutput glueDeduce(@RequestBody GswbRequest request) throws Exception {
 
         RunContext ctx = buildRunContext(request.gswbPreferences);
-        LOGGER.info("Received /deduce request: proofs="
+        LOGGER.fine("Received /deduce request: proofs="
                 + (request.proofs == null ? 0 : request.proofs.size())
                 + ", premisesLength=" + (request.premises == null ? 0 : request.premises.length())
                 + ", hasStructure=" + (request.structure != null));
@@ -117,7 +117,7 @@ public class GswbController {
         GlueParser gp = new GlueParser(ctx.settings);
         SingleRunResult run = deduceOne(request, ctx, gp, false, true);
 
-        LOGGER.info("Completed /deduce request: solutions=" + run.output.solutions.size()
+        LOGGER.fine("Completed /deduce request: solutions=" + run.output.solutions.size()
                 + ", discriminants=" + run.output.discriminants.size());
         return run.output;
     }
@@ -136,6 +136,36 @@ public class GswbController {
      */
     private SingleRunResult deduceOne(GswbRequest request, RunContext ctx, GlueParser gp,
                                       boolean batchMode, boolean includeDerivation) throws Exception {
+        SingleRunResult run = deduceOneQuietly(request, ctx, gp, batchMode, includeDerivation);
+        // One line per deduction, /deduce or batch item alike, like LiGER's per-sentence lines.
+        int origins = request.proofs == null || request.proofs.isEmpty() ? 1 : request.proofs.size();
+        int discriminants = run.output == null || run.output.discriminants == null ? 0 : run.output.discriminants.size();
+        LOGGER.info("Deduced " + describeInput(request) + ": " + run.noOfMCs + " meaning constructor(s) from "
+                + origins + " syntactic origin(s), " + run.countSolutions + " solution(s), "
+                + discriminants + " discriminant(s)");
+        return run;
+    }
+
+    /** The sentence(s) a deduction is about, for its log line: the structure's text, quoted;
+     *  a sequence ('A.' 'B.') as A. | B. */
+    private static String describeInput(GswbRequest request) {
+        Object text = request.structure == null ? null : request.structure.get("text");
+        if ((text == null || text.toString().isBlank()) && request.proofs != null) {
+            text = request.proofs.stream()
+                    .map(proof -> proof.structure == null ? null : proof.structure.get("text"))
+                    .filter(value -> value != null && !value.toString().isBlank())
+                    .findFirst().orElse(null);
+        }
+        if (text == null || text.toString().isBlank()) {
+            return "(no text)";
+        }
+        String oneLine = text.toString().replaceAll("\\s+", " ").trim()
+                .replace("' '", " | ").replaceAll("^'|'$", "");
+        return "\"" + (oneLine.length() > 120 ? oneLine.substring(0, 117) + "..." : oneLine) + "\"";
+    }
+
+    private SingleRunResult deduceOneQuietly(GswbRequest request, RunContext ctx, GlueParser gp,
+                                             boolean batchMode, boolean includeDerivation) throws Exception {
         if (request.proofs != null && !request.proofs.isEmpty()) {
             ParsedProofInputs parsed = parseProofInputs(request.proofs, gp, ctx.multistage);
             LOGGER.fine("Parsed structured proof inputs: records=" + request.proofs.size()
