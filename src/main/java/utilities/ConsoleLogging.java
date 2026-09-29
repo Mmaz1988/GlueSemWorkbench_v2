@@ -12,18 +12,21 @@ import java.util.logging.StreamHandler;
  */
 public final class ConsoleLogging {
 
-    private static volatile boolean webMode;
+    /** Off unless WorkbenchMain runs the command-line workbench: the web application can also
+     *  be started through webservice.WebApplication's own main (e.g. from the IDE), which never
+     *  passes through WorkbenchMain, and must then not get console handlers either. */
+    private static volatile boolean commandLine;
 
     private ConsoleLogging() {}
 
     /** Set by WorkbenchMain before anything else logs. */
-    public static void setWebMode(boolean web) {
-        webMode = web;
+    public static void setCommandLine(boolean cli) {
+        commandLine = cli;
     }
 
     /** Gives {@code logger} its own console handler -- in command-line mode only. */
     public static void attachConsole(Logger logger) {
-        if (webMode) {
+        if (!commandLine) {
             return;
         }
         logger.setUseParentHandlers(false);

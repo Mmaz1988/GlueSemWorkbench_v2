@@ -82,7 +82,7 @@ public class WorkbenchMain {
         LOGGER.addHandler(handler);
          */
         // Before anything logs: in -web mode the loggers stay with logback (ConsoleLogging).
-        utilities.ConsoleLogging.setWebMode(java.util.Arrays.asList(args).contains("-web"));
+        utilities.ConsoleLogging.setCommandLine(!java.util.Arrays.asList(args).contains("-web"));
         utilities.ConsoleLogging.attachConsole(LOGGER);
 
         LOGGER.info("The Glue Semantics Workbench -- copyright 2018 Moritz Messmer & Mark-Matthias Zymla");
