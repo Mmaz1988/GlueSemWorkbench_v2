@@ -81,13 +81,9 @@ public class WorkbenchMain {
         handler.setLevel(Level.ALL);
         LOGGER.addHandler(handler);
          */
-        LOGGER.setUseParentHandlers(false);
-        StreamHandler handler = new StreamHandler(System.out, new MyFormatter());
-        //   handler.setFormatter(new MyFormatter());
-        handler.setLevel(Level.FINE);
-        LOGGER.addHandler(handler);
-
-        LOGGER.setLevel(Level.ALL);
+        // Before anything logs: in -web mode the loggers stay with logback (ConsoleLogging).
+        utilities.ConsoleLogging.setWebMode(java.util.Arrays.asList(args).contains("-web"));
+        utilities.ConsoleLogging.attachConsole(LOGGER);
 
         LOGGER.info("The Glue Semantics Workbench -- copyright 2018 Moritz Messmer & Mark-Matthias Zymla");
 
@@ -461,7 +457,7 @@ public class WorkbenchMain {
 
     public static void searchProof(Integer key, List<MeaningConstructor> lexicalEntries) throws VariableBindingException {
 
-        LOGGER.info(String.format("Found %d lexical entries for proof with id S%d",lexicalEntries.size(),key));
+        LOGGER.fine(String.format("Found %d lexical entries for proof with id S%d",lexicalEntries.size(),key));
 
         LLProver prover;
 

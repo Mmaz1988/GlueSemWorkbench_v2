@@ -13,13 +13,7 @@ public class PrintDRT {
     private final static Logger LOGGER = Logger.getLogger(PrintDRT.class.getName());
 
     static {
-        LOGGER.setUseParentHandlers(false);
-        StreamHandler handler = new StreamHandler(System.out, new MyFormatter());
-        //   handler.setFormatter(new MyFormatter());
-        handler.setLevel(Level.FINE);
-        LOGGER.addHandler(handler);
-
-        LOGGER.setLevel(Level.ALL);
+        ConsoleLogging.attachConsole(LOGGER);
     }
 
 

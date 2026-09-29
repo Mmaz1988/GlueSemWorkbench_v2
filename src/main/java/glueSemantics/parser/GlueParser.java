@@ -45,13 +45,7 @@ public class GlueParser {
     private static final Pattern SOURCE_INDEX_PREFIX = Pattern.compile("^\\s*\\[([^\\]]+)\\]\\s*(.*)$");
 
     static {
-        LOGGER.setUseParentHandlers(false);
-        StreamHandler handler = new StreamHandler(System.out, new MyFormatter());
-        //   handler.setFormatter(new MyFormatter());
-        handler.setLevel(Level.FINE);
-        LOGGER.addHandler(handler);
-
-        LOGGER.setLevel(Level.ALL);
+        utilities.ConsoleLogging.attachConsole(LOGGER);
     }
     private boolean PARSESEMANTCS;
 
@@ -82,8 +76,9 @@ public class GlueParser {
             if (sourceLabel.matches("\\d+")) {
                 sourceIndex = Integer.valueOf(sourceLabel);
             } else {
-                LOGGER.warning("Meaning constructor source label '[" + sourceLabel + "]' is not numeric; " +
-                        "stripping it from the meaning without recording a source index.");
+                // Constructors LiGER's rules add are labelled by their node ([g14], [a6]): expected,
+                // so collected and reported once per premise set (see logUnnumberedLabels).
+                unnumberedLabels.add(sourceLabel);
             }
         }
 
@@ -218,6 +213,34 @@ public class GlueParser {
     }
 
     public LexicalEntries parseMeaningConstructorList(List<String> formulas) throws ParserInputException {
+        unnumberedLabels.clear();
+        try {
+            return parseMeaningConstructorListOnce(formulas);
+        } finally {
+            logUnnumberedLabels();
+        }
+    }
+
+    public LexicalEntries parseMultiStageMCList(List<String> formulas) throws ParserInputException {
+        unnumberedLabels.clear();
+        try {
+            return parseMultiStageMCListOnce(formulas);
+        } finally {
+            logUnnumberedLabels();
+        }
+    }
+
+    /** Labels of the last premise set's constructors that carry no numeric source index. */
+    private final List<String> unnumberedLabels = new ArrayList<>();
+
+    private void logUnnumberedLabels() {
+        if (!unnumberedLabels.isEmpty()) {
+            LOGGER.fine(unnumberedLabels.size() + " meaning constructor(s) without a numeric source index"
+                    + " (rule-added, labelled by node; no source span): " + unnumberedLabels);
+        }
+    }
+
+    private LexicalEntries parseMeaningConstructorListOnce(List<String> formulas) throws ParserInputException {
 
         //Split string into lines
         Graph<String, DefaultEdge> multiStageMapping = new DefaultDirectedGraph<>(DefaultEdge.class);
@@ -228,7 +251,7 @@ public class GlueParser {
         Pattern wrapperEnd = Pattern.compile("[^\\S\\r\\n]*\\}[^\\S\\r\\n]*");
 
 
-        LOGGER.info("Now parsing input premises...");
+        LOGGER.fine("Now parsing input premises...");
 
         List<MeaningConstructor> ungroupedEntries = new ArrayList<>();
 
@@ -334,7 +357,7 @@ public class GlueParser {
 
 
 
-    public LexicalEntries parseMultiStageMCList(List<String> formulas) throws ParserInputException {
+    private LexicalEntries parseMultiStageMCListOnce(List<String> formulas) throws ParserInputException {
 
         //Split string into lines
         Graph<String, DefaultEdge> multiStageMapping = new DefaultDirectedGraph<>(DefaultEdge.class);
@@ -345,7 +368,7 @@ public class GlueParser {
         Pattern wrapperEnd = Pattern.compile("\\t*\\}\\t*");
 
 
-        LOGGER.info("Now parsing input premises...");
+        LOGGER.fine("Now parsing input premises...");
 
         List<MeaningConstructor> ungroupedEntries = new ArrayList<>();
 

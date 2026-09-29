@@ -35,11 +35,21 @@ public class GswbRedisSessionService {
         this.apiBaseUrl = configuredBaseUrl.isBlank() ? "http://localhost:8083" : configuredBaseUrl;
     }
 
+    /** Sessions whose last snapshot could not be stored. A batch saves after every item, so an
+     *  unreachable store warned once per item; now once per batch, the rest at DEBUG. */
+    private final java.util.Set<String> failingSessions = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
     public void saveBatchOutput(String sessionKey, GswbBatchOutput output) {
         try {
             callJson("/gswb_batch_session/" + encode(sessionKey), "PUT", output);
+            failingSessions.remove(sessionKey);
         } catch (Exception e) {
-            LOGGER.warning("Unable to persist GSWB session snapshot: " + e.getMessage());
+            if (failingSessions.add(sessionKey)) {
+                LOGGER.warning("Unable to persist GSWB session snapshot for " + sessionKey + ": " + e.getMessage()
+                        + " (further failures for this session at DEBUG)");
+            } else {
+                LOGGER.fine("Unable to persist GSWB session snapshot for " + sessionKey + ": " + e.getMessage());
+            }
         }
     }
 
@@ -68,6 +78,7 @@ public class GswbRedisSessionService {
     }
 
     public void clear(String sessionKey) {
+        failingSessions.remove(sessionKey);
         try {
             callText("/gswb_batch_session/" + encode(sessionKey), "DELETE", null);
         } catch (IOException | InterruptedException e) {

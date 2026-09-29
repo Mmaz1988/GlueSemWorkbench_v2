@@ -17,6 +17,9 @@
     step when either changes.
 -->
 <configuration scan="true">
+    <!-- Before the include: Spring's default line format reads LOG_LEVEL_PATTERN. Adds the request
+         tag RequestIdFilter puts into the MDC (" [3fa91c /deduce]"); empty outside a request. -->
+    <property name="LOG_LEVEL_PATTERN" value="%5p%X{req:-}"/>
     <include resource="org/springframework/boot/logging/logback/base.xml"/>
 
     <logger name="webservice" level="${GSWB_LOG_LEVEL:-INFO}"/>

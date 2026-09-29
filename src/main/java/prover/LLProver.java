@@ -130,7 +130,7 @@ public abstract class LLProver {
         try {
         if (!mute)
         {
-            LOGGER.info(String.format("Found %d lexical entries for proof with id S%d",lexicalEntries.lexicalEntries.get(key).size(),key));
+            LOGGER.fine(String.format("Found %d lexical entries for proof with id S%d",lexicalEntries.lexicalEntries.get(key).size(),key));
         }
 
             Sequent testseq = new Sequent(lexicalEntries.lexicalEntries.get(key));

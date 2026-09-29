@@ -40,6 +40,16 @@ public class GswbController {
     private GswbRedisSessionService gswbRedisSessionService;
     private final static Logger LOGGER = Logger.getLogger(GswbController.class.getName());
     private final RestTemplate restTemplate = new RestTemplate();
+    {
+        // Carry this request's id to LiGER, so its log lines for the call share our tag.
+        restTemplate.getInterceptors().add((outgoing, body, execution) -> {
+            String id = org.slf4j.MDC.get(webservice.RequestIdFilter.MDC_ID);
+            if (id != null) {
+                outgoing.getHeaders().set(webservice.RequestIdFilter.HEADER, id);
+            }
+            return execution.execute(outgoing, body);
+        });
+    }
     private final String ligerApiUrl = System.getenv().getOrDefault("LIGER_API_URL", "http://localhost:8080");
 
     public GswbController(){}
@@ -60,8 +70,12 @@ public class GswbController {
         gswbRedisSessionService.clear(sessionKey);
 
         List<String> ids = sortedBatchKeys(request.items.keySet());
+        long started = System.currentTimeMillis();
+        int solutions = 0;
+        LOGGER.info("Batch of " + ids.size() + " item(s), session " + sessionKey);
 
         for (String id : ids) {
+          try (var tag = webservice.RequestIdFilter.item(id)) {
             // The same payload /deduce takes, so a batch parse yields the same per-sentence
             // result -- structure, proofs, per-origin provenance and surface labels
             // included. A batch endpoint is N single calls with shared setup (the run
@@ -74,14 +88,17 @@ public class GswbController {
             SingleRunResult run = deduceOne(item, ctx, gp, true, false);
 
             analyses.put(id, run.output);
+            solutions += run.countSolutions;
 
             reportBuilder.append(String.format("%s\t\t%s\t\t\t%s", id, run.noOfMCs, run.countSolutions));
             reportBuilder.append(System.lineSeparator());
 
             gswbRedisSessionService.saveBatchOutput(sessionKey, new GswbBatchOutput(new HashMap<>(analyses), reportBuilder.toString()));
+          }
         }
 
-        LOGGER.info("Finished processing with GSWB ... Returning results.");
+        LOGGER.info("Batch done: " + analyses.size() + " item(s), " + solutions + " solution(s), "
+                + (System.currentTimeMillis() - started) + " ms");
         GswbBatchOutput batchOutput = new GswbBatchOutput(analyses, reportBuilder.toString());
         gswbRedisSessionService.saveBatchOutput(sessionKey, batchOutput);
         return batchOutput;
@@ -121,7 +138,7 @@ public class GswbController {
                                       boolean batchMode, boolean includeDerivation) throws Exception {
         if (request.proofs != null && !request.proofs.isEmpty()) {
             ParsedProofInputs parsed = parseProofInputs(request.proofs, gp, ctx.multistage);
-            LOGGER.info("Parsed structured proof inputs: records=" + request.proofs.size()
+            LOGGER.fine("Parsed structured proof inputs: records=" + request.proofs.size()
                     + ", mcSets=" + parsed.entries.lexicalEntries.size()
                     + ", origins=" + parsed.origins.size());
             return runAndFormatSingle(

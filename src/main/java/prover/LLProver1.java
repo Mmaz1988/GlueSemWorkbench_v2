@@ -187,7 +187,7 @@ public class LLProver1 extends LLProver {
              calculateSemanticSolutions(resultBuilder, false);
 
              if (getSolutions().isEmpty() && getSettings().isAllowRelaxedGraph()) {
-                 getLOGGER().warning("No strict Lev proof found; retrying with insitu enforcement relaxed.");
+                 getLOGGER().fine("No strict Lev proof found; retrying with insitu enforcement relaxed.");
 
                  this.enforceInsitu = false;
                  this.finalHistories.clear();
