@@ -385,19 +385,22 @@ public class GswbController {
                     throw new IllegalArgumentException("Anaphora collapse requires a DRS semantic expression.");
                 }
                 DRS mappedDrs = mapping != null ? parsedDrs.withAnaphoraMapping(mapping) : parsedDrs;
-                boolean hasMapping = mappedDrs.anaphoraMapping != null && mappedDrs.anaphoraMapping.relations != null
-                        && !mappedDrs.anaphoraMapping.relations.isEmpty();
-                DRS collapsed = parsedDrs;
+                // A pronoun the mapping does not bind (no post-processing rules, or none bound
+                // it on this branch) loses its ant(x) marker and is read as a new referent,
+                // equal to no other; the rest of the mapping still collapses. Without this its
+                // ant(X) reached the prover as an ordinary predicate nothing can prove.
+                List<DiscourseReferent> unresolved = new ArrayList<>();
+                DRS collapsed;
                 String degraded = null;
-                if (hasMapping) {
-                    try {
-                        collapsed = mappedDrs.collapseAnaphoraUnchecked();
-                    } catch (IllegalStateException e) {
-                        degraded = "anaphora mapping could not be applied: " + e.getMessage();
-                        LOGGER.warning("Anaphora collapse could not resolve a mapped referent for parentSolutionId="
-                                + request.parentSolutionId + ", item=" + item.name + ": " + e.getMessage()
-                                + "; translating without the mapping instead");
-                    }
+                try {
+                    collapsed = mappedDrs.withoutUnmappedAnaphora(unresolved).collapseAnaphoraUnchecked();
+                } catch (IllegalStateException e) {
+                    degraded = "anaphora mapping could not be applied: " + e.getMessage();
+                    LOGGER.warning("Anaphora collapse could not resolve a mapped referent for parentSolutionId="
+                            + request.parentSolutionId + ", item=" + item.name + ": " + e.getMessage()
+                            + "; translating without the mapping instead");
+                    unresolved.clear();
+                    collapsed = parsedDrs.withoutMappings().withoutUnmappedAnaphora(unresolved);
                 }
                 // Translate a mapping-free DRS unconditionally. A successful collapse folds the
                 // mapping into the conditions and leaves nothing to strip, so this is a no-op on
@@ -408,9 +411,10 @@ public class GswbController {
                 // client, from a translation that simply produced nothing. The dropped binding is
                 // reported via `degraded` rather than silently absorbed.
                 DRS translatable = collapsed.withoutMappings();
-                results.put(item.name,
-                        new GswbTptpBatchResult(translatable.toTPTPString(request.typed),
-                                translatable.toString(), degraded));
+                GswbTptpBatchResult result = new GswbTptpBatchResult(translatable.toTPTPString(request.typed),
+                        translatable.toString(), degraded);
+                result.unresolvedPronouns = unresolved.stream().map(DiscourseReferent::toSimpleString).toList();
+                results.put(item.name, result);
             } catch (RuntimeException e) {
                 LOGGER.warning("Collapse/TPTP batch item failed for parentSolutionId=" + request.parentSolutionId
                         + ", item=" + item.name + ": " + e.getMessage() + "; returning an empty result for this item");
@@ -427,7 +431,9 @@ public class GswbController {
         LOGGER.info("Collapse/TPTP batch complete: parentSolutionId=" + request.parentSolutionId
                 + ", items=" + request.items.size()
                 + ", translated=" + translated
-                + ", mapped=" + (mapping != null));
+                + ", mapped=" + (mapping != null)
+                + ", unresolvedPronouns=" + results.values().stream()
+                        .mapToInt(result -> result.unresolvedPronouns.size()).sum());
 
         GswbCollapseAndTptpBatchOutput output = new GswbCollapseAndTptpBatchOutput();
         output.parentSolutionId = request.parentSolutionId;

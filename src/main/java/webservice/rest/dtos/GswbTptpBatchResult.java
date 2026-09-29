@@ -1,5 +1,7 @@
 package webservice.rest.dtos;
 
+import java.util.List;
+
 public class GswbTptpBatchResult {
     public String tptp;
     public String semantic;
@@ -10,6 +12,12 @@ public class GswbTptpBatchResult {
      * resolved one, since both come back with usable TPTP.
      */
     public String degraded;
+    /**
+     * Pronouns in this item the mapping did not bind, as they are named in {@link #semantic}.
+     * Their ant(x) marker was dropped, so each is a new referent, equal to no other. Empty on a
+     * fully resolved item. Clients must surface it like {@link #degraded}.
+     */
+    public List<String> unresolvedPronouns = List.of();
 
     public GswbTptpBatchResult() {
     }
