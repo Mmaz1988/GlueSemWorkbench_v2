@@ -147,8 +147,13 @@ public class GswbController {
     }
 
     /** The sentence(s) a deduction is about, for its log line: the structure's text, quoted;
-     *  a sequence ('A.' 'B.') as A. | B. */
+     *  a sequence ('A.' 'B.') as A. | B. -- unless the deduction proves one sentence's part of
+     *  a sequence, which is named on its own (see describeSequencePart). */
     private static String describeInput(GswbRequest request) {
+        String part = describeSequencePart(request.proofs);
+        if (part != null) {
+            return part;
+        }
         Object text = request.structure == null ? null : request.structure.get("text");
         if ((text == null || text.toString().isBlank()) && request.proofs != null) {
             text = request.proofs.stream()
@@ -159,7 +164,44 @@ public class GswbController {
         if (text == null || text.toString().isBlank()) {
             return "(no text)";
         }
-        String oneLine = text.toString().replaceAll("\\s+", " ").trim()
+        return quoted(text.toString());
+    }
+
+    /** A deduction of one sentence's part of a sequence proves that sentence alone, though its
+     *  structure is the whole sequence's: named by the sentence's text and its place, e.g.
+     *  "Every Swede is a Scandinavian." (part 2 of 3). Null unless every proof carries the same
+     *  sentence and a sequence of more than one. */
+    private static String describeSequencePart(List<GswbProofInput> proofs) {
+        if (proofs == null || proofs.isEmpty()) {
+            return null;
+        }
+        Object text = proofs.get(0).sentenceAnalysis == null ? null : proofs.get(0).sentenceAnalysis.get("text");
+        if (text == null || text.toString().isBlank()) {
+            return null;
+        }
+        for (GswbProofInput proof : proofs) {
+            if (proof.sentenceAnalysis == null || !text.equals(proof.sentenceAnalysis.get("text"))) {
+                return null;
+            }
+        }
+        Object sentences = proofs.get(0).sequenceAnalysis == null ? null : proofs.get(0).sequenceAnalysis.get("sentences");
+        if (!(sentences instanceof List<?> list) || list.size() < 2) {
+            return null;
+        }
+        Object id = proofs.get(0).sentenceAnalysis.get("id");
+        int index = -1;
+        for (int i = 0; i < list.size() && index < 0; i++) {
+            if (list.get(i) instanceof Map<?, ?> sentence
+                    && (id != null ? id.equals(sentence.get("id")) : text.equals(sentence.get("text")))) {
+                index = i;
+            }
+        }
+        return quoted(text.toString()) + (index < 0 ? " (part of " : " (part " + (index + 1) + " of ")
+                + list.size() + ")";
+    }
+
+    private static String quoted(String text) {
+        String oneLine = text.replaceAll("\\s+", " ").trim()
                 .replace("' '", " | ").replaceAll("^'|'$", "");
         return "\"" + (oneLine.length() > 120 ? oneLine.substring(0, 117) + "..." : oneLine) + "\"";
     }
