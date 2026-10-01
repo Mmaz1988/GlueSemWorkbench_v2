@@ -14,6 +14,8 @@ public class GswbOutput {
     public String log;
     public Object derivation;
     public List<GswbDiscriminant> discriminants;
+    /** Milliseconds this deduction took (/deduce, or one /gswb_batch_proof item). */
+    public Long elapsedMs;
 
     public GswbOutput() {}
 

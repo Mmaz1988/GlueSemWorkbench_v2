@@ -136,13 +136,18 @@ public class GswbController {
      */
     private SingleRunResult deduceOne(GswbRequest request, RunContext ctx, GlueParser gp,
                                       boolean batchMode, boolean includeDerivation) throws Exception {
+        long started = System.currentTimeMillis();
         SingleRunResult run = deduceOneQuietly(request, ctx, gp, batchMode, includeDerivation);
+        long elapsedMs = System.currentTimeMillis() - started;
+        if (run.output != null) {
+            run.output.elapsedMs = elapsedMs;
+        }
         // One line per deduction, /deduce or batch item alike, like LiGER's per-sentence lines.
         int origins = request.proofs == null || request.proofs.isEmpty() ? 1 : request.proofs.size();
         int discriminants = run.output == null || run.output.discriminants == null ? 0 : run.output.discriminants.size();
         LOGGER.info("Deduced " + describeInput(request) + ": " + run.noOfMCs + " meaning constructor(s) from "
                 + origins + " syntactic origin(s), " + run.countSolutions + " solution(s), "
-                + discriminants + " discriminant(s)");
+                + discriminants + " discriminant(s), " + elapsedMs + " ms");
         return run;
     }
 
