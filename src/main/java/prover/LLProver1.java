@@ -826,8 +826,28 @@ public class LLProver1 extends LLProver {
             originInstantiations.computeIfAbsent(scope, ignored -> new LinkedHashSet<>()).add(instantiation);
         }
 
+        // The premises whose words name a scope element in its surface label. A history's index set
+        // also holds the hypothesised variables it consumed, and an assumption inherits the SYN-ID
+        // of the quantifier it was compiled out of: a predicate that took both quantifiers'
+        // variables was labelled with their determiners ("The is faster every"). Those belong to
+        // the quantifiers' own labels, not to this one.
         private Collection<Integer> sourceIndices(History history, Integer modifierIndex) {
-            return history.scopeSourceIndices.getOrDefault(modifierIndex, history.indexSet);
+            Collection<Integer> ids = history.scopeSourceIndices.getOrDefault(modifierIndex, history.indexSet);
+            LinkedHashSet<Integer> lexical = new LinkedHashSet<>();
+            for (Integer id : ids) {
+                if (!isAssumption(id)) {
+                    lexical.add(id);
+                }
+            }
+            return lexical;
+        }
+
+        private boolean isAssumption(Integer premiseId) {
+            if (premiseId == null || agenda == null || premiseId < 0 || premiseId >= agenda.size()) {
+                return false;
+            }
+            Premise premise = agenda.get(premiseId);
+            return premise.getGlueTerm() != null && premise.getGlueTerm().assumptions2.contains(premise);
         }
 
         private Integer firstScopingModifier(Collection<Integer> indices) {
