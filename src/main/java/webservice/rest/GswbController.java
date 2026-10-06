@@ -1114,6 +1114,8 @@ public class GswbController {
             output.proofId = so.proofId;
             output.solutionKey = so.solutionKey;
             output.mcSetId = so.mcSetId;
+            output.insituViolations = so.insituViolations;
+            output.surfaceOrderViolations = so.surfaceOrderViolations;
             // solutionString is only ever rendered as SVG in LFGxDRT display mode
             // (applyOptionalSemanticRendering); in prolog-drt mode it's plain DRT/solution text.
             String svg = isLfgxdrt ? output.solution : null;
@@ -1365,6 +1367,7 @@ public class GswbController {
 
         enrichScopeSurfaceLabels(finalScopeDiscriminants, scope2SourceIndexGroups,
                         scope2SourceIndexGroupsByOrigin, structure, origins);
+        setScopeSurfaceKeys(finalScopeDiscriminants, scope2SourceIndexGroups, scope2SourceIndexGroupsByOrigin);
 
         return new SolutionsAndDiscriminants(solutions, solutionIndexToObject, finalScopeDiscriminants);
     }
@@ -1472,6 +1475,29 @@ public class GswbController {
         }
     }
 
+    /** Where each scope discriminant's two elements start in the sentence -- outscoping first --
+     *  so a view can list the scopings that follow the surface order first. */
+    private void setScopeSurfaceKeys(List<ScopeDiscriminant> discriminants,
+                                     LinkedHashMap<String, List<LinkedHashSet<Integer>>> groupsByScope,
+                                     LinkedHashMap<String, LinkedHashMap<String, List<LinkedHashSet<Integer>>>> groupsByOrigin) {
+        for (ScopeDiscriminant discriminant : discriminants) {
+            List<LinkedHashSet<Integer>> groups = groupsByScope.get(discriminant.scopeConstraint);
+            if (groups == null) {
+                groups = groupsByOrigin.values().stream()
+                        .map(byScope -> byScope.get(discriminant.scopeConstraint))
+                        .filter(Objects::nonNull)
+                        .findFirst()
+                        .orElse(null);
+            }
+            if (groups == null || groups.size() < 2) {
+                continue;
+            }
+            discriminant.surfaceKey = Arrays.asList(
+                    groups.get(0).stream().min(Integer::compareTo).orElse(null),
+                    groups.get(1).stream().min(Integer::compareTo).orElse(null));
+        }
+    }
+
     private String resolveSurfaceLabel(ScopeDiscriminant discriminant,
                                        List<LinkedHashSet<Integer>> sourceGroups,
                                        LinkedHashMap<String, Object> structure) {
@@ -1552,6 +1578,10 @@ public class GswbController {
                     d.solutionIds, d.instantiations, d.surfaceLabel);
             output.originIds = d.originIds;
             output.surfaceLabelsByOrigin = d.surfaceLabelsByOrigin;
+            output.surfaceKey = d.surfaceKey;
+            if (d.surfaceKey != null && d.surfaceKey.get(0) != null && d.surfaceKey.get(1) != null) {
+                output.surfaceAligned = d.surfaceKey.get(0) < d.surfaceKey.get(1);
+            }
             out.add(output);
         }
         for (McDiscriminant mc : mcDiscriminants) {

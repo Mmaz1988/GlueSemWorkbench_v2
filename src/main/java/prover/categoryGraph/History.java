@@ -30,6 +30,9 @@ public class History {
     }
 
     public HashSet<String> scopeDiscriminants = new HashSet<>();
+    /** Which scoping modifier outscopes which in this derivation, as (outer, inner) premise ids:
+     *  a modifier applied over a history outscopes every scoping modifier already in it. */
+    public LinkedHashSet<List<Integer>> scopePairs = new LinkedHashSet<>();
     public Set<Integer> insituIndices = new HashSet<>();
     public Map<Integer, LinkedHashSet<Integer>> scopeSourceIndices = new HashMap<>();
 

@@ -17,6 +17,12 @@ public class GswbSolution {
     public String mcSetId;
     public GswbSemanticAnalysis semanticAnalysis;
     public LinkedHashMap<String, List<String>> synSemMapping = new LinkedHashMap<>();
+    /** For a solution of a proof: insitu modifiers outscoped by something to their left (only
+     *  ever non-zero after the relaxed retry). Null for solutions not read off a proof. */
+    public Integer insituViolations;
+    /** For a solution of a proof: scope pairs whose outer element comes later in the sentence
+     *  than the inner one. A proof's solutions come ordered by these two counts. */
+    public Integer surfaceOrderViolations;
 
     public GswbSolution() {}
 

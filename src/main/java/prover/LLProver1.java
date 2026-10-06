@@ -267,14 +267,38 @@ public class LLProver1 extends LLProver {
 
         for (History solution : finalHistories) {
             int violationCount = relaxed ? insituViolationCount(solution) : 0;
+            int surfaceViolations = surfaceOrderViolationCount(solution);
             for (SolutionObject so : solution.calculateSolutions(resultBuilder)) {
                 so.scopeDiscriminants.addAll(solution.scopeDiscriminants);
+                so.insituViolations = violationCount;
+                so.surfaceOrderViolations = surfaceViolations;
                 getSolutions().add(so);
                 solutionViolationCounts.put(so, violationCount);
             }
         }
 
-        getSolutions().sort(Comparator.comparingInt(so -> solutionViolationCounts.getOrDefault(so, 0)));
+        // The default presentation order, predictable rather than fully deterministic: insitu
+        // violations first (the constraint the relaxed retry gave up on), then how far the scope
+        // order departs from the surface order. The sort is stable, so equally ranked readings
+        // keep the order the derivation produced them in.
+        getSolutions().sort(Comparator
+                .comparingInt((SolutionObject so) -> solutionViolationCounts.getOrDefault(so, 0))
+                .thenComparingInt(so -> so.surfaceOrderViolations));
+    }
+
+    /** Scope pairs whose outer element comes later in the sentence than the inner one: 0 when
+     *  every scoping element takes scope in surface order. Pairs with an element that has no
+     *  real SYN-ID (LiGER-contributed MCs) carry no surface order and are not counted. */
+    int surfaceOrderViolationCount(History history) {
+        int violations = 0;
+        for (List<Integer> pair : history.scopePairs) {
+            Integer outer = realSourceIndex(pair.get(0));
+            Integer inner = realSourceIndex(pair.get(1));
+            if (outer != null && inner != null && outer > inner) {
+                violations++;
+            }
+        }
+        return violations;
     }
 
     public Graph<Graph<CGNode,DefaultEdge>,DefaultEdge> deduceFromGraph(Graph<CGNode, DefaultEdge> categoryGraph, String goalCategory) throws VariableBindingException, ProverException {
@@ -759,6 +783,7 @@ public class LLProver1 extends LLProver {
                                      recordScopeInstantiation(newScoping, instantiation);
                                 }
                                 combined.scopeDiscriminants.addAll(outscopes);
+                                recordScopePairs(combined, index, current);
                                 agendaIterator.add(combined);
                             }
                         }
@@ -783,6 +808,7 @@ public class LLProver1 extends LLProver {
                                 }
 
                                 combined.scopeDiscriminants.addAll(outscopes);
+                                recordScopePairs(combined, index, h);
 
                                 agendaIterator.add(combined);
                             }
@@ -796,6 +822,19 @@ public class LLProver1 extends LLProver {
 
             }
         return chart;
+        }
+
+        /** `outer`, the functor's scoping modifier, now outscopes every scoping modifier the
+         *  argument history already holds. */
+        private void recordScopePairs(History combined, Integer outer, History argument) {
+            if (outer == null) {
+                return;
+            }
+            for (Integer inner : argument.indexSet) {
+                if (!inner.equals(outer) && this.scopingModifiers.contains(inner)) {
+                    combined.scopePairs.add(List.of(outer, inner));
+                }
+            }
         }
 
         private void recordScopeSourceIndices(String scope, Collection<Integer> leftIds, Collection<Integer> rightIds) {
@@ -1138,6 +1177,8 @@ public class LLProver1 extends LLProver {
                     //add discriminants
                     result.scopeDiscriminants.addAll(h1.scopeDiscriminants);
                     result.scopeDiscriminants.addAll(h2.scopeDiscriminants);
+                    result.scopePairs.addAll(h1.scopePairs);
+                    result.scopePairs.addAll(h2.scopePairs);
                     result.insituIndices.addAll(h1.insituIndices);
                     result.insituIndices.addAll(h2.insituIndices);
 

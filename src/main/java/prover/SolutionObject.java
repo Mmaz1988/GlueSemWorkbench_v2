@@ -20,6 +20,11 @@ public class SolutionObject {
     public String solutionKey;
     public String mcSetId;
     public String sentenceId;
+    /** Insitu modifiers outscoped by something to their left (counted on the relaxed retry only;
+     *  a strict proof admits none). */
+    public int insituViolations;
+    /** Scope pairs whose outer element comes later in the sentence than the inner one. */
+    public int surfaceOrderViolations;
 
 
     public SolutionObject(Premise solution) {

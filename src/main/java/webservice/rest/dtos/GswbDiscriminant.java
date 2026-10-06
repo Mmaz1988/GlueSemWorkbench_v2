@@ -2,6 +2,7 @@ package webservice.rest.dtos;
 
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -14,6 +15,12 @@ public class GswbDiscriminant {
     public String surfaceLabel;
     public Set<String> originIds;
     public Map<String, String> surfaceLabelsByOrigin;
+    /** Scope discriminants only: the first SYN-ID of the outscoping and of the outscoped element,
+     *  null where an element has none. */
+    public List<Integer> surfaceKey;
+    /** Scope discriminants only: whether the outscoping element comes first in the sentence,
+     *  i.e. the scoping follows the surface order. Null when that cannot be told. */
+    public Boolean surfaceAligned;
 
     public GswbDiscriminant() {}
 

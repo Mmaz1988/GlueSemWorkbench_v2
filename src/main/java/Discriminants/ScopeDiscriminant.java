@@ -14,6 +14,8 @@ public class ScopeDiscriminant {
     public String surfaceLabel;
     public HashSet<String> originIds = new HashSet<>();
     public Map<String, String> surfaceLabelsByOrigin = new LinkedHashMap<>();
+    /** First SYN-ID of the outscoping and of the outscoped element (null where none). */
+    public java.util.List<Integer> surfaceKey;
    // public List<String> associatedSolutions = new ArrayList<>();
 
     public ScopeDiscriminant(String discriminantID, String scopeConstraint, HashSet<String> solutionIds, LinkedHashSet<String> instantiations) {
