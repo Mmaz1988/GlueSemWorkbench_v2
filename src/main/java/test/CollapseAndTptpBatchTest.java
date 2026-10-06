@@ -50,4 +50,23 @@ class CollapseAndTptpBatchTest {
         assertTrue(result.tptp.contains("X4 = X1"), result.tptp);
         assertTrue(result.unresolvedPronouns.isEmpty());
     }
+
+    /** A DRS whose merge sits inside a condition -- the antecedent of "every", unresolved
+     *  because chat sends the prior with resolveDrs off -- is translated with the merge
+     *  resolved, not rejected (2026-10-06: "DrsMerge does not support TPTP translation
+     *  directly", and the branch reasoned over without its anaphora binding). */
+    @Test
+    void resolvesAMergeNestedInsideACondition() throws Exception {
+        GswbCollapseAndTptpBatchRequest request = new GswbCollapseAndTptpBatchRequest();
+        request.parentSolutionId = "test";
+        GswbTptpBatchItem item = new GswbTptpBatchItem();
+        item.name = "context";
+        item.semantic = "([],[([x1],[]) + ([],[man(x1)]) -> ([],[walk(x1)])])";
+        request.items = List.of(item);
+
+        GswbTptpBatchResult result = new GswbController().collapseAndTptpBatch(request).results.get("context");
+
+        assertNull(result.degraded, result.degraded);
+        assertTrue(result.tptp.contains("man(X1)") && result.tptp.contains("walk(X1)"), result.tptp);
+    }
 }

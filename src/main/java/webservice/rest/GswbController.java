@@ -422,12 +422,12 @@ public class GswbController {
                 // resolved by its producer (/generate_pcdrs, DrsReasoningCheckBuilder) before it
                 // ever gets here. "context" is the one item that is not: it is the caller's
                 // premiseSemantic passed straight through, and with resolveDrs=false (chat's
-                // default) that text still has its top-level "+" merges unresolved, so it parses
-                // to a DrsMerge rather than a DRS. Resolve it here, the same way /generate_pcdrs
-                // already does for exactly this case, instead of rejecting it.
-                if (!(expression instanceof DRS)) {
-                    expression = expression.resolveMerges();
-                }
+                // default) that text still has its "+" merges unresolved -- at the top, where it
+                // parses to a DrsMerge rather than a DRS, and inside conditions (the antecedent of
+                // "every"), where the DRS parses fine and the merge only fails at translation.
+                // Resolving is how a merge is translated, so it is done unconditionally; it
+                // recurses into conditions and leaves a resolved DRS as it is.
+                expression = expression.resolveMerges();
                 if (!(expression instanceof DRS parsedDrs)) {
                     throw new IllegalArgumentException("Anaphora collapse requires a DRS semantic expression.");
                 }
