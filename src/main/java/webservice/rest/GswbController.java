@@ -1043,7 +1043,48 @@ public class GswbController {
                 e.printStackTrace();
             }
         }
-        return new ProofRun(allSolutions, mcSetWithSolution, noOfMCs, countSolutions, log);
+        return new ProofRun(orderMcSetsByViolations(allSolutions, origins), mcSetWithSolution, noOfMCs,
+                countSolutions, log);
+    }
+
+    /** The prover orders readings within one MC set; this orders a sentence's MC sets among
+     *  themselves, by their best reading (fewest insitu, then fewest surface-order violations),
+     *  so the most surface-faithful reading leads. Sets stay whole -- readings are never
+     *  interleaved across sets -- and the sort is stable. Each sentence's sets keep the slots
+     *  they had in the request, so sentences are not reordered against each other. */
+    public static LinkedHashMap<Integer, List<SolutionObject>> orderMcSetsByViolations(
+            LinkedHashMap<Integer, List<SolutionObject>> allSolutions,
+            Map<Integer, GswbProofInput> origins) {
+        List<Integer> keys = new ArrayList<>(allSolutions.keySet());
+        Map<String, List<Integer>> slotsBySentence = new LinkedHashMap<>();
+        for (int slot = 0; slot < keys.size(); slot++) {
+            GswbProofInput origin = origins == null ? null : origins.get(keys.get(slot));
+            String sentence = origin == null ? null : origin.sentenceId;
+            slotsBySentence.computeIfAbsent(sentence, ignored -> new ArrayList<>()).add(slot);
+        }
+        // A set's best reading is its first: the prover already sorted within the set. Sets
+        // without a reading go last.
+        Comparator<Integer> byBestReading = Comparator
+                .comparingInt((Integer key) -> allSolutions.get(key).isEmpty()
+                        ? Integer.MAX_VALUE : allSolutions.get(key).get(0).insituViolations)
+                .thenComparingInt(key -> allSolutions.get(key).isEmpty()
+                        ? Integer.MAX_VALUE : allSolutions.get(key).get(0).surfaceOrderViolations);
+        Integer[] ordered = new Integer[keys.size()];
+        for (List<Integer> slots : slotsBySentence.values()) {
+            List<Integer> sentenceKeys = new ArrayList<>();
+            for (Integer slot : slots) {
+                sentenceKeys.add(keys.get(slot));
+            }
+            sentenceKeys.sort(byBestReading);
+            for (int i = 0; i < slots.size(); i++) {
+                ordered[slots.get(i)] = sentenceKeys.get(i);
+            }
+        }
+        LinkedHashMap<Integer, List<SolutionObject>> result = new LinkedHashMap<>();
+        for (Integer key : ordered) {
+            result.put(key, allSolutions.get(key));
+        }
+        return result;
     }
 
     private void applyOptionalSemanticRendering(RunContext ctx, SolutionsAndDiscriminants formatted) throws Exception {
