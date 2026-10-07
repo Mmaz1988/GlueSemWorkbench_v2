@@ -12,6 +12,9 @@ public class GswbSolution {
     public String semantic;
     public String anaphoraMapping;
     public List<AnaphoraRelationDto> anaphoraRelations;
+    /** The accommodation sites of a PCDRS branch, P:[p(x3,x1),...]: the presupposition of x3 in
+     *  the box of x1. Empty when nothing is accommodated. */
+    public String presuppositionMapping;
     public String proofId;
     public String solutionKey;
     public String mcSetId;
