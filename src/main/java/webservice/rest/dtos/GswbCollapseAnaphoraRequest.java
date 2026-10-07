@@ -21,10 +21,10 @@ public class GswbCollapseAnaphoraRequest {
      *  came from -- must be supplied explicitly since `semantic` is re-parsed from scratch
      *  and carries no mapping of its own. */
     public List<AnaphoraRelationDto> anaphoraRelations;
-    /** The branch's accommodation sites from /generate_pcdrs (P:[...]), for a `semantic` that does
-     *  not carry them inline. Presuppositions are accommodated before the anaphora mapping is
+    /** The branch's accommodations from /generate_pcdrs, for a `semantic` that does not carry
+     *  them inline (P:[...]). Presuppositions are accommodated before the anaphora mapping is
      *  applied. */
-    public String presuppositionMapping;
+    public List<PresuppositionRelationDto> presuppositionRelations;
 
     public GswbCollapseAnaphoraRequest() {
     }

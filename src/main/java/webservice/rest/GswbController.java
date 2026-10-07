@@ -277,13 +277,16 @@ public class GswbController {
         if (accommodations.isEmpty()) {
             accommodations = List.of(new LinkedHashMap<>());
         }
+        // A branch shows its accommodations between states, labelled as /collapse_anaphora will
+        // label the branch's semantic when it reads it back.
+        DRS labelled = sites.isEmpty() ? drs : (DRS) new DrsParser().parse(drs.toString()).expression;
 
         List<GswbSolution> solutions = new ArrayList<>();
         for (LinkedHashMap<String, String> anaphora : mappings) {
             AnaphoraMapping mapping = toAnaphoraMapping(anaphora);
             for (LinkedHashMap<String, String> accommodation : accommodations) {
                 int branch = solutions.size() + 1;
-                PresuppositionMapping presuppositions = toPresuppositionMapping(accommodation);
+                PresuppositionMapping presuppositions = toStateMapping(accommodation, labelled);
                 LOGGER.fine("PCDRS branch " + branch + ": mapping=" + mapping + ", accommodation=" + presuppositions);
                 DRS pcdrs = drs.withAnaphoraMapping(mapping).withPresuppositionMapping(presuppositions);
                 LOGGER.fine("PCDRS branch " + branch + ": combined DRS=" + pcdrs.toString());
@@ -296,6 +299,9 @@ public class GswbController {
                 solution.anaphoraMapping = mapping.toString();
                 solution.anaphoraRelations = AnaphoraMappingConverter.toDto(mapping);
                 solution.presuppositionMapping = presuppositions.toString();
+                solution.presuppositionRelations = accommodation.entrySet().stream()
+                        .map(entry -> new PresuppositionRelationDto(entry.getKey(), entry.getValue()))
+                        .toList();
                 solutions.add(solution);
             }
         }
@@ -351,7 +357,7 @@ public class GswbController {
         // same binding is reused consistently across every check/branch that needs it.
         // Presuppositions are accommodated first: co-reference is resolved on the accommodated
         // DRS, whose referents keep their names.
-        DRS accommodated = accommodate(parsedDrs, request.presuppositionMapping,
+        DRS accommodated = accommodate(parsedDrs, request.presuppositionRelations,
                 request.parentSolutionId, new ArrayList<>());
         DRS mappedDrs = accommodated;
         if (request.anaphoraRelations != null && !request.anaphoraRelations.isEmpty()) {
@@ -453,7 +459,7 @@ public class GswbController {
                     throw new IllegalArgumentException("Anaphora collapse requires a DRS semantic expression.");
                 }
                 List<String> accommodationProblems = new ArrayList<>();
-                DRS accommodated = accommodate(parsedDrs, request.presuppositionMapping,
+                DRS accommodated = accommodate(parsedDrs, request.presuppositionRelations,
                         request.parentSolutionId + ", item=" + item.name, accommodationProblems);
                 DRS mappedDrs = mapping != null ? accommodated.withAnaphoraMapping(mapping) : accommodated;
                 // A pronoun the mapping does not bind (no post-processing rules, or none bound
@@ -1323,22 +1329,20 @@ public class GswbController {
         return result;
     }
 
-    private static final java.util.regex.Pattern PRESUPPOSITION_RELATION =
-            java.util.regex.Pattern.compile("p\\(\\s*([^,()\\s]+)\\s*,\\s*([^,()\\s]+)\\s*\\)");
-
     /**
      * Accommodates the presuppositions of {@code drs}: by its own inline P:[...] mapping, else by
-     * {@code requested}, the P:[...] text /generate_pcdrs gave the branch. A mapping that does not
-     * fit this DRS is dropped -- the presuppositions stay where they are -- and reported in
-     * {@code problems}, never silently.
+     * {@code requested}, the referent-anchored relations /generate_pcdrs gave the branch. A
+     * mapping that does not fit this DRS is dropped -- the presuppositions stay where they are --
+     * and reported in {@code problems}, never silently.
      */
-    private DRS accommodate(DRS drs, String requested, String context, List<String> problems) {
+    private DRS accommodate(DRS drs, List<PresuppositionRelationDto> requested, String context, List<String> problems) {
         PresuppositionMapping mapping = drs.presuppositionMapping;
-        if ((mapping == null || mapping.isEmpty()) && requested != null && !requested.isBlank()) {
+        if ((mapping == null || mapping.isEmpty()) && requested != null && !requested.isEmpty()) {
             mapping = new PresuppositionMapping();
-            java.util.regex.Matcher matcher = PRESUPPOSITION_RELATION.matcher(requested);
-            while (matcher.find()) {
-                mapping.addRelation(new PresuppositionRelation(matcher.group(1), matcher.group(2)));
+            for (PresuppositionRelationDto relation : requested) {
+                if (relation != null && relation.presupposition != null && relation.site != null) {
+                    mapping.addRelation(new PresuppositionRelation(relation.presupposition, relation.site));
+                }
             }
         }
         if (mapping == null || mapping.isEmpty()) {
@@ -1355,10 +1359,19 @@ public class GswbController {
         }
     }
 
-    private PresuppositionMapping toPresuppositionMapping(Map<String, String> accommodation) {
+    /** Referent-anchored accommodations as relations between the states of {@code labelled}. A
+     *  referent no box of it introduces keeps its name, which the collapse resolves as well. */
+    private PresuppositionMapping toStateMapping(Map<String, String> accommodation, DRS labelled) {
         PresuppositionMapping result = new PresuppositionMapping();
         for (Map.Entry<String, String> entry : accommodation.entrySet()) {
-            result.addRelation(new PresuppositionRelation(entry.getKey(), entry.getValue()));
+            String presupposition = labelled.labelOfPresuppositionIntroducing(entry.getKey());
+            String site = "s0".equals(entry.getValue()) ? "s0" : labelled.labelOfBoxIntroducing(entry.getValue());
+            if (presupposition == null || site == null) {
+                LOGGER.warning("No state label for accommodation " + entry + "; naming it by referents");
+            }
+            result.addRelation(new PresuppositionRelation(
+                    presupposition == null ? entry.getKey() : presupposition,
+                    site == null ? entry.getValue() : site));
         }
         return result;
     }
