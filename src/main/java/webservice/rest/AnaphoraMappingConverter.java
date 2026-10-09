@@ -25,10 +25,14 @@ final class AnaphoraMappingConverter {
             }
             DiscourseReferent pronoun = relation.pronoun;
             String referentId = pronoun.id != null ? pronoun.id : pronoun.name;
+            // The antecedent as the DRS prints it, like pronounDisplay: fromDto reapplies both to
+            // the re-parsed semantic, whose names are the printed ones. The internal name differs
+            // once the DRS is renumbered and then names another referent (the cat's x3 became
+            // the person's).
             result.add(new AnaphoraRelationDto(
                     referentId,
                     pronoun.toSimpleString(),
-                    relation.antecedent,
+                    relation.displayAntecedent != null ? relation.displayAntecedent : relation.antecedent,
                     relation.stateLabel));
         }
         return result;
