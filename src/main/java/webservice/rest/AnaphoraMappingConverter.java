@@ -32,7 +32,7 @@ final class AnaphoraMappingConverter {
             result.add(new AnaphoraRelationDto(
                     referentId,
                     pronoun.toSimpleString(),
-                    relation.displayAntecedent != null ? relation.displayAntecedent : relation.antecedent,
+                    relation.displayedAntecedent(),
                     relation.stateLabel));
         }
         return result;

@@ -67,6 +67,10 @@ class PcdrsAntecedentNameTest {
         assertTrue(solution.semantic.contains("arg2(x4,x5)"), solution.semantic);
         assertTrue(solution.semantic.endsWith("A:[a(x1,x5)]"), solution.semantic);
 
+        // The rendered PCDRS -- what the analysis view shows -- names the cat too.
+        assertTrue(solution.solution.contains("x1 ↦ x5"), solution.solution);
+        assertFalse(solution.solution.contains("↦ x3"), solution.solution);
+
         assertEquals(1, solution.anaphoraRelations.size());
         AnaphoraRelationDto relation = solution.anaphoraRelations.get(0);
         assertEquals("x1", relation.pronounDisplay);
