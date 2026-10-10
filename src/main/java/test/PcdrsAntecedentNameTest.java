@@ -17,10 +17,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * "every person saw the cat" + "it was cute" (2026-10-09): the rules bind the pronoun to the
- * cat, a presupposed referent inside the consequent. /generate_pcdrs resolves and renumbers the
- * sequence, so the cat's internal name (x3) is no longer what it prints as (x5) -- and x3 now
- * prints the person. The PCDRS and the anaphoraRelations it hands out must name the cat as
- * printed, since /collapse_anaphora reapplies them to the re-parsed, printed DRS.
+ * cat, a presupposed referent inside the consequent. The graph the rules read names states and
+ * referents as the PCDRS prints them (I5/I6: one enumeration), so the cat is x3 in both -- the
+ * name the facts use is the name the PCDRS, its anaphoraRelations, its rendering and the
+ * collapse use. (Before the one enumeration, the PCDRS renumbered the cat to x5 and x3 printed
+ * the person.)
  */
 class PcdrsAntecedentNameTest {
 
@@ -37,7 +38,7 @@ class PcdrsAntecedentNameTest {
     }
 
     /** The rule-annotated structure, reduced to what /generate_pcdrs reads from it: referent
-     *  NAMEs (the semantic's own, unrenumbered names) and the POSSIBLE-ANT fact. */
+     *  NAMEs (as the graph, and so the PCDRS, numbers them) and the POSSIBLE-ANT fact. */
     private static LinkedHashMap<String, Object> rulesSayItIsTheCat() {
         List<Object> annotations = new ArrayList<>();
         annotations.add(constraint("d9", "NAME", "x3"));
@@ -62,19 +63,19 @@ class PcdrsAntecedentNameTest {
     @Test
     void pcdrsNamesTheCatAsItPrints() throws Exception {
         GswbSolution solution = pcdrs();
-        // Renumbered: the pronoun prints x1, the person x3, the cat x5.
-        assertTrue(solution.semantic.contains("p(([x5],[bind(x5),cat(x5)]))"), solution.semantic);
-        assertTrue(solution.semantic.contains("arg2(x4,x5)"), solution.semantic);
-        assertTrue(solution.semantic.endsWith("A:[a(x1,x5)]"), solution.semantic);
+        // One enumeration: person x1, seeing x2, the cat x3, "it" x4 -- in the graph and here.
+        assertTrue(solution.semantic.contains("p(([x3],[bind(x3),cat(x3)]))"), solution.semantic);
+        assertTrue(solution.semantic.contains("arg2(x2,x3)"), solution.semantic);
+        assertTrue(solution.semantic.endsWith("A:[a(x4,x3)]"), solution.semantic);
 
-        // The rendered PCDRS -- what the analysis view shows -- names the cat too.
-        assertTrue(solution.solution.contains("x1 ↦ x5"), solution.solution);
-        assertFalse(solution.solution.contains("↦ x3"), solution.solution);
+        // The rendered PCDRS -- what the analysis view shows -- names the cat the same way.
+        assertTrue(solution.solution.contains("x4 ↦ x3"), solution.solution);
+        assertFalse(solution.solution.contains("↦ x1"), solution.solution);
 
         assertEquals(1, solution.anaphoraRelations.size());
         AnaphoraRelationDto relation = solution.anaphoraRelations.get(0);
-        assertEquals("x1", relation.pronounDisplay);
-        assertEquals("x5", relation.antecedent);
+        assertEquals("x4", relation.pronounDisplay);
+        assertEquals("x3", relation.antecedent);
     }
 
     @Test
@@ -86,8 +87,11 @@ class PcdrsAntecedentNameTest {
         request.anaphoraRelations = solution.anaphoraRelations;
         String collapsed = new GswbController().collapseAnaphora(request).semantic;
 
-        assertTrue(collapsed.contains("x1=x5"), collapsed);
-        assertFalse(collapsed.contains("x1=x3"), collapsed);
-        assertTrue(collapsed.contains("arg2(x4,x5)"), collapsed);
+        // The collapse accommodates the cat in situ (no P: here) and equates "it" with it. The
+        // cat is not accessible from the next sentence without accommodating it globally, so
+        // the equation is unbound (I9): the collapse reports that and returns the branch
+        // without the mapping; "it" is then its own referent, never the person.
+        assertFalse(collapsed.contains("=x1"), collapsed);
+        assertFalse(collapsed.contains("ant("), collapsed);
     }
 }

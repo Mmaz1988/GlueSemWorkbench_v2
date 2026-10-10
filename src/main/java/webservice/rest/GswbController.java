@@ -277,9 +277,9 @@ public class GswbController {
         if (accommodations.isEmpty()) {
             accommodations = List.of(new LinkedHashMap<>());
         }
-        // A branch shows its accommodations between states, labelled as /collapse_anaphora will
-        // label the branch's semantic when it reads it back.
-        DRS labelled = sites.isEmpty() ? drs : (DRS) new DrsParser().parse(drs.toString()).expression;
+        // The DRS read from the graph is numbered as its printed PCDRS is, so its labels are the
+        // ones /collapse_anaphora reads back (I6).
+        DRS labelled = drs;
 
         List<GswbSolution> solutions = new ArrayList<>();
         for (LinkedHashMap<String, String> anaphora : mappings) {
@@ -288,7 +288,9 @@ public class GswbController {
                 int branch = solutions.size() + 1;
                 PresuppositionMapping presuppositions = toStateMapping(accommodation, labelled);
                 LOGGER.fine("PCDRS branch " + branch + ": mapping=" + mapping + ", accommodation=" + presuppositions);
-                DRS pcdrs = drs.withAnaphoraMapping(mapping).withPresuppositionMapping(presuppositions);
+                // LiGER names referents as the graph does, which is as the PCDRS prints them.
+                DRS pcdrs = drs.withAnaphoraMapping(mapping).bindAnaphoraMappingByPrintedNames()
+                        .withPresuppositionMapping(presuppositions);
                 LOGGER.fine("PCDRS branch " + branch + ": combined DRS=" + pcdrs.toString());
                 GswbSolution solution = new GswbSolution(
                         new DrsSvgRenderer().toSvg(pcdrs),
@@ -347,51 +349,33 @@ public class GswbController {
         LOGGER.info("Collapse anaphora request received: parentSolutionId=" + request.parentSolutionId
                 + ", relations=" + (request.anaphoraRelations == null ? 0 : request.anaphoraRelations.size()));
         LOGGER.fine("Collapse anaphora request semantic: " + request.semantic);
-        SemanticExpression expression = new DrsParser().parse(request.semantic).expression;
+        // A PCDRS prints its merge chain (I2), which reads back as a merge to resolve.
+        SemanticExpression expression = new DrsParser().parse(request.semantic).expression.resolveMerges();
         if (!(expression instanceof DRS parsedDrs)) {
             throw new IllegalArgumentException("Anaphora collapse requires a DRS semantic expression.");
         }
 
-        // `semantic` is re-parsed from scratch and carries no mapping of its own -- the
-        // mapping computed once by /generate_pcdrs must be reapplied explicitly here so the
-        // same binding is reused consistently across every check/branch that needs it.
-        // Presuppositions are accommodated first: co-reference is resolved on the accommodated
-        // DRS, whose referents keep their names.
-        DRS accommodated = accommodate(parsedDrs, request.presuppositionRelations,
-                request.parentSolutionId, new ArrayList<>());
-        DRS mappedDrs = accommodated;
+        // The collapse, I7: the mapping computed once by /generate_pcdrs is bound to this
+        // DRS's referents by the names it prints *before* accommodation renumbers them; then
+        // presuppositions are accommodated (in situ where no site was chosen) and pronouns
+        // equated (an unmapped one stays its own referent). The result is a classic DRS.
+        DRS mappedDrs = parsedDrs;
         if (request.anaphoraRelations != null && !request.anaphoraRelations.isEmpty()) {
-            mappedDrs = accommodated.withAnaphoraMapping(AnaphoraMappingConverter.fromDto(request.anaphoraRelations));
+            mappedDrs = parsedDrs.withAnaphoraMapping(AnaphoraMappingConverter.fromDto(request.anaphoraRelations))
+                    .bindAnaphoraMappingByPrintedNames();
         }
         boolean hasMapping = mappedDrs.anaphoraMapping != null && mappedDrs.anaphoraMapping.relations != null
                 && !mappedDrs.anaphoraMapping.relations.isEmpty();
-        // No mapping means no antecedent was found for this branch (e.g. the pronoun-binding
-        // rules didn't resolve it) -- there is nothing to collapse. Fall back to the clean,
-        // unmapped DRS rather than crashing the whole reasoning turn over one unresolved branch.
-        //
-        // Accessibility for a mapping is already validated once, upstream, when the
-        // postprocessing rules produced it (see /generate_pcdrs) -- it must not be re-derived
-        // here just because `semantic` happens to wrap premise/hypothesis in negation or
-        // implication (one of the four NLI check shapes). collapseAnaphoraUnchecked() seeds the
-        // referent lookup with every referent in the whole tree up front, so a mapping that's
-        // valid on the flat merge stays valid inside the negated/implicational check forms too,
-        // instead of collapseAnaphora()'s own (naive, per-scope) accessibility gate spuriously
-        // rejecting it. The try/catch below is now only a defensive net for a mapping that
-        // references a referent that genuinely doesn't exist anywhere in this DRS (e.g. a
-        // malformed request) -- falling back to `mappedDrs` itself would be wrong here: its
-        // toString() still embeds the unresolved mapping as a trailing `,A:[...]` annotation,
-        // which downstream /semantic_to_tptp cannot parse. `parsedDrs` embeds it too whenever
-        // the caller's `semantic` string carried one, so the fallback is stripped explicitly.
-        DRS collapsed = accommodated;
-        if (hasMapping) {
-            try {
-                collapsed = mappedDrs.collapseAnaphoraUnchecked();
-            } catch (IllegalStateException e) {
-                LOGGER.warning("Anaphora collapse could not resolve a mapped referent for parentSolutionId="
-                        + request.parentSolutionId + ": " + e.getMessage()
-                        + "; returning the uncollapsed DRS without the mapping");
-                collapsed = accommodated.withoutMappings();
-            }
+        DRS accommodated = accommodate(mappedDrs, request.presuppositionRelations,
+                request.parentSolutionId, new ArrayList<>());
+        DRS collapsed;
+        try {
+            collapsed = accommodated.collapseAnaphoraUnchecked();
+        } catch (IllegalStateException e) {
+            // Reported, not absorbed: the branch is returned without its anaphora mapping.
+            LOGGER.warning("Anaphora collapse failed for parentSolutionId=" + request.parentSolutionId
+                    + ": " + e.getMessage() + "; returning the DRS collapsed without the mapping");
+            collapsed = accommodated.withoutMappings().collapseAnaphoraUnchecked();
         }
         String parentId = request.parentSolutionId == null || request.parentSolutionId.isBlank()
                 ? "solution"
@@ -459,9 +443,12 @@ public class GswbController {
                     throw new IllegalArgumentException("Anaphora collapse requires a DRS semantic expression.");
                 }
                 List<String> accommodationProblems = new ArrayList<>();
-                DRS accommodated = accommodate(parsedDrs, request.presuppositionRelations,
+                // Bound by the names this item prints before accommodation renumbers it (I7).
+                DRS mappedDrs = mapping != null
+                        ? parsedDrs.withAnaphoraMapping(mapping).bindAnaphoraMappingByPrintedNames()
+                        : parsedDrs;
+                DRS accommodated = accommodate(mappedDrs, request.presuppositionRelations,
                         request.parentSolutionId + ", item=" + item.name, accommodationProblems);
-                DRS mappedDrs = mapping != null ? accommodated.withAnaphoraMapping(mapping) : accommodated;
                 // A pronoun the mapping does not bind (no post-processing rules, or none bound
                 // it on this branch) loses its ant(x) marker and is read as a new referent,
                 // equal to no other; the rest of the mapping still collapses. Without this its
@@ -470,14 +457,14 @@ public class GswbController {
                 DRS collapsed;
                 String degraded = null;
                 try {
-                    collapsed = mappedDrs.withoutUnmappedAnaphora(unresolved).collapseAnaphoraUnchecked();
+                    collapsed = accommodated.withoutUnmappedAnaphora(unresolved).collapseAnaphoraUnchecked();
                 } catch (IllegalStateException e) {
                     degraded = "anaphora mapping could not be applied: " + e.getMessage();
                     LOGGER.warning("Anaphora collapse could not resolve a mapped referent for parentSolutionId="
                             + request.parentSolutionId + ", item=" + item.name + ": " + e.getMessage()
                             + "; translating without the mapping instead");
                     unresolved.clear();
-                    collapsed = accommodated.withoutMappings().withoutUnmappedAnaphora(unresolved);
+                    collapsed = accommodated.withoutMappings().withoutUnmappedAnaphora(unresolved).collapseAnaphoraUnchecked();
                 }
                 if (!accommodationProblems.isEmpty()) {
                     degraded = String.join("; ", accommodationProblems) + (degraded == null ? "" : "; " + degraded);
@@ -1338,24 +1325,25 @@ public class GswbController {
     private DRS accommodate(DRS drs, List<PresuppositionRelationDto> requested, String context, List<String> problems) {
         PresuppositionMapping mapping = drs.presuppositionMapping;
         if ((mapping == null || mapping.isEmpty()) && requested != null && !requested.isEmpty()) {
-            mapping = new PresuppositionMapping();
+            // Referent-anchored relations (the client's presuppositionRelations) name sites by a
+            // referent; they become labels of this DRS. Retires with the referent detour.
+            Map<String, String> byReferent = new LinkedHashMap<>();
             for (PresuppositionRelationDto relation : requested) {
                 if (relation != null && relation.presupposition != null && relation.site != null) {
-                    mapping.addRelation(new PresuppositionRelation(relation.presupposition, relation.site));
+                    byReferent.put(relation.presupposition, relation.site);
                 }
             }
-        }
-        if (mapping == null || mapping.isEmpty()) {
-            return drs;
+            mapping = toStateMapping(byReferent, drs);
         }
         try {
+            // Always the collapse (I7): a presupposition without a site is accommodated in situ.
             return drs.withPresuppositionMapping(mapping).collapsePresuppositions();
         } catch (IllegalStateException e) {
             String problem = "presupposition mapping " + mapping + " could not be applied: " + e.getMessage();
             LOGGER.warning("Accommodation failed for " + context + ": " + problem
-                    + "; keeping the presuppositions unaccommodated");
+                    + "; accommodating every presupposition in situ instead");
             problems.add(problem);
-            return drs.withPresuppositionMapping(null);
+            return drs.withPresuppositionMapping(null).collapsePresuppositions();
         }
     }
 
