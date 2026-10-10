@@ -256,7 +256,7 @@ public class GswbController {
         }
 
         LinkedHashMap<String, String> nodeNames = extractNodeNames(request.mergedStructure);
-        LinkedHashMap<String, LinkedHashSet<String>> candidates = extractPossibleAntFacts(request.mergedStructure, nodeNames);
+        LinkedHashMap<String, LinkedHashSet<String>> candidates = extractFacts(request.mergedStructure, nodeNames, "POSSIBLE-ANT");
         LOGGER.fine("PCDRS semantic node names: " + nodeNames);
         List<LinkedHashMap<String, String>> mappings = expandAnaphoraMappings(candidates);
         LOGGER.fine("PCDRS possible-ant candidates: " + candidates);
@@ -270,8 +270,10 @@ public class GswbController {
                 : request.parentSolutionId;
         // Accommodation sites, the presupposition counterpart of POSSIBLE-ANT: every combination
         // of one site per presupposition is a branch of its own, as every combination of one
-        // antecedent per pronoun is.
-        LinkedHashMap<String, LinkedHashSet<String>> sites = PossibleAccFacts.extract(request.mergedStructure);
+        // antecedent per pronoun is. Facts relate states (I5): presupposition box -> site, both
+        // by the NAME the graph gives them, which is the label the PCDRS prints.
+        LinkedHashMap<String, LinkedHashSet<String>> sites =
+                extractFacts(request.mergedStructure, nodeNames, "POSSIBLE-ACC");
         LOGGER.fine("PCDRS possible-acc sites: " + sites);
         List<LinkedHashMap<String, String>> accommodations = expandAnaphoraMappings(sites);
         if (accommodations.isEmpty()) {
@@ -286,7 +288,9 @@ public class GswbController {
             AnaphoraMapping mapping = toAnaphoraMapping(anaphora);
             for (LinkedHashMap<String, String> accommodation : accommodations) {
                 int branch = solutions.size() + 1;
-                PresuppositionMapping presuppositions = toStateMapping(accommodation, labelled);
+                PresuppositionMapping presuppositions = new PresuppositionMapping();
+                accommodation.forEach((presupposition, site) ->
+                        presuppositions.addRelation(new PresuppositionRelation(presupposition, site)));
                 LOGGER.fine("PCDRS branch " + branch + ": mapping=" + mapping + ", accommodation=" + presuppositions);
                 // LiGER names referents as the graph does, which is as the PCDRS prints them.
                 DRS pcdrs = drs.withAnaphoraMapping(mapping).bindAnaphoraMappingByPrintedNames()
@@ -301,9 +305,7 @@ public class GswbController {
                 solution.anaphoraMapping = mapping.toString();
                 solution.anaphoraRelations = AnaphoraMappingConverter.toDto(mapping);
                 solution.presuppositionMapping = presuppositions.toString();
-                solution.presuppositionRelations = accommodation.entrySet().stream()
-                        .map(entry -> new PresuppositionRelationDto(entry.getKey(), entry.getValue()))
-                        .toList();
+                solution.presuppositionRelations = referentAnchored(accommodation, labelled);
                 solutions.add(solution);
             }
         }
@@ -1190,16 +1192,26 @@ public class GswbController {
         return outputSolutions;
     }
 
+    /**
+     * The graph post-processing reads: the resolved DRS, whatever the display shows (I5) -- so
+     * its state and referent names are the labels the PCDRS will print. Resolving folds merges
+     * of boxes without referents, which renumbers, so an unresolved graph would name states the
+     * PCDRS does not have. Built from a copy: resolving must not renumber the referents the
+     * display still prints (I8).
+     */
     private LinkedHashMap<String, Object> semanticGraphFor(SemanticExpression expression) {
         try {
-            return expression.toJson();
-        } catch (Exception ignored) {
+            SemanticExpression copy;
             try {
-                return expression.betaReduce().resolveMerges().toJson();
-            } catch (Exception e) {
-                LOGGER.warning("Could not derive a provenance graph: " + e.getMessage());
-                return null;
+                copy = de.ukon.lfgxdrt.DrsAstCopier.copyStructure(expression);
+            } catch (IllegalArgumentException lambdaTerm) {
+                // Not beta-reduced yet (a display preference): reduce, then copy.
+                copy = de.ukon.lfgxdrt.DrsAstCopier.copyStructure(expression.betaReduce());
             }
+            return copy.resolveMerges().toJson();
+        } catch (Exception e) {
+            LOGGER.warning("Could not derive a provenance graph: " + e.getMessage());
+            return null;
         }
     }
 
@@ -1253,38 +1265,40 @@ public class GswbController {
         }
     }
 
-    private LinkedHashMap<String, LinkedHashSet<String>> extractPossibleAntFacts(
-            Map<String, Object> structure, Map<String, String> nodeNames) {
+    /** The {@code relation} facts of a structure, source NAME -> target NAMEs in the order found. */
+    private LinkedHashMap<String, LinkedHashSet<String>> extractFacts(
+            Map<String, Object> structure, Map<String, String> nodeNames, String relation) {
         LinkedHashMap<String, LinkedHashSet<String>> candidates = new LinkedHashMap<>();
-        collectPossibleAntFacts(structure, nodeNames, candidates);
+        collectFacts(structure, nodeNames, relation, candidates);
         return candidates;
     }
 
-    private void collectPossibleAntFacts(Object value,
-                                         Map<String, String> nodeNames,
-                                         LinkedHashMap<String, LinkedHashSet<String>> candidates) {
+    private void collectFacts(Object value,
+                              Map<String, String> nodeNames,
+                              String wanted,
+                              LinkedHashMap<String, LinkedHashSet<String>> candidates) {
         if (value instanceof Map<?, ?> map) {
             Object relation = map.get("relationLabel");
             Object source = map.containsKey("fsNode") ? map.get("fsNode") : map.get("sourceNode");
             Object target = map.containsKey("fsValue") ? map.get("fsValue") : map.get("targetNode");
-            if ("POSSIBLE-ANT".equals(String.valueOf(relation)) && source != null && target != null) {
+            if (wanted.equals(String.valueOf(relation)) && source != null && target != null) {
                 String sourceId = String.valueOf(source).trim();
                 String targetId = String.valueOf(target).trim();
                 String sourceName = nodeNames.get(sourceId);
                 String targetName = nodeNames.get(targetId);
                 if (sourceName == null || targetName == null) {
-                    LOGGER.warning("Ignoring POSSIBLE-ANT without NAME features: source="
+                    LOGGER.warning("Ignoring " + wanted + " without NAME features: source="
                             + sourceId + ", target=" + targetId);
                 } else if (!sourceName.isEmpty() && !targetName.isEmpty()) {
                     candidates.computeIfAbsent(sourceName, ignored -> new LinkedHashSet<>()).add(targetName);
                 }
             }
             for (Object child : map.values()) {
-                collectPossibleAntFacts(child, nodeNames, candidates);
+                collectFacts(child, nodeNames, wanted, candidates);
             }
         } else if (value instanceof Iterable<?> iterable) {
             for (Object child : iterable) {
-                collectPossibleAntFacts(child, nodeNames, candidates);
+                collectFacts(child, nodeNames, wanted, candidates);
             }
         }
     }
@@ -1345,6 +1359,33 @@ public class GswbController {
             problems.add(problem);
             return drs.withPresuppositionMapping(null).collapsePresuppositions();
         }
+    }
+
+    /**
+     * The branch's accommodations named by referents, for the client's reasoning batch, which
+     * applies them to separately numbered check DRSs (transitional: retires when checks are built
+     * from the collapsed PCDRS). A state is named by the first referent it introduces, the
+     * outermost box by s0; a state that introduces none cannot be named this way and is left
+     * out, reported.
+     */
+    private List<PresuppositionRelationDto> referentAnchored(Map<String, String> accommodation, DRS labelled) {
+        List<PresuppositionRelationDto> result = new ArrayList<>();
+        for (Map.Entry<String, String> entry : accommodation.entrySet()) {
+            String presupposition = firstReferentOf(labelled, entry.getKey());
+            String site = "s0".equals(entry.getValue()) ? "s0" : firstReferentOf(labelled, entry.getValue());
+            if (presupposition == null || site == null) {
+                LOGGER.warning("Accommodation " + entry.getKey() + " -> " + entry.getValue()
+                        + " has no referent-anchored form; the reasoning batch accommodates it in situ");
+                continue;
+            }
+            result.add(new PresuppositionRelationDto(presupposition, site));
+        }
+        return result;
+    }
+
+    private static String firstReferentOf(DRS drs, String label) {
+        DRS state = drs.stateLabelled(label);
+        return state == null || state.referents.isEmpty() ? null : state.referents.get(0).toSimpleString();
     }
 
     /** Referent-anchored accommodations as relations between the states of {@code labelled}. A
