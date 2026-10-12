@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * "every person saw the cat" + "it was cute" (2026-10-09): the rules bind the pronoun to the
- * cat, a presupposed referent inside the consequent. The graph the rules read names states and
+ * cat, a presupposed referent inside the consequent, which they also allow globally. The graph the rules read names states and
  * referents as the PCDRS prints them (I5/I6: one enumeration), so the cat is x3 in both -- the
  * name the facts use is the name the PCDRS, its anaphoraRelations, its rendering and the
  * collapse use. (Before the one enumeration, the PCDRS renumbered the cat to x5 and x3 printed
@@ -37,36 +37,45 @@ class PcdrsAntecedentNameTest {
         return constraint;
     }
 
-    /** The rule-annotated structure, reduced to what /generate_pcdrs reads from it: referent
-     *  NAMEs (as the graph, and so the PCDRS, numbers them) and the POSSIBLE-ANT fact. */
+    /** The rule-annotated structure, reduced to what /generate_pcdrs reads from it: NAMEs (as
+     *  the graph, and so the PCDRS, numbers referents and states), the POSSIBLE-ANT fact and the
+     *  cat's global site (s3 -> s0). */
     private static LinkedHashMap<String, Object> rulesSayItIsTheCat() {
         List<Object> annotations = new ArrayList<>();
         annotations.add(constraint("d9", "NAME", "x3"));
         annotations.add(constraint("d16", "NAME", "x4"));
         annotations.add(constraint("d16", "POSSIBLE-ANT", "d9"));
+        annotations.add(constraint("d20", "NAME", "s3"));
+        annotations.add(constraint("d21", "NAME", "s0"));
+        annotations.add(constraint("d20", "POSSIBLE-ACC", "d21"));
         LinkedHashMap<String, Object> structure = new LinkedHashMap<>();
         structure.put("constraints", new ArrayList<>());
         structure.put("annotations", annotations);
         return structure;
     }
 
-    private static GswbSolution pcdrs() throws Exception {
+    private static GswbPcdrsOutput pcdrs() throws Exception {
         GswbPcdrsRequest request = new GswbPcdrsRequest();
         request.semantic = SEQUENCE;
         request.parentSolutionId = "test";
         request.mergedStructure = rulesSayItIsTheCat();
-        GswbPcdrsOutput output = new GswbController().generatePcdrs(request);
-        assertEquals(1, output.solutions.size());
-        return output.solutions.get(0);
+        return new GswbController().generatePcdrs(request);
     }
 
     @Test
     void pcdrsNamesTheCatAsItPrints() throws Exception {
-        GswbSolution solution = pcdrs();
+        GswbPcdrsOutput output = pcdrs();
+        // The cat in situ, in the consequent, is not accessible to "it" (I9): rejected.
+        assertEquals(1, output.rejected.size());
+        assertEquals("P:[p(s3,s3)]", output.rejected.get(0).presuppositionMapping);
+        assertNotNull(output.rejected.get(0).rejection);
+        assertEquals(1, output.solutions.size());
+        GswbSolution solution = output.solutions.get(0);
         // One enumeration: person x1, seeing x2, the cat x3, "it" x4 -- in the graph and here.
         assertTrue(solution.semantic.contains("p(([x3],[bind(x3),cat(x3)]))"), solution.semantic);
         assertTrue(solution.semantic.contains("arg2(x2,x3)"), solution.semantic);
-        assertTrue(solution.semantic.endsWith("A:[a(x4,x3)]"), solution.semantic);
+        assertTrue(solution.semantic.endsWith("A:[a(x4,x3)],P:[p(s3,s0)]"), solution.semantic);
+        assertEquals("s3 accommodated at s0", solution.collapseReport);
 
         // The rendered PCDRS -- what the analysis view shows -- names the cat the same way.
         assertTrue(solution.solution.contains("x4 ↦ x3"), solution.solution);
@@ -80,18 +89,25 @@ class PcdrsAntecedentNameTest {
 
     @Test
     void collapseBindsThePronounToTheCatNotThePerson() throws Exception {
-        GswbSolution solution = pcdrs();
+        GswbSolution solution = pcdrs().solutions.get(0);
         GswbCollapseAnaphoraRequest request = new GswbCollapseAnaphoraRequest();
         request.semantic = solution.semantic;
         request.parentSolutionId = solution.id;
-        request.anaphoraRelations = solution.anaphoraRelations;
-        String collapsed = new GswbController().collapseAnaphora(request).semantic;
+        GswbSolution collapsed = new GswbController().collapseAnaphora(request);
 
-        // The collapse accommodates the cat in situ (no P: here) and equates "it" with it. The
-        // cat is not accessible from the next sentence without accommodating it globally, so
-        // the equation is unbound (I9): the collapse reports that and returns the branch
-        // without the mapping; "it" is then its own referent, never the person.
-        assertFalse(collapsed.contains("=x1"), collapsed);
-        assertFalse(collapsed.contains("ant("), collapsed);
+        // The cat global is x1 after renumbering, "it" x2.
+        assertNull(collapsed.rejection, collapsed.rejection);
+        assertTrue(collapsed.semantic.contains("x2=x1"), collapsed.semantic);
+        assertFalse(collapsed.semantic.contains("ant("), collapsed.semantic);
+        assertEquals("s3 accommodated at s0", collapsed.collapseReport);
+    }
+
+    @Test
+    void aRejectedCollapseSaysWhy() throws Exception {
+        GswbCollapseAnaphoraRequest request = new GswbCollapseAnaphoraRequest();
+        request.semantic = SEQUENCE + ",A:[a(x4,x3)],P:[p(s3,s3)]";
+        GswbSolution collapsed = new GswbController().collapseAnaphora(request);
+        assertNull(collapsed.semantic);
+        assertNotNull(collapsed.rejection);
     }
 }

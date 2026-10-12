@@ -7,6 +7,8 @@ public class GswbPcdrsOutput {
     public String parentSolutionId;
     public String rootSolutionId;
     public List<GswbSolution> solutions;
+    /** The readings the collapse rejects (I7), each with its mappings and its rejection. */
+    public List<GswbSolution> rejected = List.of();
 
     public GswbPcdrsOutput() {
     }

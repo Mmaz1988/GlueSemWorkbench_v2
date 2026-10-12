@@ -12,12 +12,12 @@ public class GswbSolution {
     public String semantic;
     public String anaphoraMapping;
     public List<AnaphoraRelationDto> anaphoraRelations;
-    /** The accommodation sites of a PCDRS branch between states, P:[p(s2,s1),...]: the
-     *  presupposition box s2 goes into box s1. Empty when nothing is accommodated. */
+    /** A PCDRS reading's P:[p(s2,s1),...], an entry for every p-box: s2 resolved at s1 (I6). */
     public String presuppositionMapping;
-    /** The same accommodations anchored on referents, for collapsing the prior and the
-     *  reasoning checks, whose state labels differ from the branch's. */
-    public List<PresuppositionRelationDto> presuppositionRelations;
+    /** What collapsing the reading does (I7.6), e.g. "s1 accommodated at s0; s3 bound at s0 (x3 ↦ x1)". */
+    public String collapseReport;
+    /** Why the collapse rejects this reading; set instead of a solution. */
+    public String rejection;
     public String proofId;
     public String solutionKey;
     public String mcSetId;
