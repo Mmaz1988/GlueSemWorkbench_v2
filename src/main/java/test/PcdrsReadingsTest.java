@@ -72,14 +72,14 @@ class PcdrsReadingsTest {
 
     @Test
     void aBindingTheCollapseRejectsIsReturnedApart() throws Exception {
-        // "A man smiled. The tall man laughed.": tall(x1) does not hold of the man.
-        GswbPcdrsOutput output = readings("([x1,x2],[man(x1),smile(x2),arg1(x2,x1)]) + ([x3],[p(([x4],"
-                + "[bind(x4),tall(x4),man(x4)])),laugh(x3),arg1(x3,x4)])", "x4 POSSIBLE-ANT x1", "s2 POSSIBLE-ACC s0");
-        assertEquals(List.of("P:[p(s2,s2)]", "P:[p(s2,s0)]"),
+        // "No man smiled. The man laughed.": the man in the negation is off the p-box's path.
+        GswbPcdrsOutput output = readings("([],[~(([x1,x2],[man(x1),smile(x2),arg1(x2,x1)]))]) + ([x3],[p(([x4],"
+                + "[bind(x4),man(x4)])),laugh(x3),arg1(x3,x4)])", "x4 POSSIBLE-ANT x1", "s3 POSSIBLE-ACC s0");
+        assertEquals(List.of("P:[p(s3,s3)]", "P:[p(s3,s0)]"),
                 output.solutions.stream().map(solution -> solution.presuppositionMapping).toList());
         assertEquals(1, output.rejected.size());
         assertEquals("A:[a(x4,x1)]", output.rejected.get(0).anaphoraMapping);
-        assertTrue(output.rejected.get(0).rejection.contains("s2"), output.rejected.get(0).rejection);
+        assertTrue(output.rejected.get(0).rejection.contains("s3"), output.rejected.get(0).rejection);
     }
 
     @Test
