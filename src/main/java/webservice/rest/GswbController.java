@@ -274,6 +274,9 @@ public class GswbController {
                 : request.parentSolutionId;
         List<GswbSolution> solutions = new ArrayList<>();
         List<GswbSolution> rejected = new ArrayList<>();
+        // I10: readings with the same collapse and the same P: are one reading.
+        Set<String> meanings = new HashSet<>();
+        int same = 0;
         for (Reading reading : readings) {
             AnaphoraMapping mapping = toAnaphoraMapping(reading.anaphora());
             PresuppositionMapping presuppositions = new PresuppositionMapping();
@@ -289,6 +292,10 @@ public class GswbController {
                 String semantic = pcdrs.toString();
                 String svg = new DrsSvgRenderer().toSvg(pcdrs);
                 Collapse collapse = pcdrs.collapse();
+                if (!meanings.add(collapse.drs().toString() + " " + pcdrs.presuppositionMapping)) {
+                    same++;
+                    continue;
+                }
                 GswbSolution solution = new GswbSolution(svg, id, drs.getSourceIndex(), null, semantic);
                 solution.anaphoraMapping = mapping.toString();
                 solution.anaphoraRelations = AnaphoraMappingConverter.toDto(mapping);
@@ -306,7 +313,8 @@ public class GswbController {
                 LOGGER.fine("PCDRS reading " + id + " rejected: " + e.getMessage());
             }
         }
-        LOGGER.info("PCDRS readings: accepted=" + solutions.size() + ", rejected=" + rejected.size());
+        LOGGER.info("PCDRS readings: accepted=" + solutions.size() + ", rejected=" + rejected.size()
+                + ", same as an accepted one=" + same);
         GswbPcdrsOutput output = new GswbPcdrsOutput(request.parentSolutionId, solutions);
         output.rejected = rejected;
         return output;
@@ -326,12 +334,14 @@ public class GswbController {
 
     /**
      * Every reading (I10): one choice for every pronoun -- one of its antecedents -- and for every
-     * p-box: in situ, another site the rules allow, or a binder for each of its bind referents.
-     * A binder does not suppress accommodation. The collapse decides which readings stand.
+     * p-box: in situ, another site the rules allow (one per site, I3: the states of one chain
+     * within one segment are one site), or a binder for each of its bind referents. A binder does
+     * not suppress accommodation. The collapse decides which readings stand.
      */
     private List<Reading> readings(DRS drs, LinkedHashMap<String, LinkedHashSet<String>> antecedents,
                                    LinkedHashMap<String, LinkedHashSet<String>> sites) {
         List<PresuppositionBox> boxes = drs.presuppositions();
+        Map<String, String> siteOf = drs.sites();
         Set<String> bindReferents = boxes.stream().flatMap(box -> box.bindReferents().stream())
                 .collect(Collectors.toSet());
         List<List<Reading>> choicePoints = new ArrayList<>();
@@ -344,9 +354,12 @@ public class GswbController {
         for (PresuppositionBox box : boxes) {
             List<Reading> choices = new ArrayList<>();
             choices.add(new Reading(new LinkedHashMap<>(), new LinkedHashMap<>(Map.of(box.label(), box.label()))));
+            // In situ is the host's site; every other site once, by its first state.
+            Set<String> offered = new HashSet<>(Set.of(siteOf.getOrDefault(box.host(), box.host()), box.label()));
             for (String site : sites.getOrDefault(box.label(), new LinkedHashSet<>())) {
-                if (!site.equals(box.host()) && !site.equals(box.label())) {
-                    choices.add(new Reading(new LinkedHashMap<>(), new LinkedHashMap<>(Map.of(box.label(), site))));
+                String first = siteOf.getOrDefault(site, site);
+                if (offered.add(first)) {
+                    choices.add(new Reading(new LinkedHashMap<>(), new LinkedHashMap<>(Map.of(box.label(), first))));
                 }
             }
             if (!box.bindReferents().isEmpty() && box.bindReferents().stream().allMatch(antecedents::containsKey)) {

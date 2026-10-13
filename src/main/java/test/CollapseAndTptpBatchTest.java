@@ -91,9 +91,9 @@ class CollapseAndTptpBatchTest {
         request.parentSolutionId = "test";
         request.items = List.of(
                 item("context", q),
-                item("sequence", "([],[p(([x1],[bind(x1),x1='peter']))]) + ([x2],[smile(x2),arg1(x2,x1),"
-                        + "p(([x3],[bind(x3),x3='peter']))]) + ([x4],[laugh(x4),arg1(x4,x3)]),"
-                        + "A:[a(x3,x1)],P:[p(s1,s1),p(s3,s0)]"),
+                // The hypothesis is an update (I3): its p-box s4 stands in its own s3.
+                item("sequence", q + " ; ([],[p(([x3],[bind(x3),x3='peter']))]) + ([x4],[laugh(x4),arg1(x4,x3)]),"
+                        + "A:[a(x3,x1)],P:[p(s1,s1),p(s4,s0)]"),
                 item("cons_neg_check", "([],[([],[p(([x1],[bind(x1),x1='peter']))]) + ([x2],[smile(x2),arg1(x2,x1)])"
                         + " -> ([],[~(([],[p(([x3],[bind(x3),x3='peter']))]) + ([x4],[laugh(x4),arg1(x4,x3)]))])])"));
         var results = new GswbController().collapseAndTptpBatch(request).results;
