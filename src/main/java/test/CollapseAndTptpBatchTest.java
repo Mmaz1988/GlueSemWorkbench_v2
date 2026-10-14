@@ -101,8 +101,9 @@ class CollapseAndTptpBatchTest {
         GswbTptpBatchResult check = results.get("cons_neg_check");
         assertNull(check.rejection, check.rejection);
         assertEquals("P:[p(s2,s2),p(s6,s1)]", check.presuppositionMapping);
-        assertEquals("A:[a(x3,x1)]", check.anaphoraMapping);
-        assertEquals("s2 accommodated at s1; s6 bound at s1 (x3 ↦ x1)", check.collapseReport);
+        assertEquals("A:[a(s6:x3,s2:x1)]", check.anaphoraMapping);
+        assertEquals("s2 accommodated at s1; s6 bound at s1 (s6:x3 ↦ s2:x1);"
+                + " renamed s2:x1 → s1:x1, s3:x2 → s1:x2, s7:x4 → s3:x3", check.collapseReport);
         assertEquals("s1", check.stateMap.get("s0"));
 
         GswbTptpBatchResult context = results.get("context");

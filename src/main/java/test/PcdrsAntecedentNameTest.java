@@ -29,6 +29,10 @@ class PcdrsAntecedentNameTest {
             "([],[([x1],[person(x1)]) -> ([x2],[p(([x3],[bind(x3),cat(x3)])),see(x2),arg2(x2,x3),arg1(x2,x1)])])"
                     + " + ([x4,x5],[ant(x4),cute(x5),be(x5),arg1(x5,x4)])";
 
+    /** The cat accommodated globally; the collapse, one box, numbers its universe first. */
+    private static final String CAT_GLOBAL = "s3 accommodated at s0; renamed s3:x3 → s0:x1, s4:x1 → s0:x2,"
+            + " s4:x2 → s0:x3, s1:x1 → s1:x4, s2:x2 → s2:x5";
+
     private static Map<String, Object> constraint(String source, String label, String target) {
         Map<String, Object> constraint = new LinkedHashMap<>();
         constraint.put("sourceNode", source);
@@ -38,12 +42,16 @@ class PcdrsAntecedentNameTest {
     }
 
     /** The rule-annotated structure, reduced to what /generate_pcdrs reads from it: NAMEs (as
-     *  the graph, and so the PCDRS, numbers referents and states), the POSSIBLE-ANT fact and the
-     *  cat's global site (s3 -> s0). */
+     *  the graph, and so the PCDRS, numbers referents and states), the states that introduce the
+     *  two referents ("it" and the person are both x1, in sibling paths), the POSSIBLE-ANT fact
+     *  and the cat's global site (s3 -> s0). */
     private static LinkedHashMap<String, Object> rulesSayItIsTheCat() {
         List<Object> annotations = new ArrayList<>();
         annotations.add(constraint("d9", "NAME", "x3"));
-        annotations.add(constraint("d16", "NAME", "x4"));
+        annotations.add(constraint("d16", "NAME", "x1"));
+        annotations.add(constraint("d22", "NAME", "s4"));
+        annotations.add(constraint("d20", "IN", "d9"));
+        annotations.add(constraint("d22", "IN", "d16"));
         annotations.add(constraint("d16", "POSSIBLE-ANT", "d9"));
         annotations.add(constraint("d20", "NAME", "s3"));
         annotations.add(constraint("d21", "NAME", "s0"));
@@ -71,20 +79,21 @@ class PcdrsAntecedentNameTest {
         assertNotNull(output.rejected.get(0).rejection);
         assertEquals(1, output.solutions.size());
         GswbSolution solution = output.solutions.get(0);
-        // One enumeration: person x1, seeing x2, the cat x3, "it" x4 -- in the graph and here.
+        // One enumeration, per path: person x1, seeing x2, the cat x3, "it" x1 -- in the graph
+        // and here; the state tells "it" from the person.
         assertTrue(solution.semantic.contains("p(([x3],[bind(x3),cat(x3)]))"), solution.semantic);
         assertTrue(solution.semantic.contains("arg2(x2,x3)"), solution.semantic);
-        assertTrue(solution.semantic.endsWith("A:[a(x4,x3)],P:[p(s3,s0)]"), solution.semantic);
-        assertEquals("s3 accommodated at s0", solution.collapseReport);
+        assertTrue(solution.semantic.endsWith("A:[a(s4:x1,s3:x3)],P:[p(s3,s0)]"), solution.semantic);
+        assertEquals(CAT_GLOBAL, solution.collapseReport);
 
         // The rendered PCDRS -- what the analysis view shows -- names the cat the same way.
-        assertTrue(solution.solution.contains("x4 ↦ x3"), solution.solution);
+        assertTrue(solution.solution.contains("x1 ↦ x3"), solution.solution);
         assertFalse(solution.solution.contains("↦ x1"), solution.solution);
 
         assertEquals(1, solution.anaphoraRelations.size());
         AnaphoraRelationDto relation = solution.anaphoraRelations.get(0);
-        assertEquals("x4", relation.pronounDisplay);
-        assertEquals("x3", relation.antecedent);
+        assertEquals("s4:x1", relation.pronounDisplay);
+        assertEquals("s3:x3", relation.antecedent);
     }
 
     @Test
@@ -99,13 +108,14 @@ class PcdrsAntecedentNameTest {
         assertNull(collapsed.rejection, collapsed.rejection);
         assertTrue(collapsed.semantic.contains("x2=x1"), collapsed.semantic);
         assertFalse(collapsed.semantic.contains("ant("), collapsed.semantic);
-        assertEquals("s3 accommodated at s0", collapsed.collapseReport);
+        assertEquals(CAT_GLOBAL, collapsed.collapseReport);
     }
 
     @Test
     void aRejectedCollapseSaysWhy() throws Exception {
         GswbCollapseAnaphoraRequest request = new GswbCollapseAnaphoraRequest();
-        request.semantic = SEQUENCE + ",A:[a(x4,x3)],P:[p(s3,s3)]";
+        // Names are the text's own: SEQUENCE writes "it" as x4.
+        request.semantic = SEQUENCE + ",A:[a(s4:x4,s3:x3)],P:[p(s3,s3)]";
         GswbSolution collapsed = new GswbController().collapseAnaphora(request);
         assertNull(collapsed.semantic);
         assertNotNull(collapsed.rejection);

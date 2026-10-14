@@ -25,14 +25,14 @@ final class AnaphoraMappingConverter {
             }
             DiscourseReferent pronoun = relation.pronoun;
             String referentId = pronoun.id != null ? pronoun.id : pronoun.name;
-            // The antecedent as the DRS prints it, like pronounDisplay: fromDto reapplies both to
-            // the re-parsed semantic, whose names are the printed ones. The internal name differs
+            // The antecedent as A: prints it, like pronounDisplay: fromDto reapplies both to the
+            // re-parsed semantic, whose names are the printed ones. The internal name differs
             // once the DRS is renumbered and then names another referent (the cat's x3 became
-            // the person's).
+            // the person's); the state tells apart the names sibling branches share (s4:x2).
             result.add(new AnaphoraRelationDto(
                     referentId,
-                    pronoun.toSimpleString(),
-                    relation.displayedAntecedent(),
+                    pronoun.qualifiedName(),
+                    relation.qualifiedAntecedent(),
                     relation.stateLabel));
         }
         return result;
@@ -50,7 +50,7 @@ final class AnaphoraMappingConverter {
             // The pronoun this relation is reapplied to is always a *freshly re-parsed* referent
             // (semantic is re-parsed from scratch server-side, see collapseAnaphora() below) --
             // its .name/.id are whatever DrsParser/DrsGraphParser derive from the text, which only
-            // ever matches pronoun.toSimpleString() (the plain display form, e.g. "x3"), not the
+            // ever matches pronoun.qualifiedName() (the printed form, e.g. "s4:x3"), not the
             // original in-memory pronounReferentId (which can be a richer internal id/name that no
             // longer exists once the DRS has been serialized and reparsed). Use pronounDisplay as
             // the name so DRS.collapseAnaphoraUnchecked()'s .name/.toSimpleString() lookups match;

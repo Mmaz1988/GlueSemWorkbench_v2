@@ -1254,6 +1254,14 @@ public class GswbController {
             }
         }
         collectNodeNames(structure, nodeNames);
+        // A referent is named with the state that introduces it, as A: writes it (s4:x2):
+        // sibling branches reuse names (I3).
+        Map<String, String> plain = new HashMap<>(nodeNames);
+        forEachFact(structure, "IN", (state, referent) -> {
+            if (plain.get(state) != null && plain.get(referent) != null) {
+                nodeNames.put(referent, plain.get(state) + ":" + plain.get(referent));
+            }
+        });
         return nodeNames;
     }
 
@@ -1288,28 +1296,33 @@ public class GswbController {
                               Map<String, String> nodeNames,
                               String wanted,
                               LinkedHashMap<String, LinkedHashSet<String>> candidates) {
+        forEachFact(value, wanted, (sourceId, targetId) -> {
+            String sourceName = nodeNames.get(sourceId);
+            String targetName = nodeNames.get(targetId);
+            if (sourceName == null || targetName == null) {
+                LOGGER.warning("Ignoring " + wanted + " without NAME features: source="
+                        + sourceId + ", target=" + targetId);
+            } else if (!sourceName.isEmpty() && !targetName.isEmpty()) {
+                candidates.computeIfAbsent(sourceName, ignored -> new LinkedHashSet<>()).add(targetName);
+            }
+        });
+    }
+
+    /** Every {@code wanted} fact of a structure, source id and target id. */
+    private void forEachFact(Object value, String wanted, java.util.function.BiConsumer<String, String> action) {
         if (value instanceof Map<?, ?> map) {
             Object relation = map.get("relationLabel");
             Object source = map.containsKey("fsNode") ? map.get("fsNode") : map.get("sourceNode");
             Object target = map.containsKey("fsValue") ? map.get("fsValue") : map.get("targetNode");
             if (wanted.equals(String.valueOf(relation)) && source != null && target != null) {
-                String sourceId = String.valueOf(source).trim();
-                String targetId = String.valueOf(target).trim();
-                String sourceName = nodeNames.get(sourceId);
-                String targetName = nodeNames.get(targetId);
-                if (sourceName == null || targetName == null) {
-                    LOGGER.warning("Ignoring " + wanted + " without NAME features: source="
-                            + sourceId + ", target=" + targetId);
-                } else if (!sourceName.isEmpty() && !targetName.isEmpty()) {
-                    candidates.computeIfAbsent(sourceName, ignored -> new LinkedHashSet<>()).add(targetName);
-                }
+                action.accept(String.valueOf(source).trim(), String.valueOf(target).trim());
             }
             for (Object child : map.values()) {
-                collectFacts(child, nodeNames, wanted, candidates);
+                forEachFact(child, wanted, action);
             }
         } else if (value instanceof Iterable<?> iterable) {
             for (Object child : iterable) {
-                collectFacts(child, nodeNames, wanted, candidates);
+                forEachFact(child, wanted, action);
             }
         }
     }
