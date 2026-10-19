@@ -57,7 +57,7 @@ class PcdrsReadingsTest {
         assertEquals(List.of("P:[p(s1,s1),p(s4,s4)]", "P:[p(s1,s1),p(s4,s0)]", "P:[p(s1,s1),p(s4,s0)]"),
                 output.solutions.stream().map(solution -> solution.presuppositionMapping).toList());
         GswbSolution bound = output.solutions.get(2);
-        assertTrue(bound.semantic.endsWith("A:[a(y2,y1)],P:[p(s1,s1),p(s4,s0)]"), bound.semantic);
+        assertTrue(bound.semantic.endsWith("A:[a(s4:y2,y1)],P:[p(s1,s1),p(s4,s0)]"), bound.semantic);
         assertEquals("s1 accommodated at s0; s4 bound at s0 (s4:y2 ↦ s1:y1);"
                 + " renamed s1:y1 → s0:x1, s2:x1 → s0:x2, s5:x2 → s0:x3", bound.collapseReport);
         assertEquals("s1 accommodated at s0; s4 accommodated at s0;"
@@ -88,10 +88,10 @@ class PcdrsReadingsTest {
                 + " ; ([],[p(([x4],[bind(x4),x4='bill']))]) + ([x5],[smile(x5),arg1(x5,x4)])";
         GswbPcdrsOutput output = readings(bills, "s2:y2 POSSIBLE-ANT s1:y1", "s5:y3 POSSIBLE-ANT s1:y1", "s5:y3 POSSIBLE-ANT s2:y2");
         List<String> anaphora = output.solutions.stream().map(solution -> solution.anaphoraMapping).toList();
-        assertTrue(anaphora.contains("A:[a(y2,y1),a(y3,y1)]"), anaphora.toString());
-        assertFalse(anaphora.contains("A:[a(y2,y1),a(y3,y2)]"), anaphora.toString());
+        assertTrue(anaphora.contains("A:[a(s2:y2,y1),a(s5:y3,y1)]"), anaphora.toString());
+        assertFalse(anaphora.contains("A:[a(s2:y2,y1),a(s5:y3,y2)]"), anaphora.toString());
         // Bound to the second Bill while that one stands alone is another reading.
-        assertTrue(anaphora.contains("A:[a(y3,y2)]"), anaphora.toString());
+        assertTrue(anaphora.contains("A:[a(s5:y3,y2)]"), anaphora.toString());
     }
 
     @Test
@@ -112,7 +112,7 @@ class PcdrsReadingsTest {
         // "A man saw a man. The man smiled."
         GswbPcdrsOutput output = readings("([x1,x2,x3],[man(x1),man(x2),see(x3),arg1(x3,x1),arg2(x3,x2)]) + ([x4],"
                 + "[p(([x5],[bind(x5),man(x5)])),smile(x4),arg1(x4,x5)])", "s2:y1 POSSIBLE-ANT s0:x1", "s2:y1 POSSIBLE-ANT s0:x2");
-        assertEquals(List.of("", "A:[a(y1,x1)]", "A:[a(y1,x2)]"),
+        assertEquals(List.of("", "A:[a(s2:y1,x1)]", "A:[a(s2:y1,x2)]"),
                 output.solutions.stream().map(solution -> solution.anaphoraMapping).toList());
     }
 }

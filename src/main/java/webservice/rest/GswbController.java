@@ -290,7 +290,7 @@ public class GswbController {
                 DRS pcdrs = drs.withAnaphoraMapping(mapping).bindAnaphoraMappingByPrintedNames()
                         .withPresuppositionMapping(presuppositions).withCompletePresuppositionMapping();
                 String semantic = pcdrs.toString();
-                // As the PCDRS prints it: plain names, an x-antecedent read on the pronoun's path.
+                // As the PCDRS prints it: the pronoun with its state, the antecedent read on its path.
                 String printedMapping = pcdrs.anaphoraMapping == null ? mapping.toString() : pcdrs.anaphoraMapping.toString();
                 String svg = new DrsSvgRenderer().toSvg(pcdrs);
                 // The collapse renumbers the referents it shares with the PCDRS: print first.
