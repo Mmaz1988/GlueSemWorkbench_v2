@@ -21,9 +21,9 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class PcdrsReadingsTest {
 
-    /** "Peter smiled. Peter laughed.": s0, s1 the first Peter (x1), s2 smile; the second sentence
-     *  is an update (I3): s3 holds the second Peter's p-box s4 (x3), s5 laugh. Sites: s0+s2, s3+s5.
-     *  Facts name referents with their states, as the graph does (s4:x3). */
+    /** "Peter smiled. Peter laughed.": s0, s1 the first Peter (y1), s2 smile (x1); the second
+     *  sentence is an update (I3): s3 holds the second Peter's p-box s4 (y2), s5 laugh (x2).
+     *  Sites: s0+s2, s3+s5. Facts name referents with their states, as the graph does (s4:y2). */
     private static final String PETER_PETER = "([],[p(([x1],[bind(x1),x1='peter']))]) + ([x2],[smile(x2),arg1(x2,x1)])"
             + " ; ([],[p(([x3],[bind(x3),x3='peter']))]) + ([x4],[laugh(x4),arg1(x4,x3)])";
 
@@ -53,15 +53,15 @@ class PcdrsReadingsTest {
 
     @Test
     void aBinderDoesNotSuppressAccommodation() throws Exception {
-        GswbPcdrsOutput output = readings(PETER_PETER, "s4:x3 POSSIBLE-ANT s1:x1", "s4 POSSIBLE-ACC s0");
+        GswbPcdrsOutput output = readings(PETER_PETER, "s4:y2 POSSIBLE-ANT s1:y1", "s4 POSSIBLE-ACC s0");
         assertEquals(List.of("P:[p(s1,s1),p(s4,s4)]", "P:[p(s1,s1),p(s4,s0)]", "P:[p(s1,s1),p(s4,s0)]"),
                 output.solutions.stream().map(solution -> solution.presuppositionMapping).toList());
         GswbSolution bound = output.solutions.get(2);
-        assertTrue(bound.semantic.endsWith("A:[a(s4:x3,s1:x1)],P:[p(s1,s1),p(s4,s0)]"), bound.semantic);
-        assertEquals("s1 accommodated at s0; s4 bound at s0 (s4:x3 ↦ s1:x1);"
-                + " renamed s1:x1 → s0:x1, s2:x2 → s0:x2, s5:x4 → s0:x3", bound.collapseReport);
+        assertTrue(bound.semantic.endsWith("A:[a(y2,y1)],P:[p(s1,s1),p(s4,s0)]"), bound.semantic);
+        assertEquals("s1 accommodated at s0; s4 bound at s0 (s4:y2 ↦ s1:y1);"
+                + " renamed s1:y1 → s0:x1, s2:x1 → s0:x2, s5:x2 → s0:x3", bound.collapseReport);
         assertEquals("s1 accommodated at s0; s4 accommodated at s0;"
-                + " renamed s1:x1 → s0:x1, s4:x3 → s0:x2, s2:x2 → s0:x3, s5:x4 → s0:x4", output.solutions.get(1).collapseReport);
+                + " renamed s1:y1 → s0:x1, s4:y2 → s0:x2, s2:x1 → s0:x3, s5:x2 → s0:x4", output.solutions.get(1).collapseReport);
         assertTrue(output.rejected.isEmpty());
     }
 
@@ -83,26 +83,27 @@ class PcdrsReadingsTest {
 
     @Test
     void readingsWithTheSameCollapseAndSitesAreOne() throws Exception {
-        // "Bill saw Bill. Bill smiled.": x4 bound to x2 bound to x1 is x4 bound to x1.
+        // "Bill saw Bill. Bill smiled.": y3 bound to y2 bound to y1 is y3 bound to y1.
         String bills = "([],[p(([x1],[bind(x1),x1='bill'])),p(([x2],[bind(x2),x2='bill']))]) + ([x3],[see(x3),arg1(x3,x1),arg2(x3,x2)])"
                 + " ; ([],[p(([x4],[bind(x4),x4='bill']))]) + ([x5],[smile(x5),arg1(x5,x4)])";
-        GswbPcdrsOutput output = readings(bills, "s2:x2 POSSIBLE-ANT s1:x1", "s5:x4 POSSIBLE-ANT s1:x1", "s5:x4 POSSIBLE-ANT s2:x2");
+        GswbPcdrsOutput output = readings(bills, "s2:y2 POSSIBLE-ANT s1:y1", "s5:y3 POSSIBLE-ANT s1:y1", "s5:y3 POSSIBLE-ANT s2:y2");
         List<String> anaphora = output.solutions.stream().map(solution -> solution.anaphoraMapping).toList();
-        assertTrue(anaphora.contains("A:[a(s2:x2,s1:x1),a(s5:x4,s1:x1)]"), anaphora.toString());
-        assertFalse(anaphora.contains("A:[a(s2:x2,s1:x1),a(s5:x4,s2:x2)]"), anaphora.toString());
+        assertTrue(anaphora.contains("A:[a(y2,y1),a(y3,y1)]"), anaphora.toString());
+        assertFalse(anaphora.contains("A:[a(y2,y1),a(y3,y2)]"), anaphora.toString());
         // Bound to the second Bill while that one stands alone is another reading.
-        assertTrue(anaphora.contains("A:[a(s5:x4,s2:x2)]"), anaphora.toString());
+        assertTrue(anaphora.contains("A:[a(y3,y2)]"), anaphora.toString());
     }
 
     @Test
     void aBindingTheCollapseRejectsIsReturnedApart() throws Exception {
         // "No man smiled. The man laughed.": the man in the negation is off the p-box's path.
         GswbPcdrsOutput output = readings("([],[~(([x1,x2],[man(x1),smile(x2),arg1(x2,x1)]))])"
-                + " ; ([],[p(([x3],[bind(x3),man(x3)]))]) + ([x4],[laugh(x4),arg1(x4,x3)])", "s3:x1 POSSIBLE-ANT s1:x1", "s3 POSSIBLE-ACC s0");
+                + " ; ([],[p(([x3],[bind(x3),man(x3)]))]) + ([x4],[laugh(x4),arg1(x4,x3)])", "s3:y1 POSSIBLE-ANT s1:x1", "s3 POSSIBLE-ACC s0");
         assertEquals(List.of("P:[p(s3,s3)]", "P:[p(s3,s0)]"),
                 output.solutions.stream().map(solution -> solution.presuppositionMapping).toList());
         assertEquals(1, output.rejected.size());
-        assertEquals("A:[a(s3:x1,s1:x1)]", output.rejected.get(0).anaphoraMapping);
+        // Off the pronoun's path a plain x1 names nothing: the rejected reading keeps the states.
+        assertEquals("A:[a(s3:y1,s1:x1)]", output.rejected.get(0).anaphoraMapping);
         assertTrue(output.rejected.get(0).rejection.contains("s3"), output.rejected.get(0).rejection);
     }
 
@@ -110,8 +111,8 @@ class PcdrsReadingsTest {
     void severalBindersGiveSeveralReadings() throws Exception {
         // "A man saw a man. The man smiled."
         GswbPcdrsOutput output = readings("([x1,x2,x3],[man(x1),man(x2),see(x3),arg1(x3,x1),arg2(x3,x2)]) + ([x4],"
-                + "[p(([x5],[bind(x5),man(x5)])),smile(x4),arg1(x4,x5)])", "s2:x5 POSSIBLE-ANT s0:x1", "s2:x5 POSSIBLE-ANT s0:x2");
-        assertEquals(List.of("", "A:[a(s2:x5,s0:x1)]", "A:[a(s2:x5,s0:x2)]"),
+                + "[p(([x5],[bind(x5),man(x5)])),smile(x4),arg1(x4,x5)])", "s2:y1 POSSIBLE-ANT s0:x1", "s2:y1 POSSIBLE-ANT s0:x2");
+        assertEquals(List.of("", "A:[a(y1,x1)]", "A:[a(y1,x2)]"),
                 output.solutions.stream().map(solution -> solution.anaphoraMapping).toList());
     }
 }

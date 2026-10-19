@@ -290,14 +290,17 @@ public class GswbController {
                 DRS pcdrs = drs.withAnaphoraMapping(mapping).bindAnaphoraMappingByPrintedNames()
                         .withPresuppositionMapping(presuppositions).withCompletePresuppositionMapping();
                 String semantic = pcdrs.toString();
+                // As the PCDRS prints it: plain names, an x-antecedent read on the pronoun's path.
+                String printedMapping = pcdrs.anaphoraMapping == null ? mapping.toString() : pcdrs.anaphoraMapping.toString();
                 String svg = new DrsSvgRenderer().toSvg(pcdrs);
+                // The collapse renumbers the referents it shares with the PCDRS: print first.
                 Collapse collapse = pcdrs.collapse();
                 if (!meanings.add(collapse.drs().toString() + " " + pcdrs.presuppositionMapping)) {
                     same++;
                     continue;
                 }
                 GswbSolution solution = new GswbSolution(svg, id, drs.getSourceIndex(), null, semantic);
-                solution.anaphoraMapping = mapping.toString();
+                solution.anaphoraMapping = printedMapping;
                 solution.anaphoraRelations = AnaphoraMappingConverter.toDto(mapping);
                 solution.presuppositionMapping = pcdrs.presuppositionMapping.toString();
                 solution.collapseReport = collapse.reportText();
@@ -306,6 +309,8 @@ public class GswbController {
             } catch (IllegalStateException e) {
                 // I7: a reading that fails a check is rejected, and says so; it is not a branch.
                 GswbSolution solution = new GswbSolution(null, id);
+                // The rules' names, with their states: a rejected binding may name an antecedent
+                // off the pronoun's path, which a plain name cannot.
                 solution.anaphoraMapping = mapping.toString();
                 solution.presuppositionMapping = presuppositions.toString();
                 solution.rejection = e.getMessage();
