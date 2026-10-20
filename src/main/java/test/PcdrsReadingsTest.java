@@ -52,6 +52,21 @@ class PcdrsReadingsTest {
     }
 
     @Test
+    void aPresuppositionWhoseContentIsAMergeHasReadings() throws Exception {
+        // "Every man saw the dog that liked him.": the relative clause makes the p-box a merge
+        // inside a box, which /generate_pcdrs must resolve as well as one at the top. Global
+        // accommodation takes "him" (x2, in the consequent) out of its scope: rejected (I9).
+        GswbPcdrsOutput output = readings("([],[([x1],[man(x1)]) -> ([x2],[ant(x2),male(x2),"
+                + "p(([y1],[bind(y1),dog(y1)]) + ([y2],[like(y2),arg1(y2,y1),arg2(y2,x2)]))])"
+                + " + ([x3],[see(x3),arg1(x3,x1),arg2(x3,y1)])])", "s3 POSSIBLE-ACC s0");
+        assertEquals(List.of("P:[p(s3,s3)]"),
+                output.solutions.stream().map(solution -> solution.presuppositionMapping).toList());
+        assertEquals(List.of("P:[p(s3,s0)]"),
+                output.rejected.stream().map(solution -> solution.presuppositionMapping).toList());
+        assertTrue(output.rejected.get(0).rejection.contains("(I9)"), output.rejected.get(0).rejection);
+    }
+
+    @Test
     void aBinderDoesNotSuppressAccommodation() throws Exception {
         GswbPcdrsOutput output = readings(PETER_PETER, "s4:y2 POSSIBLE-ANT s1:y1", "s4 POSSIBLE-ACC s0");
         assertEquals(List.of("P:[p(s1,s1),p(s4,s4)]", "P:[p(s1,s1),p(s4,s0)]", "P:[p(s1,s1),p(s4,s0)]"),

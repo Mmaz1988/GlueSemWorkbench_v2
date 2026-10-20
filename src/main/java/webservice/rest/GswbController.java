@@ -249,11 +249,8 @@ public class GswbController {
         SemanticExpression expression = hasCanonicalGraph(request.mergedStructure)
                 ? DrsGraphParser.parse(request.mergedStructure)
                 : new DrsParser().parse(request.semantic).expression;
-        if (!(expression instanceof DRS)) {
-            LOGGER.info("PCDRS graph expression is unresolved: " + expression.getClass().getSimpleName()
-                    + "; resolving merges before generating PCDRS");
-            expression = expression.resolveMerges();
-        }
+        // Merges anywhere, a p-box's included (a relative clause makes its content a chain).
+        expression = expression.resolveMerges();
         if (!(expression instanceof DRS drs)) {
             throw new IllegalArgumentException("PCDRS generation requires a DRS semantic expression.");
         }
