@@ -26,10 +26,8 @@ public final class PcdrsRenderer {
         if (semantic == null || semantic.isBlank()) {
             throw new IllegalArgumentException("A DRS semantic is required.");
         }
-        SemanticExpression expression = new DrsParser().parse(semantic).expression;
-        if (!(expression instanceof DRS)) {
-            expression = expression.resolveMerges();
-        }
+        // Merges anywhere, a p-box's included, as /generate_pcdrs reads them.
+        SemanticExpression expression = new DrsParser().parse(semantic).expression.resolveMerges();
         if (!(expression instanceof DRS drs)) {
             throw new IllegalArgumentException("Rendering a PCDRS requires a DRS semantic expression.");
         }
