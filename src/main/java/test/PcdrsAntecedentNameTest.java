@@ -77,7 +77,11 @@ class PcdrsAntecedentNameTest {
         assertEquals(1, output.rejected.size());
         assertEquals("P:[p(s3,s3)]", output.rejected.get(0).presuppositionMapping);
         assertNotNull(output.rejected.get(0).rejection);
-        assertEquals(1, output.solutions.size());
+        // "it" unbound is a choice too (N3): with the cat in situ or global.
+        assertEquals(java.util.List.of("A:[a(s4:x1,y1)] P:[p(s3,s0)]", "A:[a(s4:x1,/)] P:[p(s3,s3)]",
+                        "A:[a(s4:x1,/)] P:[p(s3,s0)]"),
+                output.solutions.stream().map(s -> s.anaphoraMapping + " " + s.presuppositionMapping).toList());
+        assertEquals("/", output.solutions.get(1).anaphoraRelations.get(0).antecedent);
         GswbSolution solution = output.solutions.get(0);
         // One enumeration: person x1, seeing x2, "it" x1 (per path), the cat y1 (once across
         // the tree) -- in the graph and here; A: names "it" with its state.

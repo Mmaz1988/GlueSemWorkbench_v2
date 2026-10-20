@@ -335,8 +335,8 @@ public class GswbController {
     }
 
     /**
-     * Every reading (I10): one choice for every pronoun -- one of its antecedents -- and for every
-     * p-box: in situ, another site the rules allow (one per site, I3: the states of one chain
+     * Every reading (I10): one choice for every pronoun -- one of its antecedents, or unbound
+     * ({@code a(x,/)}, always a choice, N3) -- and for every p-box: in situ, another site the rules allow (one per site, I3: the states of one chain
      * within one segment are one site), or a binder for each of its bind referents. A binder does
      * not suppress accommodation. The collapse decides which readings stand.
      */
@@ -347,12 +347,14 @@ public class GswbController {
         Set<String> bindReferents = boxes.stream().flatMap(box -> box.bindReferents().stream())
                 .collect(Collectors.toSet());
         List<List<Reading>> choicePoints = new ArrayList<>();
-        antecedents.forEach((pronoun, candidates) -> {
-            if (!bindReferents.contains(pronoun)) {
-                choicePoints.add(candidates.stream().map(antecedent -> new Reading(
-                        new LinkedHashMap<>(Map.of(pronoun, antecedent)), new LinkedHashMap<>())).toList());
-            }
-        });
+        Set<String> pronouns = new LinkedHashSet<>(drs.pronouns());
+        antecedents.keySet().stream().filter(name -> !bindReferents.contains(name)).forEach(pronouns::add);
+        for (String pronoun : pronouns) {
+            List<String> choices = new ArrayList<>(antecedents.getOrDefault(pronoun, new LinkedHashSet<>()));
+            choices.add("/");
+            choicePoints.add(choices.stream().map(antecedent -> new Reading(
+                    new LinkedHashMap<>(Map.of(pronoun, antecedent)), new LinkedHashMap<>())).toList());
+        }
         for (PresuppositionBox box : boxes) {
             List<Reading> choices = new ArrayList<>();
             choices.add(new Reading(new LinkedHashMap<>(), new LinkedHashMap<>(Map.of(box.label(), box.label()))));
