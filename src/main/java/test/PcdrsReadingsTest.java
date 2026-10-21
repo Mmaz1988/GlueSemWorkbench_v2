@@ -67,12 +67,34 @@ class PcdrsReadingsTest {
     }
 
     @Test
+    void eachReadingCountsItsChoicesByKindAndDepth() throws Exception {
+        // N4. "him" (s2:x2) in the consequent, "every man" (s1:x1) in the restrictor: the rules
+        // call that pair bound. The dog's p-box (s3) stands in the consequent: in situ is local.
+        // Binding the dog to the man takes "him" out of its scope (I9): rejected.
+        GswbPcdrsOutput output = readings("([],[([x1],[man(x1)]) -> ([x2],[ant(x2),male(x2),"
+                + "p(([y1],[bind(y1),dog(y1)]) + ([y2],[like(y2),arg1(y2,y1),arg2(y2,x2)]))])"
+                + " + ([x3],[see(x3),arg1(x3,x1),arg2(x3,y1)])])",
+                "s2:x2 POSSIBLE-ANT s1:x1", "s2:x2 BOUND-ANT s1:x1", "s3:y1 POSSIBLE-ANT s1:x1");
+        assertEquals(List.of(
+                        "A:[a(s2:x2,x1)] [1, 0, 0] [0, 0, 0] [0, 0, 1]",
+                        "A:[a(s2:x2,/)] [0, 0, 1] [0, 0, 0] [0, 0, 1]"),
+                output.solutions.stream().map(solution -> solution.anaphoraMapping + " "
+                        + java.util.Arrays.toString(solution.pragmaticProfile.pronouns) + " "
+                        + java.util.Arrays.toString(solution.pragmaticProfile.binding) + " "
+                        + java.util.Arrays.toString(solution.pragmaticProfile.accommodation)).toList());
+    }
+
+    @Test
     void aBinderDoesNotSuppressAccommodation() throws Exception {
         GswbPcdrsOutput output = readings(PETER_PETER, "s4:y2 POSSIBLE-ANT s1:y1", "s4 POSSIBLE-ACC s0");
         assertEquals(List.of("P:[p(s1,s1),p(s4,s4)]", "P:[p(s1,s1),p(s4,s0)]", "P:[p(s1,s1),p(s4,s0)]"),
                 output.solutions.stream().map(solution -> solution.presuppositionMapping).toList());
         GswbSolution bound = output.solutions.get(2);
         assertTrue(bound.semantic.endsWith("A:[a(s4:y2,y1)],P:[p(s1,s1),p(s4,s0)]"), bound.semantic);
+        // N4: the first Peter accommodated globally (in situ at the top), the second bound there.
+        assertArrayEquals(new int[]{1, 0, 0}, bound.pragmaticProfile.binding);
+        assertArrayEquals(new int[]{1, 0, 0}, bound.pragmaticProfile.accommodation);
+        assertArrayEquals(new int[]{0, 0, 0}, bound.pragmaticProfile.pronouns);
         assertEquals("s1 accommodated at s0; s4 bound at s0 (s4:y2 ↦ s1:y1);"
                 + " renamed s1:y1 → s0:x1, s2:x1 → s0:x2, s5:x2 → s0:x3", bound.collapseReport);
         assertEquals("s1 accommodated at s0; s4 accommodated at s0;"

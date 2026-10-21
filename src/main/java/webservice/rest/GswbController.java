@@ -265,6 +265,11 @@ public class GswbController {
         LOGGER.fine("PCDRS possible-ant candidates: " + candidates + ", possible-acc sites: " + sites);
         List<Reading> readings = readings(drs, candidates, sites);
         LOGGER.info("PCDRS readings: " + readings.size());
+        // Which pronoun-antecedent pairs the rules call bound (one complex condition), and which
+        // A: keys are bind referents rather than pronouns: for each reading's profile (N4).
+        LinkedHashMap<String, LinkedHashSet<String>> boundAntecedents = extractFacts(request.mergedStructure, nodeNames, "BOUND-ANT");
+        Set<String> bindReferents = drs.presuppositions().stream().flatMap(box -> box.bindReferents().stream())
+                .collect(Collectors.toSet());
 
         String parentId = request.parentSolutionId == null || request.parentSolutionId.isBlank()
                 ? "solution"
@@ -301,6 +306,8 @@ public class GswbController {
                 solution.anaphoraRelations = AnaphoraMappingConverter.toDto(mapping);
                 solution.presuppositionMapping = pcdrs.presuppositionMapping.toString();
                 solution.collapseReport = collapse.reportText();
+                solution.pragmaticProfile = profile(reading.anaphora(), bindReferents, boundAntecedents,
+                        collapse.resolutions());
                 solutions.add(solution);
                 LOGGER.fine("PCDRS reading " + id + ": " + semantic + " -- " + solution.collapseReport);
             } catch (IllegalStateException e) {
@@ -320,6 +327,24 @@ public class GswbController {
         GswbPcdrsOutput output = new GswbPcdrsOutput(request.parentSolutionId, solutions);
         output.rejected = rejected;
         return output;
+    }
+
+    /** N4: a reading's choices counted per cell -- pronouns bound (BOUND-ANT), referential or
+     *  unbound; p-boxes bound or accommodated, by the depth of their site. */
+    private static PragmaticProfileDto profile(Map<String, String> anaphora, Set<String> bindReferents,
+                                               Map<String, LinkedHashSet<String>> boundAntecedents,
+                                               List<Collapse.Resolution> resolutions) {
+        PragmaticProfileDto profile = new PragmaticProfileDto();
+        anaphora.forEach((pronoun, antecedent) -> {
+            if (!bindReferents.contains(pronoun)) {
+                profile.pronouns["/".equals(antecedent) ? 2
+                        : boundAntecedents.getOrDefault(pronoun, new LinkedHashSet<>()).contains(antecedent) ? 0 : 1]++;
+            }
+        });
+        for (Collapse.Resolution resolution : resolutions) {
+            (resolution.bound() ? profile.binding : profile.accommodation)[resolution.depth().ordinal()]++;
+        }
+        return profile;
     }
 
     /** A reading's choices (I10): antecedents by pronoun or bind referent, sites by p-box. */
