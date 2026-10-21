@@ -266,12 +266,7 @@ public class LLProver1 extends LLProver {
             return;
         }
 
-        Set<List<Integer>> attestedScopes = new HashSet<>();
-        finalHistories.forEach(history -> attestedScopes.addAll(history.scopePairs));
         for (History solution : finalHistories) {
-            if (!respectsExistentialOrder(solution, attestedScopes)) {
-                continue;
-            }
             int violationCount = relaxed ? insituViolationCount(solution) : 0;
             int surfaceViolations = surfaceOrderViolationCount(solution);
             for (SolutionObject so : solution.calculateSolutions(resultBuilder)) {
@@ -292,19 +287,25 @@ public class LLProver1 extends LLProver {
                 .thenComparingInt(so -> so.surfaceOrderViolations));
     }
 
-    /** Whether two existentials (indefinites, names, definites, pronouns) that take scope directly
-     *  over one another do so in surface order. Their relative scope changes no truth conditions,
-     *  only the order of their states, and that order decides accessibility (PCDRS I4); so only
-     *  the surface order is kept. Checked on immediate pairs: 1 over 3 over 2 fails at 3 over 2,
-     *  although 1 over 3 alone is in order. Pairs with another scoping element between them
-     *  ("a dog" over "every man" over "a cat") are genuine scope and stay, and so does an order
-     *  no derivation reverses ({@code attested}: every final history's scope pairs): "the
-     *  telescope" scoping over "the man" whose restrictor has its variable. */
-    boolean respectsExistentialOrder(History history, Set<List<Integer>> attested) {
+    /** The histories of one chart derivation in which no existential (indefinite, name, definite,
+     *  pronoun) takes scope directly over another against the surface order. Their relative scope
+     *  changes no truth conditions, only the order of their states, and that order decides
+     *  accessibility (PCDRS I4); so only the surface order is kept. Directly over: no scoping
+     *  element between them, in scope or restrictor, so 1 over 3 over 2 fails at 3 over 2, and a
+     *  quantifier between them is genuine scope. Every order of the derivation is here, so an
+     *  order none of them reverses is forced and stays ("the telescope" over "the man" whose
+     *  restrictor has its variable). */
+    List<History> filterExistentialOrder(List<History> histories) {
+        Set<List<Integer>> attested = new HashSet<>();
+        histories.forEach(history -> attested.addAll(history.scopePairs));
+        return histories.stream().filter(history -> respectsExistentialOrder(history, attested)).collect(Collectors.toList());
+    }
+
+    private boolean respectsExistentialOrder(History history, Set<List<Integer>> attested) {
         for (List<Integer> pair : history.scopePairs) {
             Integer outer = pair.get(0);
             Integer inner = pair.get(1);
-            if (!isExistential(outer) || !isExistential(inner) || !immediate(history, outer, inner)
+            if (!isExistential(outer) || !isExistential(inner) || !directlyOver(history, outer, inner)
                     || !attested.contains(List.of(inner, outer))) {
                 continue;
             }
@@ -317,9 +318,13 @@ public class LLProver1 extends LLProver {
         return true;
     }
 
-    private static boolean immediate(History history, Integer outer, Integer inner) {
-        return history.scopePairs.stream().noneMatch(pair -> pair.get(0).equals(outer)
-                && history.scopePairs.contains(List.of(pair.get(1), inner)));
+    /** No scoping element of {@code history} stands between them: {@code outer} outscopes none
+     *  that outscopes {@code inner} or has it in its restrictor ("a cat" over "every man that liked
+     *  a dog" is not over "a dog" directly). */
+    private static boolean directlyOver(History history, Integer outer, Integer inner) {
+        return history.scopePairs.stream().noneMatch(pair -> pair.get(0).equals(outer) && !pair.get(1).equals(inner)
+                && (history.scopePairs.contains(List.of(pair.get(1), inner))
+                    || history.scopeSourceIndices.getOrDefault(pair.get(1), new LinkedHashSet<>()).contains(inner)));
     }
 
     private final Map<Integer, Boolean> existentials = new HashMap<>();
@@ -669,6 +674,7 @@ public class LLProver1 extends LLProver {
                 } else {
                     histories = chartDeduce2(sccAgenda, false);
                 }
+                histories = filterExistentialOrder(histories);
                 if (enforceInsitu) {
                     histories = filterInsituHistories(histories);
                 }
