@@ -361,14 +361,16 @@ public class GswbController {
 
     /**
      * Every reading (I10): one choice for every pronoun -- one of its antecedents, or unbound
-     * ({@code a(x,/)}, always a choice, N3) -- and for every p-box: in situ, another site the rules allow (one per site, I3: the states of one chain
-     * within one segment are one site), or a binder for each of its bind referents. A binder does
-     * not suppress accommodation. The collapse decides which readings stand.
+     * ({@code a(x,/)}, always a choice, N3) -- and for every p-box: in situ, another box the rules
+     * allow (one choice per box: a chain is one box, its segments included, so a later sentence's
+     * top level is the global box), or a binder for each of its bind referents. A binder does not
+     * suppress accommodation. The collapse decides which readings stand.
      */
     private List<Reading> readings(DRS drs, LinkedHashMap<String, LinkedHashSet<String>> antecedents,
                                    LinkedHashMap<String, LinkedHashSet<String>> sites) {
         List<PresuppositionBox> boxes = drs.presuppositions();
         Map<String, String> siteOf = drs.sites();
+        Map<String, String> boxOf = drs.boxes();
         Set<String> bindReferents = boxes.stream().flatMap(box -> box.bindReferents().stream())
                 .collect(Collectors.toSet());
         List<List<Reading>> choicePoints = new ArrayList<>();
@@ -382,11 +384,16 @@ public class GswbController {
         }
         for (PresuppositionBox box : boxes) {
             List<Reading> choices = new ArrayList<>();
-            choices.add(new Reading(new LinkedHashMap<>(), new LinkedHashMap<>(Map.of(box.label(), box.label()))));
-            // In situ is the host's site; every other site once, by its first state.
-            Set<String> offered = new HashSet<>(Set.of(siteOf.getOrDefault(box.host(), box.host()), box.label()));
+            // In situ is the host's box. A host in a later segment of its box (the top level of a
+            // later sentence) names the box's first state: the checks rebase p(s,s) in situ, into
+            // that sentence's own box (I11), where the discourse means the global one.
+            String hostBox = boxOf.getOrDefault(box.host(), box.host());
+            String inSitu = hostBox.equals(siteOf.getOrDefault(box.host(), box.host())) ? box.label() : hostBox;
+            choices.add(new Reading(new LinkedHashMap<>(), new LinkedHashMap<>(Map.of(box.label(), inSitu))));
+            // Every other box once, by its first state.
+            Set<String> offered = new HashSet<>(Set.of(hostBox, box.label()));
             for (String site : sites.getOrDefault(box.label(), new LinkedHashSet<>())) {
-                String first = siteOf.getOrDefault(site, site);
+                String first = boxOf.getOrDefault(site, site);
                 if (offered.add(first)) {
                     choices.add(new Reading(new LinkedHashMap<>(), new LinkedHashMap<>(Map.of(box.label(), first))));
                 }

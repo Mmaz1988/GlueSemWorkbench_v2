@@ -87,9 +87,9 @@ class PcdrsReadingsTest {
     @Test
     void aBinderDoesNotSuppressAccommodation() throws Exception {
         GswbPcdrsOutput output = readings(PETER_PETER, "s4:y2 POSSIBLE-ANT s1:y1", "s4 POSSIBLE-ACC s0");
-        assertEquals(List.of("P:[p(s1,s1),p(s4,s4)]", "P:[p(s1,s1),p(s4,s0)]", "P:[p(s1,s1),p(s4,s0)]"),
+        assertEquals(List.of("P:[p(s1,s1),p(s4,s0)]", "P:[p(s1,s1),p(s4,s0)]"),
                 output.solutions.stream().map(solution -> solution.presuppositionMapping).toList());
-        GswbSolution bound = output.solutions.get(2);
+        GswbSolution bound = output.solutions.get(1);
         assertTrue(bound.semantic.endsWith("A:[a(s4:y2,y1)],P:[p(s1,s1),p(s4,s0)]"), bound.semantic);
         // N4: the first Peter accommodated globally (in situ at the top), the second bound there.
         assertArrayEquals(new int[]{1, 0, 0}, bound.pragmaticProfile.binding);
@@ -98,23 +98,25 @@ class PcdrsReadingsTest {
         assertEquals("s1 accommodated at s0; s4 bound at s0 (s4:y2 ↦ s1:y1);"
                 + " renamed s1:y1 → s0:x1, s2:x1 → s0:x2, s5:x2 → s0:x3", bound.collapseReport);
         assertEquals("s1 accommodated at s0; s4 accommodated at s0;"
-                + " renamed s1:y1 → s0:x1, s4:y2 → s0:x2, s2:x1 → s0:x3, s5:x2 → s0:x4", output.solutions.get(1).collapseReport);
+                + " renamed s1:y1 → s0:x1, s4:y2 → s0:x2, s2:x1 → s0:x3, s5:x2 → s0:x4", output.solutions.get(0).collapseReport);
         assertTrue(output.rejected.isEmpty());
     }
 
     @Test
     void aSiteThatIsTheHostIsInSituOnce() throws Exception {
-        // s1 stands in s0: the rules' s0 is its in-situ reading, not a second one.
+        // s1 stands in s0: the rules' s0 is its in-situ reading, not a second one. s4 stands in
+        // s3, the second sentence's top, which is the global box: in situ is written s0 there, so
+        // the checks rebase it into Q's top box (I11).
         GswbPcdrsOutput output = readings(PETER_PETER, "s1 POSSIBLE-ACC s0");
-        assertEquals(List.of("P:[p(s1,s1),p(s4,s4)]"),
+        assertEquals(List.of("P:[p(s1,s1),p(s4,s0)]"),
                 output.solutions.stream().map(solution -> solution.presuppositionMapping).toList());
     }
 
     @Test
-    void aSiteIsOneChoiceWhicheverOfItsStatesTheRulesName() throws Exception {
-        // s0 and s2 are one site (I3): one reading for both.
+    void aBoxIsOneChoiceWhicheverOfItsStatesTheRulesName() throws Exception {
+        // s0, s2 and s4's host s3 are one box, the global one (I10): one reading for all.
         GswbPcdrsOutput output = readings(PETER_PETER, "s4 POSSIBLE-ACC s0", "s4 POSSIBLE-ACC s2");
-        assertEquals(List.of("P:[p(s1,s1),p(s4,s4)]", "P:[p(s1,s1),p(s4,s0)]"),
+        assertEquals(List.of("P:[p(s1,s1),p(s4,s0)]"),
                 output.solutions.stream().map(solution -> solution.presuppositionMapping).toList());
     }
 
@@ -136,7 +138,8 @@ class PcdrsReadingsTest {
         // "No man smiled. The man laughed.": the man in the negation is off the p-box's path.
         GswbPcdrsOutput output = readings("([],[~(([x1,x2],[man(x1),smile(x2),arg1(x2,x1)]))])"
                 + " ; ([],[p(([x3],[bind(x3),man(x3)]))]) + ([x4],[laugh(x4),arg1(x4,x3)])", "s3:y1 POSSIBLE-ANT s1:x1", "s3 POSSIBLE-ACC s0");
-        assertEquals(List.of("P:[p(s3,s3)]", "P:[p(s3,s0)]"),
+        // In situ at the second sentence's top is the global box: one accommodation reading.
+        assertEquals(List.of("P:[p(s3,s0)]"),
                 output.solutions.stream().map(solution -> solution.presuppositionMapping).toList());
         assertEquals(1, output.rejected.size());
         // Off the pronoun's path a plain x1 names nothing: the rejected reading keeps the states.
