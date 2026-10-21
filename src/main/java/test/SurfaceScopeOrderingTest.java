@@ -35,8 +35,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 // Default solution order: by how far a reading's scope order departs from the surface order.
-// Unlike insitu, this filters nothing -- both readings of the two proper names survive -- it only
-// decides which one comes first. Same 14-MC fixture as InsituScopeOrderingTest, no insitu marks.
+// Unlike insitu, this filters nothing -- both scopings survive -- it only decides which one comes
+// first. The 14-MC fixture of InsituScopeOrderingTest, no insitu marks, with [1] a universal:
+// two existentials would keep only their surface order (ExistentialOrderTest).
 class SurfaceScopeOrderingTest {
 
     private static final List<String> PREMISES = Arrays.asList(
@@ -45,7 +46,7 @@ class SurfaceScopeOrderingTest {
             "[a1] (\\P.(\\Q.(\\e.([d:d],[]) + P@d@e + ([],[~(([v],[]) + Q@d@v)])))) : ((a1_d -o (f11_v -o f11_t)) -o ((a3_d -o (a4_v -o f4_t)) -o (f11_v -o f11_t))) || noscope",
             "[f4] (\\d.(\\e.([],[fast(e,d)]))) : (a3_d -o (a4_v -o f4_t))",
             "[f5] (\\V.(\\x.(\\e.(V@e + ([],[arg1(e,x)]))))) : ((a4_v -o f4_t) -o (f10_e -o (a4_v -o f4_t))) || noscope",
-            "[1] (\\P.(\\Q.([x],[])+P@x+Q@x)) : ((f17_e -o f17_t) -o ((f17_e -o f19_t) -o f19_t))",
+            "[1] (\\P.(\\Q.([],[([x],[])+P@x->Q@x]))) : ((f17_e -o f17_t) -o ((f17_e -o f19_t) -o f19_t))",
             "[2] (\\x.([],[x='pc-6082'])) : (f17_e -o f17_t)",
             "[3] (\\V.(\\x.(\\e.(V@e+([],[arg1(e,x)]))))) : ((g20_v -o g20_t) -o (f17_e -o (g20_v -o g20_t))) || noscope",
             "[4] (\\V.([e],[])+V@e) : ((g20_v -o g20_t) -o f19_t)",

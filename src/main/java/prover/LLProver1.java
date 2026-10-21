@@ -65,6 +65,7 @@ public class LLProver1 extends LLProver {
          this.nonScopingModifiers = new HashSet<>();
          this.scopingModifiers = new HashSet<>();
          this.scope2SourceIndexGroups.clear();
+         this.existentials.clear();
          this.enforceInsitu = true;
         this.discriminants = new HashSet<>();
         this.db = new Debugging();
@@ -265,7 +266,12 @@ public class LLProver1 extends LLProver {
             return;
         }
 
+        Set<List<Integer>> attestedScopes = new HashSet<>();
+        finalHistories.forEach(history -> attestedScopes.addAll(history.scopePairs));
         for (History solution : finalHistories) {
+            if (!respectsExistentialOrder(solution, attestedScopes)) {
+                continue;
+            }
             int violationCount = relaxed ? insituViolationCount(solution) : 0;
             int surfaceViolations = surfaceOrderViolationCount(solution);
             for (SolutionObject so : solution.calculateSolutions(resultBuilder)) {
@@ -284,6 +290,80 @@ public class LLProver1 extends LLProver {
         getSolutions().sort(Comparator
                 .comparingInt((SolutionObject so) -> solutionViolationCounts.getOrDefault(so, 0))
                 .thenComparingInt(so -> so.surfaceOrderViolations));
+    }
+
+    /** Whether two existentials (indefinites, names, definites, pronouns) that take scope directly
+     *  over one another do so in surface order. Their relative scope changes no truth conditions,
+     *  only the order of their states, and that order decides accessibility (PCDRS I4); so only
+     *  the surface order is kept. Checked on immediate pairs: 1 over 3 over 2 fails at 3 over 2,
+     *  although 1 over 3 alone is in order. Pairs with another scoping element between them
+     *  ("a dog" over "every man" over "a cat") are genuine scope and stay, and so does an order
+     *  no derivation reverses ({@code attested}: every final history's scope pairs): "the
+     *  telescope" scoping over "the man" whose restrictor has its variable. */
+    boolean respectsExistentialOrder(History history, Set<List<Integer>> attested) {
+        for (List<Integer> pair : history.scopePairs) {
+            Integer outer = pair.get(0);
+            Integer inner = pair.get(1);
+            if (!isExistential(outer) || !isExistential(inner) || !immediate(history, outer, inner)
+                    || !attested.contains(List.of(inner, outer))) {
+                continue;
+            }
+            Integer outerIndex = realSourceIndex(outer);
+            Integer innerIndex = realSourceIndex(inner);
+            if (outerIndex != null && innerIndex != null && outerIndex > innerIndex) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean immediate(History history, Integer outer, Integer inner) {
+        return history.scopePairs.stream().noneMatch(pair -> pair.get(0).equals(outer)
+                && history.scopePairs.contains(List.of(pair.get(1), inner)));
+    }
+
+    private final Map<Integer, Boolean> existentials = new HashMap<>();
+
+    /** A scoping premise \P.\Q.(... + Q@x): its scope is merged in at the top, not put under an
+     *  operator (every: [A -> Q@x], no: ~(... + Q@x)). Only for LFGxDRT meanings. */
+    private boolean isExistential(Integer premiseId) {
+        if (premiseId == null || agenda == null || premiseId < 0 || premiseId >= agenda.size()) {
+            return false;
+        }
+        return existentials.computeIfAbsent(premiseId, id -> {
+            try {
+                Object term = agenda.get(id).getSemTerm();
+                if (!(term instanceof glueSemantics.semantics.lambda.SemanticExpression expression)) {
+                    return false;
+                }
+                de.ukon.lfgxdrt.SemanticExpression meaning = unwrapped(LfgxDrtSemanticRepresentation.fromGswb(expression, null).getDelegate());
+                if (!(meaning instanceof de.ukon.lfgxdrt.lambda_elements.LambdaFunction restrictor)
+                        || !(unwrapped(restrictor.body) instanceof de.ukon.lfgxdrt.lambda_elements.LambdaFunction scope)) {
+                    return false;
+                }
+                return mergesInScope(scope.body, scope.binder.name);
+            } catch (Exception e) {
+                return false;
+            }
+        });
+    }
+
+    private static boolean mergesInScope(de.ukon.lfgxdrt.SemanticExpression expression, String scope) {
+        expression = unwrapped(expression);
+        if (expression instanceof de.ukon.lfgxdrt.drs_elements.DrsMerge merge) {
+            return mergesInScope(merge.left, scope) || mergesInScope(merge.right, scope);
+        }
+        return expression instanceof de.ukon.lfgxdrt.lambda_elements.FuncApp application
+                && application.function instanceof de.ukon.lfgxdrt.lambda_elements.LambdaVariable variable
+                && variable.name.equals(scope);
+    }
+
+    /** {@code expression} without the brackets the parser keeps around it. */
+    private static de.ukon.lfgxdrt.SemanticExpression unwrapped(de.ukon.lfgxdrt.SemanticExpression expression) {
+        while (expression instanceof de.ukon.lfgxdrt.drs_elements.ScopeExpression brackets) {
+            expression = brackets.scope;
+        }
+        return expression;
     }
 
     /** Scope pairs whose outer element comes later in the sentence than the inner one: 0 when
