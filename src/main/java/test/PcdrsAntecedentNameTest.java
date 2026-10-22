@@ -44,7 +44,7 @@ class PcdrsAntecedentNameTest {
     /** The rule-annotated structure, reduced to what /generate_pcdrs reads from it: NAMEs (as
      *  the graph, and so the PCDRS, numbers referents and states), the states that introduce the
      *  two referents (the cat y1 in s3; "it" x1 in s4, which the person also is, in s1), the POSSIBLE-ANT fact
-     *  and the cat's global site (s3 -> s0). */
+     *  and the cat's sites: its host (s3 -> s2, in situ) and the global one (s3 -> s0). */
     private static LinkedHashMap<String, Object> rulesSayItIsTheCat() {
         List<Object> annotations = new ArrayList<>();
         annotations.add(constraint("d9", "NAME", "y1"));
@@ -55,6 +55,8 @@ class PcdrsAntecedentNameTest {
         annotations.add(constraint("d16", "POSSIBLE-ANT", "d9"));
         annotations.add(constraint("d20", "NAME", "s3"));
         annotations.add(constraint("d21", "NAME", "s0"));
+        annotations.add(constraint("d23", "NAME", "s2"));
+        annotations.add(constraint("d20", "POSSIBLE-ACC", "d23"));
         annotations.add(constraint("d20", "POSSIBLE-ACC", "d21"));
         LinkedHashMap<String, Object> structure = new LinkedHashMap<>();
         structure.put("constraints", new ArrayList<>());
@@ -67,6 +69,7 @@ class PcdrsAntecedentNameTest {
         request.semantic = SEQUENCE;
         request.parentSolutionId = "test";
         request.mergedStructure = rulesSayItIsTheCat();
+        request.rulesApplied = true;
         return new GswbController().generatePcdrs(request);
     }
 

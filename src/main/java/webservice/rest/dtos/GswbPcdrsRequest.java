@@ -15,6 +15,9 @@ public class GswbPcdrsRequest {
     public String collapsedSemantic;
     public String normalizedSemantic;
     public LinkedHashMap<String, Object> mergedStructure;
+    // Whether the post-processing rules ran over mergedStructure (required): with rules, the
+    // readings are what the rules propose; without, the one default reading.
+    public Boolean rulesApplied;
 
     public GswbPcdrsRequest() {
     }

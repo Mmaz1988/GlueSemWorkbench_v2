@@ -238,6 +238,9 @@ public class GswbController {
                 && (request.semantic == null || request.semantic.isBlank()))) {
             throw new IllegalArgumentException("A semantic DRS or canonical graph is required to generate PCDRS solutions.");
         }
+        if (request.rulesApplied == null) {
+            throw new IllegalArgumentException("rulesApplied is required: whether the post-processing rules ran over the structure.");
+        }
 
         LOGGER.info("PCDRS request received: parentSolutionId=" + request.parentSolutionId
                 + ", mergedStructureKeys="
@@ -259,11 +262,26 @@ public class GswbController {
         LOGGER.fine("PCDRS semantic node names: " + nodeNames);
         // The rules' candidates (I5), by the NAME the graph gives referents and states, which is
         // what the PCDRS prints: antecedents of pronouns and bind referents, accommodation sites
-        // of p-boxes.
+        // of p-boxes. Without rules there are none: the default reading.
         LinkedHashMap<String, LinkedHashSet<String>> candidates = extractFacts(request.mergedStructure, nodeNames, "POSSIBLE-ANT");
         LinkedHashMap<String, LinkedHashSet<String>> sites = extractFacts(request.mergedStructure, nodeNames, "POSSIBLE-ACC");
-        LOGGER.fine("PCDRS possible-ant candidates: " + candidates + ", possible-acc sites: " + sites);
-        List<Reading> readings = readings(drs, candidates, sites);
+        LOGGER.fine("PCDRS rulesApplied=" + request.rulesApplied + ", possible-ant candidates: " + candidates
+                + ", possible-acc sites: " + sites);
+        String parentId = request.parentSolutionId == null || request.parentSolutionId.isBlank()
+                ? "solution"
+                : request.parentSolutionId;
+        List<Reading> readings;
+        try {
+            readings = request.rulesApplied ? readings(drs, candidates, sites) : List.of(defaultReading(drs));
+        } catch (IllegalStateException e) {
+            // A p-box the rules give neither a site nor a binder: no reading, and it says why.
+            GswbSolution solution = new GswbSolution(null, parentId + "-pcdrs-1");
+            solution.rejection = e.getMessage();
+            GswbPcdrsOutput output = new GswbPcdrsOutput(request.parentSolutionId, new ArrayList<>());
+            output.rejected = new ArrayList<>(List.of(solution));
+            LOGGER.info("PCDRS readings: none, " + e.getMessage());
+            return output;
+        }
         LOGGER.info("PCDRS readings: " + readings.size());
         // Which pronoun-antecedent pairs the rules call bound (one complex condition), and which
         // A: keys are bind referents rather than pronouns: for each reading's profile (N4).
@@ -271,9 +289,6 @@ public class GswbController {
         Set<String> bindReferents = drs.presuppositions().stream().flatMap(box -> box.bindReferents().stream())
                 .collect(Collectors.toSet());
 
-        String parentId = request.parentSolutionId == null || request.parentSolutionId.isBlank()
-                ? "solution"
-                : request.parentSolutionId;
         List<GswbSolution> solutions = new ArrayList<>();
         List<GswbSolution> rejected = new ArrayList<>();
         // I10: readings with the same collapse and the same P: are one reading.
@@ -361,10 +376,12 @@ public class GswbController {
 
     /**
      * Every reading (I10): one choice for every pronoun -- one of its antecedents, or unbound
-     * ({@code a(x,/)}, always a choice, N3) -- and for every p-box: in situ, another box the rules
-     * allow (one choice per box: a chain is one box, its segments included, so a later sentence's
-     * top level is the global box), or a binder for each of its bind referents. A binder does not
-     * suppress accommodation. The collapse decides which readings stand.
+     * ({@code a(x,/)}, always a choice, N3) -- and for every p-box: a box the rules allow (one
+     * choice per box: a chain is one box, its segments included, so a later sentence's top level
+     * is the global box), in situ when that box is the host's, or a binder for each of its bind
+     * referents. A binder does not suppress accommodation. GSWB adds no site of its own (I5): a
+     * p-box the rules give neither a site nor a binder is an error. The collapse decides which
+     * readings stand.
      */
     private List<Reading> readings(DRS drs, LinkedHashMap<String, LinkedHashSet<String>> antecedents,
                                    LinkedHashMap<String, LinkedHashSet<String>> sites) {
@@ -384,18 +401,16 @@ public class GswbController {
         }
         for (PresuppositionBox box : boxes) {
             List<Reading> choices = new ArrayList<>();
-            // In situ is the host's box. A host in a later segment of its box (the top level of a
-            // later sentence) names the box's first state: the checks rebase p(s,s) in situ, into
-            // that sentence's own box (I11), where the discourse means the global one.
             String hostBox = boxOf.getOrDefault(box.host(), box.host());
-            String inSitu = hostBox.equals(siteOf.getOrDefault(box.host(), box.host())) ? box.label() : hostBox;
-            choices.add(new Reading(new LinkedHashMap<>(), new LinkedHashMap<>(Map.of(box.label(), inSitu))));
-            // Every other box once, by its first state.
-            Set<String> offered = new HashSet<>(Set.of(hostBox, box.label()));
+            String inSitu = inSitu(box, siteOf, boxOf);
+            // Every box the rules allow once, by its first state; the host's is in situ, and first.
+            Set<String> offered = new HashSet<>();
             for (String site : sites.getOrDefault(box.label(), new LinkedHashSet<>())) {
                 String first = boxOf.getOrDefault(site, site);
                 if (offered.add(first)) {
-                    choices.add(new Reading(new LinkedHashMap<>(), new LinkedHashMap<>(Map.of(box.label(), first))));
+                    Reading choice = new Reading(new LinkedHashMap<>(), new LinkedHashMap<>(Map.of(box.label(),
+                            first.equals(hostBox) ? inSitu : first)));
+                    choices.add(first.equals(hostBox) ? 0 : choices.size(), choice);
                 }
             }
             if (!box.bindReferents().isEmpty() && box.bindReferents().stream().allMatch(antecedents::containsKey)) {
@@ -404,6 +419,9 @@ public class GswbController {
                 for (LinkedHashMap<String, String> binding : expandAnaphoraMappings(binders)) {
                     choices.add(new Reading(binding, new LinkedHashMap<>()));
                 }
+            }
+            if (choices.isEmpty()) {
+                throw new IllegalStateException(box.label() + ": the rules give it no accommodation site and no binder");
             }
             choicePoints.add(choices);
         }
@@ -420,6 +438,25 @@ public class GswbController {
         return readings;
     }
 
+
+    /** The reading without post-processing: every p-box in situ, every pronoun unbound (N3). */
+    private static Reading defaultReading(DRS drs) {
+        Map<String, String> siteOf = drs.sites();
+        Map<String, String> boxOf = drs.boxes();
+        LinkedHashMap<String, String> anaphora = new LinkedHashMap<>();
+        drs.pronouns().forEach(pronoun -> anaphora.put(pronoun, "/"));
+        LinkedHashMap<String, String> sites = new LinkedHashMap<>();
+        drs.presuppositions().forEach(box -> sites.put(box.label(), inSitu(box, siteOf, boxOf)));
+        return new Reading(anaphora, sites);
+    }
+
+    /** In situ is the host's box. A host in a later segment of its box (the top level of a later
+     *  sentence) names the box's first state: the checks rebase p(s,s) in situ, into that
+     *  sentence's own box (I11), where the discourse means the global one. */
+    private static String inSitu(PresuppositionBox box, Map<String, String> siteOf, Map<String, String> boxOf) {
+        String hostBox = boxOf.getOrDefault(box.host(), box.host());
+        return hostBox.equals(siteOf.getOrDefault(box.host(), box.host())) ? box.label() : hostBox;
+    }
 
     /** Renders PCDRS branches to the SVG /generate_pcdrs produced for them (see PcdrsRenderer
      *  for which semantic to send), so a client can show rendered branches without persisting

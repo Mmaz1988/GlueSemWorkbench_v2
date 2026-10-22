@@ -15,7 +15,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * I10 (xleplusglue docs/plans/PRESUPPOSITION_PRONOUN_PIPELINE_PLAN.md): a reading is one choice
- * for every p-box -- in situ, another site the rules allow, or a binder -- and every pronoun.
+ * for every p-box -- a site the rules allow (in situ when it is the host's box), or a binder --
+ * and every pronoun. GSWB adds no site of its own (I5); without rules there is one default reading.
  * Every possibility is generated, a binder does not suppress accommodation, P: has an entry for
  * every p-box, and the readings the collapse rejects are returned apart, with the reason.
  */
@@ -43,13 +44,23 @@ class PcdrsReadingsTest {
         return structure;
     }
 
-    private static GswbPcdrsOutput readings(String semantic, String... facts) throws Exception {
+    private static GswbPcdrsRequest request(String semantic, Boolean rulesApplied, String... facts) {
         GswbPcdrsRequest request = new GswbPcdrsRequest();
         request.semantic = semantic;
         request.parentSolutionId = "test";
         request.mergedStructure = facts(facts);
-        return new GswbController().generatePcdrs(request);
+        request.rulesApplied = rulesApplied;
+        return request;
     }
+
+    private static GswbPcdrsOutput readings(String semantic, String... facts) throws Exception {
+        return new GswbController().generatePcdrs(request(semantic, true, facts));
+    }
+
+    /** "Every man saw the dog.": s0, s1 the restrictor, s2 the consequent with the dog's p-box s3
+     *  (y1), s4 the seeing. */
+    private static final String EVERY_MAN_THE_DOG = "([],[([x1],[man(x1)]) -> ([],[p(([y1],[bind(y1),dog(y1)]))])"
+            + " + ([x2],[see(x2),arg1(x2,x1),arg2(x2,y1)])])";
 
     @Test
     void aPresuppositionWhoseContentIsAMergeHasReadings() throws Exception {
@@ -58,7 +69,7 @@ class PcdrsReadingsTest {
         // accommodation takes "him" (x2, in the consequent) out of its scope: rejected (I9).
         GswbPcdrsOutput output = readings("([],[([x1],[man(x1)]) -> ([x2],[ant(x2),male(x2),"
                 + "p(([y1],[bind(y1),dog(y1)]) + ([y2],[like(y2),arg1(y2,y1),arg2(y2,x2)]))])"
-                + " + ([x3],[see(x3),arg1(x3,x1),arg2(x3,y1)])])", "s3 POSSIBLE-ACC s0");
+                + " + ([x3],[see(x3),arg1(x3,x1),arg2(x3,y1)])])", "s3 POSSIBLE-ACC s2", "s3 POSSIBLE-ACC s0");
         assertEquals(List.of("P:[p(s3,s3)]"),
                 output.solutions.stream().map(solution -> solution.presuppositionMapping).toList());
         assertEquals(List.of("P:[p(s3,s0)]"),
@@ -74,7 +85,7 @@ class PcdrsReadingsTest {
         GswbPcdrsOutput output = readings("([],[([x1],[man(x1)]) -> ([x2],[ant(x2),male(x2),"
                 + "p(([y1],[bind(y1),dog(y1)]) + ([y2],[like(y2),arg1(y2,y1),arg2(y2,x2)]))])"
                 + " + ([x3],[see(x3),arg1(x3,x1),arg2(x3,y1)])])",
-                "s2:x2 POSSIBLE-ANT s1:x1", "s2:x2 BOUND-ANT s1:x1", "s3:y1 POSSIBLE-ANT s1:x1");
+                "s2:x2 POSSIBLE-ANT s1:x1", "s2:x2 BOUND-ANT s1:x1", "s3:y1 POSSIBLE-ANT s1:x1", "s3 POSSIBLE-ACC s2");
         assertEquals(List.of(
                         "A:[a(s2:x2,x1)] [1, 0, 0] [0, 0, 0] [0, 0, 1]",
                         "A:[a(s2:x2,/)] [0, 0, 1] [0, 0, 0] [0, 0, 1]"),
@@ -86,7 +97,7 @@ class PcdrsReadingsTest {
 
     @Test
     void aBinderDoesNotSuppressAccommodation() throws Exception {
-        GswbPcdrsOutput output = readings(PETER_PETER, "s4:y2 POSSIBLE-ANT s1:y1", "s4 POSSIBLE-ACC s0");
+        GswbPcdrsOutput output = readings(PETER_PETER, "s1 POSSIBLE-ACC s0", "s4:y2 POSSIBLE-ANT s1:y1", "s4 POSSIBLE-ACC s0");
         assertEquals(List.of("P:[p(s1,s1),p(s4,s0)]", "P:[p(s1,s1),p(s4,s0)]"),
                 output.solutions.stream().map(solution -> solution.presuppositionMapping).toList());
         GswbSolution bound = output.solutions.get(1);
@@ -103,11 +114,11 @@ class PcdrsReadingsTest {
     }
 
     @Test
-    void aSiteThatIsTheHostIsInSituOnce() throws Exception {
-        // s1 stands in s0: the rules' s0 is its in-situ reading, not a second one. s4 stands in
-        // s3, the second sentence's top, which is the global box: in situ is written s0 there, so
-        // the checks rebase it into Q's top box (I11).
-        GswbPcdrsOutput output = readings(PETER_PETER, "s1 POSSIBLE-ACC s0");
+    void aSiteThatIsTheHostIsInSitu() throws Exception {
+        // s1 stands in s0: the rules' s0 is its in-situ reading. s4 stands in s3, the second
+        // sentence's top, which is the global box: in situ is written s0 there, so the checks
+        // rebase it into Q's top box (I11).
+        GswbPcdrsOutput output = readings(PETER_PETER, "s1 POSSIBLE-ACC s0", "s4 POSSIBLE-ACC s3");
         assertEquals(List.of("P:[p(s1,s1),p(s4,s0)]"),
                 output.solutions.stream().map(solution -> solution.presuppositionMapping).toList());
     }
@@ -115,7 +126,7 @@ class PcdrsReadingsTest {
     @Test
     void aBoxIsOneChoiceWhicheverOfItsStatesTheRulesName() throws Exception {
         // s0, s2 and s4's host s3 are one box, the global one (I10): one reading for all.
-        GswbPcdrsOutput output = readings(PETER_PETER, "s4 POSSIBLE-ACC s0", "s4 POSSIBLE-ACC s2");
+        GswbPcdrsOutput output = readings(PETER_PETER, "s1 POSSIBLE-ACC s0", "s4 POSSIBLE-ACC s0", "s4 POSSIBLE-ACC s2");
         assertEquals(List.of("P:[p(s1,s1),p(s4,s0)]"),
                 output.solutions.stream().map(solution -> solution.presuppositionMapping).toList());
     }
@@ -125,7 +136,8 @@ class PcdrsReadingsTest {
         // "Bill saw Bill. Bill smiled.": y3 bound to y2 bound to y1 is y3 bound to y1.
         String bills = "([],[p(([x1],[bind(x1),x1='bill'])),p(([x2],[bind(x2),x2='bill']))]) + ([x3],[see(x3),arg1(x3,x1),arg2(x3,x2)])"
                 + " ; ([],[p(([x4],[bind(x4),x4='bill']))]) + ([x5],[smile(x5),arg1(x5,x4)])";
-        GswbPcdrsOutput output = readings(bills, "s2:y2 POSSIBLE-ANT s1:y1", "s5:y3 POSSIBLE-ANT s1:y1", "s5:y3 POSSIBLE-ANT s2:y2");
+        GswbPcdrsOutput output = readings(bills, "s1 POSSIBLE-ACC s0", "s2 POSSIBLE-ACC s0", "s5 POSSIBLE-ACC s4",
+                "s2:y2 POSSIBLE-ANT s1:y1", "s5:y3 POSSIBLE-ANT s1:y1", "s5:y3 POSSIBLE-ANT s2:y2");
         List<String> anaphora = output.solutions.stream().map(solution -> solution.anaphoraMapping).toList();
         assertTrue(anaphora.contains("A:[a(s2:y2,y1),a(s5:y3,y1)]"), anaphora.toString());
         assertFalse(anaphora.contains("A:[a(s2:y2,y1),a(s5:y3,y2)]"), anaphora.toString());
@@ -151,8 +163,49 @@ class PcdrsReadingsTest {
     void severalBindersGiveSeveralReadings() throws Exception {
         // "A man saw a man. The man smiled."
         GswbPcdrsOutput output = readings("([x1,x2,x3],[man(x1),man(x2),see(x3),arg1(x3,x1),arg2(x3,x2)]) + ([x4],"
-                + "[p(([x5],[bind(x5),man(x5)])),smile(x4),arg1(x4,x5)])", "s2:y1 POSSIBLE-ANT s0:x1", "s2:y1 POSSIBLE-ANT s0:x2");
+                + "[p(([x5],[bind(x5),man(x5)])),smile(x4),arg1(x4,x5)])", "s2 POSSIBLE-ACC s1", "s2:y1 POSSIBLE-ANT s0:x1", "s2:y1 POSSIBLE-ANT s0:x2");
         assertEquals(List.of("", "A:[a(s2:y1,x1)]", "A:[a(s2:y1,x2)]"),
                 output.solutions.stream().map(solution -> solution.anaphoraMapping).toList());
+    }
+
+    @Test
+    void noInSituReadingUnlessTheRulesProposeTheHost() throws Exception {
+        // The rules allow the dog only globally: in situ, in the consequent, is not a reading.
+        GswbPcdrsOutput output = readings(EVERY_MAN_THE_DOG, "s3 POSSIBLE-ACC s0");
+        assertEquals(List.of("P:[p(s3,s0)]"),
+                output.solutions.stream().map(solution -> solution.presuppositionMapping).toList());
+        assertTrue(output.rejected.isEmpty());
+    }
+
+    @Test
+    void inSituComesFirstWhereverTheRulesNameTheHost() throws Exception {
+        GswbPcdrsOutput output = readings(EVERY_MAN_THE_DOG, "s3 POSSIBLE-ACC s0", "s3 POSSIBLE-ACC s2");
+        assertEquals(List.of("P:[p(s3,s3)]", "P:[p(s3,s0)]"),
+                output.solutions.stream().map(solution -> solution.presuppositionMapping).toList());
+    }
+
+    @Test
+    void aPresuppositionTheRulesGiveNoSiteAndNoBinderIsRejected() throws Exception {
+        GswbPcdrsOutput output = readings(EVERY_MAN_THE_DOG);
+        assertTrue(output.solutions.isEmpty());
+        assertEquals(1, output.rejected.size());
+        assertTrue(output.rejected.get(0).rejection.startsWith("s3: "), output.rejected.get(0).rejection);
+    }
+
+    @Test
+    void withoutRulesThereIsTheDefaultReading() throws Exception {
+        // Every p-box in situ, every pronoun unbound; a fact the structure holds is not a rule's.
+        GswbPcdrsOutput output = new GswbController().generatePcdrs(request("([],[([x1],[man(x1)]) -> ([x2],[ant(x2),male(x2),"
+                + "p(([y1],[bind(y1),dog(y1)]))]) + ([x3],[see(x3),arg1(x3,x1),arg2(x3,y1)])])", false, "s3 POSSIBLE-ACC s0",
+                "s2:x2 POSSIBLE-ANT s1:x1"));
+        assertEquals(List.of("A:[a(s2:x2,/)] P:[p(s3,s3)]"),
+                output.solutions.stream().map(solution -> solution.anaphoraMapping + " " + solution.presuppositionMapping).toList());
+    }
+
+    @Test
+    void whetherRulesRanMustBeSaid() {
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
+                () -> new GswbController().generatePcdrs(request(EVERY_MAN_THE_DOG, null, "s3 POSSIBLE-ACC s0")));
+        assertTrue(error.getMessage().contains("rulesApplied"), error.getMessage());
     }
 }
