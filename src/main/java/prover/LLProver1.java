@@ -1294,48 +1294,27 @@ public class LLProver1 extends LLProver {
         return insituViolationCount(history) == 0;
     }
 
+    /** Insitu elements taking scope over an element earlier in the sentence: the history's scope
+     *  pairs (outer, inner) with an insitu outer and an inner that comes earlier. A pair records
+     *  the outer element's own scope, so an insitu element carried in the restrictor of a host
+     *  that takes wide scope ("Kim" in "a dog that liked Kim" over "every man") outscopes
+     *  nothing. Premises without a real SYN-ID (LiGER-contributed MCs) carry no surface order and
+     *  are not compared; assumptions share the SYN-ID of their premise, so they rank as equal. */
     int insituViolationCount(History history) {
         if (history.insituIndices.isEmpty()) {
             return 0;
         }
-
-        // Only premises with a real SYN-ID carry surface-order information. LiGER-contributed MCs
-        // occupy a derivation slot without one (Premise.getSourceIndex() == null), so their agenda
-        // position says nothing about where they sit in the string - the same reasoning as in
-        // resolveRealSourceIndices. Comparing an insitu element against such a premise counts a
-        // violation that no derivation can discharge, which empties the chart and forces the
-        // relaxed retry. Drop them, and order the rest by SYN-ID rather than by agenda position
-        // (the two coincide only as long as no unindexed MC precedes a grammar MC).
-        LinkedHashMap<Integer, Integer> modifierOrder = new LinkedHashMap<>();
-        for (Integer premiseId : history.indexSet) {
-            if (!this.scopingModifiers.contains(premiseId)) {
-                continue;
-            }
-            Integer sourceIndex = realSourceIndex(premiseId);
-            if (sourceIndex == null) {
-                continue;
-            }
-            modifierOrder.put(premiseId, sourceIndex);
-        }
-
-        if (modifierOrder.isEmpty()) {
-            return 0;
-        }
-
         int violations = 0;
-        Set<Integer> seenModifiers = new HashSet<>();
-        for (Map.Entry<Integer, Integer> modifier : modifierOrder.entrySet()) {
-            if (history.insituIndices.contains(modifier.getKey())) {
-                for (Map.Entry<Integer, Integer> leftModifier : modifierOrder.entrySet()) {
-                    if (leftModifier.getValue() < modifier.getValue()
-                            && !seenModifiers.contains(leftModifier.getKey())) {
-                        violations++;
-                    }
-                }
+        for (List<Integer> pair : history.scopePairs) {
+            if (!history.insituIndices.contains(pair.get(0))) {
+                continue;
             }
-            seenModifiers.add(modifier.getKey());
+            Integer outer = realSourceIndex(pair.get(0));
+            Integer inner = realSourceIndex(pair.get(1));
+            if (outer != null && inner != null && inner < outer) {
+                violations++;
+            }
         }
-
         return violations;
     }
 
