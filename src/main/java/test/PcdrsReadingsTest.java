@@ -236,4 +236,20 @@ class PcdrsReadingsTest {
                 .toList();
         assertEquals(content.apply(rendered), content.apply(unrendered));
     }
+
+    @Test
+    void anUnrenderedReadingRendersAgainFromItsSemantic() throws Exception {
+        // What a caller that sent includeSvg=false gets back from /render_pcdrs: its PCDRS, A:
+        // and P: inline, renders to the SVG /generate_pcdrs would have rendered.
+        List<GswbSolution> solutions = new ArrayList<>();
+        solutions.addAll(readings(PETER_PETER, "s1 POSSIBLE-ACC s0", "s4:y2 POSSIBLE-ANT s1:y1", "s4 POSSIBLE-ACC s0").solutions);
+        solutions.addAll(readings(EVERY_MAN_THE_DOG, "s3 POSSIBLE-ACC s0", "s3 POSSIBLE-ACC s1", "s3 POSSIBLE-ACC s2").solutions);
+        solutions.addAll(readings("([x1,x2,x3],[man(x1),man(x2),see(x3),arg1(x3,x1),arg2(x3,x2)]) + ([x4],"
+                + "[p(([x5],[bind(x5),man(x5)])),smile(x4),arg1(x4,x5)])", "s2 POSSIBLE-ACC s1",
+                "s2:y1 POSSIBLE-ANT s0:x1", "s2:y1 POSSIBLE-ANT s0:x2").solutions);
+        assertEquals(8, solutions.size());
+        for (GswbSolution solution : solutions) {
+            assertEquals(solution.solution, webservice.rest.PcdrsRenderer.toSvg(solution.semantic, null), solution.semantic);
+        }
+    }
 }
