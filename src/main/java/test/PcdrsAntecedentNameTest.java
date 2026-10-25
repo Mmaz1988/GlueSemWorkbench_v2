@@ -70,6 +70,7 @@ class PcdrsAntecedentNameTest {
         request.parentSolutionId = "test";
         request.mergedStructure = rulesSayItIsTheCat();
         request.rulesApplied = true;
+        request.includeSvg = true;
         return new GswbController().generatePcdrs(request);
     }
 

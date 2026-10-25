@@ -241,6 +241,9 @@ public class GswbController {
         if (request.rulesApplied == null) {
             throw new IllegalArgumentException("rulesApplied is required: whether the post-processing rules ran over the structure.");
         }
+        if (request.includeSvg == null) {
+            throw new IllegalArgumentException("includeSvg is required: whether the readings are rendered to SVG.");
+        }
 
         LOGGER.info("PCDRS request received: parentSolutionId=" + request.parentSolutionId
                 + ", mergedStructureKeys="
@@ -309,7 +312,7 @@ public class GswbController {
                 String semantic = pcdrs.toString();
                 // As the PCDRS prints it: the pronoun with its state, the antecedent read on its path.
                 String printedMapping = pcdrs.anaphoraMapping == null ? mapping.toString() : pcdrs.anaphoraMapping.toString();
-                String svg = Boolean.FALSE.equals(request.includeSvg) ? null : new DrsSvgRenderer().toSvg(pcdrs);
+                String svg = request.includeSvg ? new DrsSvgRenderer().toSvg(pcdrs) : null;
                 // The collapse renumbers the referents it shares with the PCDRS: print first.
                 Collapse collapse = pcdrs.collapse();
                 if (!meanings.add(collapse.drs().toString() + " " + pcdrs.presuppositionMapping)) {

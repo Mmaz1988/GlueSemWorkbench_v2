@@ -50,6 +50,7 @@ class PcdrsReadingsTest {
         request.parentSolutionId = "test";
         request.mergedStructure = facts(facts);
         request.rulesApplied = rulesApplied;
+        request.includeSvg = true;
         return request;
     }
 
@@ -207,6 +208,15 @@ class PcdrsReadingsTest {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
                 () -> new GswbController().generatePcdrs(request(EVERY_MAN_THE_DOG, null, "s3 POSSIBLE-ACC s0")));
         assertTrue(error.getMessage().contains("rulesApplied"), error.getMessage());
+    }
+
+    @Test
+    void whetherToRenderMustBeSaid() {
+        GswbPcdrsRequest request = request(EVERY_MAN_THE_DOG, true, "s3 POSSIBLE-ACC s0");
+        request.includeSvg = null;
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
+                () -> new GswbController().generatePcdrs(request));
+        assertTrue(error.getMessage().contains("includeSvg"), error.getMessage());
     }
 
     @Test
