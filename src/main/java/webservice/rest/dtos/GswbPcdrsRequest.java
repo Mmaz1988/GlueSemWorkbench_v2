@@ -18,6 +18,10 @@ public class GswbPcdrsRequest {
     // Whether the post-processing rules ran over mergedStructure (required): with rules, the
     // readings are what the rules propose; without, the one default reading.
     public Boolean rulesApplied;
+    // Whether to render each reading to SVG (`solution`). Absent means yes. A caller that
+    // combines readings without showing them sends false; a reading's SVG can be rendered
+    // later from its `semantic` (/render_pcdrs).
+    public Boolean includeSvg;
 
     public GswbPcdrsRequest() {
     }

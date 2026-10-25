@@ -208,4 +208,22 @@ class PcdrsReadingsTest {
                 () -> new GswbController().generatePcdrs(request(EVERY_MAN_THE_DOG, null, "s3 POSSIBLE-ACC s0")));
         assertTrue(error.getMessage().contains("rulesApplied"), error.getMessage());
     }
+
+    @Test
+    void withoutSvgTheReadingsAreTheSameButUnrendered() throws Exception {
+        String[] facts = {"s3 POSSIBLE-ACC s0", "s3 POSSIBLE-ACC s1", "s3 POSSIBLE-ACC s2"};
+        GswbPcdrsOutput rendered = readings(EVERY_MAN_THE_DOG, facts);
+        GswbPcdrsRequest request = request(EVERY_MAN_THE_DOG, true, facts);
+        request.includeSvg = false;
+        GswbPcdrsOutput unrendered = new GswbController().generatePcdrs(request);
+
+        assertEquals(3, rendered.solutions.size());
+        assertTrue(rendered.solutions.stream().allMatch(solution -> solution.solution != null));
+        assertTrue(unrendered.solutions.stream().allMatch(solution -> solution.solution == null));
+        java.util.function.Function<GswbPcdrsOutput, List<String>> content = output -> output.solutions.stream()
+                .map(solution -> solution.id + " " + solution.semantic + " " + solution.anaphoraMapping + " "
+                        + solution.presuppositionMapping + " " + solution.collapseReport)
+                .toList();
+        assertEquals(content.apply(rendered), content.apply(unrendered));
+    }
 }
