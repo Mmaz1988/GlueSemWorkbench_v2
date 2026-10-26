@@ -92,7 +92,7 @@ public class LLProver1 extends LLProver {
         proofBuilder.append(System.lineSeparator());
         proofBuilder.append(System.lineSeparator());
 
-        HashMap<Premise,Set<String>> categoryToPremiseMapping = new HashMap<>();
+        HashMap<Premise,Set<String>> categoryToPremiseMapping = new LinkedHashMap<>();
 
         //Compilation refers to the process of creating first-order LL terms from higher order terms
         //EX: (a -o b) -o c --> {[a], b -o c}
@@ -494,7 +494,7 @@ public class LLProver1 extends LLProver {
 
                 List<CGNode> outputNodes = new ArrayList<>();
                 List<CGNode> inputNodes = new ArrayList<>();
-                Set<History> sccHistories = new HashSet<>();
+                Set<History> sccHistories = new LinkedHashSet<>();
 
                 for (CGNode node : sccKey.vertexSet()) {
 
@@ -612,7 +612,7 @@ public class LLProver1 extends LLProver {
                      * Noscope optimization
                      */
 
-                    HashMap<History, Set<Integer>[]> indexSetComparison = new HashMap<>();
+                    HashMap<History, Set<Integer>[]> indexSetComparison = new LinkedHashMap<>();
                     Set<Integer> usedNonScopingModifiers = new HashSet<>();
 
                     for (History h : histories) {
@@ -711,7 +711,7 @@ public class LLProver1 extends LLProver {
 
                     /*
                     List<History> compressedFinalHistories = CGNode.compressHistories(new ArrayList<>(outputNode.histories));
-                    outputNode.histories = new HashSet<>(compressedFinalHistories);
+                    outputNode.histories = new LinkedHashSet<>(compressedFinalHistories);
 
 
                      */

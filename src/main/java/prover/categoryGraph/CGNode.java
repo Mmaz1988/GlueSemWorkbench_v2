@@ -16,7 +16,7 @@ public class CGNode {
     public String category;
     public Category categoryObject;
     public type nodeType;
-    public Set<History> histories = new HashSet<>();
+    public Set<History> histories = new LinkedHashSet<>();
 
     public CGNode(String category, type nodeType, LLProver prover)
     {
@@ -44,7 +44,7 @@ public class CGNode {
     /*
     public void compressHistories()
     {
-        Set<History> chart = new HashSet<>();
+        Set<History> chart = new LinkedHashSet<>();
         if (histories.size() > 1) {
             List<History> agenda = new ArrayList<>(histories);
 
@@ -60,7 +60,7 @@ public class CGNode {
                         if (!(h1.equals(h2)) && h1.category.toString().equals(h2.category.toString()) &&
                                 h1.indexSet.equals(h2.indexSet) && h1.discharges.equals(h2.discharges) && (h1.requirements.equals(h2.requirements))) {
 
-                            Set<HashMap<Integer, History>> nh = new HashSet<>();
+                            Set<HashMap<Integer, History>> nh = new LinkedHashSet<>();
                             nh.addAll(h1.parents);
                             nh.addAll(h2.parents);
                             h2.parents = nh;
@@ -110,7 +110,7 @@ public class CGNode {
                                     && h1.scopeDiscriminants.equals(h2.scopeDiscriminants)
                                     && h1.insituIndices.equals(h2.insituIndices) ) {
 
-                                Set<HashMap<Integer, History>> nh = new HashSet<>();
+                                Set<HashMap<Integer, History>> nh = new LinkedHashSet<>();
                                 nh.addAll(h1.parents);
                                 nh.addAll(h2.parents);
 
@@ -143,7 +143,7 @@ public class CGNode {
             if (!chart.isEmpty())
             {
                 prover.db.discardedHistories = prover.db.discardedHistories + this.histories.size() - chart.size();
-                this.histories = new HashSet<>(chart);
+                this.histories = new LinkedHashSet<>(chart);
             }
         }
     }

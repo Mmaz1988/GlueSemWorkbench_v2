@@ -103,8 +103,8 @@ public class History {
 
         for (HashMap<Integer,History> parentLinks : parents)
         {
-            Set<Premise> func = new HashSet<>();
-            Set<Premise> arg = new HashSet<>();
+            Set<Premise> func = new LinkedHashSet<>();
+            Set<Premise> arg = new LinkedHashSet<>();
 
 
             if (parentLinks.get(0).p != null)
@@ -170,8 +170,8 @@ public class History {
 
         for (HashMap<Integer,History> parentLinks : parents)
         {
-            Set<Premise> func = new HashSet<>();
-            Set<Premise> arg = new HashSet<>();
+            Set<Premise> func = new LinkedHashSet<>();
+            Set<Premise> arg = new LinkedHashSet<>();
 
             if (parentLinks.get(0).p != null)
             {
