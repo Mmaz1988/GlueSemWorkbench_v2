@@ -631,17 +631,14 @@ public class GswbController {
             String parentId = request.parentSolutionId == null || request.parentSolutionId.isBlank()
                     ? "sequence" : request.parentSolutionId;
             GswbSemanticMergePart lastPart = request.parts.get(request.parts.size() - 1);
-            GswbSolution output = new GswbSolution(
-                    new DrsSvgRenderer().toSvg(displayExpression),
-                    compositeSemanticId(request.parts, parentId),
-                    merged.getSourceIndex(),
-                    resolved.toJson(),
-                    displayExpression.toString());
+            GswbSolution output = new GswbSolution();
+            output.id = compositeSemanticId(request.parts, parentId);
+            output.sourceIndex = merged.getSourceIndex();
             output.solutionKey = request.solutionKey != null
                     ? request.solutionKey : lastPart.syntacticOrigin;
             output.mcSetId = request.mcSetId != null ? request.mcSetId : lastPart.mcSetId;
             output.proofId = lastPart.proofId;
-            output.semanticAnalysis = semanticAnalysis(output, output.solutionKey);
+            output.semanticAnalysis = mergedAnalysis(output, displayExpression, resolved);
             output.synSemMapping.put(compositeSyntaxId(request.parts), List.of(output.id));
             return output;
         }
@@ -682,15 +679,12 @@ public class GswbController {
 
         String parentId = request.parentSolutionId == null || request.parentSolutionId.isBlank()
                 ? "sequence" : request.parentSolutionId;
-        GswbSolution output = new GswbSolution(
-                new DrsSvgRenderer().toSvg(displayExpression),
-                parentId + "-drs-merge",
-                merged.getSourceIndex(),
-                resolved.toJson(),
-                displayExpression.toString());
+        GswbSolution output = new GswbSolution();
+        output.id = parentId + "-drs-merge";
+        output.sourceIndex = merged.getSourceIndex();
         output.solutionKey = request.solutionKey;
         output.mcSetId = request.mcSetId;
-        output.semanticAnalysis = semanticAnalysis(output, output.solutionKey);
+        output.semanticAnalysis = mergedAnalysis(output, displayExpression, resolved);
         if (request.solutionKey != null && !request.solutionKey.isBlank()) {
             output.synSemMapping.put(request.solutionKey, List.of(output.id));
         }
@@ -727,24 +721,18 @@ public class GswbController {
         return legacyParentId + "-drs-merge";
     }
 
-    /** Sequence-merge outputs are LFGxDRT-only by construction (sequencing is only exposed
-     *  for that semantic type), so their SVG (already rendered into solution.solution) and
-     *  semType are unconditional. */
-    private GswbSemanticAnalysis semanticAnalysis(GswbSolution solution, String syntacticOrigin) {
-        return semanticAnalysis(solution, syntacticOrigin, solution.solution, SemanticModel.LFGXDRT.value());
-    }
-
-    private GswbSemanticAnalysis semanticAnalysis(GswbSolution solution, String syntacticOrigin,
-                                                   String svg, String semType) {
-        String semId = solution.id == null ? "semantic" : solution.id;
+    /** A merge's reading, sent once as its semanticAnalysis: the display expression as text
+     *  and SVG, the resolved DRS as graph. LFGxDRT by construction -- sequencing is only
+     *  exposed for that semantic type. */
+    private GswbSemanticAnalysis mergedAnalysis(GswbSolution solution, SemanticExpression display, DRS resolved) {
         return new GswbSemanticAnalysis(
-                syntacticOrigin,
-                semId,
-                solution.semantic,
+                solution.solutionKey,
+                solution.id,
+                display.toString(),
                 null,
-                solution.graph,
-                semType,
-                svg);
+                resolved.toJson(),
+                SemanticModel.LFGXDRT.value(),
+                new DrsSvgRenderer().toSvg(display));
     }
 
     @CrossOrigin
@@ -1259,18 +1247,28 @@ public class GswbController {
         List<GswbSolution> outputSolutions = new ArrayList<>();
         for (Integer idx : solutionsByIndex.keySet().stream().sorted().toList()) {
             SolutionObject so = solutionsByIndex.get(idx);
-            GswbSolution output = new GswbSolution(so.solutionString, so.solutionId, so.sourceIndex, so.graph,
-                    so.semantic);
+            GswbSolution output = new GswbSolution();
+            output.id = so.solutionId;
+            output.sourceIndex = so.sourceIndex;
             output.proofId = so.proofId;
             output.solutionKey = so.solutionKey;
             output.mcSetId = so.mcSetId;
             output.insituViolations = so.insituViolations;
             output.surfaceOrderViolations = so.surfaceOrderViolations;
-            // solutionString is only ever rendered as SVG in LFGxDRT display mode
-            // (applyOptionalSemanticRendering); in prolog-drt mode it's plain DRT/solution text.
-            String svg = isLfgxdrt ? output.solution : null;
-            String semType = isLfgxdrt ? SemanticModel.LFGXDRT.value() : SemanticModel.PROLOG_DRT.value();
-            output.semanticAnalysis = semanticAnalysis(output, so.solutionKey, svg, semType);
+            // The reading is sent once, as its semanticAnalysis. solutionString is SVG only in
+            // LFGxDRT display mode (applyOptionalSemanticRendering); otherwise it is the
+            // reading as text (prolog-drt or a plain output style).
+            output.semanticAnalysis = new GswbSemanticAnalysis(
+                    so.solutionKey,
+                    so.solutionId == null ? "semantic" : so.solutionId,
+                    so.semantic,
+                    null,
+                    so.graph,
+                    isLfgxdrt ? SemanticModel.LFGXDRT.value() : SemanticModel.PROLOG_DRT.value(),
+                    isLfgxdrt ? so.solutionString : null);
+            if (!isLfgxdrt) {
+                output.semanticAnalysis.prologRender = so.solutionString;
+            }
             if (so.solutionKey != null && !so.solutionKey.isBlank()) {
                 output.synSemMapping.put(so.solutionKey, List.of(output.id));
             }

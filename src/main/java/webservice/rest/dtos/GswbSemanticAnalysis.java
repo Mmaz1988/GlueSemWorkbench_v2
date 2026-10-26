@@ -14,6 +14,9 @@ public class GswbSemanticAnalysis {
     public String semType;
     /** Rendered DRS SVG for this solution, when available (LFGxDRT display mode only). */
     public String svg;
+    /** The reading as text, in the display modes that do not render SVG (prolog-drt and the
+     *  plain output styles). */
+    public String prologRender;
 
     public GswbSemanticAnalysis() {
     }

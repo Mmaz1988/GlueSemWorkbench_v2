@@ -3,12 +3,21 @@ package webservice.rest.dtos;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+/**
+ * The wire envelope of one reading. A derived or merged reading (/deduce, /gswb_batch_proof,
+ * /merge_sequence_semantics) travels once, as {@link #semanticAnalysis}; what stays flat on it
+ * belongs to the proof or the merge. A PCDRS reading (a discourse reading) has no
+ * semanticAnalysis and carries {@link #semantic}, {@link #graph} and {@link #solution}.
+ */
 public class GswbSolution {
 
+    /** A PCDRS reading's SVG, when rendered. */
     public String solution;
     public String id;
     public Integer sourceIndex;
+    /** A PCDRS reading's graph. */
     public LinkedHashMap<String, Object> graph;
+    /** A PCDRS reading as text. */
     public String semantic;
     public String anaphoraMapping;
     public List<AnaphoraRelationDto> anaphoraRelations;
