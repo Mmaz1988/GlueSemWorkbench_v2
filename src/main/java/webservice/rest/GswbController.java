@@ -610,8 +610,12 @@ public class GswbController {
                 if (part == null || (part.graph == null && (part.semantic == null || part.semantic.isBlank()))) {
                     throw new IllegalArgumentException("Every sequence part requires a semantic graph or semantic text");
                 }
+                if (part.graph == null && part.sourceIndexOffset != 0) {
+                    throw new IllegalArgumentException("A sequence part with a sourceIndexOffset requires its"
+                            + " semantic graph: the semantic text carries no source indices to move");
+                }
                 SemanticExpression expression = part.graph != null
-                        ? DrsGraphParser.parse(part.graph)
+                        ? DrsGraphParser.parse(withSourceIndexOffset(part.graph, part.sourceIndexOffset))
                         : new DrsParser().parse(part.semantic).expression;
                 expressions.add(expression);
                 LOGGER.fine("Sequence part reconstructed: source=" + expression.getSourceIndex()
@@ -689,6 +693,46 @@ public class GswbController {
             output.synSemMapping.put(request.solutionKey, List.of(output.id));
         }
         return output;
+    }
+
+    /** {@code graph} with every node's {@code SRC iN}, and the graph's {@code sourceIndex},
+     *  moved by {@code offset}: within a sequence a sentence's meaning constructors are its own
+     *  with their indices shifted by the part's offset (LiGER's {@code shiftSourceIndexes}), and
+     *  a derived reading carries that index nowhere else. A copy; the request is left as sent. */
+    @SuppressWarnings("unchecked")
+    static LinkedHashMap<String, Object> withSourceIndexOffset(LinkedHashMap<String, Object> graph, int offset) {
+        if (offset == 0) {
+            return graph;
+        }
+        LinkedHashMap<String, Object> moved = new LinkedHashMap<>(graph);
+        if (graph.get("nodes") instanceof List<?> nodes) {
+            List<Object> movedNodes = new ArrayList<>();
+            for (Object node : nodes) {
+                if (node instanceof Map<?, ?> values && values.get("avp") instanceof Map<?, ?> avp
+                        && avp.get("SRC") != null) {
+                    LinkedHashMap<String, Object> movedAvp = new LinkedHashMap<>((Map<String, Object>) avp);
+                    movedAvp.put("SRC", movedSourceIndex(avp.get("SRC"), offset));
+                    LinkedHashMap<String, Object> movedNode = new LinkedHashMap<>((Map<String, Object>) values);
+                    movedNode.put("avp", movedAvp);
+                    movedNodes.add(movedNode);
+                } else {
+                    movedNodes.add(node);
+                }
+            }
+            moved.put("nodes", movedNodes);
+        }
+        if (graph.get("sourceIndex") != null) {
+            moved.put("sourceIndex", movedSourceIndex(graph.get("sourceIndex"), offset));
+        }
+        return moved;
+    }
+
+    private static String movedSourceIndex(Object value, int offset) {
+        String index = String.valueOf(value);
+        if (!index.matches("i\\d+")) {
+            throw new IllegalArgumentException("Cannot move source index '" + index + "': not of the form iN");
+        }
+        return "i" + (Integer.parseInt(index.substring(1)) + offset);
     }
 
     private SemanticExpression mergeForDisplay(List<SemanticExpression> expressions, boolean resolveEach) {

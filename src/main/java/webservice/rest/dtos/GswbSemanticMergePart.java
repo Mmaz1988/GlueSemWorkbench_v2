@@ -17,6 +17,12 @@ public class GswbSemanticMergePart {
     public String semantic;
     /** Canonical LFGxDRT graph. This is the merge input. */
     public LinkedHashMap<String, Object> graph;
+    /** Added to every {@code SRC iN} of {@link #graph}, and to its {@code sourceIndex}, before
+     *  the merge: a sentence's reading derived on its own, appended to a discourse, has its
+     *  indices where the sequence has them. The value is the part's {@code sourceIndexOffset}
+     *  from LiGER's {@code sequenceParts}; 0 (the default) for a part already numbered in the
+     *  sequence, such as the discourse it is appended to. */
+    public int sourceIndexOffset;
     public LinkedHashMap<String, Object> provenance = new LinkedHashMap<>();
 
     public GswbSemanticMergePart() {
