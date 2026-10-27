@@ -50,6 +50,17 @@ class CollapseAndTptpBatchTest {
         assertTrue(result.unresolvedPronouns.isEmpty());
     }
 
+    @Test
+    void aPronounTheReadingLeavesUnboundIsNotUnresolved() throws Exception {
+        // N3: a(x4,/) is the reading's choice -- a new referent all the same, not reported.
+        GswbTptpBatchResult result = translate(",A:[a(x4,/)]");
+
+        assertNull(result.rejection);
+        assertFalse(result.tptp.contains("ant("), result.tptp);
+        assertFalse(result.tptp.contains("="), result.tptp);
+        assertTrue(result.unresolvedPronouns.isEmpty(), result.unresolvedPronouns.toString());
+    }
+
     /** A DRS whose merge sits inside a condition -- the antecedent of "every", unresolved
      *  because chat sends the prior with resolveDrs off -- is translated with the merge
      *  resolved, not rejected (2026-10-06: "DrsMerge does not support TPTP translation

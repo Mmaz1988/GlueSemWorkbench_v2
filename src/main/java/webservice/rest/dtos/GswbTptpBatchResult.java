@@ -20,9 +20,10 @@ public class GswbTptpBatchResult {
     /** What the collapse did (I7.6). */
     public String collapseReport;
     /**
-     * Pronouns in this item the mapping did not bind, as they are named in {@link #semantic}.
-     * Their ant(x) marker was dropped, so each is a new referent, equal to no other. Empty on a
-     * fully resolved item. Clients must surface it.
+     * Pronouns in this item the mapping says nothing about, as they are named in
+     * {@link #semantic}. Their ant(x) marker was dropped, so each is a new referent, equal to no
+     * other. A pronoun the reading leaves unbound (a(x,/)) is its choice, not listed. Empty on
+     * a fully resolved item. Clients must surface it.
      */
     public List<String> unresolvedPronouns = List.of();
 

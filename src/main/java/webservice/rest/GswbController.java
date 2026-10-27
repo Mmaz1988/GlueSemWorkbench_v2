@@ -324,6 +324,7 @@ public class GswbController {
                 solution.anaphoraRelations = AnaphoraMappingConverter.toDto(mapping);
                 solution.presuppositionMapping = pcdrs.presuppositionMapping.toString();
                 solution.collapseReport = collapse.reportText();
+                solution.collapseSteps = steps(collapse);
                 solution.pragmaticProfile = profile(reading.anaphora(), bindReferents, boundAntecedents,
                         collapse.resolutions());
                 solutions.add(solution);
@@ -363,6 +364,26 @@ public class GswbController {
             (resolution.bound() ? profile.binding : profile.accommodation)[resolution.depth().ordinal()]++;
         }
         return profile;
+    }
+
+    private static CollapseStepsDto steps(Collapse collapse) {
+        CollapseStepsDto steps = new CollapseStepsDto();
+        for (Collapse.Resolution resolution : collapse.resolutions()) {
+            CollapseStepsDto.Resolution dto = new CollapseStepsDto.Resolution();
+            dto.presupposition = resolution.presupposition();
+            dto.bound = resolution.bound();
+            dto.site = resolution.site();
+            dto.depth = resolution.depth().name();
+            dto.bindings = renamings(resolution.bindings());
+            steps.resolutions.add(dto);
+        }
+        steps.renamed = renamings(collapse.renamed());
+        return steps;
+    }
+
+    private static List<CollapseStepsDto.Renaming> renamings(List<Collapse.Renaming> renamings) {
+        return renamings.stream().map(renaming -> new CollapseStepsDto.Renaming(renaming.from(), renaming.to()))
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     /** A reading's choices (I10): antecedents by pronoun or bind referent, sites by p-box. */
@@ -511,6 +532,7 @@ public class GswbController {
             result = new GswbSolution(new DrsSvgRenderer().toSvg(collapse.drs()), parentId + "-collapsed",
                     collapse.drs().getSourceIndex(), null, collapse.drs().toString());
             result.collapseReport = collapse.reportText();
+            result.collapseSteps = steps(collapse);
         } catch (IllegalStateException e) {
             // I7: the reading is rejected, and says why; nothing falls back to another one.
             result = new GswbSolution(null, parentId + "-collapsed");
@@ -564,7 +586,7 @@ public class GswbController {
                 result.anaphoraMapping = reading.anaphoraMapping == null ? null : reading.anaphoraMapping.toString();
                 result.presuppositionMapping = reading.presuppositionMapping == null ? null
                         : reading.presuppositionMapping.toString();
-                // A pronoun the reading does not bind is read as a new referent (I7.4); named here.
+                // A pronoun the reading says nothing about is read as a new referent (I7.4); named here.
                 List<DiscourseReferent> unresolved = new ArrayList<>();
                 DRS marked = reading.withoutUnmappedAnaphora(unresolved);
                 result.unresolvedPronouns = unresolved.stream().map(DiscourseReferent::toSimpleString).toList();

@@ -25,6 +25,8 @@ public class GswbSolution {
     public String presuppositionMapping;
     /** What collapsing the reading does (I7.6), e.g. "s1 accommodated at s0; s3 bound at s0 (x3 ↦ x1)". */
     public String collapseReport;
+    /** The same as data, for the client's tables (N4 6g). */
+    public CollapseStepsDto collapseSteps;
     /** A PCDRS reading's choices counted by kind and depth, for ordering readings (N4). */
     public PragmaticProfileDto pragmaticProfile;
     /** Why the collapse rejects this reading; set instead of a solution. */

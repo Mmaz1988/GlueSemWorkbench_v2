@@ -2,6 +2,7 @@ package test;
 
 import org.junit.jupiter.api.Test;
 import webservice.rest.GswbController;
+import webservice.rest.dtos.CollapseStepsDto;
 import webservice.rest.dtos.AnaphoraRelationDto;
 import webservice.rest.dtos.GswbCollapseAnaphoraRequest;
 import webservice.rest.dtos.GswbPcdrsOutput;
@@ -117,6 +118,13 @@ class PcdrsAntecedentNameTest {
         assertTrue(collapsed.semantic.contains("x2=x1"), collapsed.semantic);
         assertFalse(collapsed.semantic.contains("ant("), collapsed.semantic);
         assertEquals(CAT_GLOBAL, collapsed.collapseReport);
+        // The same as data (N4 6g): the cat's p-box, then the renamings.
+        assertEquals(1, collapsed.collapseSteps.resolutions.size());
+        CollapseStepsDto.Resolution cat = collapsed.collapseSteps.resolutions.get(0);
+        assertEquals(java.util.List.of("s3", "false", "s0", "GLOBAL", "0"), java.util.List.of(cat.presupposition,
+                String.valueOf(cat.bound), cat.site, cat.depth, String.valueOf(cat.bindings.size())));
+        assertEquals(CAT_GLOBAL.substring(CAT_GLOBAL.indexOf("renamed ") + "renamed ".length()),
+                String.join(", ", collapsed.collapseSteps.renamed.stream().map(r -> r.from + " → " + r.to).toList()));
     }
 
     @Test
