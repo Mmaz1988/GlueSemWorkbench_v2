@@ -29,17 +29,21 @@ class PcdrsReadingsTest {
     private static final String PETER_PETER = "([],[p(([x1],[bind(x1),x1='peter']))]) + ([x2],[smile(x2),arg1(x2,x1)])"
             + " ; ([],[p(([x3],[bind(x3),x3='peter']))]) + ([x4],[laugh(x4),arg1(x4,x3)])";
 
-    /** Facts as LiGER returns them: node d<name> is named <name>; {@code unbound} is a value. */
+    /** Facts as LiGER returns them: node d<name> is named <name>. {@code x POSSIBLE-ANT unbound}
+     *  stands for the rules' {@code x POSSIBLE-ANT u & u UNBOUND true}, u a node without a name. */
     private static LinkedHashMap<String, Object> facts(String... relations) {
         List<Object> annotations = new ArrayList<>();
         for (String relation : relations) {
             String[] parts = relation.split(" ");
-            boolean value = parts[2].equals("unbound");
-            for (String name : value ? List.of(parts[0]) : List.of(parts[0], parts[2])) {
+            boolean unbound = parts[2].equals("unbound");
+            for (String name : unbound ? List.of(parts[0]) : List.of(parts[0], parts[2])) {
                 annotations.add(Map.of("sourceNode", "d" + name, "relationLabel", "NAME", "targetNode", name));
             }
-            annotations.add(Map.of("sourceNode", "d" + parts[0], "relationLabel", parts[1],
-                    "targetNode", value ? parts[2] : "d" + parts[2]));
+            String target = unbound ? "u" + parts[0] : "d" + parts[2];
+            annotations.add(Map.of("sourceNode", "d" + parts[0], "relationLabel", parts[1], "targetNode", target));
+            if (unbound) {
+                annotations.add(Map.of("sourceNode", target, "relationLabel", "UNBOUND", "targetNode", "true"));
+            }
         }
         LinkedHashMap<String, Object> structure = new LinkedHashMap<>();
         structure.put("constraints", new ArrayList<>());

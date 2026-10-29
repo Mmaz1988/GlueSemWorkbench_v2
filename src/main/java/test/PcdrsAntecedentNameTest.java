@@ -54,7 +54,8 @@ class PcdrsAntecedentNameTest {
         annotations.add(constraint("d20", "IN", "d9"));
         annotations.add(constraint("d22", "IN", "d16"));
         annotations.add(constraint("d16", "POSSIBLE-ANT", "d9"));
-        annotations.add(constraint("d16", "POSSIBLE-ANT", "unbound"));
+        annotations.add(constraint("d16", "POSSIBLE-ANT", "d30"));
+        annotations.add(constraint("d30", "UNBOUND", "true"));
         annotations.add(constraint("d20", "NAME", "s3"));
         annotations.add(constraint("d21", "NAME", "s0"));
         annotations.add(constraint("d23", "NAME", "s2"));

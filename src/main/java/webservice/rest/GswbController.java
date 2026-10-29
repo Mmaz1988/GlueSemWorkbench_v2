@@ -401,7 +401,7 @@ public class GswbController {
 
     /**
      * Every reading (I10): one choice for every pronoun -- one of the resolutions the rules give
-     * it, an antecedent or unbound ({@code x POSSIBLE-ANT unbound}, {@code a(x,/)}; N3) -- and for every p-box: a box the rules allow (one
+     * it, an antecedent or unbound ({@code x POSSIBLE-ANT u}, {@code u UNBOUND true}: {@code a(x,/)}; N3) -- and for every p-box: a box the rules allow (one
      * choice per box: a chain is one box, its segments included, so a later sentence's top level
      * is the global box), in situ when that box is the host's, or a binder for each of its bind
      * referents. A binder does not suppress accommodation. GSWB adds no resolution of its own
@@ -1427,24 +1427,29 @@ public class GswbController {
     }
 
     /** The {@code relation} facts of a structure, source NAME -> target NAMEs in the order found. */
-    /** The value a rule gives a pronoun that may stay unbound ({@code #a POSSIBLE-ANT unbound}). */
-    private static final String UNBOUND = "unbound";
+    /** Marks the node a rule makes a pronoun's antecedent when it may stay unbound
+     *  ({@code #a POSSIBLE-ANT #u & #u UNBOUND true}): a node, as a value would overwrite the
+     *  pronoun's other antecedents (LiGER attributes take one value), one per pronoun. */
+    private static final String UNBOUND = "UNBOUND";
 
     private LinkedHashMap<String, LinkedHashSet<String>> extractFacts(
             Map<String, Object> structure, Map<String, String> nodeNames, String relation) {
+        Set<String> unbound = new HashSet<>();
+        forEachFact(structure, UNBOUND, (sourceId, targetId) -> unbound.add(sourceId));
         LinkedHashMap<String, LinkedHashSet<String>> candidates = new LinkedHashMap<>();
-        collectFacts(structure, nodeNames, relation, candidates);
+        collectFacts(structure, nodeNames, unbound, relation, candidates);
         return candidates;
     }
 
-    /** By the NAMEs of source and target; the target {@code unbound} is the antecedent "/". */
+    /** By the NAMEs of source and target; a target marked {@link #UNBOUND} is the antecedent "/". */
     private void collectFacts(Object value,
                               Map<String, String> nodeNames,
+                              Set<String> unbound,
                               String wanted,
                               LinkedHashMap<String, LinkedHashSet<String>> candidates) {
         forEachFact(value, wanted, (sourceId, targetId) -> {
             String sourceName = nodeNames.get(sourceId);
-            String targetName = UNBOUND.equals(targetId.replace("'", "")) ? "/" : nodeNames.get(targetId);
+            String targetName = unbound.contains(targetId) ? "/" : nodeNames.get(targetId);
             if (sourceName == null || targetName == null) {
                 LOGGER.warning("Ignoring " + wanted + " without NAME features: source="
                         + sourceId + ", target=" + targetId);
