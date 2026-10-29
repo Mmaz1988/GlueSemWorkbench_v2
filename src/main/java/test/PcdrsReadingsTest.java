@@ -16,7 +16,8 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * I10 (xleplusglue docs/plans/PRESUPPOSITION_PRONOUN_PIPELINE_PLAN.md): a reading is one choice
  * for every p-box -- a site the rules allow (in situ when it is the host's box), or a binder --
- * and every pronoun. GSWB adds no site of its own (I5); without rules there is one default reading.
+ * and every pronoun -- a resolution the rules give it, an antecedent or unbound. GSWB adds
+ * no resolution of its own (I5); without rules there is one default reading.
  * Every possibility is generated, a binder does not suppress accommodation, P: has an entry for
  * every p-box, and the readings the collapse rejects are returned apart, with the reason.
  */
@@ -28,15 +29,17 @@ class PcdrsReadingsTest {
     private static final String PETER_PETER = "([],[p(([x1],[bind(x1),x1='peter']))]) + ([x2],[smile(x2),arg1(x2,x1)])"
             + " ; ([],[p(([x3],[bind(x3),x3='peter']))]) + ([x4],[laugh(x4),arg1(x4,x3)])";
 
-    /** Facts as LiGER returns them: node d<name> is named <name>. */
+    /** Facts as LiGER returns them: node d<name> is named <name>; {@code unbound} is a value. */
     private static LinkedHashMap<String, Object> facts(String... relations) {
         List<Object> annotations = new ArrayList<>();
         for (String relation : relations) {
             String[] parts = relation.split(" ");
-            for (String name : List.of(parts[0], parts[2])) {
+            boolean value = parts[2].equals("unbound");
+            for (String name : value ? List.of(parts[0]) : List.of(parts[0], parts[2])) {
                 annotations.add(Map.of("sourceNode", "d" + name, "relationLabel", "NAME", "targetNode", name));
             }
-            annotations.add(Map.of("sourceNode", "d" + parts[0], "relationLabel", parts[1], "targetNode", "d" + parts[2]));
+            annotations.add(Map.of("sourceNode", "d" + parts[0], "relationLabel", parts[1],
+                    "targetNode", value ? parts[2] : "d" + parts[2]));
         }
         LinkedHashMap<String, Object> structure = new LinkedHashMap<>();
         structure.put("constraints", new ArrayList<>());
@@ -70,7 +73,8 @@ class PcdrsReadingsTest {
         // accommodation takes "him" (x2, in the consequent) out of its scope: rejected (I9).
         GswbPcdrsOutput output = readings("([],[([x1],[man(x1)]) -> ([x2],[ant(x2),male(x2),"
                 + "p(([y1],[bind(y1),dog(y1)]) + ([y2],[like(y2),arg1(y2,y1),arg2(y2,x2)]))])"
-                + " + ([x3],[see(x3),arg1(x3,x1),arg2(x3,y1)])])", "s3 POSSIBLE-ACC s2", "s3 POSSIBLE-ACC s0");
+                + " + ([x3],[see(x3),arg1(x3,x1),arg2(x3,y1)])])", "s3 POSSIBLE-ACC s2", "s3 POSSIBLE-ACC s0",
+                "s2:x2 POSSIBLE-ANT unbound");
         assertEquals(List.of("P:[p(s3,s3)]"),
                 output.solutions.stream().map(solution -> solution.presuppositionMapping).toList());
         assertEquals(List.of("P:[p(s3,s0)]"),
@@ -86,7 +90,8 @@ class PcdrsReadingsTest {
         GswbPcdrsOutput output = readings("([],[([x1],[man(x1)]) -> ([x2],[ant(x2),male(x2),"
                 + "p(([y1],[bind(y1),dog(y1)]) + ([y2],[like(y2),arg1(y2,y1),arg2(y2,x2)]))])"
                 + " + ([x3],[see(x3),arg1(x3,x1),arg2(x3,y1)])])",
-                "s2:x2 POSSIBLE-ANT s1:x1", "s2:x2 BOUND-ANT s1:x1", "s3:y1 POSSIBLE-ANT s1:x1", "s3 POSSIBLE-ACC s2");
+                "s2:x2 POSSIBLE-ANT s1:x1", "s2:x2 BOUND-ANT s1:x1", "s2:x2 POSSIBLE-ANT unbound",
+                "s3:y1 POSSIBLE-ANT s1:x1", "s3 POSSIBLE-ACC s2");
         assertEquals(List.of(
                         "A:[a(s2:x2,x1)] [1, 0, 0] [0, 0, 0] [0, 0, 1]",
                         "A:[a(s2:x2,/)] [0, 0, 1] [0, 0, 0] [0, 0, 1]"),
@@ -94,6 +99,40 @@ class PcdrsReadingsTest {
                         + java.util.Arrays.toString(solution.pragmaticProfile.pronouns) + " "
                         + java.util.Arrays.toString(solution.pragmaticProfile.binding) + " "
                         + java.util.Arrays.toString(solution.pragmaticProfile.accommodation)).toList());
+    }
+
+    /** "A man appeared. He smiled.": the man (s0:x1), "he" (s1:x3). */
+    private static final String A_MAN_HE = "([x1,x2],[man(x1),appear(x2),arg1(x2,x1)]) ; ([x3,x4],[ant(x3),male(x3),smile(x4),arg1(x4,x3)])";
+
+    private static List<String> anaphora(GswbPcdrsOutput output) {
+        return output.solutions.stream().map(solution -> solution.anaphoraMapping).toList();
+    }
+
+    @Test
+    void aPronounTheRulesLetStayUnboundHasThatReadingToo() throws Exception {
+        GswbPcdrsOutput output = readings(A_MAN_HE, "s1:x3 POSSIBLE-ANT s0:x1", "s1:x3 POSSIBLE-ANT unbound");
+        assertEquals(List.of("A:[a(s1:x3,x1)]", "A:[a(s1:x3,/)]"), anaphora(output));
+    }
+
+    @Test
+    void aPronounTheRulesDoNotLetStayUnboundIsBound() throws Exception {
+        // A reflexive: the rules give its binder, not unbound.
+        GswbPcdrsOutput output = readings(A_MAN_HE, "s1:x3 POSSIBLE-ANT s0:x1");
+        assertEquals(List.of("A:[a(s1:x3,x1)]"), anaphora(output));
+    }
+
+    @Test
+    void aPronounTheRulesOnlyLetStayUnboundIsUnbound() throws Exception {
+        GswbPcdrsOutput output = readings(A_MAN_HE, "s1:x3 POSSIBLE-ANT unbound");
+        assertEquals(List.of("A:[a(s1:x3,/)]"), anaphora(output));
+    }
+
+    @Test
+    void aPronounTheRulesGiveNoResolutionIsRejected() throws Exception {
+        GswbPcdrsOutput output = readings(A_MAN_HE);
+        assertTrue(output.solutions.isEmpty());
+        assertEquals(1, output.rejected.size());
+        assertTrue(output.rejected.get(0).rejection.startsWith("s1:x3: "), output.rejected.get(0).rejection);
     }
 
     @Test

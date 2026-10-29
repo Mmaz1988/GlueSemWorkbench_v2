@@ -44,8 +44,8 @@ class PcdrsAntecedentNameTest {
 
     /** The rule-annotated structure, reduced to what /generate_pcdrs reads from it: NAMEs (as
      *  the graph, and so the PCDRS, numbers referents and states), the states that introduce the
-     *  two referents (the cat y1 in s3; "it" x1 in s4, which the person also is, in s1), the POSSIBLE-ANT fact
-     *  and the cat's sites: its host (s3 -> s2, in situ) and the global one (s3 -> s0). */
+     *  two referents (the cat y1 in s3; "it" x1 in s4, which the person also is, in s1), the POSSIBLE-ANT facts
+     *  (the cat, and unbound) and the cat's sites: its host (s3 -> s2, in situ) and the global one (s3 -> s0). */
     private static LinkedHashMap<String, Object> rulesSayItIsTheCat() {
         List<Object> annotations = new ArrayList<>();
         annotations.add(constraint("d9", "NAME", "y1"));
@@ -54,6 +54,7 @@ class PcdrsAntecedentNameTest {
         annotations.add(constraint("d20", "IN", "d9"));
         annotations.add(constraint("d22", "IN", "d16"));
         annotations.add(constraint("d16", "POSSIBLE-ANT", "d9"));
+        annotations.add(constraint("d16", "POSSIBLE-ANT", "unbound"));
         annotations.add(constraint("d20", "NAME", "s3"));
         annotations.add(constraint("d21", "NAME", "s0"));
         annotations.add(constraint("d23", "NAME", "s2"));
@@ -82,7 +83,7 @@ class PcdrsAntecedentNameTest {
         assertEquals(1, output.rejected.size());
         assertEquals("P:[p(s3,s3)]", output.rejected.get(0).presuppositionMapping);
         assertNotNull(output.rejected.get(0).rejection);
-        // "it" unbound is a choice too (N3): with the cat in situ or global.
+        // The rules let "it" stay unbound too (N3): with the cat in situ or global.
         assertEquals(java.util.List.of("A:[a(s4:x1,y1)] P:[p(s3,s0)]", "A:[a(s4:x1,/)] P:[p(s3,s3)]",
                         "A:[a(s4:x1,/)] P:[p(s3,s0)]"),
                 output.solutions.stream().map(s -> s.anaphoraMapping + " " + s.presuppositionMapping).toList());

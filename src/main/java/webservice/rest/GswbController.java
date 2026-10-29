@@ -277,7 +277,8 @@ public class GswbController {
         try {
             readings = request.rulesApplied ? readings(drs, candidates, sites) : List.of(defaultReading(drs));
         } catch (IllegalStateException e) {
-            // A p-box the rules give neither a site nor a binder: no reading, and it says why.
+            // A p-box the rules give neither a site nor a binder, or a pronoun no resolution:
+            // no reading, and it says why.
             GswbSolution solution = new GswbSolution(null, parentId + "-pcdrs-1");
             solution.rejection = e.getMessage();
             GswbPcdrsOutput output = new GswbPcdrsOutput(request.parentSolutionId, new ArrayList<>());
@@ -399,13 +400,12 @@ public class GswbController {
     }
 
     /**
-     * Every reading (I10): one choice for every pronoun -- one of its antecedents, or unbound
-     * ({@code a(x,/)}, always a choice, N3) -- and for every p-box: a box the rules allow (one
+     * Every reading (I10): one choice for every pronoun -- one of the resolutions the rules give
+     * it, an antecedent or unbound ({@code x POSSIBLE-ANT unbound}, {@code a(x,/)}; N3) -- and for every p-box: a box the rules allow (one
      * choice per box: a chain is one box, its segments included, so a later sentence's top level
      * is the global box), in situ when that box is the host's, or a binder for each of its bind
-     * referents. A binder does not suppress accommodation. GSWB adds no site of its own (I5): a
-     * p-box the rules give neither a site nor a binder is an error. The collapse decides which
-     * readings stand.
+     * referents. A binder does not suppress accommodation. GSWB adds no resolution of its own
+     * (I5): a p-box the rules give neither a site nor a binder, or a pronoun no resolution, is an error. The collapse decides which readings stand.
      */
     private List<Reading> readings(DRS drs, LinkedHashMap<String, LinkedHashSet<String>> antecedents,
                                    LinkedHashMap<String, LinkedHashSet<String>> sites) {
@@ -419,7 +419,9 @@ public class GswbController {
         antecedents.keySet().stream().filter(name -> !bindReferents.contains(name)).forEach(pronouns::add);
         for (String pronoun : pronouns) {
             List<String> choices = new ArrayList<>(antecedents.getOrDefault(pronoun, new LinkedHashSet<>()));
-            choices.add("/");
+            if (choices.isEmpty()) {
+                throw new IllegalStateException(pronoun + ": the rules give it no resolution, neither an antecedent nor unbound");
+            }
             choicePoints.add(choices.stream().map(antecedent -> new Reading(
                     new LinkedHashMap<>(Map.of(pronoun, antecedent)), new LinkedHashMap<>())).toList());
         }
@@ -1425,6 +1427,9 @@ public class GswbController {
     }
 
     /** The {@code relation} facts of a structure, source NAME -> target NAMEs in the order found. */
+    /** The value a rule gives a pronoun that may stay unbound ({@code #a POSSIBLE-ANT unbound}). */
+    private static final String UNBOUND = "unbound";
+
     private LinkedHashMap<String, LinkedHashSet<String>> extractFacts(
             Map<String, Object> structure, Map<String, String> nodeNames, String relation) {
         LinkedHashMap<String, LinkedHashSet<String>> candidates = new LinkedHashMap<>();
@@ -1432,13 +1437,14 @@ public class GswbController {
         return candidates;
     }
 
+    /** By the NAMEs of source and target; the target {@code unbound} is the antecedent "/". */
     private void collectFacts(Object value,
                               Map<String, String> nodeNames,
                               String wanted,
                               LinkedHashMap<String, LinkedHashSet<String>> candidates) {
         forEachFact(value, wanted, (sourceId, targetId) -> {
             String sourceName = nodeNames.get(sourceId);
-            String targetName = nodeNames.get(targetId);
+            String targetName = UNBOUND.equals(targetId.replace("'", "")) ? "/" : nodeNames.get(targetId);
             if (sourceName == null || targetName == null) {
                 LOGGER.warning("Ignoring " + wanted + " without NAME features: source="
                         + sourceId + ", target=" + targetId);
