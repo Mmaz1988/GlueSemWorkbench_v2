@@ -292,11 +292,17 @@ public class GswbController {
         LinkedHashMap<String, LinkedHashSet<String>> boundAntecedents = extractFacts(request.mergedStructure, nodeNames, "BOUND-ANT");
         Set<String> bindReferents = drs.presuppositions().stream().flatMap(box -> box.bindReferents().stream())
                 .collect(Collectors.toSet());
+        // D1: the alternatives every reading holds, keyed by the heads' spans in the text.
+        List<String> warnings = new ArrayList<>();
+        PragmaticChoices pragmaticChoices = request.rulesApplied
+                ? pragmaticChoices(request.mergedStructure, drs, warnings) : null;
 
         List<GswbSolution> solutions = new ArrayList<>();
         List<GswbSolution> rejected = new ArrayList<>();
-        // I10: readings with the same collapse and the same P: are one reading.
-        Set<String> meanings = new HashSet<>();
+        // I10: readings with the same collapse and the same P: are one reading; of those, the one
+        // whose links name the nearest antecedents (D10), else the first.
+        Map<String, Integer> meanings = new HashMap<>();
+        Map<String, Integer> distances = new HashMap<>();
         int same = 0;
         for (Reading reading : readings) {
             AnaphoraMapping mapping = toAnaphoraMapping(reading.anaphora());
@@ -316,9 +322,15 @@ public class GswbController {
                 String svg = request.includeSvg ? new DrsSvgRenderer().toSvg(pcdrs) : null;
                 // The collapse renumbers the referents it shares with the PCDRS: print first.
                 Collapse collapse = pcdrs.collapse();
-                if (!meanings.add(collapse.drs().toString() + " " + pcdrs.presuppositionMapping)) {
+                String meaning = collapse.drs().toString() + " " + pcdrs.presuppositionMapping;
+                int distance = linkDistance(reading.anaphora());
+                Integer kept = meanings.get(meaning);
+                if (kept != null) {
                     same++;
-                    continue;
+                    if (distance >= distances.get(meaning)) {
+                        continue;
+                    }
+                    id = solutions.get(kept).id;
                 }
                 GswbSolution solution = new GswbSolution(svg, id, drs.getSourceIndex(), null, semantic);
                 solution.anaphoraMapping = printedMapping;
@@ -328,7 +340,20 @@ public class GswbController {
                 solution.collapseSteps = steps(collapse);
                 solution.pragmaticProfile = profile(reading.anaphora(), bindReferents, boundAntecedents,
                         collapse.resolutions());
-                solutions.add(solution);
+                if (pragmaticChoices != null) {
+                    try {
+                        solution.choices = pragmaticChoices.of(reading.anaphora(), collapse.resolutions());
+                    } catch (IllegalStateException e) {
+                        warnings.add(id + ": no pragmatic choices, " + e.getMessage());
+                    }
+                }
+                if (kept != null) {
+                    solutions.set(kept, solution);
+                } else {
+                    meanings.put(meaning, solutions.size());
+                    solutions.add(solution);
+                }
+                distances.put(meaning, distance);
                 LOGGER.fine("PCDRS reading " + id + ": " + semantic + " -- " + solution.collapseReport);
             } catch (IllegalStateException e) {
                 // I7: a reading that fails a check is rejected, and says so; it is not a branch.
@@ -346,7 +371,76 @@ public class GswbController {
                 + ", same as an accepted one=" + same);
         GswbPcdrsOutput output = new GswbPcdrsOutput(request.parentSolutionId, solutions);
         output.rejected = rejected;
+        output.warnings = warnings;
+        warnings.forEach(warning -> LOGGER.warning("PCDRS choices: " + warning));
         return output;
+    }
+
+    /** D10: how far a reading's links reach back, by state number (I3: a smaller number is
+     *  earlier); of readings that are one (I10), the one with the nearest antecedents is kept. */
+    private static int linkDistance(Map<String, String> anaphora) {
+        int distance = 0;
+        for (Map.Entry<String, String> link : anaphora.entrySet()) {
+            Integer from = stateNumber(link.getKey());
+            Integer to = stateNumber(link.getValue());
+            if (from != null && to != null) {
+                distance += from - to;
+            }
+        }
+        return distance;
+    }
+
+    private static Integer stateNumber(String qualifiedName) {
+        int colon = qualifiedName.indexOf(':');
+        if (colon < 2 || qualifiedName.charAt(0) != 's') {
+            return null;
+        }
+        try {
+            return Integer.parseInt(qualifiedName.substring(1, colon));
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    /** The referents of the structure keyed by their heads' spans, from LiGER's /drs_provenance
+     *  over the rule-annotated structure (syntax and DRS graph in one); null, with a warning,
+     *  where LiGER cannot describe them (D1). */
+    private PragmaticChoices pragmaticChoices(LinkedHashMap<String, Object> structure, DRS drs, List<String> warnings) {
+        if (structure == null || !(structure.get("constraints") instanceof List<?> constraints) || constraints.isEmpty()) {
+            warnings.add("no pragmatic choices: the structure holds no syntax and DRS graph to key referents by");
+            return null;
+        }
+        try {
+            Map<String, Object> request = new LinkedHashMap<>();
+            request.put("syntax", structure);
+            request.put("drs", structure);
+            Map<?, ?> response = restTemplate.postForObject(ligerApiUrl + "/drs_provenance", request, Map.class);
+            Map<String, PragmaticChoices.Referent> referents = new LinkedHashMap<>();
+            if (response != null && response.get("referents") instanceof List<?> values) {
+                for (Object value : values) {
+                    if (value instanceof Map<?, ?> referent && referent.get("label") instanceof String label) {
+                        List<int[]> spans = new ArrayList<>();
+                        if (referent.get("lexicalSpans") instanceof List<?> raw) {
+                            for (Object span : raw) {
+                                if (span instanceof List<?> pair && pair.size() == 2) {
+                                    spans.add(new int[]{((Number) pair.get(0)).intValue(), ((Number) pair.get(1)).intValue()});
+                                }
+                            }
+                        }
+                        Object text = referent.get("lexicalText");
+                        referents.put(label, new PragmaticChoices.Referent(spans, text == null ? label : text.toString()));
+                    }
+                }
+            }
+            if (referents.isEmpty()) {
+                warnings.add("no pragmatic choices: /drs_provenance describes no referent");
+                return null;
+            }
+            return new PragmaticChoices(referents, drs.presuppositions(), drs.boxes());
+        } catch (Exception e) {
+            warnings.add("no pragmatic choices: /drs_provenance failed: " + e.getMessage());
+            return null;
+        }
     }
 
     /** N4: a reading's choices counted per cell -- pronouns bound (BOUND-ANT), referential or

@@ -1,5 +1,6 @@
 package webservice.rest.dtos;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class GswbPcdrsOutput {
@@ -9,6 +10,8 @@ public class GswbPcdrsOutput {
     public List<GswbSolution> solutions;
     /** The readings the collapse rejects (I7), each with its mappings and its rejection. */
     public List<GswbSolution> rejected = List.of();
+    /** Why the readings carry no pragmatic choices, where they do not (D1). */
+    public List<String> warnings = new ArrayList<>();
 
     public GswbPcdrsOutput() {
     }

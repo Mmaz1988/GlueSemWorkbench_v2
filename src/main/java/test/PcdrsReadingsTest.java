@@ -177,14 +177,15 @@ class PcdrsReadingsTest {
 
     @Test
     void readingsWithTheSameCollapseAndSitesAreOne() throws Exception {
-        // "Bill saw Bill. Bill smiled.": y3 bound to y2 bound to y1 is y3 bound to y1.
+        // "Bill saw Bill. Bill smiled.": y3 bound to y2 bound to y1 is y3 bound to y1; of the two,
+        // the one naming the nearest antecedent is kept (D10).
         String bills = "([],[p(([x1],[bind(x1),x1='bill'])),p(([x2],[bind(x2),x2='bill']))]) + ([x3],[see(x3),arg1(x3,x1),arg2(x3,x2)])"
                 + " ; ([],[p(([x4],[bind(x4),x4='bill']))]) + ([x5],[smile(x5),arg1(x5,x4)])";
         GswbPcdrsOutput output = readings(bills, "s1 POSSIBLE-ACC s0", "s2 POSSIBLE-ACC s0", "s5 POSSIBLE-ACC s4",
                 "s2:y2 POSSIBLE-ANT s1:y1", "s5:y3 POSSIBLE-ANT s1:y1", "s5:y3 POSSIBLE-ANT s2:y2");
         List<String> anaphora = output.solutions.stream().map(solution -> solution.anaphoraMapping).toList();
-        assertTrue(anaphora.contains("A:[a(s2:y2,y1),a(s5:y3,y1)]"), anaphora.toString());
-        assertFalse(anaphora.contains("A:[a(s2:y2,y1),a(s5:y3,y2)]"), anaphora.toString());
+        assertTrue(anaphora.contains("A:[a(s2:y2,y1),a(s5:y3,y2)]"), anaphora.toString());
+        assertFalse(anaphora.contains("A:[a(s2:y2,y1),a(s5:y3,y1)]"), anaphora.toString());
         // Bound to the second Bill while that one stands alone is another reading.
         assertTrue(anaphora.contains("A:[a(s5:y3,y2)]"), anaphora.toString());
     }

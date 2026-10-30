@@ -29,6 +29,9 @@ public class GswbSolution {
     public CollapseStepsDto collapseSteps;
     /** A PCDRS reading's choices counted by kind and depth, for ordering readings (N4). */
     public PragmaticProfileDto pragmaticProfile;
+    /** The alternatives a PCDRS reading holds, for pragmatic discriminants (D1); null where the
+     *  provenance could not key them (the output's warnings say why). */
+    public List<PragmaticChoiceDto> choices;
     /** Why the collapse rejects this reading; set instead of a solution. */
     public String rejection;
     public String proofId;
