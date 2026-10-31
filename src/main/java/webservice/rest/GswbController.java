@@ -303,6 +303,7 @@ public class GswbController {
         // whose links name the nearest antecedents (D10), else the first.
         Map<String, Integer> meanings = new HashMap<>();
         Map<String, Integer> distances = new HashMap<>();
+        Map<String, String> boxOf = drs.boxes();
         int same = 0;
         for (Reading reading : readings) {
             AnaphoraMapping mapping = toAnaphoraMapping(reading.anaphora());
@@ -312,6 +313,17 @@ public class GswbController {
             int branch = solutions.size() + rejected.size() + 1;
             String id = parentId + "-pcdrs-" + branch;
             try {
+                // The rules name a box by its first state (I10). Another state of a box is no
+                // valid site: at a later sentence's top it would print as in situ, which the
+                // checks rebase into the hypothesis's own box (I11), not the global one.
+                reading.sites().forEach((presupposition, site) -> {
+                    String first = boxOf.getOrDefault(site, site);
+                    if (!site.equals(presupposition) && !first.equals(site)) {
+                        throw new IllegalStateException(presupposition + ": the rules give the site " + site
+                                + ", which is not the first state of its box; they name a box by its first state ("
+                                + first + ")");
+                    }
+                });
                 // LiGER names referents as the graph does, which is as the PCDRS prints them. P:
                 // gets an entry for every p-box, a bound one's derived from A: (I6).
                 DRS pcdrs = drs.withAnaphoraMapping(mapping).bindAnaphoraMappingByPrintedNames()
@@ -495,9 +507,10 @@ public class GswbController {
 
     /**
      * Every reading (I10): one choice for every pronoun -- one of the resolutions the rules give
-     * it, an antecedent or unbound ({@code x POSSIBLE-ANT u}, {@code u UNBOUND true}: {@code a(x,/)}; N3) -- and for every p-box: a box the rules allow (one
-     * choice per box: a chain is one box, its segments included, so a later sentence's top level
-     * is the global box), in situ when that box is the host's, or a binder for each of its bind
+     * it, an antecedent or unbound ({@code x POSSIBLE-ANT u}, {@code u UNBOUND true}: {@code a(x,/)}; N3) -- and for every p-box: a site the rules give,
+     * as they give it (they name a box by its first state: a chain is one box, its segments
+     * included, so a later sentence's top level is the global box), in situ when it is the
+     * host's box, or a binder for each of its bind
      * referents. A binder does not suppress accommodation. GSWB adds no resolution of its own
      * (I5): a p-box the rules give neither a site nor a binder, or a pronoun no resolution, is an error. The collapse decides which readings stand.
      */
@@ -523,14 +536,14 @@ public class GswbController {
             List<Reading> choices = new ArrayList<>();
             String hostBox = boxOf.getOrDefault(box.host(), box.host());
             String inSitu = inSitu(box, siteOf, boxOf);
-            // Every box the rules allow once, by its first state; the host's is in situ, and first.
+            // Every site the rules give, as they give it (I5): the rules name a box by its first
+            // state. The host's box is in situ, written p(s,s) where the host opens it, and first.
             Set<String> offered = new HashSet<>();
             for (String site : sites.getOrDefault(box.label(), new LinkedHashSet<>())) {
-                String first = boxOf.getOrDefault(site, site);
-                if (offered.add(first)) {
+                if (offered.add(site)) {
                     Reading choice = new Reading(new LinkedHashMap<>(), new LinkedHashMap<>(Map.of(box.label(),
-                            first.equals(hostBox) ? inSitu : first)));
-                    choices.add(first.equals(hostBox) ? 0 : choices.size(), choice);
+                            site.equals(hostBox) ? inSitu : site)));
+                    choices.add(site.equals(hostBox) ? 0 : choices.size(), choice);
                 }
             }
             if (!box.bindReferents().isEmpty() && box.bindReferents().stream().allMatch(antecedents::containsKey)) {

@@ -160,19 +160,25 @@ class PcdrsReadingsTest {
     @Test
     void aSiteThatIsTheHostIsInSitu() throws Exception {
         // s1 stands in s0: the rules' s0 is its in-situ reading. s4 stands in s3, the second
-        // sentence's top, which is the global box: in situ is written s0 there, so the checks
-        // rebase it into Q's top box (I11).
-        GswbPcdrsOutput output = readings(PETER_PETER, "s1 POSSIBLE-ACC s0", "s4 POSSIBLE-ACC s3");
+        // sentence's top, which is in the global box s0: the rules name that box, and in situ is
+        // written s0 there, so the checks rebase it into Q's top box (I11).
+        GswbPcdrsOutput output = readings(PETER_PETER, "s1 POSSIBLE-ACC s0", "s4 POSSIBLE-ACC s0");
         assertEquals(List.of("P:[p(s1,s1),p(s4,s0)]"),
                 output.solutions.stream().map(solution -> solution.presuppositionMapping).toList());
     }
 
     @Test
-    void aBoxIsOneChoiceWhicheverOfItsStatesTheRulesName() throws Exception {
-        // s0, s2 and s4's host s3 are one box, the global one (I10): one reading for all.
-        GswbPcdrsOutput output = readings(PETER_PETER, "s1 POSSIBLE-ACC s0", "s4 POSSIBLE-ACC s0", "s4 POSSIBLE-ACC s2");
+    void aSiteThatIsNotTheFirstStateOfItsBoxIsRejected() throws Exception {
+        // s0, s2 and s4's host s3 are one box, the global one (I10); the rules name it s0. GSWB
+        // takes the rules' sites as given (I5), and rejects s2 and s3, whose readings would not
+        // mean the global box in the checks (I11).
+        GswbPcdrsOutput output = readings(PETER_PETER, "s1 POSSIBLE-ACC s0", "s4 POSSIBLE-ACC s0",
+                "s4 POSSIBLE-ACC s2", "s4 POSSIBLE-ACC s3");
         assertEquals(List.of("P:[p(s1,s1),p(s4,s0)]"),
                 output.solutions.stream().map(solution -> solution.presuppositionMapping).toList());
+        assertEquals(2, output.rejected.size(), output.rejected.toString());
+        assertTrue(output.rejected.stream().allMatch(solution -> solution.rejection.contains("first state of its box")
+                && solution.rejection.contains("(s0)")), output.rejected.stream().map(s -> s.rejection).toList().toString());
     }
 
     @Test
@@ -181,7 +187,7 @@ class PcdrsReadingsTest {
         // the one naming the nearest antecedent is kept (D10).
         String bills = "([],[p(([x1],[bind(x1),x1='bill'])),p(([x2],[bind(x2),x2='bill']))]) + ([x3],[see(x3),arg1(x3,x1),arg2(x3,x2)])"
                 + " ; ([],[p(([x4],[bind(x4),x4='bill']))]) + ([x5],[smile(x5),arg1(x5,x4)])";
-        GswbPcdrsOutput output = readings(bills, "s1 POSSIBLE-ACC s0", "s2 POSSIBLE-ACC s0", "s5 POSSIBLE-ACC s4",
+        GswbPcdrsOutput output = readings(bills, "s1 POSSIBLE-ACC s0", "s2 POSSIBLE-ACC s0", "s5 POSSIBLE-ACC s0",
                 "s2:y2 POSSIBLE-ANT s1:y1", "s5:y3 POSSIBLE-ANT s1:y1", "s5:y3 POSSIBLE-ANT s2:y2");
         List<String> anaphora = output.solutions.stream().map(solution -> solution.anaphoraMapping).toList();
         assertTrue(anaphora.contains("A:[a(s2:y2,y1),a(s5:y3,y2)]"), anaphora.toString());
@@ -208,7 +214,7 @@ class PcdrsReadingsTest {
     void severalBindersGiveSeveralReadings() throws Exception {
         // "A man saw a man. The man smiled."
         GswbPcdrsOutput output = readings("([x1,x2,x3],[man(x1),man(x2),see(x3),arg1(x3,x1),arg2(x3,x2)]) + ([x4],"
-                + "[p(([x5],[bind(x5),man(x5)])),smile(x4),arg1(x4,x5)])", "s2 POSSIBLE-ACC s1", "s2:y1 POSSIBLE-ANT s0:x1", "s2:y1 POSSIBLE-ANT s0:x2");
+                + "[p(([x5],[bind(x5),man(x5)])),smile(x4),arg1(x4,x5)])", "s2 POSSIBLE-ACC s0", "s2:y1 POSSIBLE-ANT s0:x1", "s2:y1 POSSIBLE-ANT s0:x2");
         assertEquals(List.of("", "A:[a(s2:y1,x1)]", "A:[a(s2:y1,x2)]"),
                 output.solutions.stream().map(solution -> solution.anaphoraMapping).toList());
     }
@@ -289,7 +295,7 @@ class PcdrsReadingsTest {
         solutions.addAll(readings(PETER_PETER, "s1 POSSIBLE-ACC s0", "s4:y2 POSSIBLE-ANT s1:y1", "s4 POSSIBLE-ACC s0").solutions);
         solutions.addAll(readings(EVERY_MAN_THE_DOG, "s3 POSSIBLE-ACC s0", "s3 POSSIBLE-ACC s1", "s3 POSSIBLE-ACC s2").solutions);
         solutions.addAll(readings("([x1,x2,x3],[man(x1),man(x2),see(x3),arg1(x3,x1),arg2(x3,x2)]) + ([x4],"
-                + "[p(([x5],[bind(x5),man(x5)])),smile(x4),arg1(x4,x5)])", "s2 POSSIBLE-ACC s1",
+                + "[p(([x5],[bind(x5),man(x5)])),smile(x4),arg1(x4,x5)])", "s2 POSSIBLE-ACC s0",
                 "s2:y1 POSSIBLE-ANT s0:x1", "s2:y1 POSSIBLE-ANT s0:x2").solutions);
         assertEquals(8, solutions.size());
         for (GswbSolution solution : solutions) {
