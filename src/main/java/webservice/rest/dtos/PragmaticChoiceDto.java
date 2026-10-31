@@ -15,15 +15,21 @@ public class PragmaticChoiceDto {
     public String pointLabel;
     /** ANTECEDENT or UNBOUND for a pronoun, BOUND or ACCOMMODATED for a p-box. */
     public String resolution;
-    /** A referent's key, "/", or a site: GLOBAL, LOCAL, INTERMEDIATE:<role>@<the spans of the
-     *  operator that opens the box> (restrictor, scope, negation, ...). A bound p-box with
-     *  several bind referents: <bind referent's key>><key>. */
+    /** A referent's key, "/", or a site's depth: GLOBAL, LOCAL or INTERMEDIATE (D2a: a box is
+     *  no identity across readings). A bound p-box with several bind referents:
+     *  <bind referent's key>><key>. */
     public String target;
     public String targetLabel;
     /** The alternative's key: kind, point and target, unique within an update. */
     public String id;
     /** Whether the reading's own link names the target, rather than its coreference chain (D4). */
     public boolean direct;
+    /** An intermediate site's box, by its first state's label ("s1"), as P: and the SVG name it:
+     *  an identity only among the readings of one semantic reading, which share their states
+     *  (D2a). Null for any other alternative. */
+    public String site;
+    /** The box's role, for display: antecedent, consequent, negation, disjunct, embedding. */
+    public String siteLabel;
 
     public PragmaticChoiceDto() {
     }
@@ -38,5 +44,14 @@ public class PragmaticChoiceDto {
         this.targetLabel = targetLabel;
         this.direct = direct;
         this.id = kind + "@" + point + "=" + target;
+    }
+
+    /** An intermediate accommodation, with its box within the semantic reading (D2a). */
+    public static PragmaticChoiceDto intermediate(String point, String pointLabel, String site, String siteLabel) {
+        PragmaticChoiceDto choice = new PragmaticChoiceDto("PRESUPPOSITION", point, pointLabel, "ACCOMMODATED",
+                "INTERMEDIATE", "intermediate", true);
+        choice.site = site;
+        choice.siteLabel = siteLabel;
+        return choice;
     }
 }

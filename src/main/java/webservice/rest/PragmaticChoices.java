@@ -14,7 +14,9 @@ import java.util.*;
  * A reading's coreference chains are the equivalence closure of its identity links: every
  * a(x,y) with y not "/", pronouns and bind referents alike; accommodation adds none. A
  * pronoun -- or a bound p-box's bind referent -- holds A -> X for every X of its chain whose
- * head starts before its own, and for its own antecedent.
+ * head starts before its own, and for its own antecedent. An accommodation site is its depth
+ * across readings; an intermediate one also names its box by its first state, an identity among
+ * the readings of one semantic reading only (D2a).
  */
 public final class PragmaticChoices {
 
@@ -110,9 +112,16 @@ public final class PragmaticChoices {
                 pointLabel = String.join(" ", own.stream().map(Referent::text).toList());
             }
             if (!resolution.bound()) {
-                String[] site = site(resolution);
-                choices.add(new PragmaticChoiceDto("PRESUPPOSITION", point, pointLabel, "ACCOMMODATED",
-                        site[0], site[1], true));
+                choices.add(switch (resolution.depth()) {
+                    case GLOBAL -> new PragmaticChoiceDto("PRESUPPOSITION", point, pointLabel, "ACCOMMODATED",
+                            "GLOBAL", "global", true);
+                    case LOCAL -> new PragmaticChoiceDto("PRESUPPOSITION", point, pointLabel, "ACCOMMODATED",
+                            "LOCAL", "in situ", true);
+                    case INTERMEDIATE -> {
+                        String first = boxStart(resolution.site());
+                        yield PragmaticChoiceDto.intermediate(point, pointLabel, first, role(first));
+                    }
+                });
                 continue;
             }
             boolean several = box.bindReferents().size() > 1;
@@ -141,36 +150,16 @@ public final class PragmaticChoices {
                 .toList();
     }
 
-    /**
-     * A site as a key and a label: global, in situ, or the box an operator opens, by the
-     * operator's tokens (D2) -- the SRC of the box's first state where an operator enters it
-     * (SUB: "restrictor of every", NOT: "under no"); a consequent's first state comes from
-     * whatever fills it, so a consequent goes by its restrictor's operator ("scope of every").
-     * Referents would not do: a box can introduce none.
-     */
-    private String[] site(Collapse.Resolution resolution) {
-        return switch (resolution.depth()) {
-            case GLOBAL -> new String[]{"GLOBAL", "global"};
-            case LOCAL -> new String[]{"LOCAL", "in situ"};
-            case INTERMEDIATE -> {
-                String first = boxStart(resolution.site());
-                String entered = state(first).enteredBy();
-                String role = entered == null ? "box" : switch (entered) {
-                    case "SUB" -> "restrictor";
-                    case "IMP" -> "scope";
-                    case "NOT" -> "negation";
-                    case "OR" -> "disjunct";
-                    case "SCOPE" -> "embedding";
-                    default -> entered.toLowerCase();
-                };
-                State operator = state("IMP".equals(entered) ? boxStart(state(first).parent()) : first);
-                if (operator.spans().isEmpty()) {
-                    throw new IllegalStateException("site " + resolution.site() + ": its operator has no tokens");
-                }
-                String text = operator.text().toLowerCase();
-                yield new String[]{"INTERMEDIATE:" + role + "@" + spansKey(operator.spans()),
-                        "negation".equals(role) ? "under " + text : role + " of " + text};
-            }
+    /** A box's role by the edge that enters its first state, for display only (D2a). */
+    private String role(String first) {
+        String entered = state(first).enteredBy();
+        return entered == null ? "box" : switch (entered) {
+            case "SUB" -> "antecedent";
+            case "IMP" -> "consequent";
+            case "NOT" -> "negation";
+            case "OR" -> "disjunct";
+            case "SCOPE" -> "embedding";
+            default -> entered.toLowerCase();
         };
     }
 

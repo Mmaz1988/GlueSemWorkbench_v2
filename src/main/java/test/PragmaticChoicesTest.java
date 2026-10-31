@@ -142,8 +142,8 @@ class PragmaticChoicesTest {
     }
 
     /** "Every cat with a hat liked the hat.", a hat inside the restrictor: s0 global, s1+s2 the
-     *  restrictor (SUB, "Every"), s3+s5 the consequent (IMP from the restrictor's last state
-     *  s2; its first state's SRC is "the"), s4 the hat's p-box. */
+     *  restrictor (SUB), s3+s5 the consequent (IMP from the restrictor's last state s2), s4 the
+     *  hat's p-box. */
     private static final Map<String, PragmaticChoices.State> EVERY_CAT = states(
             "s0", null, null, 15, 16, "a",
             "s1", "SUB", "s0", 0, 5, "Every",
@@ -162,22 +162,39 @@ class PragmaticChoicesTest {
     }
 
     @Test
-    void anIntermediateSiteIsNamedByTheOperatorThatOpensItsBox() {
+    void anIntermediateSiteIsItsDepthAcrossReadingsAndItsBoxWithinOne() {
+        // D2a: one alternative for every intermediate site; the box by its first state, s1.
         List<PragmaticChoiceDto> choices = everyCat(accommodated("s4", "s1", Collapse.Depth.INTERMEDIATE));
-        assertEquals(Set.of("PRESUPPOSITION@27-34=INTERMEDIATE:restrictor@0-5"), ids(choices));
-        assertEquals("restrictor of every", choices.get(0).targetLabel);
+        assertEquals(Set.of("PRESUPPOSITION@27-34=INTERMEDIATE"), ids(choices));
+        assertEquals("s1", choices.get(0).site);
+        assertEquals("antecedent", choices.get(0).siteLabel);
     }
 
     @Test
-    void aConsequentIsNamedByItsRestrictorsOperator() {
-        // The consequent's own SRC is "the"; it hangs off the restrictor's last state s2.
+    void aSiteInALaterSegmentIsNamedByItsBoxsFirstState() {
+        // The collapse may report a chain's later state; the box is its first, as P: names it.
+        List<PragmaticChoiceDto> choices = everyCat(accommodated("s4", "s2", Collapse.Depth.INTERMEDIATE));
+        assertEquals("s1", choices.get(0).site);
+    }
+
+    @Test
+    void aConsequentIsAnIntermediateSiteOfItsOwn() {
         List<PragmaticChoiceDto> choices = everyCat(accommodated("s4", "s3", Collapse.Depth.INTERMEDIATE));
-        assertEquals(Set.of("PRESUPPOSITION@27-34=INTERMEDIATE:scope@0-5"), ids(choices));
-        assertEquals("scope of every", choices.get(0).targetLabel);
+        assertEquals(Set.of("PRESUPPOSITION@27-34=INTERMEDIATE"), ids(choices));
+        assertEquals("s3", choices.get(0).site);
+        assertEquals("consequent", choices.get(0).siteLabel);
     }
 
     @Test
-    void aBoxWithoutReferentsIsASiteAndAPBoxWithoutBindReferentsIsNamedByItsTrigger() {
+    void globalAndLocalNameNoBox() {
+        assertNull(everyCat(accommodated("s4", "s0", Collapse.Depth.GLOBAL)).get(0).site);
+        List<PragmaticChoiceDto> local = everyCat(accommodated("s4", "s3", Collapse.Depth.LOCAL));
+        assertEquals(Set.of("PRESUPPOSITION@27-34=LOCAL"), ids(local));
+        assertNull(local.get(0).site);
+    }
+
+    @Test
+    void aPBoxWithoutBindReferentsIsNamedByItsTrigger() {
         // "No cat saw that it rained."-like: s1 the negated box (NOT, "No") introduces nothing;
         // the p-box s2 has no bind referent, so its trigger names it.
         Map<String, PragmaticChoices.State> states = states(
@@ -187,9 +204,9 @@ class PragmaticChoicesTest {
         List<PragmaticChoiceDto> choices = new PragmaticChoices(new LinkedHashMap<>(),
                 List.of(new PresuppositionBox("s2", "s1", List.of())), states)
                 .of(links(), List.of(accommodated("s2", "s1", Collapse.Depth.INTERMEDIATE)));
-        assertEquals(Set.of("PRESUPPOSITION@11-15=INTERMEDIATE:negation@0-2"), ids(choices));
+        assertEquals(Set.of("PRESUPPOSITION@11-15=INTERMEDIATE"), ids(choices));
         assertEquals("that", choices.get(0).pointLabel);
-        assertEquals("under no", choices.get(0).targetLabel);
+        assertEquals("negation", choices.get(0).siteLabel);
     }
 
     @Test
