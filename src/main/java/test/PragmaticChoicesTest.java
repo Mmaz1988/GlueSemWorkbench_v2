@@ -35,12 +35,23 @@ class PragmaticChoicesTest {
         return new PragmaticChoices.Referent(List.of(new int[]{start, end}), text);
     }
 
-    private static Map<String, String> global(String... states) {
-        Map<String, String> boxOf = new HashMap<>();
-        for (String state : states) {
-            boxOf.put(state, "s0");
+    /** States as the provenance describes them: name, entering edge, parent, SRC span, text. */
+    private static Map<String, PragmaticChoices.State> states(Object... rows) {
+        Map<String, PragmaticChoices.State> states = new HashMap<>();
+        for (int i = 0; i < rows.length; i += 6) {
+            states.put((String) rows[i], new PragmaticChoices.State((String) rows[i + 1], (String) rows[i + 2],
+                    List.of(new int[]{(Integer) rows[i + 3], (Integer) rows[i + 4]}), (String) rows[i + 5]));
         }
-        return boxOf;
+        return states;
+    }
+
+    private static Map<String, PragmaticChoices.State> global(String... names) {
+        Map<String, PragmaticChoices.State> states = new HashMap<>();
+        for (String name : names) {
+            states.put(name, new PragmaticChoices.State(name.equals("s0") ? null : "MERGE", "s0",
+                    List.of(new int[]{0, 1}), "A"));
+        }
+        return states;
     }
 
     private static LinkedHashMap<String, String> links(String... pairs) {
@@ -130,18 +141,55 @@ class PragmaticChoicesTest {
         assertEquals(Set.of("ANAPHORA@6-8=10-14", "ANAPHORA@20-23=6-8", "ANAPHORA@20-23=10-14"), ids(choices));
     }
 
-    @Test
-    void anIntermediateSiteIsNamedByTheReferentsOfItsBox() {
-        // "Every man saw the cat that smiled.": s1 the restrictor (man), s3 the cat's p-box.
+    /** "Every cat with a hat liked the hat.", a hat inside the restrictor: s0 global, s1+s2 the
+     *  restrictor (SUB, "Every"), s3+s5 the consequent (IMP from the restrictor's last state
+     *  s2; its first state's SRC is "the"), s4 the hat's p-box. */
+    private static final Map<String, PragmaticChoices.State> EVERY_CAT = states(
+            "s0", null, null, 15, 16, "a",
+            "s1", "SUB", "s0", 0, 5, "Every",
+            "s2", "MERGE", "s1", 15, 16, "a",
+            "s3", "IMP", "s2", 27, 30, "the",
+            "s4", "PRSP", "s3", 27, 30, "the",
+            "s5", "MERGE", "s3", 21, 26, "liked");
+
+    private static List<PragmaticChoiceDto> everyCat(Collapse.Resolution resolution) {
         Map<String, PragmaticChoices.Referent> referents = new LinkedHashMap<>();
-        referents.put("s1:x1", referent("man", 6, 9));
-        referents.put("s3:y1", referent("the cat", 14, 21));
-        Map<String, String> boxOf = new HashMap<>(Map.of("s0", "s0", "s1", "s1", "s2", "s2", "s3", "s3"));
-        List<PragmaticChoiceDto> choices = new PragmaticChoices(referents,
-                List.of(new PresuppositionBox("s3", "s2", List.of("s3:y1"))), boxOf)
-                .of(links(), List.of(accommodated("s3", "s1", Collapse.Depth.INTERMEDIATE)));
-        assertEquals(Set.of("PRESUPPOSITION@14-21=INTERMEDIATE:6-9"), ids(choices));
-        assertEquals("box of man", choices.get(0).targetLabel);
+        referents.put("s1:x1", referent("cat", 6, 9));
+        referents.put("s2:x2", referent("hat", 17, 20));
+        referents.put("s4:y1", referent("the hat", 27, 34));
+        return new PragmaticChoices(referents, List.of(new PresuppositionBox("s4", "s3", List.of("s4:y1"))), EVERY_CAT)
+                .of(links(), List.of(resolution));
+    }
+
+    @Test
+    void anIntermediateSiteIsNamedByTheOperatorThatOpensItsBox() {
+        List<PragmaticChoiceDto> choices = everyCat(accommodated("s4", "s1", Collapse.Depth.INTERMEDIATE));
+        assertEquals(Set.of("PRESUPPOSITION@27-34=INTERMEDIATE:restrictor@0-5"), ids(choices));
+        assertEquals("restrictor of every", choices.get(0).targetLabel);
+    }
+
+    @Test
+    void aConsequentIsNamedByItsRestrictorsOperator() {
+        // The consequent's own SRC is "the"; it hangs off the restrictor's last state s2.
+        List<PragmaticChoiceDto> choices = everyCat(accommodated("s4", "s3", Collapse.Depth.INTERMEDIATE));
+        assertEquals(Set.of("PRESUPPOSITION@27-34=INTERMEDIATE:scope@0-5"), ids(choices));
+        assertEquals("scope of every", choices.get(0).targetLabel);
+    }
+
+    @Test
+    void aBoxWithoutReferentsIsASiteAndAPBoxWithoutBindReferentsIsNamedByItsTrigger() {
+        // "No cat saw that it rained."-like: s1 the negated box (NOT, "No") introduces nothing;
+        // the p-box s2 has no bind referent, so its trigger names it.
+        Map<String, PragmaticChoices.State> states = states(
+                "s0", null, null, 0, 2, "No",
+                "s1", "NOT", "s0", 0, 2, "No",
+                "s2", "PRSP", "s1", 11, 15, "that");
+        List<PragmaticChoiceDto> choices = new PragmaticChoices(new LinkedHashMap<>(),
+                List.of(new PresuppositionBox("s2", "s1", List.of())), states)
+                .of(links(), List.of(accommodated("s2", "s1", Collapse.Depth.INTERMEDIATE)));
+        assertEquals(Set.of("PRESUPPOSITION@11-15=INTERMEDIATE:negation@0-2"), ids(choices));
+        assertEquals("that", choices.get(0).pointLabel);
+        assertEquals("under no", choices.get(0).targetLabel);
     }
 
     @Test

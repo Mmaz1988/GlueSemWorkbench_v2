@@ -388,6 +388,19 @@ public class GswbController {
         return output;
     }
 
+    /** [[start, end], ...] as /drs_provenance writes spans. */
+    private static List<int[]> spans(Object raw) {
+        List<int[]> spans = new ArrayList<>();
+        if (raw instanceof List<?> values) {
+            for (Object span : values) {
+                if (span instanceof List<?> pair && pair.size() == 2) {
+                    spans.add(new int[]{((Number) pair.get(0)).intValue(), ((Number) pair.get(1)).intValue()});
+                }
+            }
+        }
+        return spans;
+    }
+
     /** D10: how far a reading's links reach back, by state number (I3: a smaller number is
      *  earlier); of readings that are one (I10), the one with the nearest antecedents is kept. */
     private static int linkDistance(Map<String, String> anaphora) {
@@ -431,16 +444,9 @@ public class GswbController {
             if (response != null && response.get("referents") instanceof List<?> values) {
                 for (Object value : values) {
                     if (value instanceof Map<?, ?> referent && referent.get("label") instanceof String label) {
-                        List<int[]> spans = new ArrayList<>();
-                        if (referent.get("lexicalSpans") instanceof List<?> raw) {
-                            for (Object span : raw) {
-                                if (span instanceof List<?> pair && pair.size() == 2) {
-                                    spans.add(new int[]{((Number) pair.get(0)).intValue(), ((Number) pair.get(1)).intValue()});
-                                }
-                            }
-                        }
                         Object text = referent.get("lexicalText");
-                        referents.put(label, new PragmaticChoices.Referent(spans, text == null ? label : text.toString()));
+                        referents.put(label, new PragmaticChoices.Referent(spans(referent.get("lexicalSpans")),
+                                text == null ? label : text.toString()));
                     }
                 }
             }
@@ -448,7 +454,20 @@ public class GswbController {
                 warnings.add("no pragmatic choices: /drs_provenance describes no referent");
                 return null;
             }
-            return new PragmaticChoices(referents, drs.presuppositions(), drs.boxes());
+            Map<String, PragmaticChoices.State> states = new LinkedHashMap<>();
+            if (response.get("states") instanceof List<?> values) {
+                for (Object value : values) {
+                    if (value instanceof Map<?, ?> state && state.get("label") instanceof String label) {
+                        Object enteredBy = state.get("enteredBy");
+                        Object parent = state.get("parent");
+                        Object text = state.get("text");
+                        states.put(label, new PragmaticChoices.State(enteredBy == null ? null : enteredBy.toString(),
+                                parent == null ? null : parent.toString(), spans(state.get("spans")),
+                                text == null ? "" : text.toString()));
+                    }
+                }
+            }
+            return new PragmaticChoices(referents, drs.presuppositions(), states);
         } catch (Exception e) {
             warnings.add("no pragmatic choices: /drs_provenance failed: " + e.getMessage());
             return null;

@@ -32,20 +32,25 @@ public final class PragmaticChoices {
         }
     }
 
+    /** A state as the provenance describes it: the edge entering it, the node that edge comes
+     *  from, and the spans and text of the meaning constructor it comes from (its SRC). */
+    public record State(String enteredBy, String parent, List<int[]> spans, String text) {
+    }
+
     private final Map<String, Referent> referents;
     private final List<PresuppositionBox> boxes;
-    private final Map<String, String> boxOf;
+    private final Map<String, State> states;
 
     /**
      * @param referents every referent by its qualified name (s4:y1), as the PCDRS prints it
      * @param boxes     the p-boxes of the DRS
-     * @param boxOf     every state label -> the first state of its box ({@code DRS.boxes()})
+     * @param states    every state by its name (s3), as P: writes it
      */
     public PragmaticChoices(Map<String, Referent> referents, List<PresuppositionBox> boxes,
-                            Map<String, String> boxOf) {
+                            Map<String, State> states) {
         this.referents = referents;
         this.boxes = boxes;
-        this.boxOf = boxOf;
+        this.states = states;
     }
 
     /**
@@ -92,10 +97,18 @@ public final class PragmaticChoices {
             if (resolution == null) {
                 throw new IllegalStateException(box.label() + ": the collapse reports no resolution for it");
             }
-            List<Referent> own = box.bindReferents().isEmpty()
-                    ? referentsOfBox(box.label()) : box.bindReferents().stream().map(this::referent).toList();
-            String point = keys(own);
-            String pointLabel = String.join(" ", own.stream().map(Referent::text).toList());
+            // A p-box by its bind referents' heads; without any, by its trigger (its state's SRC).
+            String point;
+            String pointLabel;
+            if (box.bindReferents().isEmpty()) {
+                State trigger = state(box.label());
+                point = spansKey(trigger.spans());
+                pointLabel = trigger.text();
+            } else {
+                List<Referent> own = box.bindReferents().stream().map(this::referent).toList();
+                point = keys(own);
+                pointLabel = String.join(" ", own.stream().map(Referent::text).toList());
+            }
             if (!resolution.bound()) {
                 String[] site = site(resolution);
                 choices.add(new PragmaticChoiceDto("PRESUPPOSITION", point, pointLabel, "ACCOMMODATED",
@@ -128,34 +141,63 @@ public final class PragmaticChoices {
                 .toList();
     }
 
-    /** A site as a key and a label: global, in situ, or the box it opens, by its referents. */
+    /**
+     * A site as a key and a label: global, in situ, or the box an operator opens, by the
+     * operator's tokens (D2) -- the SRC of the box's first state where an operator enters it
+     * (SUB: "restrictor of every", NOT: "under no"); a consequent's first state comes from
+     * whatever fills it, so a consequent goes by its restrictor's operator ("scope of every").
+     * Referents would not do: a box can introduce none.
+     */
     private String[] site(Collapse.Resolution resolution) {
         return switch (resolution.depth()) {
             case GLOBAL -> new String[]{"GLOBAL", "global"};
             case LOCAL -> new String[]{"LOCAL", "in situ"};
             case INTERMEDIATE -> {
-                List<Referent> own = referentsOfBox(resolution.site());
-                yield new String[]{"INTERMEDIATE:" + keys(own),
-                        "box of " + String.join(" ", own.stream().map(Referent::text).toList())};
+                String first = boxStart(resolution.site());
+                String entered = state(first).enteredBy();
+                String role = entered == null ? "box" : switch (entered) {
+                    case "SUB" -> "restrictor";
+                    case "IMP" -> "scope";
+                    case "NOT" -> "negation";
+                    case "OR" -> "disjunct";
+                    case "SCOPE" -> "embedding";
+                    default -> entered.toLowerCase();
+                };
+                State operator = state("IMP".equals(entered) ? boxStart(state(first).parent()) : first);
+                if (operator.spans().isEmpty()) {
+                    throw new IllegalStateException("site " + resolution.site() + ": its operator has no tokens");
+                }
+                String text = operator.text().toLowerCase();
+                yield new String[]{"INTERMEDIATE:" + role + "@" + spansKey(operator.spans()),
+                        "negation".equals(role) ? "under " + text : role + " of " + text};
             }
         };
     }
 
-    /** The referents introduced in the box a state belongs to, in text order. */
-    private List<Referent> referentsOfBox(String state) {
-        String box = boxOf.getOrDefault(state, state);
-        List<Referent> own = new ArrayList<>();
-        referents.forEach((name, referent) -> {
-            int colon = name.indexOf(':');
-            if (colon > 0 && box.equals(boxOf.getOrDefault(name.substring(0, colon), name.substring(0, colon)))) {
-                own.add(referent);
+    /** The first state of the box a state belongs to: MERGE and UPDATE edges followed back. */
+    private String boxStart(String name) {
+        String current = name;
+        while (true) {
+            State state = state(current);
+            if (!"MERGE".equals(state.enteredBy()) && !"UPDATE".equals(state.enteredBy())) {
+                return current;
             }
-        });
-        if (own.isEmpty()) {
-            throw new IllegalStateException("box " + box + " introduces no referent to name it by");
+            current = state.parent();
         }
-        own.sort(Comparator.comparingInt(Referent::start));
-        return own;
+    }
+
+    private State state(String name) {
+        State state = states.get(name);
+        if (state == null) {
+            throw new IllegalStateException(name + ": the provenance describes no such state");
+        }
+        return state;
+    }
+
+    private static String spansKey(List<int[]> spans) {
+        StringJoiner key = new StringJoiner(",");
+        spans.forEach(span -> key.add(span[0] + "-" + span[1]));
+        return key.toString();
     }
 
     private static String keys(List<Referent> referents) {

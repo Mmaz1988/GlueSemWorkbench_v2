@@ -9,13 +9,15 @@ package webservice.rest.dtos;
 public class PragmaticChoiceDto {
     /** ANAPHORA (a pronoun) or PRESUPPOSITION (a p-box): the anaphor decides (D3). */
     public String kind;
-    /** The choice point: the pronoun's key, or the key of the p-box's bind referents. */
+    /** The choice point: the pronoun's key, or the key of the p-box's bind referents (without
+     *  any, of its trigger). */
     public String point;
     public String pointLabel;
     /** ANTECEDENT or UNBOUND for a pronoun, BOUND or ACCOMMODATED for a p-box. */
     public String resolution;
-    /** A referent's key, "/", or a site: GLOBAL, LOCAL, INTERMEDIATE:<key of the site box's
-     *  referents>. A bound p-box with several bind referents: <bind referent's key>><key>. */
+    /** A referent's key, "/", or a site: GLOBAL, LOCAL, INTERMEDIATE:<role>@<the spans of the
+     *  operator that opens the box> (restrictor, scope, negation, ...). A bound p-box with
+     *  several bind referents: <bind referent's key>><key>. */
     public String target;
     public String targetLabel;
     /** The alternative's key: kind, point and target, unique within an update. */
