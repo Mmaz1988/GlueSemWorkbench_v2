@@ -30,6 +30,9 @@ public class PragmaticChoiceDto {
     public String site;
     /** The box's role, for display: antecedent, consequent, negation, disjunct, embedding. */
     public String siteLabel;
+    /** A proper name's p-box: the constant its bind referent equals ("kim"), on each of its
+     *  alternatives; null for any other choice point. Equal names are one name. */
+    public String name;
 
     public PragmaticChoiceDto() {
     }

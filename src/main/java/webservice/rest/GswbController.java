@@ -445,8 +445,10 @@ public class GswbController {
                 for (Object value : values) {
                     if (value instanceof Map<?, ?> referent && referent.get("label") instanceof String label) {
                         Object text = referent.get("lexicalText");
+                        List<String> names = referent.get("names") instanceof List<?> values2
+                                ? values2.stream().map(String::valueOf).toList() : List.of();
                         referents.put(label, new PragmaticChoices.Referent(spans(referent.get("lexicalSpans")),
-                                text == null ? label : text.toString()));
+                                text == null ? label : text.toString(), names));
                     }
                 }
             }

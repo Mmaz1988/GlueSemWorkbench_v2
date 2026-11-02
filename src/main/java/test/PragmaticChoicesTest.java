@@ -112,6 +112,31 @@ class PragmaticChoicesTest {
     }
 
     @Test
+    void aProperNamesAlternativesCarryItsNameAndNoOtherChoicePointDoes() {
+        // "Kim smiled. Kim laughed. It barked.": s1 and s4 the two names' p-boxes, it -> the second Kim
+        Map<String, PragmaticChoices.Referent> referents = new LinkedHashMap<>();
+        referents.put("s1:y1", new PragmaticChoices.Referent(List.of(new int[]{0, 3}), "Kim", List.of("kim")));
+        referents.put("s4:y2", new PragmaticChoices.Referent(List.of(new int[]{12, 15}), "Kim", List.of("kim")));
+        referents.put("s6:x3", referent("It", 25, 27));
+        List<PresuppositionBox> names = List.of(new PresuppositionBox("s1", "s0", List.of("s1:y1")),
+                new PresuppositionBox("s4", "s3", List.of("s4:y2")));
+        PragmaticChoices choices = new PragmaticChoices(referents, names, global("s0", "s1", "s2", "s3", "s4", "s5", "s6"));
+
+        List<PragmaticChoiceDto> bound = choices.of(links("s4:y2", "s1:y1", "s6:x3", "s4:y2"),
+                List.of(accommodated("s1", "s0", Collapse.Depth.GLOBAL), bound("s4", "s4:y2", "s1:y1")));
+        for (PragmaticChoiceDto choice : bound) {
+            assertEquals(choice.kind.equals("PRESUPPOSITION") ? "kim" : null, choice.name, choice.id);
+        }
+        List<PragmaticChoiceDto> apart = choices.of(links("s6:x3", "/"),
+                List.of(accommodated("s1", "s0", Collapse.Depth.GLOBAL), accommodated("s4", "s0", Collapse.Depth.GLOBAL)));
+        assertEquals(List.of("kim", "kim"), apart.stream().filter(c -> c.kind.equals("PRESUPPOSITION"))
+                .map(c -> c.name).toList());
+
+        List<PragmaticChoiceDto> dog = chain1(links("s6:x5", "/"), accommodated("s4", "s0", Collapse.Depth.GLOBAL));
+        assertTrue(dog.stream().allMatch(c -> c.name == null));
+    }
+
+    @Test
     void anUnboundPronounHoldsOnlySlash() {
         List<PragmaticChoiceDto> choices = chain1(links("s6:x5", "/"), accommodated("s4", "s0", Collapse.Depth.GLOBAL));
         assertEquals(Set.of("ANAPHORA@33-35=/", "PRESUPPOSITION@17-24=GLOBAL"), ids(choices));

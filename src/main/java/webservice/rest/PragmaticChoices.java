@@ -20,8 +20,13 @@ import java.util.*;
  */
 public final class PragmaticChoices {
 
-    /** A referent as the provenance describes it: its head's spans and lexical text. */
-    public record Referent(List<int[]> spans, String text) {
+    /** A referent as the provenance describes it: its head's spans, lexical text, and the
+     *  constants it equals (a proper name's). */
+    public record Referent(List<int[]> spans, String text, List<String> names) {
+
+        public Referent(List<int[]> spans, String text) {
+            this(spans, text, List.of());
+        }
 
         String key() {
             StringJoiner key = new StringJoiner(",");
@@ -102,6 +107,7 @@ public final class PragmaticChoices {
             // A p-box by its bind referents' heads; without any, by its trigger (its state's SRC).
             String point;
             String pointLabel;
+            String name = null;
             if (box.bindReferents().isEmpty()) {
                 State trigger = state(box.label());
                 point = spansKey(trigger.spans());
@@ -110,7 +116,12 @@ public final class PragmaticChoices {
                 List<Referent> own = box.bindReferents().stream().map(this::referent).toList();
                 point = keys(own);
                 pointLabel = String.join(" ", own.stream().map(Referent::text).toList());
+                // A proper name's p-box: one bind referent, equal to one constant
+                if (own.size() == 1 && own.get(0).names().size() == 1) {
+                    name = own.get(0).names().get(0);
+                }
             }
+            int first = choices.size();
             if (!resolution.bound()) {
                 choices.add(switch (resolution.depth()) {
                     case GLOBAL -> new PragmaticChoiceDto("PRESUPPOSITION", point, pointLabel, "ACCOMMODATED",
@@ -118,23 +129,26 @@ public final class PragmaticChoices {
                     case LOCAL -> new PragmaticChoiceDto("PRESUPPOSITION", point, pointLabel, "ACCOMMODATED",
                             "LOCAL", "in situ", true);
                     case INTERMEDIATE -> {
-                        String first = boxStart(resolution.site());
-                        yield PragmaticChoiceDto.intermediate(point, pointLabel, first, role(first));
+                        String start = boxStart(resolution.site());
+                        yield PragmaticChoiceDto.intermediate(point, pointLabel, start, role(start));
                     }
                 });
-                continue;
-            }
-            boolean several = box.bindReferents().size() > 1;
-            for (String bound : box.bindReferents()) {
-                String antecedent = anaphora.get(bound);
-                Referent from = referent(bound);
-                for (String member : earlier(bound, antecedent, chains.get(find(parent, bound)))) {
-                    Referent target = referent(member);
-                    choices.add(new PragmaticChoiceDto("PRESUPPOSITION", point, pointLabel, "BOUND",
-                            several ? from.key() + ">" + target.key() : target.key(),
-                            several ? from.text() + " ↦ " + target.text() : target.text(),
-                            member.equals(antecedent)));
+            } else {
+                boolean several = box.bindReferents().size() > 1;
+                for (String bound : box.bindReferents()) {
+                    String antecedent = anaphora.get(bound);
+                    Referent from = referent(bound);
+                    for (String member : earlier(bound, antecedent, chains.get(find(parent, bound)))) {
+                        Referent target = referent(member);
+                        choices.add(new PragmaticChoiceDto("PRESUPPOSITION", point, pointLabel, "BOUND",
+                                several ? from.key() + ">" + target.key() : target.key(),
+                                several ? from.text() + " ↦ " + target.text() : target.text(),
+                                member.equals(antecedent)));
+                    }
                 }
+            }
+            for (PragmaticChoiceDto choice : choices.subList(first, choices.size())) {
+                choice.name = name;
             }
         }
         return choices;
