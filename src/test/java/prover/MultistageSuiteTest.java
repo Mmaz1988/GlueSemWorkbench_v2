@@ -2,10 +2,17 @@ package prover;
 
 import glueSemantics.parser.GlueParser;
 import glueSemantics.parser.LexicalEntries;
+import glueSemantics.parser.SemanticParser;
 import main.Settings;
 import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 import utilities.LexVariableHandler;
+import webservice.rest.GswbController;
+import webservice.rest.dtos.GswbOutput;
+import webservice.rest.dtos.GswbPreferences;
+import webservice.rest.dtos.GswbProofInput;
+import webservice.rest.dtos.GswbRequest;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,6 +25,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -38,6 +46,8 @@ import static org.junit.jupiter.api.Assumptions.assumeFalse;
  * - the solutions equal the baseline in multistage/reference-llprover3.txt, recorded from LLProver3
  *   (the multistage prover) on 2026-11-07, before it is merged into LLProver1;
  * - the solution count equals the suite's annotation, except for the listed known deviations.
+ * A third check sends all cases as one structured /deduce request (one proof input each), where
+ * the controller repacks the parsed sets and must carry each set's stage graph along.
  *
  * Re-record the baseline (only on purpose) with
  * {@code mvn test -Dtest=MultistageSuiteTest -Dmultistage.writeReference=true}.
@@ -85,6 +95,45 @@ class MultistageSuiteTest {
             int found = assertTimeoutPreemptively(Duration.ofSeconds(60), () -> countSolutions(c, PROVER_UNDER_TEST));
             assertEquals(c.expected(), found, c.toString());
         }));
+    }
+
+    @Test
+    void structuredProofsRequestGivesTheSameCountsAsSingleCases() throws Exception {
+        List<Case> cases = cases();
+        GswbRequest request = new GswbRequest();
+        request.gswbPreferences = new GswbPreferences();
+        request.gswbPreferences.prover = PROVER_UNDER_TEST;
+        request.gswbPreferences.glueOnly = true;
+        request.proofs = new ArrayList<>();
+        for (Case c : cases) {
+            GswbProofInput input = new GswbProofInput();
+            input.proofId = "case" + c.label();
+            input.meaningConstructors = String.join("\n", c.lines());
+            request.proofs.add(input);
+        }
+        // The controller replaces the static SemanticParser.settings per request; restore it so the
+        // other checks keep printing terms in the plain style their baseline uses.
+        Settings staticSettings = SemanticParser.settings;
+        GswbOutput output;
+        try {
+            LexVariableHandler.resetVars();
+            output = assertTimeoutPreemptively(Duration.ofSeconds(120),
+                    () -> new GswbController().glueDeduce(request));
+        } finally {
+            SemanticParser.settings = staticSettings;
+            LexVariableHandler.resetVars();
+        }
+
+        Map<String, Integer> inRequest = new TreeMap<>();
+        output.solutions.forEach(s -> inRequest.merge(s.proofId, 1, Integer::sum));
+        Map<String, Integer> alone = new TreeMap<>();
+        for (Case c : cases) {
+            int n = countSolutions(c, PROVER_UNDER_TEST);
+            if (n > 0) {
+                alone.put("case" + c.label(), n);
+            }
+        }
+        assertEquals(alone, inRequest);
     }
 
     /** Reference format: a line "== <case label>", then one solution per line. */

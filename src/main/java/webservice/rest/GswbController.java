@@ -23,6 +23,8 @@ import glueSemantics.parser.ParserInputException;
 import glueSemantics.semantics.MeaningConstructor;
 import de.ukon.lfgxdrt.DrsSvgRenderer;
 import main.*;
+import org.jgrapht.Graph;
+import org.jgrapht.graph.DefaultEdge;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.bind.annotation.*;
@@ -223,8 +225,8 @@ public class GswbController {
             LOGGER.fine("Parsed structured proof inputs: records=" + request.proofs.size()
                     + ", mcSets=" + parsed.entries.lexicalEntries.size()
                     + ", origins=" + parsed.origins.size());
-            return runAndFormatSingle(
-                    parsed.entries, parsed.origins, ctx, batchMode, includeDerivation, request.structure);
+            return runAndFormatSingle(parsed.entries, parsed.origins, parsed.stageGraphs,
+                    ctx, batchMode, includeDerivation, request.structure);
         }
         InputOutputProcessor.process(request.premises);
         String input = InputOutputProcessor.translate(request.premises);
@@ -1097,10 +1099,14 @@ public class GswbController {
     private static final class ParsedProofInputs {
         private final LexicalEntries entries;
         private final Map<Integer, GswbProofInput> origins;
+        /** Per MC set: the stage graph of the parse it came from (stage labels are only unique within one parse). */
+        private final Map<Integer, Graph<String, DefaultEdge>> stageGraphs;
 
-        private ParsedProofInputs(LexicalEntries entries, Map<Integer, GswbProofInput> origins) {
+        private ParsedProofInputs(LexicalEntries entries, Map<Integer, GswbProofInput> origins,
+                                  Map<Integer, Graph<String, DefaultEdge>> stageGraphs) {
             this.entries = entries;
             this.origins = origins;
+            this.stageGraphs = stageGraphs;
         }
     }
 
@@ -1146,12 +1152,14 @@ public class GswbController {
             LinkedHashMap<String, Object> structure
     ) throws Exception {
         LexicalEntries mcs = gp.parseMeaningConstructorString(premiseInput);
-        return runAndFormatSingle(mcs, Collections.emptyMap(), ctx, batchMode, includeDerivation, structure);
+        return runAndFormatSingle(mcs, Collections.emptyMap(), Collections.emptyMap(),
+                ctx, batchMode, includeDerivation, structure);
     }
 
     private SingleRunResult runAndFormatSingle(
             LexicalEntries mcs,
             Map<Integer, GswbProofInput> origins,
+            Map<Integer, Graph<String, DefaultEdge>> stageGraphs,
             RunContext ctx,
             boolean batchMode,
             boolean includeDerivation,
@@ -1164,7 +1172,7 @@ public class GswbController {
 
         LOGGER.fine("Running prover...");
 
-        ProofRun run = runProofsOverLexicalEntries(mcs, prover, sb, batchMode, origins);
+        ProofRun run = runProofsOverLexicalEntries(mcs, prover, sb, batchMode, origins, stageGraphs);
 
         LexicalEntries filteredMcs = filterLexicalEntriesByKeySet(mcs, run.mcSetWithSolution);
         List<McDiscriminant> finalMcDiscriminants = filteredMcs.calculateDiscriminants();
@@ -1209,6 +1217,7 @@ public class GswbController {
     ) throws Exception {
         LinkedHashMap<Integer, List<MeaningConstructor>> combined = new LinkedHashMap<>();
         Map<Integer, GswbProofInput> origins = new LinkedHashMap<>();
+        Map<Integer, Graph<String, DefaultEdge>> stageGraphs = new HashMap<>();
         int nextKey = 1;
 
         for (GswbProofInput proofInput : proofInputs) {
@@ -1227,11 +1236,12 @@ public class GswbController {
                 origin.mcSetId = baseMcSetId + ":" + localEntry.getKey();
                 combined.put(nextKey, localEntry.getValue());
                 origins.put(nextKey, origin);
+                stageGraphs.put(nextKey, local.multiStageGraph);
                 nextKey++;
             }
         }
 
-        return new ParsedProofInputs(new LexicalEntries(combined), origins);
+        return new ParsedProofInputs(new LexicalEntries(combined), origins, stageGraphs);
     }
 
     private GswbProofInput copyProofInput(GswbProofInput input) {
@@ -1291,7 +1301,8 @@ public class GswbController {
             LLProver prover,
             StringBuilder sb,
             boolean batchMode,
-            Map<Integer, GswbProofInput> origins
+            Map<Integer, GswbProofInput> origins,
+            Map<Integer, Graph<String, DefaultEdge>> stageGraphs
     ) {
         int noOfMCs = 0;
         int countSolutions = 0;
@@ -1308,6 +1319,11 @@ public class GswbController {
             try {
                 GswbProofInput origin = origins.get(key);
                 prover.currentProofOrigin = origin == null ? null : originTag(origin);
+                // Repacked proof inputs: give the prover the stage graph of this set's own parse.
+                Graph<String, DefaultEdge> stageGraph = stageGraphs.get(key);
+                if (stageGraph != null) {
+                    mcs.multiStageGraph = stageGraph;
+                }
                 noOfMCs += mcs.lexicalEntries.get(key).size();
 
                 List<SolutionObject> solutions = prover.searchProof(key, mcs);
