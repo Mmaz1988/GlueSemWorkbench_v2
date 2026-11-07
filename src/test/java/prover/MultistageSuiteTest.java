@@ -133,7 +133,7 @@ class MultistageSuiteTest {
         LexVariableHandler.resetVars();
         Settings settings = new Settings();
         settings.setProverType(proverType);
-        LexicalEntries entries = new GlueParser(false).parseMultiStageMCList(c.lines());
+        LexicalEntries entries = new GlueParser(false).parseMeaningConstructorList(c.lines());
         LLProver prover = proverType == Settings.Multi ? new LLProver3(settings, new StringBuilder())
                 : proverType == Settings.LEV ? new LLProver1(settings, new StringBuilder())
                 : new LLProver2(settings, new StringBuilder());
