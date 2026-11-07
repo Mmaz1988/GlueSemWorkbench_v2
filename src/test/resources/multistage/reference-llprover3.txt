@@ -1,0 +1,70 @@
+== 1
+f_t : a([λx_e.student(x)])([λy_e.every([λz_e.student(z)])([λx1_e.give(h)(y)(x1)])])
+f_t : every([λz_e.student(z)])([λx1_e.a([λx_e.student(x)])([λy_e.give(h)(y)(x1)])])
+== 2
+f_t : a([λx_e.student(x)])([λy_e.every([λz_e.grade(z)])([λx1_e.give(h)(y)(x1)])])
+== 3
+a_t : 3(2(1))
+== 4
+a_t : c(b1)(d(b2)(a))
+a_t : c(b2)(d(b1)(a))
+== 5
+a_t : c(d(a)(b1))(b2)
+a_t : c(d(a)(b2))(b1)
+== 6
+a_t : a(c([λx_t.a1(x)]))(d([λy_t.a2(y)]))
+a_t : a(c([λx_t.a2(x)]))(d([λy_t.a1(y)]))
+a_t : a(d([λy_t.a1(y)]))(c([λx_t.a2(x)]))
+a_t : a(d([λy_t.a2(y)]))(c([λx_t.a1(x)]))
+== 7
+a_t : b(c(c(c(a))))
+== 8
+a_t : b(c(c1(c3(c2(a)))))
+a_t : b(c1(c(c3(c2(a)))))
+== 9
+e_t : end(b(c(a)))
+== 10
+11_t : ]]([λx_e.]([λx1_e.]([λz_e.(z)])(x1)])(x)])([λy_e.(y)])
+== 11
+v_t : m1(m2(a([λx_e.black([λy2_e.big([λx2_e.dog(x2)])(y2)])(x)])([λy_e.every([λz_e.bubl([λx3_e.fubl([λz2_e.cat(z2)])(x3)])(z)])([λx1_e.some([λy1_e.bubl([λz3_e.fubl([λy3_e.cat(y3)])(z3)])(y1)])([λz1_e.arg3(arg2(arg1(v(e))(y))(x1))(z1)])])])))
+v_t : m1(m2(a([λx_e.black([λy2_e.big([λx2_e.dog(x2)])(y2)])(x)])([λy_e.every([λz_e.fubl([λz2_e.bubl([λx3_e.cat(x3)])(z2)])(z)])([λx1_e.some([λy1_e.bubl([λz3_e.fubl([λy3_e.cat(y3)])(z3)])(y1)])([λz1_e.arg3(arg2(arg1(v(e))(y))(x1))(z1)])])])))
+v_t : m1(m2(a([λx_e.black([λy2_e.big([λx2_e.dog(x2)])(y2)])(x)])([λy_e.some([λy1_e.bubl([λz3_e.fubl([λy3_e.cat(y3)])(z3)])(y1)])([λz1_e.every([λz_e.bubl([λx3_e.fubl([λz2_e.cat(z2)])(x3)])(z)])([λx1_e.arg3(arg2(arg1(v(e))(y))(x1))(z1)])])])))
+v_t : m1(m2(a([λx_e.black([λy2_e.big([λx2_e.dog(x2)])(y2)])(x)])([λy_e.some([λy1_e.bubl([λz3_e.fubl([λy3_e.cat(y3)])(z3)])(y1)])([λz1_e.every([λz_e.fubl([λz2_e.bubl([λx3_e.cat(x3)])(z2)])(z)])([λx1_e.arg3(arg2(arg1(v(e))(y))(x1))(z1)])])])))
+v_t : m1(m2(every([λz_e.bubl([λx3_e.fubl([λz2_e.cat(z2)])(x3)])(z)])([λx1_e.a([λx_e.black([λy2_e.big([λx2_e.dog(x2)])(y2)])(x)])([λy_e.some([λy1_e.bubl([λz3_e.fubl([λy3_e.cat(y3)])(z3)])(y1)])([λz1_e.arg3(arg2(arg1(v(e))(y))(x1))(z1)])])])))
+v_t : m1(m2(every([λz_e.bubl([λx3_e.fubl([λz2_e.cat(z2)])(x3)])(z)])([λx1_e.some([λy1_e.bubl([λz3_e.fubl([λy3_e.cat(y3)])(z3)])(y1)])([λz1_e.a([λx_e.black([λy2_e.big([λx2_e.dog(x2)])(y2)])(x)])([λy_e.arg3(arg2(arg1(v(e))(y))(x1))(z1)])])])))
+v_t : m1(m2(every([λz_e.fubl([λz2_e.bubl([λx3_e.cat(x3)])(z2)])(z)])([λx1_e.a([λx_e.black([λy2_e.big([λx2_e.dog(x2)])(y2)])(x)])([λy_e.some([λy1_e.bubl([λz3_e.fubl([λy3_e.cat(y3)])(z3)])(y1)])([λz1_e.arg3(arg2(arg1(v(e))(y))(x1))(z1)])])])))
+v_t : m1(m2(every([λz_e.fubl([λz2_e.bubl([λx3_e.cat(x3)])(z2)])(z)])([λx1_e.some([λy1_e.bubl([λz3_e.fubl([λy3_e.cat(y3)])(z3)])(y1)])([λz1_e.a([λx_e.black([λy2_e.big([λx2_e.dog(x2)])(y2)])(x)])([λy_e.arg3(arg2(arg1(v(e))(y))(x1))(z1)])])])))
+v_t : m1(m2(some([λy1_e.bubl([λz3_e.fubl([λy3_e.cat(y3)])(z3)])(y1)])([λz1_e.a([λx_e.black([λy2_e.big([λx2_e.dog(x2)])(y2)])(x)])([λy_e.every([λz_e.bubl([λx3_e.fubl([λz2_e.cat(z2)])(x3)])(z)])([λx1_e.arg3(arg2(arg1(v(e))(y))(x1))(z1)])])])))
+v_t : m1(m2(some([λy1_e.bubl([λz3_e.fubl([λy3_e.cat(y3)])(z3)])(y1)])([λz1_e.a([λx_e.black([λy2_e.big([λx2_e.dog(x2)])(y2)])(x)])([λy_e.every([λz_e.fubl([λz2_e.bubl([λx3_e.cat(x3)])(z2)])(z)])([λx1_e.arg3(arg2(arg1(v(e))(y))(x1))(z1)])])])))
+v_t : m1(m2(some([λy1_e.bubl([λz3_e.fubl([λy3_e.cat(y3)])(z3)])(y1)])([λz1_e.every([λz_e.bubl([λx3_e.fubl([λz2_e.cat(z2)])(x3)])(z)])([λx1_e.a([λx_e.black([λy2_e.big([λx2_e.dog(x2)])(y2)])(x)])([λy_e.arg3(arg2(arg1(v(e))(y))(x1))(z1)])])])))
+v_t : m1(m2(some([λy1_e.bubl([λz3_e.fubl([λy3_e.cat(y3)])(z3)])(y1)])([λz1_e.every([λz_e.fubl([λz2_e.bubl([λx3_e.cat(x3)])(z2)])(z)])([λx1_e.a([λx_e.black([λy2_e.big([λx2_e.dog(x2)])(y2)])(x)])([λy_e.arg3(arg2(arg1(v(e))(y))(x1))(z1)])])])))
+v_t : m2(m1(a([λx_e.black([λy2_e.big([λx2_e.dog(x2)])(y2)])(x)])([λy_e.every([λz_e.bubl([λx3_e.fubl([λz2_e.cat(z2)])(x3)])(z)])([λx1_e.some([λy1_e.bubl([λz3_e.fubl([λy3_e.cat(y3)])(z3)])(y1)])([λz1_e.arg3(arg2(arg1(v(e))(y))(x1))(z1)])])])))
+v_t : m2(m1(a([λx_e.black([λy2_e.big([λx2_e.dog(x2)])(y2)])(x)])([λy_e.every([λz_e.fubl([λz2_e.bubl([λx3_e.cat(x3)])(z2)])(z)])([λx1_e.some([λy1_e.bubl([λz3_e.fubl([λy3_e.cat(y3)])(z3)])(y1)])([λz1_e.arg3(arg2(arg1(v(e))(y))(x1))(z1)])])])))
+v_t : m2(m1(a([λx_e.black([λy2_e.big([λx2_e.dog(x2)])(y2)])(x)])([λy_e.some([λy1_e.bubl([λz3_e.fubl([λy3_e.cat(y3)])(z3)])(y1)])([λz1_e.every([λz_e.bubl([λx3_e.fubl([λz2_e.cat(z2)])(x3)])(z)])([λx1_e.arg3(arg2(arg1(v(e))(y))(x1))(z1)])])])))
+v_t : m2(m1(a([λx_e.black([λy2_e.big([λx2_e.dog(x2)])(y2)])(x)])([λy_e.some([λy1_e.bubl([λz3_e.fubl([λy3_e.cat(y3)])(z3)])(y1)])([λz1_e.every([λz_e.fubl([λz2_e.bubl([λx3_e.cat(x3)])(z2)])(z)])([λx1_e.arg3(arg2(arg1(v(e))(y))(x1))(z1)])])])))
+v_t : m2(m1(every([λz_e.bubl([λx3_e.fubl([λz2_e.cat(z2)])(x3)])(z)])([λx1_e.a([λx_e.black([λy2_e.big([λx2_e.dog(x2)])(y2)])(x)])([λy_e.some([λy1_e.bubl([λz3_e.fubl([λy3_e.cat(y3)])(z3)])(y1)])([λz1_e.arg3(arg2(arg1(v(e))(y))(x1))(z1)])])])))
+v_t : m2(m1(every([λz_e.bubl([λx3_e.fubl([λz2_e.cat(z2)])(x3)])(z)])([λx1_e.some([λy1_e.bubl([λz3_e.fubl([λy3_e.cat(y3)])(z3)])(y1)])([λz1_e.a([λx_e.black([λy2_e.big([λx2_e.dog(x2)])(y2)])(x)])([λy_e.arg3(arg2(arg1(v(e))(y))(x1))(z1)])])])))
+v_t : m2(m1(every([λz_e.fubl([λz2_e.bubl([λx3_e.cat(x3)])(z2)])(z)])([λx1_e.a([λx_e.black([λy2_e.big([λx2_e.dog(x2)])(y2)])(x)])([λy_e.some([λy1_e.bubl([λz3_e.fubl([λy3_e.cat(y3)])(z3)])(y1)])([λz1_e.arg3(arg2(arg1(v(e))(y))(x1))(z1)])])])))
+v_t : m2(m1(every([λz_e.fubl([λz2_e.bubl([λx3_e.cat(x3)])(z2)])(z)])([λx1_e.some([λy1_e.bubl([λz3_e.fubl([λy3_e.cat(y3)])(z3)])(y1)])([λz1_e.a([λx_e.black([λy2_e.big([λx2_e.dog(x2)])(y2)])(x)])([λy_e.arg3(arg2(arg1(v(e))(y))(x1))(z1)])])])))
+v_t : m2(m1(some([λy1_e.bubl([λz3_e.fubl([λy3_e.cat(y3)])(z3)])(y1)])([λz1_e.a([λx_e.black([λy2_e.big([λx2_e.dog(x2)])(y2)])(x)])([λy_e.every([λz_e.bubl([λx3_e.fubl([λz2_e.cat(z2)])(x3)])(z)])([λx1_e.arg3(arg2(arg1(v(e))(y))(x1))(z1)])])])))
+v_t : m2(m1(some([λy1_e.bubl([λz3_e.fubl([λy3_e.cat(y3)])(z3)])(y1)])([λz1_e.a([λx_e.black([λy2_e.big([λx2_e.dog(x2)])(y2)])(x)])([λy_e.every([λz_e.fubl([λz2_e.bubl([λx3_e.cat(x3)])(z2)])(z)])([λx1_e.arg3(arg2(arg1(v(e))(y))(x1))(z1)])])])))
+v_t : m2(m1(some([λy1_e.bubl([λz3_e.fubl([λy3_e.cat(y3)])(z3)])(y1)])([λz1_e.every([λz_e.bubl([λx3_e.fubl([λz2_e.cat(z2)])(x3)])(z)])([λx1_e.a([λx_e.black([λy2_e.big([λx2_e.dog(x2)])(y2)])(x)])([λy_e.arg3(arg2(arg1(v(e))(y))(x1))(z1)])])])))
+v_t : m2(m1(some([λy1_e.bubl([λz3_e.fubl([λy3_e.cat(y3)])(z3)])(y1)])([λz1_e.every([λz_e.fubl([λz2_e.bubl([λx3_e.cat(x3)])(z2)])(z)])([λx1_e.a([λx_e.black([λy2_e.big([λx2_e.dog(x2)])(y2)])(x)])([λy_e.arg3(arg2(arg1(v(e))(y))(x1))(z1)])])])))
+== 12
+c_t : 1([λx_e.5([λy_e.3(4)(y)])([λz_e.2(z)])(x)])
+== 13
+c_t : 1([λx_e.5([λy_e.3(4)(y)])([λz_e.2(z)])(x)])
+== 14
+4_p : c(a(b(d(e(f(h)))(g))))
+4_p : c(a(b(d(f(e(h)))(g))))
+4_p : c(a(d(e(f(h)))(b(g))))
+4_p : c(a(d(f(e(h)))(b(g))))
+== 15
+4_p : c(a(d(f(e(h)))(b(g))))
+== 16
+== 17
+4_p : c(a(d(e(f(h)))(b(g))))
+== 18
+4_p : 5(4(2([λx_<e,p>.1([λy_e.x(y)])])(3)))
+== 19
+4_p : \V.(V(\E.( [],[] )))(\V.\F.(V(\E.((([],[PRESUPPOSITION(([T],[ time_T, TPR_T(`now`))])), Time_{E,T}])) + F_E)))(\Q.\V.\F.(Q(\X.(V(\E.(([], [at_{E,X}]) + F_E))))))([λx_<e,p>.\P.\Q.(([],[PRESUPPOSITION((([X],[]) + P_X))]) + Q_X)([λy_e.\X.([], [Name_{X, `suffolk`}])(y)])([λz_e.x(z)])])(\Q.\V.\F.(Q(\X.(V(\E.(([], [nsubj_{E,X}]) + F_E))))))([λx1_<e,p>.\P.(([],[PRESUPPOSITION(([X], [ female_X]))]) + P_X)([λy1_e.x1(y1)])])(\Q.\V.\F.(Q(\X.(V(\E.(([], [obj_{E,X}]) + F_E))))))([λz3_<e,p>.\P.\Q.(([X],[]) + P_X + Q_X )([λx3_e.\Q.\P.\X.((Q(\Y.([], [of_{X,Y}])) + P_X))([λz1_<e,p>.\P.\Q.(([],[PRESUPPOSITION((([X],[]) + P_X))]) + Q_X)([λy2_e.\X.([], [Name_{X, `science`}])(y2)])([λz2_e.z1(z2)])])([λx2_e.\X.([],[bachelor_X] )(x2)])(x3)])([λy3_e.z3(y3)])])(\Q.\V.\F.(Q(\X.(V(\E.(([], [in_{E,X}]) + F_E))))))([λx4_<e,p>.\P.\Q.(([X],[]) + P_X + Q_X )([λy4_e.\X.([],[psychology_X] )(y4)])([λz4_e.x4(z4)])])(\V.\U.\F.(U(F) + V(\G.([],[])))(\Q.\P.\F.P(\E(([X], [advmod_{E,X}]) + F_E + Q_X))([λx5_v.\X.(([],[ late_X]))(x5)])(\V.\F.(V(\E.(([X], [PRESUPPOSITION(([X], [ entity_X]))), nsubj_{E,X}) + F_E)))(\V.\F.(V(\E.((([],[PRESUPPOSITION(([T],[ time_T, TPR_T(`now`))])), Time_{E,T}])) + F_E)))(\Q.\V.\F.(Q(\X.(V(\E.(([], [for_{E,X}]) + F_E))))))([λx11_<e,p>.\P.\Q.(([X],[]) + P_X + Q_X )([λy10_e.\Q.\P.\X.((Q(\Y.([], [nmod_{X,Y}])) + P_X))([λx12_<e,p>.\P.\Q.(([X],[]) + P_X + Q_X )([λy11_e.\X.([],[counseling_X] )(y11)])([λz11_e.x12(z11)])])([λy12_e.\Q.\P.\X.((Q(\Y.([], [of_{X,Y}])) + P_X))([λx9_<e,p>.\P.\Q.(([X],[]) + P_X + Q_X )([λz9_e.\X.([],[education_X] )(z9)])([λx10_e.x9(x10)])])([λy9_e.\Q.\P.\X.((Q(\Y.([], [in_{X,Y}])) + P_X))([λz7_<e,p>.\P.\Q.(([X],[]) + P_X + Q_X )([λy8_e.\Q.\P.\X.(([Y], [compound_{X,Y}]) + Q_Y + P_X)([λx7_e.\X.([], [Name_{X, `sport`}])(x7)])([λy7_e.\X.([],[psychology_X] )(y7)])(y8)])([λz8_e.z7(z8)])])([λx8_e.\X.([],[master_X] )(x8)])(y9)])(y12)])(y10)])([λz10_e.x11(z10)])])(\Q.\V.\F.(Q(\X.(V(\E.(([], [obj_{E,X}]) + F_E))))))([λz6_<e,p>.\P.\Q.(([],[PRESUPPOSITION((([X],[]) + P_X))]) + Q_X)([λx6_e.\Q.\P.\X.(([Y], [compound_{X,Y}]) + Q_Y + P_X)([λy5_e.\X.([], [Name_{X, `boston`}])(y5)])([λz5_e.\X.([], [Name_{X, `university`}])(z5)])(x6)])([λy6_e.z6(y6)])])(\F.(([E],[ attend_E]) + F_E )))))))(\F.(([E],[ obtain_E]) + F_E ))))))))
