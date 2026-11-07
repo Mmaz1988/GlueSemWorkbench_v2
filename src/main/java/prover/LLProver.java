@@ -8,7 +8,10 @@ import glueSemantics.semantics.LfgxDrtSemanticRepresentation;
 import main.InputOutputProcessor;
 import main.Settings;
 import main.WorkbenchMain;
+import glueSemantics.semantics.SemanticRepresentation;
 import glueSemantics.semantics.lambda.SemAtom;
+import glueSemantics.semantics.lambda.SemFunction;
+import glueSemantics.semantics.lambda.SemSet;
 import glueSemantics.semantics.lambda.SemType;
 import utilities.Debugging;
 
@@ -35,7 +38,6 @@ public abstract class LLProver {
 
     public abstract void  deduce(Sequent seq) throws ProverException, VariableBindingException;
 
-    public abstract Premise combinePremises(Premise functor, Premise argument, StringBuilder proofBuilder) throws VariableBindingException, ProverException;
     public abstract Premise combinePremises(Premise functor, Premise argument) throws VariableBindingException, ProverException;
     public LinkedList<SolutionObject> getSolutions() {
         return solutions;
@@ -117,6 +119,26 @@ public abstract class LLProver {
         } catch (Exception e) {
             throw new ProverException("Failed to build LFGx abstraction: " + e.getMessage());
         }
+    }
+
+    /**
+     * Discharges a hypothesis: abstracts its variable over the meaning derived from it, in the
+     * meaning language of the output style. LFGxDRT builds an LFGxDRT lambda; the other styles
+     * work on GSWB's own terms. A set of alternatives gets one lambda per alternative, so after
+     * application the alternatives are whole readings (not a set inside a formula).
+     */
+    protected SemanticRepresentation dischargeHypothesis(SemanticRepresentation body, SemAtom binder) throws ProverException {
+        if (getSettings().getSemanticOutputStyle() == Settings.LFGXDRT) {
+            return wrapLfgAbstractionBody(body, binder);
+        }
+        if (body instanceof SemSet set) {
+            List<SemanticRepresentation> alternatives = new ArrayList<>();
+            for (SemanticRepresentation member : set.getMembers()) {
+                alternatives.add(new SemFunction(binder, member));
+            }
+            return new SemSet(alternatives, alternatives.get(0).getType());
+        }
+        return new SemFunction(binder, body);
     }
 
 
