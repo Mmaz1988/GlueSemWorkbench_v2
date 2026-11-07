@@ -1877,37 +1877,27 @@ public class LLProver3 extends LLProver {
 
     public List<History> noScopeCompress(List<History> histories)
     {
+        // Keeps the histories with maximal index sets: a history is dropped if a kept one covers
+        // all its indices, and it replaces every kept history whose indices it covers.
         List<History> chart = new ArrayList<>();
 
-        List<History> agenda = new ArrayList<>(histories);
-
-        ListIterator<History> agendaIterator = agenda.listIterator();
-
-        boolean subsumed = false;
-
-        while (agendaIterator.hasNext())
+        for (History current : histories)
         {
-
-            History current = agendaIterator.next();
-            ListIterator<History> chartIterator = chart.listIterator();
-
-            while (chartIterator.hasNext())
+            boolean subsumed = false;
+            for (History h : chart)
             {
-               History  h = chartIterator.next();
                 if (h.indexSet.containsAll(current.indexSet))
                 {
                     subsumed = true;
-                } else if (current.indexSet.containsAll(h.indexSet))
-                {
-                    chartIterator.remove();
-                    chartIterator.add(current);
+                    break;
                 }
             }
-
-            if (!subsumed)
+            if (subsumed)
             {
-                chart.add(current);
+                continue;
             }
+            chart.removeIf(h -> current.indexSet.containsAll(h.indexSet));
+            chart.add(current);
         }
         getLOGGER().fine("Discarded " + (histories.size() - chart.size()) + " histories");
         return chart;

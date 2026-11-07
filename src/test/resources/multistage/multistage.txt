@@ -188,7 +188,7 @@ h : 4_p
 }
 }
 }
-//16 Test fails with noscope; no solutions (discontinuous applications blocked by noscope)
+//16 noscope on b, e and f; 1 solution (4_x follows the stages: b, then d, then a; was annotated "no solutions" until noScopeCompress was fixed on 2026-11-07)
 {
 c : (4_x -o 4_p)
 a : (4_x -o 4_x)
