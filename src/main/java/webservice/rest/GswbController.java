@@ -219,7 +219,7 @@ public class GswbController {
     private SingleRunResult deduceOneQuietly(GswbRequest request, RunContext ctx, GlueParser gp,
                                              boolean batchMode, boolean includeDerivation) throws Exception {
         if (request.proofs != null && !request.proofs.isEmpty()) {
-            ParsedProofInputs parsed = parseProofInputs(request.proofs, gp, ctx.multistage);
+            ParsedProofInputs parsed = parseProofInputs(request.proofs, gp);
             LOGGER.fine("Parsed structured proof inputs: records=" + request.proofs.size()
                     + ", mcSets=" + parsed.entries.lexicalEntries.size()
                     + ", origins=" + parsed.origins.size());
@@ -1048,13 +1048,11 @@ public class GswbController {
         private final Settings settings;
         private final boolean displayDRT;
         private final boolean displayLfgxDrt;
-        private final boolean multistage;
 
-        private RunContext(Settings settings, boolean displayDRT, boolean displayLfgxDrt, boolean multistage) {
+        private RunContext(Settings settings, boolean displayDRT, boolean displayLfgxDrt) {
             this.settings = settings;
             this.displayDRT = displayDRT;
             this.displayLfgxDrt = displayLfgxDrt;
-            this.multistage = multistage;
         }
     }
 
@@ -1136,9 +1134,7 @@ public class GswbController {
         settings.setBetaReduce(betaReduce);
         settings.setResolveDrs(prefs.resolveDrs);
 
-        boolean multistage = (settings.getProverType() == 3);
-
-        return new RunContext(settings, displayDRT, displayLfgxDrt, multistage);
+        return new RunContext(settings, displayDRT, displayLfgxDrt);
     }
 
     private SingleRunResult runAndFormatSingle(
@@ -1149,7 +1145,7 @@ public class GswbController {
             boolean includeDerivation,
             LinkedHashMap<String, Object> structure
     ) throws Exception {
-        LexicalEntries mcs = gp.parseMeaningConstructorString(premiseInput, ctx.multistage);
+        LexicalEntries mcs = gp.parseMeaningConstructorString(premiseInput);
         return runAndFormatSingle(mcs, Collections.emptyMap(), ctx, batchMode, includeDerivation, structure);
     }
 
@@ -1209,8 +1205,7 @@ public class GswbController {
 
     private ParsedProofInputs parseProofInputs(
             List<GswbProofInput> proofInputs,
-            GlueParser gp,
-            boolean multistage
+            GlueParser gp
     ) throws Exception {
         LinkedHashMap<Integer, List<MeaningConstructor>> combined = new LinkedHashMap<>();
         Map<Integer, GswbProofInput> origins = new LinkedHashMap<>();
@@ -1224,7 +1219,7 @@ public class GswbController {
 
             InputOutputProcessor.process(proofInput.meaningConstructors);
             String translated = InputOutputProcessor.translate(proofInput.meaningConstructors);
-            LexicalEntries local = gp.parseMeaningConstructorString(translated, multistage);
+            LexicalEntries local = gp.parseMeaningConstructorString(translated);
             for (Map.Entry<Integer, List<MeaningConstructor>> localEntry : local.lexicalEntries.entrySet()) {
                 GswbProofInput origin = copyProofInput(proofInput);
                 String baseMcSetId = proofInput.mcSetId == null || proofInput.mcSetId.isBlank()

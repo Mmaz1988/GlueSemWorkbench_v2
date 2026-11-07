@@ -203,7 +203,7 @@ public class GlueParser {
     }
 
 
-    public LexicalEntries parseMeaningConstructorString(String mc, boolean multistage) throws ParserInputException {
+    public LexicalEntries parseMeaningConstructorString(String mc) throws ParserInputException {
         return parseMeaningConstructorList(Arrays.asList(mc.split("\n")));
     }
 
