@@ -68,8 +68,7 @@ class LevBasicShortTest {
         settings.setProverType(proverType);
         settings.setAllowRelaxedGraph(true);
         LexicalEntries entries = new GlueParser(false).parseMeaningConstructorList(c.lines());
-        LLProver prover = proverType == Settings.Multi ? new LLProver3(settings, new StringBuilder())
-                : new LLProver1(settings, new StringBuilder());
+        LLProver prover = new LLProver1(settings, new StringBuilder());
         try {
             return prover.searchProof(1, entries, true).stream()
                     .map(so -> so.solution.toString())

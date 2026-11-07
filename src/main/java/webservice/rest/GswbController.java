@@ -1264,9 +1264,6 @@ public class GswbController {
         if (prover instanceof LLProver1 p1) {
             return (p1.analysis != null) ? p1.analysis.returnJSONGraph() : null;
         }
-        if (prover instanceof LLProver3 p3) {
-            return (p3.analysis != null) ? p3.analysis.returnJSONGraph() : null;
-        }
 
         // For the Hepple prover path (LLProver2), the old controller code built a textual explanation
         // via charts + fail explainer. That logic isn't currently part of the shared pipeline.
@@ -1650,10 +1647,9 @@ public class GswbController {
 
         if (settings.getProverType() == 0) {
             prover = new LLProver2(settings, sb);
-        } else if (settings.getProverType() == 1) {
+        } else if (settings.getProverType() == Settings.LEV || settings.getProverType() == Settings.Multi) {
+            // Multistage proving is part of LLProver1; index 2 stays accepted for saved settings.
             prover = new LLProver1(settings, sb);
-        } else if (settings.getProverType() == 2) {
-            prover = new LLProver3(settings, sb);
         }
 
         return new LLProverAndLog(prover, sb);

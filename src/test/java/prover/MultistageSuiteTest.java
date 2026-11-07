@@ -183,9 +183,8 @@ class MultistageSuiteTest {
         Settings settings = new Settings();
         settings.setProverType(proverType);
         LexicalEntries entries = new GlueParser(false).parseMeaningConstructorList(c.lines());
-        LLProver prover = proverType == Settings.Multi ? new LLProver3(settings, new StringBuilder())
-                : proverType == Settings.LEV ? new LLProver1(settings, new StringBuilder())
-                : new LLProver2(settings, new StringBuilder());
+        LLProver prover = proverType == Settings.HEPPLE ? new LLProver2(settings, new StringBuilder())
+                : new LLProver1(settings, new StringBuilder());
         try {
             return prover.searchProof(1, entries, true).stream()
                     .map(so -> so.solution.toString())

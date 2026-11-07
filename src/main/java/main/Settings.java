@@ -38,6 +38,7 @@ public class Settings {
     //Provers
     public static  final int HEPPLE = 0;
     public static final int LEV = 1;
+    /** Former multistage prover (LLProver3), now part of LLProver1; still accepted and mapped to LEV. */
     public static final int Multi = 2;
 
     //resources

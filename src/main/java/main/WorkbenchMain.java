@@ -463,10 +463,9 @@ public class WorkbenchMain {
 
         if (settings.getProverType() == 0) {
             prover = new LLProver2(settings,outputFileBuilder);
-        } else if (settings.getProverType() == 1) {
+        } else if (settings.getProverType() == Settings.LEV || settings.getProverType() == Settings.Multi) {
+            // Multistage proving is part of LLProver1; index 2 stays accepted for saved settings.
             prover = new LLProver1(settings,outputFileBuilder);
-        } else if (settings.getProverType() == 2) {
-            prover = new LLProver3(settings,outputFileBuilder);
         } else
         {
             prover = new LLProver2(settings,outputFileBuilder);
