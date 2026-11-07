@@ -1,0 +1,738 @@
+// Meaning constructors of inference-basic-short.lfg, as GSWB received them from LiGER:
+// grammar grammars/dev/lfgxdrt_inference_grammar/main_lfgxdrt_inference_grammar.lfg.glue
+// with the degree and TAM rule sets, exported from the regression session basic-short-new
+// (2026-10-26, xleplusglue test_files/20262610_tests/basic-short-new.json).
+// One case per parse: '== <sentence>.<parse> <sentence text>', then that parse's MC set.
+// Unstaged input (no nested braces); the event arguments are noscope.
+
+== S0.0 A Swede won a Nobel prize.
+{
+//Liger
+[f3] (\P.(\x.([],[kind('nobel',x)]) + P@x)) : ((f7_e -o f7_t) -o (f7_e -o f7_t)) || noscope
+//Grammar
+[1] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f13_e -o f13_t) -o ((f13_e -o f15_t) -o f15_t))
+[2] (\x.([],[Swede(x)])) : (f13_e -o f13_t)
+[3] (\V.(\x.(\e.(V@e+([],[arg2(e,x)]))))) : ((g16_v -o g16_t) -o (f7_e -o (g16_v -o g16_t))) || noscope
+[4] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g16_v -o g16_t) -o (f13_e -o (g16_v -o g16_t))) || noscope
+[5] (\V.([e:v],[])+V@e) : ((g16_v -o g16_t) -o f15_t)
+[6] (\v.([],[win(v)])) : (g16_v -o g16_t)
+[7] (\P.P) : (f15_t -o g17_t)
+[8] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f7_e -o f7_t) -o ((f7_e -o f15_t) -o f15_t))
+[9] (\x.([],[prize(x)])) : (f7_e -o f7_t)
+}
+
+== S1.0 Every Swede is a Scandinavian.
+{
+//Grammar
+[1] (\P.(\Q.([],[([x],[])+P@x->Q@x]))) : ((f12_e -o f12_t) -o ((f12_e -o f14_t) -o f14_t))
+[2] (\x.([],[Swede(x)])) : (f12_e -o f12_t)
+[3] (\V.(\x.(\e.(V@e+([],[arg2(e,x)]))))) : ((g15_v -o g15_t) -o (f6_e -o (g15_v -o g15_t))) || noscope
+[4] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g15_v -o g15_t) -o (f12_e -o (g15_v -o g15_t))) || noscope
+[5] (\V.([e:v],[])+V@e) : ((g15_v -o g15_t) -o f14_t)
+[6] (\v.([],[be(v)])) : (g15_v -o g15_t)
+[7] (\P.P) : (f14_t -o g16_t)
+[8] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f6_e -o f6_t) -o ((f6_e -o f14_t) -o f14_t))
+[9] (\x.([],[Scandinavian(x)])) : (f6_e -o f6_t)
+}
+
+== S2.0 A Scandinavian won a Nobel prize.
+{
+//Liger
+[f3] (\P.(\x.([],[kind('nobel',x)]) + P@x)) : ((f7_e -o f7_t) -o (f7_e -o f7_t)) || noscope
+//Grammar
+[1] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f13_e -o f13_t) -o ((f13_e -o f15_t) -o f15_t))
+[2] (\x.([],[Scandinavian(x)])) : (f13_e -o f13_t)
+[3] (\V.(\x.(\e.(V@e+([],[arg2(e,x)]))))) : ((g16_v -o g16_t) -o (f7_e -o (g16_v -o g16_t))) || noscope
+[4] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g16_v -o g16_t) -o (f13_e -o (g16_v -o g16_t))) || noscope
+[5] (\V.([e:v],[])+V@e) : ((g16_v -o g16_t) -o f15_t)
+[6] (\v.([],[win(v)])) : (g16_v -o g16_t)
+[7] (\P.P) : (f15_t -o g17_t)
+[8] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f7_e -o f7_t) -o ((f7_e -o f15_t) -o f15_t))
+[9] (\x.([],[prize(x)])) : (f7_e -o f7_t)
+}
+
+== S3.0 A Nobel prize was won by a Swede.
+{
+//Liger
+[f9] (\P.(\x.([],[kind('nobel',x)]) + P@x)) : ((f13_e -o f13_t) -o (f13_e -o f13_t)) || noscope
+//Grammar
+[1] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f13_e -o f13_t) -o ((f13_e -o f15_t) -o f15_t))
+[2] (\x.([],[prize(x)])) : (f13_e -o f13_t)
+[3] (\V.(\x.(\e.(V@e+([],[arg2(e,x)]))))) : ((g16_v -o g16_t) -o (f13_e -o (g16_v -o g16_t))) || noscope
+[4] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g16_v -o g16_t) -o (f6_e -o (g16_v -o g16_t))) || noscope
+[5] (\V.([e:v],[])+V@e) : ((g16_v -o g16_t) -o f15_t)
+[6] (\v.([],[win(v)])) : (g16_v -o g16_t)
+[7] (\P.P) : (f15_t -o g17_t)
+[8] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f6_e -o f6_t) -o ((f6_e -o f15_t) -o f15_t))
+[9] (\x.([],[Swede(x)])) : (f6_e -o f6_t)
+}
+
+== S4.0 Every Swede is a Scandinavian.
+{
+//Grammar
+[1] (\P.(\Q.([],[([x],[])+P@x->Q@x]))) : ((f12_e -o f12_t) -o ((f12_e -o f14_t) -o f14_t))
+[2] (\x.([],[Swede(x)])) : (f12_e -o f12_t)
+[3] (\V.(\x.(\e.(V@e+([],[arg2(e,x)]))))) : ((g15_v -o g15_t) -o (f6_e -o (g15_v -o g15_t))) || noscope
+[4] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g15_v -o g15_t) -o (f12_e -o (g15_v -o g15_t))) || noscope
+[5] (\V.([e:v],[])+V@e) : ((g15_v -o g15_t) -o f14_t)
+[6] (\v.([],[be(v)])) : (g15_v -o g15_t)
+[7] (\P.P) : (f14_t -o g16_t)
+[8] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f6_e -o f6_t) -o ((f6_e -o f14_t) -o f14_t))
+[9] (\x.([],[Scandinavian(x)])) : (f6_e -o f6_t)
+}
+
+== S5.0 A Scandinavian won a Nobel prize.
+{
+//Liger
+[f3] (\P.(\x.([],[kind('nobel',x)]) + P@x)) : ((f7_e -o f7_t) -o (f7_e -o f7_t)) || noscope
+//Grammar
+[1] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f13_e -o f13_t) -o ((f13_e -o f15_t) -o f15_t))
+[2] (\x.([],[Scandinavian(x)])) : (f13_e -o f13_t)
+[3] (\V.(\x.(\e.(V@e+([],[arg2(e,x)]))))) : ((g16_v -o g16_t) -o (f7_e -o (g16_v -o g16_t))) || noscope
+[4] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g16_v -o g16_t) -o (f13_e -o (g16_v -o g16_t))) || noscope
+[5] (\V.([e:v],[])+V@e) : ((g16_v -o g16_t) -o f15_t)
+[6] (\v.([],[win(v)])) : (g16_v -o g16_t)
+[7] (\P.P) : (f15_t -o g17_t)
+[8] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f7_e -o f7_t) -o ((f7_e -o f15_t) -o f15_t))
+[9] (\x.([],[prize(x)])) : (f7_e -o f7_t)
+}
+
+== S6.0 A dog appeared.
+{
+//Grammar
+[1] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f5_e -o f5_t) -o ((f5_e -o f7_t) -o f7_t))
+[2] (\x.([],[dog(x)])) : (f5_e -o f5_t)
+[3] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g8_v -o g8_t) -o (f5_e -o (g8_v -o g8_t))) || noscope
+[4] (\V.([e:v],[])+V@e) : ((g8_v -o g8_t) -o f7_t)
+[5] (\v.([],[appear(v)])) : (g8_v -o g8_t)
+[6] (\P.P) : (f7_t -o g9_t)
+}
+
+== S7.0 No dog appeared.
+{
+//Grammar
+[1] (\P.(\Q.([],[~(([x],[])+P@x+Q@x)]))) : ((f5_e -o f5_t) -o ((f5_e -o f7_t) -o f7_t))
+[2] (\x.([],[dog(x)])) : (f5_e -o f5_t)
+[3] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g8_v -o g8_t) -o (f5_e -o (g8_v -o g8_t))) || noscope
+[4] (\V.([e:v],[])+V@e) : ((g8_v -o g8_t) -o f7_t)
+[5] (\v.([],[appear(v)])) : (g8_v -o g8_t)
+[6] (\P.P) : (f7_t -o g9_t)
+}
+
+== S8.0 A dog appeared.
+{
+//Grammar
+[1] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f5_e -o f5_t) -o ((f5_e -o f7_t) -o f7_t))
+[2] (\x.([],[dog(x)])) : (f5_e -o f5_t)
+[3] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g8_v -o g8_t) -o (f5_e -o (g8_v -o g8_t))) || noscope
+[4] (\V.([e:v],[])+V@e) : ((g8_v -o g8_t) -o f7_t)
+[5] (\v.([],[appear(v)])) : (g8_v -o g8_t)
+[6] (\P.P) : (f7_t -o g9_t)
+}
+
+== S9.0 No cat appeared.
+{
+//Grammar
+[1] (\P.(\Q.([],[~(([x],[])+P@x+Q@x)]))) : ((f5_e -o f5_t) -o ((f5_e -o f7_t) -o f7_t))
+[2] (\x.([],[cat(x)])) : (f5_e -o f5_t)
+[3] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g8_v -o g8_t) -o (f5_e -o (g8_v -o g8_t))) || noscope
+[4] (\V.([e:v],[])+V@e) : ((g8_v -o g8_t) -o f7_t)
+[5] (\v.([],[appear(v)])) : (g8_v -o g8_t)
+[6] (\P.P) : (f7_t -o g9_t)
+}
+
+== S10.0 Vincent knows every boxer.
+{
+//Grammar
+[1] (\x.([],[x='vincent'])) : (f8_e -o f8_t)
+[2] (\P.(\Q.p(([x],[bind(x)])+P@x)+Q@x)) : ((f8_e -o f8_t) -o ((f8_e -o f10_t) -o f10_t)) || insitu
+[3] (\V.(\x.(\e.(V@e+([],[arg2(e,x)]))))) : ((g11_v -o g11_t) -o (f5_e -o (g11_v -o g11_t))) || noscope
+[4] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g11_v -o g11_t) -o (f8_e -o (g11_v -o g11_t))) || noscope
+[5] (\V.([e:v],[])+V@e) : ((g11_v -o g11_t) -o f10_t)
+[6] (\v.([],[know(v)])) : (g11_v -o g11_t)
+[7] (\P.P) : (f10_t -o g12_t)
+[8] (\P.(\Q.([],[([x],[])+P@x->Q@x]))) : ((f5_e -o f5_t) -o ((f5_e -o f10_t) -o f10_t))
+[9] (\x.([],[boxer(x)])) : (f5_e -o f5_t)
+}
+
+== S11.0 Butch is a boxer.
+{
+//Grammar
+[1] (\x.([],[x='butch'])) : (f8_e -o f8_t)
+[2] (\P.(\Q.p(([x],[bind(x)])+P@x)+Q@x)) : ((f8_e -o f8_t) -o ((f8_e -o f10_t) -o f10_t)) || insitu
+[3] (\V.(\x.(\e.(V@e+([],[arg2(e,x)]))))) : ((g11_v -o g11_t) -o (f5_e -o (g11_v -o g11_t))) || noscope
+[4] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g11_v -o g11_t) -o (f8_e -o (g11_v -o g11_t))) || noscope
+[5] (\V.([e:v],[])+V@e) : ((g11_v -o g11_t) -o f10_t)
+[6] (\v.([],[be(v)])) : (g11_v -o g11_t)
+[7] (\P.P) : (f10_t -o g12_t)
+[8] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f5_e -o f5_t) -o ((f5_e -o f10_t) -o f10_t))
+[9] (\x.([],[boxer(x)])) : (f5_e -o f5_t)
+}
+
+== S12.0 Vincent knows Butch.
+{
+//Grammar
+[1] (\x.([],[x='vincent'])) : (f6_e -o f6_t)
+[2] (\P.(\Q.p(([x],[bind(x)])+P@x)+Q@x)) : ((f6_e -o f6_t) -o ((f6_e -o f8_t) -o f8_t)) || insitu
+[3] (\V.(\x.(\e.(V@e+([],[arg2(e,x)]))))) : ((g9_v -o g9_t) -o (f3_e -o (g9_v -o g9_t))) || noscope
+[4] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g9_v -o g9_t) -o (f6_e -o (g9_v -o g9_t))) || noscope
+[5] (\V.([e:v],[])+V@e) : ((g9_v -o g9_t) -o f8_t)
+[6] (\v.([],[know(v)])) : (g9_v -o g9_t)
+[7] (\P.P) : (f8_t -o g10_t)
+[8] (\x.([],[x='butch'])) : (f3_e -o f3_t)
+[9] (\P.(\Q.p(([x],[bind(x)])+P@x)+Q@x)) : ((f3_e -o f3_t) -o ((f3_e -o f8_t) -o f8_t)) || insitu
+}
+
+== S13.0 If Mia snorts, then Vincent smokes.
+{
+//Grammar
+[1] (\P.(\Q.([],[P->Q]))) : (g11_t -o (g18_t -o g18_t))
+[2] (\x.([],[x='mia'])) : (f7_e -o f7_t)
+[3] (\P.(\Q.p(([x],[bind(x)])+P@x)+Q@x)) : ((f7_e -o f7_t) -o ((f7_e -o f16_t) -o f16_t)) || insitu
+[4] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g10_v -o g10_t) -o (f7_e -o (g10_v -o g10_t))) || noscope
+[5] (\V.([e:v],[])+V@e) : ((g10_v -o g10_t) -o f9_t)
+[6] (\v.([],[snort(v)])) : (g10_v -o g10_t)
+[7] (\P.P) : (f9_t -o g11_t)
+[8] (\x.([],[x='vincent'])) : (f14_e -o f14_t)
+[9] (\P.(\Q.p(([x],[bind(x)])+P@x)+Q@x)) : ((f14_e -o f14_t) -o ((f14_e -o f16_t) -o f16_t)) || insitu
+[10] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g17_v -o g17_t) -o (f14_e -o (g17_v -o g17_t))) || noscope
+[11] (\V.([e:v],[])+V@e) : ((g17_v -o g17_t) -o f16_t)
+[12] (\v.([],[smoke(v)])) : (g17_v -o g17_t)
+[13] (\P.P) : (f16_t -o g18_t)
+}
+
+== S13.1 If Mia snorts, then Vincent smokes.
+{
+//Grammar
+[1] (\P.(\Q.([],[P->Q]))) : (g11_t -o (g18_t -o g18_t))
+[2] (\x.([],[x='mia'])) : (f7_e -o f7_t)
+[3] (\P.(\Q.p(([x],[bind(x)])+P@x)+Q@x)) : ((f7_e -o f7_t) -o ((f7_e -o f9_t) -o f9_t)) || insitu
+[4] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g10_v -o g10_t) -o (f7_e -o (g10_v -o g10_t))) || noscope
+[5] (\V.([e:v],[])+V@e) : ((g10_v -o g10_t) -o f9_t)
+[6] (\v.([],[snort(v)])) : (g10_v -o g10_t)
+[7] (\P.P) : (f9_t -o g11_t)
+[8] (\x.([],[x='vincent'])) : (f14_e -o f14_t)
+[9] (\P.(\Q.p(([x],[bind(x)])+P@x)+Q@x)) : ((f14_e -o f14_t) -o ((f14_e -o f16_t) -o f16_t)) || insitu
+[10] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g17_v -o g17_t) -o (f14_e -o (g17_v -o g17_t))) || noscope
+[11] (\V.([e:v],[])+V@e) : ((g17_v -o g17_t) -o f16_t)
+[12] (\v.([],[smoke(v)])) : (g17_v -o g17_t)
+[13] (\P.P) : (f16_t -o g18_t)
+}
+
+== S13.2 If Mia snorts, then Vincent smokes.
+{
+//Grammar
+[1] (\P.(\Q.([],[P->Q]))) : (g11_t -o (g18_t -o g18_t))
+[2] (\x.([],[x='mia'])) : (f7_e -o f7_t)
+[3] (\P.(\Q.p(([x],[bind(x)])+P@x)+Q@x)) : ((f7_e -o f7_t) -o ((f7_e -o f16_t) -o f16_t)) || insitu
+[4] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g10_v -o g10_t) -o (f7_e -o (g10_v -o g10_t))) || noscope
+[5] (\V.([e:v],[])+V@e) : ((g10_v -o g10_t) -o f9_t)
+[6] (\v.([],[snort(v)])) : (g10_v -o g10_t)
+[7] (\P.P) : (f9_t -o g11_t)
+[8] (\x.([],[x='vincent'])) : (f14_e -o f14_t)
+[9] (\P.(\Q.p(([x],[bind(x)])+P@x)+Q@x)) : ((f14_e -o f14_t) -o ((f14_e -o f16_t) -o f16_t)) || insitu
+[10] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g17_v -o g17_t) -o (f14_e -o (g17_v -o g17_t))) || noscope
+[11] (\V.([e:v],[])+V@e) : ((g17_v -o g17_t) -o f16_t)
+[12] (\v.([],[smoke(v)])) : (g17_v -o g17_t)
+[13] (\P.P) : (f16_t -o g18_t)
+}
+
+== S13.3 If Mia snorts, then Vincent smokes.
+{
+//Grammar
+[1] (\P.(\Q.([],[P->Q]))) : (g11_t -o (g18_t -o g18_t))
+[2] (\x.([],[x='mia'])) : (f7_e -o f7_t)
+[3] (\P.(\Q.p(([x],[bind(x)])+P@x)+Q@x)) : ((f7_e -o f7_t) -o ((f7_e -o f9_t) -o f9_t)) || insitu
+[4] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g10_v -o g10_t) -o (f7_e -o (g10_v -o g10_t))) || noscope
+[5] (\V.([e:v],[])+V@e) : ((g10_v -o g10_t) -o f9_t)
+[6] (\v.([],[snort(v)])) : (g10_v -o g10_t)
+[7] (\P.P) : (f9_t -o g11_t)
+[8] (\x.([],[x='vincent'])) : (f14_e -o f14_t)
+[9] (\P.(\Q.p(([x],[bind(x)])+P@x)+Q@x)) : ((f14_e -o f14_t) -o ((f14_e -o f16_t) -o f16_t)) || insitu
+[10] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g17_v -o g17_t) -o (f14_e -o (g17_v -o g17_t))) || noscope
+[11] (\V.([e:v],[])+V@e) : ((g17_v -o g17_t) -o f16_t)
+[12] (\v.([],[smoke(v)])) : (g17_v -o g17_t)
+[13] (\P.P) : (f16_t -o g18_t)
+}
+
+== S14.0 Vincent smokes.
+{
+//Grammar
+[1] (\x.([],[x='vincent'])) : (f3_e -o f3_t)
+[2] (\P.(\Q.p(([x],[bind(x)])+P@x)+Q@x)) : ((f3_e -o f3_t) -o ((f3_e -o f5_t) -o f5_t)) || insitu
+[3] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g6_v -o g6_t) -o (f3_e -o (g6_v -o g6_t))) || noscope
+[4] (\V.([e:v],[])+V@e) : ((g6_v -o g6_t) -o f5_t)
+[5] (\v.([],[smoke(v)])) : (g6_v -o g6_t)
+[6] (\P.P) : (f5_t -o g7_t)
+}
+
+== S15.0 Mia snorts.
+{
+//Grammar
+[1] (\x.([],[x='mia'])) : (f3_e -o f3_t)
+[2] (\P.(\Q.p(([x],[bind(x)])+P@x)+Q@x)) : ((f3_e -o f3_t) -o ((f3_e -o f5_t) -o f5_t)) || insitu
+[3] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g6_v -o g6_t) -o (f3_e -o (g6_v -o g6_t))) || noscope
+[4] (\V.([e:v],[])+V@e) : ((g6_v -o g6_t) -o f5_t)
+[5] (\v.([],[snort(v)])) : (g6_v -o g6_t)
+[6] (\P.P) : (f5_t -o g7_t)
+}
+
+== S16.0 A woman loves every man.
+{
+//Grammar
+[1] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f10_e -o f10_t) -o ((f10_e -o f12_t) -o f12_t))
+[2] (\x.([],[woman(x)])) : (f10_e -o f10_t)
+[3] (\V.(\x.(\e.(V@e+([],[arg2(e,x)]))))) : ((g13_v -o g13_t) -o (f5_e -o (g13_v -o g13_t))) || noscope
+[4] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g13_v -o g13_t) -o (f10_e -o (g13_v -o g13_t))) || noscope
+[5] (\V.([e:v],[])+V@e) : ((g13_v -o g13_t) -o f12_t)
+[6] (\v.([],[love(v)])) : (g13_v -o g13_t)
+[7] (\P.P) : (f12_t -o g14_t)
+[8] (\P.(\Q.([],[([x],[])+P@x->Q@x]))) : ((f5_e -o f5_t) -o ((f5_e -o f12_t) -o f12_t))
+[9] (\x.([],[man(x)])) : (f5_e -o f5_t)
+}
+
+== S17.0 Every boxer is a man.
+{
+//Grammar
+[1] (\P.(\Q.([],[([x],[])+P@x->Q@x]))) : ((f10_e -o f10_t) -o ((f10_e -o f12_t) -o f12_t))
+[2] (\x.([],[boxer(x)])) : (f10_e -o f10_t)
+[3] (\V.(\x.(\e.(V@e+([],[arg2(e,x)]))))) : ((g13_v -o g13_t) -o (f5_e -o (g13_v -o g13_t))) || noscope
+[4] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g13_v -o g13_t) -o (f10_e -o (g13_v -o g13_t))) || noscope
+[5] (\V.([e:v],[])+V@e) : ((g13_v -o g13_t) -o f12_t)
+[6] (\v.([],[be(v)])) : (g13_v -o g13_t)
+[7] (\P.P) : (f12_t -o g14_t)
+[8] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f5_e -o f5_t) -o ((f5_e -o f12_t) -o f12_t))
+[9] (\x.([],[man(x)])) : (f5_e -o f5_t)
+}
+
+== S18.0 A woman loves every boxer.
+{
+//Grammar
+[1] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f10_e -o f10_t) -o ((f10_e -o f12_t) -o f12_t))
+[2] (\x.([],[woman(x)])) : (f10_e -o f10_t)
+[3] (\V.(\x.(\e.(V@e+([],[arg2(e,x)]))))) : ((g13_v -o g13_t) -o (f5_e -o (g13_v -o g13_t))) || noscope
+[4] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g13_v -o g13_t) -o (f10_e -o (g13_v -o g13_t))) || noscope
+[5] (\V.([e:v],[])+V@e) : ((g13_v -o g13_t) -o f12_t)
+[6] (\v.([],[love(v)])) : (g13_v -o g13_t)
+[7] (\P.P) : (f12_t -o g14_t)
+[8] (\P.(\Q.([],[([x],[])+P@x->Q@x]))) : ((f5_e -o f5_t) -o ((f5_e -o f12_t) -o f12_t))
+[9] (\x.([],[boxer(x)])) : (f5_e -o f5_t)
+}
+
+== S19.0 All boxers are crazy.
+{
+//Grammar
+[1] (\P.(\Q.([],[([x],[])+P@x->Q@x]))) : ((f7_e -o f7_t) -o ((f7_e -o f9_t) -o f9_t))
+[2] (\x.([],[boxer(x)])) : (f7_e -o f7_t)
+[3] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g10_v -o g10_t) -o (f7_e -o (g10_v -o g10_t))) || noscope
+[4] (\V.([e:v],[])+V@e) : ((g10_v -o g10_t) -o f9_t)
+[5] (\v.([],[be(v)])) : (g10_v -o g10_t)
+[6] (\P.P) : (f9_t -o g11_t)
+[7] (\Q.(\R.(\x.(Q@x+R@x)))) : ((f2_v -o f2_t) -o ((g10_v -o g10_t) -o (g10_v -o g10_t))) || noscope
+[8] (\x.([],[crazy(x)])) : (f2_v -o f2_t)
+}
+
+== S20.0 Butch is a boxer.
+{
+//Grammar
+[1] (\x.([],[x='butch'])) : (f8_e -o f8_t)
+[2] (\P.(\Q.p(([x],[bind(x)])+P@x)+Q@x)) : ((f8_e -o f8_t) -o ((f8_e -o f10_t) -o f10_t)) || insitu
+[3] (\V.(\x.(\e.(V@e+([],[arg2(e,x)]))))) : ((g11_v -o g11_t) -o (f5_e -o (g11_v -o g11_t))) || noscope
+[4] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g11_v -o g11_t) -o (f8_e -o (g11_v -o g11_t))) || noscope
+[5] (\V.([e:v],[])+V@e) : ((g11_v -o g11_t) -o f10_t)
+[6] (\v.([],[be(v)])) : (g11_v -o g11_t)
+[7] (\P.P) : (f10_t -o g12_t)
+[8] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f5_e -o f5_t) -o ((f5_e -o f10_t) -o f10_t))
+[9] (\x.([],[boxer(x)])) : (f5_e -o f5_t)
+}
+
+== S21.0 Butch is crazy.
+{
+//Grammar
+[1] (\x.([],[x='butch'])) : (f5_e -o f5_t)
+[2] (\P.(\Q.p(([x],[bind(x)])+P@x)+Q@x)) : ((f5_e -o f5_t) -o ((f5_e -o f7_t) -o f7_t)) || insitu
+[3] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g8_v -o g8_t) -o (f5_e -o (g8_v -o g8_t))) || noscope
+[4] (\V.([e:v],[])+V@e) : ((g8_v -o g8_t) -o f7_t)
+[5] (\v.([],[be(v)])) : (g8_v -o g8_t)
+[6] (\P.P) : (f7_t -o g9_t)
+[7] (\Q.(\R.(\x.(Q@x+R@x)))) : ((f2_v -o f2_t) -o ((g8_v -o g8_t) -o (g8_v -o g8_t))) || noscope
+[8] (\x.([],[crazy(x)])) : (f2_v -o f2_t)
+}
+
+== S22.0 All boxers are slow.
+{
+//Grammar
+[1] (\P.(\Q.([],[([x],[])+P@x->Q@x]))) : ((f7_e -o f7_t) -o ((f7_e -o f9_t) -o f9_t))
+[2] (\x.([],[boxer(x)])) : (f7_e -o f7_t)
+[3] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g10_v -o g10_t) -o (f7_e -o (g10_v -o g10_t))) || noscope
+[4] (\V.([e:v],[])+V@e) : ((g10_v -o g10_t) -o f9_t)
+[5] (\v.([],[be(v)])) : (g10_v -o g10_t)
+[6] (\P.P) : (f9_t -o g11_t)
+[7] (\Q.(\R.(\x.(Q@x+R@x)))) : ((f2_v -o f2_t) -o ((g10_v -o g10_t) -o (g10_v -o g10_t))) || noscope
+[8] (\x.([],[slow(x)])) : (f2_v -o f2_t)
+}
+
+== S23.0 Butch is a boxer.
+{
+//Grammar
+[1] (\x.([],[x='butch'])) : (f8_e -o f8_t)
+[2] (\P.(\Q.p(([x],[bind(x)])+P@x)+Q@x)) : ((f8_e -o f8_t) -o ((f8_e -o f10_t) -o f10_t)) || insitu
+[3] (\V.(\x.(\e.(V@e+([],[arg2(e,x)]))))) : ((g11_v -o g11_t) -o (f5_e -o (g11_v -o g11_t))) || noscope
+[4] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g11_v -o g11_t) -o (f8_e -o (g11_v -o g11_t))) || noscope
+[5] (\V.([e:v],[])+V@e) : ((g11_v -o g11_t) -o f10_t)
+[6] (\v.([],[be(v)])) : (g11_v -o g11_t)
+[7] (\P.P) : (f10_t -o g12_t)
+[8] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f5_e -o f5_t) -o ((f5_e -o f10_t) -o f10_t))
+[9] (\x.([],[boxer(x)])) : (f5_e -o f5_t)
+}
+
+== S24.0 Butch is not slow.
+{
+//Grammar
+[1] (\x.([],[x='butch'])) : (f7_e -o f7_t)
+[2] (\P.(\Q.p(([x],[bind(x)])+P@x)+Q@x)) : ((f7_e -o f7_t) -o ((f7_e -o f9_t) -o f9_t)) || insitu
+[3] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g10_v -o g10_t) -o (f7_e -o (g10_v -o g10_t))) || noscope
+[4] (\V.([e:v],[])+V@e) : ((g10_v -o g10_t) -o f9_t)
+[5] (\v.([],[be(v)])) : (g10_v -o g10_t)
+[6] (\P.P) : (f9_t -o g11_t)
+[7] (\P.([],[~(P)])) : (f9_t -o f9_t)
+[8] (\Q.(\R.(\x.(Q@x+R@x)))) : ((f4_v -o f4_t) -o ((g10_v -o g10_t) -o (g10_v -o g10_t))) || noscope
+[9] (\x.([],[slow(x)])) : (f4_v -o f4_t)
+}
+
+== S25.0 All boxers are slow.
+{
+//Grammar
+[1] (\P.(\Q.([],[([x],[])+P@x->Q@x]))) : ((f7_e -o f7_t) -o ((f7_e -o f9_t) -o f9_t))
+[2] (\x.([],[boxer(x)])) : (f7_e -o f7_t)
+[3] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g10_v -o g10_t) -o (f7_e -o (g10_v -o g10_t))) || noscope
+[4] (\V.([e:v],[])+V@e) : ((g10_v -o g10_t) -o f9_t)
+[5] (\v.([],[be(v)])) : (g10_v -o g10_t)
+[6] (\P.P) : (f9_t -o g11_t)
+[7] (\Q.(\R.(\x.(Q@x+R@x)))) : ((f2_v -o f2_t) -o ((g10_v -o g10_t) -o (g10_v -o g10_t))) || noscope
+[8] (\x.([],[slow(x)])) : (f2_v -o f2_t)
+}
+
+== S26.0 Butch is a boxer.
+{
+//Grammar
+[1] (\x.([],[x='butch'])) : (f8_e -o f8_t)
+[2] (\P.(\Q.p(([x],[bind(x)])+P@x)+Q@x)) : ((f8_e -o f8_t) -o ((f8_e -o f10_t) -o f10_t)) || insitu
+[3] (\V.(\x.(\e.(V@e+([],[arg2(e,x)]))))) : ((g11_v -o g11_t) -o (f5_e -o (g11_v -o g11_t))) || noscope
+[4] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g11_v -o g11_t) -o (f8_e -o (g11_v -o g11_t))) || noscope
+[5] (\V.([e:v],[])+V@e) : ((g11_v -o g11_t) -o f10_t)
+[6] (\v.([],[be(v)])) : (g11_v -o g11_t)
+[7] (\P.P) : (f10_t -o g12_t)
+[8] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f5_e -o f5_t) -o ((f5_e -o f10_t) -o f10_t))
+[9] (\x.([],[boxer(x)])) : (f5_e -o f5_t)
+}
+
+== S27.0 Mia likes Butch.
+{
+//Grammar
+[1] (\x.([],[x='mia'])) : (f6_e -o f6_t)
+[2] (\P.(\Q.p(([x],[bind(x)])+P@x)+Q@x)) : ((f6_e -o f6_t) -o ((f6_e -o f8_t) -o f8_t)) || insitu
+[3] (\V.(\x.(\e.(V@e+([],[arg2(e,x)]))))) : ((g9_v -o g9_t) -o (f3_e -o (g9_v -o g9_t))) || noscope
+[4] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g9_v -o g9_t) -o (f6_e -o (g9_v -o g9_t))) || noscope
+[5] (\V.([e:v],[])+V@e) : ((g9_v -o g9_t) -o f8_t)
+[6] (\v.([],[like(v)])) : (g9_v -o g9_t)
+[7] (\P.P) : (f8_t -o g10_t)
+[8] (\x.([],[x='butch'])) : (f3_e -o f3_t)
+[9] (\P.(\Q.p(([x],[bind(x)])+P@x)+Q@x)) : ((f3_e -o f3_t) -o ((f3_e -o f8_t) -o f8_t)) || insitu
+}
+
+== S28.0 All boxers are crazy.
+{
+//Grammar
+[1] (\P.(\Q.([],[([x],[])+P@x->Q@x]))) : ((f7_e -o f7_t) -o ((f7_e -o f9_t) -o f9_t))
+[2] (\x.([],[boxer(x)])) : (f7_e -o f7_t)
+[3] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g10_v -o g10_t) -o (f7_e -o (g10_v -o g10_t))) || noscope
+[4] (\V.([e:v],[])+V@e) : ((g10_v -o g10_t) -o f9_t)
+[5] (\v.([],[be(v)])) : (g10_v -o g10_t)
+[6] (\P.P) : (f9_t -o g11_t)
+[7] (\Q.(\R.(\x.(Q@x+R@x)))) : ((f2_v -o f2_t) -o ((g10_v -o g10_t) -o (g10_v -o g10_t))) || noscope
+[8] (\x.([],[crazy(x)])) : (f2_v -o f2_t)
+}
+
+== S29.0 Butch is a boxer.
+{
+//Grammar
+[1] (\x.([],[x='butch'])) : (f8_e -o f8_t)
+[2] (\P.(\Q.p(([x],[bind(x)])+P@x)+Q@x)) : ((f8_e -o f8_t) -o ((f8_e -o f10_t) -o f10_t)) || insitu
+[3] (\V.(\x.(\e.(V@e+([],[arg2(e,x)]))))) : ((g11_v -o g11_t) -o (f5_e -o (g11_v -o g11_t))) || noscope
+[4] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g11_v -o g11_t) -o (f8_e -o (g11_v -o g11_t))) || noscope
+[5] (\V.([e:v],[])+V@e) : ((g11_v -o g11_t) -o f10_t)
+[6] (\v.([],[be(v)])) : (g11_v -o g11_t)
+[7] (\P.P) : (f10_t -o g12_t)
+[8] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f5_e -o f5_t) -o ((f5_e -o f10_t) -o f10_t))
+[9] (\x.([],[boxer(x)])) : (f5_e -o f5_t)
+}
+
+== S30.0 Butch is crazy.
+{
+//Grammar
+[1] (\x.([],[x='butch'])) : (f5_e -o f5_t)
+[2] (\P.(\Q.p(([x],[bind(x)])+P@x)+Q@x)) : ((f5_e -o f5_t) -o ((f5_e -o f7_t) -o f7_t)) || insitu
+[3] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g8_v -o g8_t) -o (f5_e -o (g8_v -o g8_t))) || noscope
+[4] (\V.([e:v],[])+V@e) : ((g8_v -o g8_t) -o f7_t)
+[5] (\v.([],[be(v)])) : (g8_v -o g8_t)
+[6] (\P.P) : (f7_t -o g9_t)
+[7] (\Q.(\R.(\x.(Q@x+R@x)))) : ((f2_v -o f2_t) -o ((g8_v -o g8_t) -o (g8_v -o g8_t))) || noscope
+[8] (\x.([],[crazy(x)])) : (f2_v -o f2_t)
+}
+
+== S31.0 All boxers are crazy.
+{
+//Grammar
+[1] (\P.(\Q.([],[([x],[])+P@x->Q@x]))) : ((f7_e -o f7_t) -o ((f7_e -o f9_t) -o f9_t))
+[2] (\x.([],[boxer(x)])) : (f7_e -o f7_t)
+[3] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g10_v -o g10_t) -o (f7_e -o (g10_v -o g10_t))) || noscope
+[4] (\V.([e:v],[])+V@e) : ((g10_v -o g10_t) -o f9_t)
+[5] (\v.([],[be(v)])) : (g10_v -o g10_t)
+[6] (\P.P) : (f9_t -o g11_t)
+[7] (\Q.(\R.(\x.(Q@x+R@x)))) : ((f2_v -o f2_t) -o ((g10_v -o g10_t) -o (g10_v -o g10_t))) || noscope
+[8] (\x.([],[crazy(x)])) : (f2_v -o f2_t)
+}
+
+== S32.0 Butch is a boxer.
+{
+//Grammar
+[1] (\x.([],[x='butch'])) : (f8_e -o f8_t)
+[2] (\P.(\Q.p(([x],[bind(x)])+P@x)+Q@x)) : ((f8_e -o f8_t) -o ((f8_e -o f10_t) -o f10_t)) || insitu
+[3] (\V.(\x.(\e.(V@e+([],[arg2(e,x)]))))) : ((g11_v -o g11_t) -o (f5_e -o (g11_v -o g11_t))) || noscope
+[4] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g11_v -o g11_t) -o (f8_e -o (g11_v -o g11_t))) || noscope
+[5] (\V.([e:v],[])+V@e) : ((g11_v -o g11_t) -o f10_t)
+[6] (\v.([],[be(v)])) : (g11_v -o g11_t)
+[7] (\P.P) : (f10_t -o g12_t)
+[8] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f5_e -o f5_t) -o ((f5_e -o f10_t) -o f10_t))
+[9] (\x.([],[boxer(x)])) : (f5_e -o f5_t)
+}
+
+== S33.0 Butch loves Fabian.
+{
+//Grammar
+[1] (\x.([],[x='butch'])) : (f6_e -o f6_t)
+[2] (\P.(\Q.p(([x],[bind(x)])+P@x)+Q@x)) : ((f6_e -o f6_t) -o ((f6_e -o f8_t) -o f8_t)) || insitu
+[3] (\V.(\x.(\e.(V@e+([],[arg2(e,x)]))))) : ((g9_v -o g9_t) -o (f3_e -o (g9_v -o g9_t))) || noscope
+[4] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g9_v -o g9_t) -o (f6_e -o (g9_v -o g9_t))) || noscope
+[5] (\V.([e:v],[])+V@e) : ((g9_v -o g9_t) -o f8_t)
+[6] (\v.([],[love(v)])) : (g9_v -o g9_t)
+[7] (\P.P) : (f8_t -o g10_t)
+[8] (\x.([],[x='fabian'])) : (f3_e -o f3_t)
+[9] (\P.(\Q.p(([x],[bind(x)])+P@x)+Q@x)) : ((f3_e -o f3_t) -o ((f3_e -o f8_t) -o f8_t)) || insitu
+}
+
+== S34.0 All boxers are slow.
+{
+//Grammar
+[1] (\P.(\Q.([],[([x],[])+P@x->Q@x]))) : ((f7_e -o f7_t) -o ((f7_e -o f9_t) -o f9_t))
+[2] (\x.([],[boxer(x)])) : (f7_e -o f7_t)
+[3] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g10_v -o g10_t) -o (f7_e -o (g10_v -o g10_t))) || noscope
+[4] (\V.([e:v],[])+V@e) : ((g10_v -o g10_t) -o f9_t)
+[5] (\v.([],[be(v)])) : (g10_v -o g10_t)
+[6] (\P.P) : (f9_t -o g11_t)
+[7] (\Q.(\R.(\x.(Q@x+R@x)))) : ((f2_v -o f2_t) -o ((g10_v -o g10_t) -o (g10_v -o g10_t))) || noscope
+[8] (\x.([],[slow(x)])) : (f2_v -o f2_t)
+}
+
+== S35.0 Butch is a boxer.
+{
+//Grammar
+[1] (\x.([],[x='butch'])) : (f8_e -o f8_t)
+[2] (\P.(\Q.p(([x],[bind(x)])+P@x)+Q@x)) : ((f8_e -o f8_t) -o ((f8_e -o f10_t) -o f10_t)) || insitu
+[3] (\V.(\x.(\e.(V@e+([],[arg2(e,x)]))))) : ((g11_v -o g11_t) -o (f5_e -o (g11_v -o g11_t))) || noscope
+[4] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g11_v -o g11_t) -o (f8_e -o (g11_v -o g11_t))) || noscope
+[5] (\V.([e:v],[])+V@e) : ((g11_v -o g11_t) -o f10_t)
+[6] (\v.([],[be(v)])) : (g11_v -o g11_t)
+[7] (\P.P) : (f10_t -o g12_t)
+[8] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f5_e -o f5_t) -o ((f5_e -o f10_t) -o f10_t))
+[9] (\x.([],[boxer(x)])) : (f5_e -o f5_t)
+}
+
+== S36.0 Mia likes Butch.
+{
+//Grammar
+[1] (\x.([],[x='mia'])) : (f6_e -o f6_t)
+[2] (\P.(\Q.p(([x],[bind(x)])+P@x)+Q@x)) : ((f6_e -o f6_t) -o ((f6_e -o f8_t) -o f8_t)) || insitu
+[3] (\V.(\x.(\e.(V@e+([],[arg2(e,x)]))))) : ((g9_v -o g9_t) -o (f3_e -o (g9_v -o g9_t))) || noscope
+[4] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g9_v -o g9_t) -o (f6_e -o (g9_v -o g9_t))) || noscope
+[5] (\V.([e:v],[])+V@e) : ((g9_v -o g9_t) -o f8_t)
+[6] (\v.([],[like(v)])) : (g9_v -o g9_t)
+[7] (\P.P) : (f8_t -o g10_t)
+[8] (\x.([],[x='butch'])) : (f3_e -o f3_t)
+[9] (\P.(\Q.p(([x],[bind(x)])+P@x)+Q@x)) : ((f3_e -o f3_t) -o ((f3_e -o f8_t) -o f8_t)) || insitu
+}
+
+== S37.0 A boxer with an injury lost a fight.
+{
+//Grammar
+[1] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f19_e -o f19_t) -o ((f19_e -o f21_t) -o f21_t))
+[2] (\x.([],[boxer(x)])) : (f19_e -o f19_t)
+[3] (\U.(\V.(\e.(U@e+V@e)))) : ((f19_e -o f14_t) -o ((f19_e -o f19_t) -o (f19_e -o f19_t))) || noscope
+[4] (\y.(\x.([],[with(x,y)]))) : (f13_e -o (f19_e -o f14_t))
+[5] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f13_e -o f13_t) -o ((f13_e -o f21_t) -o f21_t))
+[6] (\x.([],[injury(x)])) : (f13_e -o f13_t)
+[7] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g22_v -o g22_t) -o (f19_e -o (g22_v -o g22_t))) || noscope
+[8] (\V.([e:v],[])+V@e) : ((g22_v -o g22_t) -o f21_t)
+[9] (\v.([],[lose(v)])) : (g22_v -o g22_t)
+[10] (\P.P) : (f21_t -o g23_t)
+[11] (\V.(\x.(\e.(V@e+([],[arg2(e,x)]))))) : ((g22_v -o g22_t) -o (f5_e -o (g22_v -o g22_t))) || noscope
+[12] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f5_e -o f5_t) -o ((f5_e -o f21_t) -o f21_t))
+[13] (\x.([],[fight(x)])) : (f5_e -o f5_t)
+}
+
+== S37.1 A boxer with an injury lost a fight.
+{
+//Grammar
+[1] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f19_e -o f19_t) -o ((f19_e -o f21_t) -o f21_t))
+[2] (\x.([],[boxer(x)])) : (f19_e -o f19_t)
+[3] (\U.(\V.(\e.(U@e+V@e)))) : ((f19_e -o f14_t) -o ((f19_e -o f19_t) -o (f19_e -o f19_t))) || noscope
+[4] (\y.(\x.([],[with(x,y)]))) : (f13_e -o (f19_e -o f14_t))
+[5] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f13_e -o f13_t) -o ((f13_e -o f14_t) -o f14_t))
+[6] (\x.([],[injury(x)])) : (f13_e -o f13_t)
+[7] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g22_v -o g22_t) -o (f19_e -o (g22_v -o g22_t))) || noscope
+[8] (\V.([e:v],[])+V@e) : ((g22_v -o g22_t) -o f21_t)
+[9] (\v.([],[lose(v)])) : (g22_v -o g22_t)
+[10] (\P.P) : (f21_t -o g23_t)
+[11] (\V.(\x.(\e.(V@e+([],[arg2(e,x)]))))) : ((g22_v -o g22_t) -o (f5_e -o (g22_v -o g22_t))) || noscope
+[12] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f5_e -o f5_t) -o ((f5_e -o f21_t) -o f21_t))
+[13] (\x.([],[fight(x)])) : (f5_e -o f5_t)
+}
+
+== S38.0 A boxer lost a fight.
+{
+//Grammar
+[1] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f10_e -o f10_t) -o ((f10_e -o f12_t) -o f12_t))
+[2] (\x.([],[boxer(x)])) : (f10_e -o f10_t)
+[3] (\V.(\x.(\e.(V@e+([],[arg2(e,x)]))))) : ((g13_v -o g13_t) -o (f5_e -o (g13_v -o g13_t))) || noscope
+[4] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g13_v -o g13_t) -o (f10_e -o (g13_v -o g13_t))) || noscope
+[5] (\V.([e:v],[])+V@e) : ((g13_v -o g13_t) -o f12_t)
+[6] (\v.([],[lose(v)])) : (g13_v -o g13_t)
+[7] (\P.P) : (f12_t -o g14_t)
+[8] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f5_e -o f5_t) -o ((f5_e -o f12_t) -o f12_t))
+[9] (\x.([],[fight(x)])) : (f5_e -o f5_t)
+}
+
+== S39.0 A boxer with an injury lost a fight.
+{
+//Grammar
+[1] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f19_e -o f19_t) -o ((f19_e -o f21_t) -o f21_t))
+[2] (\x.([],[boxer(x)])) : (f19_e -o f19_t)
+[3] (\U.(\V.(\e.(U@e+V@e)))) : ((f19_e -o f14_t) -o ((f19_e -o f19_t) -o (f19_e -o f19_t))) || noscope
+[4] (\y.(\x.([],[with(x,y)]))) : (f13_e -o (f19_e -o f14_t))
+[5] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f13_e -o f13_t) -o ((f13_e -o f21_t) -o f21_t))
+[6] (\x.([],[injury(x)])) : (f13_e -o f13_t)
+[7] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g22_v -o g22_t) -o (f19_e -o (g22_v -o g22_t))) || noscope
+[8] (\V.([e:v],[])+V@e) : ((g22_v -o g22_t) -o f21_t)
+[9] (\v.([],[lose(v)])) : (g22_v -o g22_t)
+[10] (\P.P) : (f21_t -o g23_t)
+[11] (\V.(\x.(\e.(V@e+([],[arg2(e,x)]))))) : ((g22_v -o g22_t) -o (f5_e -o (g22_v -o g22_t))) || noscope
+[12] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f5_e -o f5_t) -o ((f5_e -o f21_t) -o f21_t))
+[13] (\x.([],[fight(x)])) : (f5_e -o f5_t)
+}
+
+== S39.1 A boxer with an injury lost a fight.
+{
+//Grammar
+[1] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f19_e -o f19_t) -o ((f19_e -o f21_t) -o f21_t))
+[2] (\x.([],[boxer(x)])) : (f19_e -o f19_t)
+[3] (\U.(\V.(\e.(U@e+V@e)))) : ((f19_e -o f14_t) -o ((f19_e -o f19_t) -o (f19_e -o f19_t))) || noscope
+[4] (\y.(\x.([],[with(x,y)]))) : (f13_e -o (f19_e -o f14_t))
+[5] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f13_e -o f13_t) -o ((f13_e -o f14_t) -o f14_t))
+[6] (\x.([],[injury(x)])) : (f13_e -o f13_t)
+[7] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g22_v -o g22_t) -o (f19_e -o (g22_v -o g22_t))) || noscope
+[8] (\V.([e:v],[])+V@e) : ((g22_v -o g22_t) -o f21_t)
+[9] (\v.([],[lose(v)])) : (g22_v -o g22_t)
+[10] (\P.P) : (f21_t -o g23_t)
+[11] (\V.(\x.(\e.(V@e+([],[arg2(e,x)]))))) : ((g22_v -o g22_t) -o (f5_e -o (g22_v -o g22_t))) || noscope
+[12] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f5_e -o f5_t) -o ((f5_e -o f21_t) -o f21_t))
+[13] (\x.([],[fight(x)])) : (f5_e -o f5_t)
+}
+
+== S40.0 No boxer lost a fight.
+{
+//Grammar
+[1] (\P.(\Q.([],[~(([x],[])+P@x+Q@x)]))) : ((f10_e -o f10_t) -o ((f10_e -o f12_t) -o f12_t))
+[2] (\x.([],[boxer(x)])) : (f10_e -o f10_t)
+[3] (\V.(\x.(\e.(V@e+([],[arg2(e,x)]))))) : ((g13_v -o g13_t) -o (f5_e -o (g13_v -o g13_t))) || noscope
+[4] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g13_v -o g13_t) -o (f10_e -o (g13_v -o g13_t))) || noscope
+[5] (\V.([e:v],[])+V@e) : ((g13_v -o g13_t) -o f12_t)
+[6] (\v.([],[lose(v)])) : (g13_v -o g13_t)
+[7] (\P.P) : (f12_t -o g14_t)
+[8] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f5_e -o f5_t) -o ((f5_e -o f12_t) -o f12_t))
+[9] (\x.([],[fight(x)])) : (f5_e -o f5_t)
+}
+
+== S41.0 Every boxer with an injury lost a fight.
+{
+//Grammar
+[1] (\P.(\Q.([],[([x],[])+P@x->Q@x]))) : ((f19_e -o f19_t) -o ((f19_e -o f21_t) -o f21_t))
+[2] (\x.([],[boxer(x)])) : (f19_e -o f19_t)
+[3] (\U.(\V.(\e.(U@e+V@e)))) : ((f19_e -o f14_t) -o ((f19_e -o f19_t) -o (f19_e -o f19_t))) || noscope
+[4] (\y.(\x.([],[with(x,y)]))) : (f13_e -o (f19_e -o f14_t))
+[5] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f13_e -o f13_t) -o ((f13_e -o f21_t) -o f21_t))
+[6] (\x.([],[injury(x)])) : (f13_e -o f13_t)
+[7] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g22_v -o g22_t) -o (f19_e -o (g22_v -o g22_t))) || noscope
+[8] (\V.([e:v],[])+V@e) : ((g22_v -o g22_t) -o f21_t)
+[9] (\v.([],[lose(v)])) : (g22_v -o g22_t)
+[10] (\P.P) : (f21_t -o g23_t)
+[11] (\V.(\x.(\e.(V@e+([],[arg2(e,x)]))))) : ((g22_v -o g22_t) -o (f5_e -o (g22_v -o g22_t))) || noscope
+[12] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f5_e -o f5_t) -o ((f5_e -o f21_t) -o f21_t))
+[13] (\x.([],[fight(x)])) : (f5_e -o f5_t)
+}
+
+== S41.1 Every boxer with an injury lost a fight.
+{
+//Grammar
+[1] (\P.(\Q.([],[([x],[])+P@x->Q@x]))) : ((f19_e -o f19_t) -o ((f19_e -o f21_t) -o f21_t))
+[2] (\x.([],[boxer(x)])) : (f19_e -o f19_t)
+[3] (\U.(\V.(\e.(U@e+V@e)))) : ((f19_e -o f14_t) -o ((f19_e -o f19_t) -o (f19_e -o f19_t))) || noscope
+[4] (\y.(\x.([],[with(x,y)]))) : (f13_e -o (f19_e -o f14_t))
+[5] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f13_e -o f13_t) -o ((f13_e -o f14_t) -o f14_t))
+[6] (\x.([],[injury(x)])) : (f13_e -o f13_t)
+[7] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g22_v -o g22_t) -o (f19_e -o (g22_v -o g22_t))) || noscope
+[8] (\V.([e:v],[])+V@e) : ((g22_v -o g22_t) -o f21_t)
+[9] (\v.([],[lose(v)])) : (g22_v -o g22_t)
+[10] (\P.P) : (f21_t -o g23_t)
+[11] (\V.(\x.(\e.(V@e+([],[arg2(e,x)]))))) : ((g22_v -o g22_t) -o (f5_e -o (g22_v -o g22_t))) || noscope
+[12] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f5_e -o f5_t) -o ((f5_e -o f21_t) -o f21_t))
+[13] (\x.([],[fight(x)])) : (f5_e -o f5_t)
+}
+
+== S42.0 A boxer with an injury did not lose a fight.
+{
+//Grammar
+[1] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f21_e -o f21_t) -o ((f21_e -o f23_t) -o f23_t))
+[2] (\x.([],[boxer(x)])) : (f21_e -o f21_t)
+[3] (\U.(\V.(\e.(U@e+V@e)))) : ((f21_e -o f16_t) -o ((f21_e -o f21_t) -o (f21_e -o f21_t))) || noscope
+[4] (\y.(\x.([],[with(x,y)]))) : (f15_e -o (f21_e -o f16_t))
+[5] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f15_e -o f15_t) -o ((f15_e -o f23_t) -o f23_t))
+[6] (\x.([],[injury(x)])) : (f15_e -o f15_t)
+[7] (\P.([],[~(P)])) : (f23_t -o f23_t)
+[8] (\v.([],[lose(v)])) : (g24_v -o g24_t)
+[9] (\P.P) : (f23_t -o g25_t)
+[10] (\V.(\x.(\e.(V@e+([],[arg2(e,x)]))))) : ((g24_v -o g24_t) -o (f7_e -o (g24_v -o g24_t))) || noscope
+[11] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g24_v -o g24_t) -o (f21_e -o (g24_v -o g24_t))) || noscope
+[12] (\V.([e:v],[])+V@e) : ((g24_v -o g24_t) -o f23_t)
+[13] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f7_e -o f7_t) -o ((f7_e -o f23_t) -o f23_t))
+[14] (\x.([],[fight(x)])) : (f7_e -o f7_t)
+}
+
+== S42.1 A boxer with an injury did not lose a fight.
+{
+//Grammar
+[1] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f21_e -o f21_t) -o ((f21_e -o f23_t) -o f23_t))
+[2] (\x.([],[boxer(x)])) : (f21_e -o f21_t)
+[3] (\U.(\V.(\e.(U@e+V@e)))) : ((f21_e -o f16_t) -o ((f21_e -o f21_t) -o (f21_e -o f21_t))) || noscope
+[4] (\y.(\x.([],[with(x,y)]))) : (f15_e -o (f21_e -o f16_t))
+[5] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f15_e -o f15_t) -o ((f15_e -o f16_t) -o f16_t))
+[6] (\x.([],[injury(x)])) : (f15_e -o f15_t)
+[7] (\P.([],[~(P)])) : (f23_t -o f23_t)
+[8] (\v.([],[lose(v)])) : (g24_v -o g24_t)
+[9] (\P.P) : (f23_t -o g25_t)
+[10] (\V.(\x.(\e.(V@e+([],[arg2(e,x)]))))) : ((g24_v -o g24_t) -o (f7_e -o (g24_v -o g24_t))) || noscope
+[11] (\V.(\x.(\e.(V@e+([],[arg1(e,x)]))))) : ((g24_v -o g24_t) -o (f21_e -o (g24_v -o g24_t))) || noscope
+[12] (\V.([e:v],[])+V@e) : ((g24_v -o g24_t) -o f23_t)
+[13] (\P.(\Q.([x],[])+P@x+Q@x)) : ((f7_e -o f7_t) -o ((f7_e -o f23_t) -o f23_t))
+[14] (\x.([],[fight(x)])) : (f7_e -o f7_t)
+}
