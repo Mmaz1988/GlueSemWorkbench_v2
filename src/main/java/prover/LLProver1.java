@@ -592,96 +592,13 @@ public class LLProver1 extends LLProver {
                     getLOGGER().warning("Failed to apply optimization for modifiers (252)");
                 }
 
-                //Apply Hepple algorithm to histories collected from the scc
-                List<History> sccAgenda = new ArrayList<>();
-                sccAgenda.addAll(sccHistories);
+                //Derive the SCC stage by stage (one stage when the input has no stage structure)
+                List<History> histories = calculateSCC(new ArrayList<>(sccHistories), outputNodes);
 
-                List<History> histories = new ArrayList<>();
-
-                if (!nonScopingModifiers.isEmpty()) {
-                    List<History> scopingModifiers = sccAgenda.stream().filter(h -> !this.nonScopingModifiers.contains(h.mainIndex) && h.category.left != null &&
-                            h.category.left.toString().equals(h.category.right.toString())).collect(Collectors.toList());
-                    // sccAgenda minus scopingModifiers
-                    List<History> nonscopingAgenda = sccAgenda.stream().filter(h -> !scopingModifiers.contains(h)).collect(Collectors.toList());
-
-                    histories = chartDeduce2(nonscopingAgenda, false);
-
-                    //Remove duplicates based on mainindex
-
-                    /**
-                     * Noscope optimization
-                     */
-
-                    HashMap<History, Set<Integer>[]> indexSetComparison = new LinkedHashMap<>();
-                    Set<Integer> usedNonScopingModifiers = new HashSet<>();
-
-                    for (History h : histories) {
-
-                        Set<Integer>[] indices = new Set[2];
-                        Set<Integer> nonScopingIndices = new HashSet<>(h.indexSet);
-                        nonScopingIndices.retainAll(this.nonScopingModifiers);
-
-                        indices[0] = nonScopingIndices;
-
-                        usedNonScopingModifiers.addAll(nonScopingIndices);
-
-                        Set<Integer> otherIndices = new HashSet<>(h.indexSet);
-                        otherIndices.stream().filter(i -> !nonScopingIndices.contains(i)).collect(Collectors.toList());
-
-                        indices[1] = otherIndices;
-
-                        if (!indices[0].isEmpty() && !indices[1].isEmpty()) {
-                            indexSetComparison.put(h, indices);
-                        }
-                    }
-
-                    this.nonScopingModifiers.removeAll(usedNonScopingModifiers);
-
-                    //Only try to optimize if any non-scoping modifiers have been used
-                    if (usedNonScopingModifiers.size() > 0) {
-
-                        int previousHistories = indexSetComparison.keySet().size();
-                        //Remove all key/value pairs for which indices[0] are equal and indices[1] are equal
-                        indexSetComparison.entrySet().removeIf(entry -> indexSetComparison.entrySet().stream().anyMatch(entry2 -> entry2.getKey() != entry.getKey() &&
-                                entry2.getValue()[0].equals(entry.getValue()[0]) && entry2.getValue()[1].equals(entry.getValue()[1])));
-
-
-                        if (!indexSetComparison.keySet().isEmpty()) {
-
-                            int removedHistories = previousHistories - indexSetComparison.keySet().size();
-                            db.noScopedHistories += removedHistories;
-
-                            List<History> outputHistories = new ArrayList<>();
-
-                            for (CGNode outputNode : outputNodes) {
-                                for (History h : indexSetComparison.keySet()) {
-                                    if (h.category.toString().equals(outputNode.category)) {
-                                        outputHistories.add(h);
-                                    }
-                                }
-                            }
-                            histories = outputHistories;
-                        }
-                    }
-
-                    //Histories now either is optimized or we basically use the original sccAgenda.
-
-                    if (!scopingModifiers.isEmpty()) {
-                        histories.addAll(scopingModifiers);
-                        histories = chartDeduce2(histories, false);
-                    }
-
-                } else {
-                    histories = chartDeduce2(sccAgenda, false);
-                }
                 histories = filterExistentialOrder(histories);
                 if (enforceInsitu) {
                     histories = filterInsituHistories(histories);
                 }
-
-
-
-                //End of noscope optimization
 
                 for (CGNode outputNode : outputNodes)
                 {
@@ -743,6 +660,195 @@ public class LLProver1 extends LLProver {
     }
 
 
+    /** The stage of the input's top level: unbracketed premises carry "0", bracketed top-level ones "0+0". */
+    static final String ROOT_STAGE = "0+0";
+
+    /**
+     * Derives one SCC. The SCC's histories are split by stage (nested braces in the input) and the
+     * stages are derived deepest first; input without stage structure is one stage. In each stage the
+     * noscope modifiers are derived first: their results are reduced to the maximal ones, and only
+     * results that use a noscope modifier go on. The stage's scoping modifiers are added after that.
+     * Results that are still unsaturated move up to the parent stage. Returns the SCC's results
+     * (output category, plus atomic intermediate results) for the caller's filters.
+     */
+    List<History> calculateSCC(List<History> sccHistories, List<CGNode> outputNodes) throws VariableBindingException, ProverException {
+        HashMap<String, List<History>> stagedSccAgenda = new HashMap<>();
+        List<History> globalHistory = new ArrayList<>();
+
+        for (History h : sccHistories) {
+            if (h.stage != null) {
+                stagedSccAgenda.computeIfAbsent(normalizeStage(h.stage), k -> new ArrayList<>()).add(h);
+            } else if (!globalHistory.contains(h)) {
+                globalHistory.add(h);
+            }
+        }
+
+        List<History> histories = new ArrayList<>(globalHistory);
+
+        List<String> stages = new ArrayList<>(stagedSccAgenda.keySet());
+        stageSort(stages);
+        Collections.reverse(stages);
+
+        for (String key : stages) {
+            List<History> stageAgenda = stagedSccAgenda.get(key);
+            CombinedChart stageChart = new CombinedChart(stageAgenda);
+
+            Set<Integer> noscopeIndices = stageAgenda.stream()
+                    .filter(h -> nonScopingModifiers.contains(h.mainIndex))
+                    .map(h -> h.mainIndex)
+                    .collect(Collectors.toSet());
+
+            if (!noscopeIndices.isEmpty()) {
+                List<History> stageScopingModifiers = stageAgenda.stream()
+                        .filter(h -> !noscopeIndices.contains(h.mainIndex) && h.category.left != null
+                                && h.category.isModifier() != null)
+                        .collect(Collectors.toList());
+
+                List<History> nonscopingAgenda = stageAgenda.stream()
+                        .filter(h -> noscopeIndices.contains(h.mainIndex))
+                        .collect(Collectors.toList());
+
+                Set<String> nonScopingCategories = new HashSet<>();
+                for (History modifier : nonscopingAgenda) {
+                    if (modifier.category.isModifier() != null) {
+                        nonScopingCategories.add(modifier.category.isModifier());
+                    }
+                }
+                for (String categoryKey : stageChart.nonAtomicChart.keySet()) {
+                    if (!nonScopingCategories.contains(categoryKey)) {
+                        nonscopingAgenda.addAll(stageChart.nonAtomicChart.get(categoryKey));
+                    }
+                }
+                nonscopingAgenda.addAll(histories);
+                for (History h : globalHistory) {
+                    if (!nonscopingAgenda.contains(h)) {
+                        nonscopingAgenda.add(h);
+                    }
+                }
+
+                List<History> nonscopingResults = chartDeduce2(nonscopingAgenda, true);
+                nonscopingResults.sort((o1, o2) -> Integer.compare(o2.indexSet.size(), o1.indexSet.size()));
+                nonscopingResults = noScopeCompress(nonscopingResults);
+
+                elevateHistories(nonscopingResults, stagedSccAgenda, key);
+
+                for (History h : nonscopingResults) {
+                    if (!histories.contains(h) && !Collections.disjoint(noscopeIndices, h.indexSet)) {
+                        histories.add(h);
+                    }
+                }
+
+                if (!stageScopingModifiers.isEmpty()) {
+                    histories.addAll(stageScopingModifiers);
+                    histories = chartDeduce2(histories, false);
+                }
+            } else {
+                stageAgenda.addAll(histories);
+                histories = chartDeduce2(stageAgenda, false);
+                elevateHistories(histories, stagedSccAgenda, key);
+            }
+
+            histories = capHistories(stageOutput(histories, outputNodes), key);
+        }
+        return histories;
+    }
+
+    /** A stage's results that go on: those of an output category, and atomic ones. */
+    private List<History> stageOutput(List<History> histories, List<CGNode> outputNodes) {
+        List<History> out = new ArrayList<>();
+        for (CGNode outputNode : outputNodes) {
+            for (History h : histories) {
+                if (h.category.toString().equals(outputNode.category) || h.category.atomic) {
+                    out.add(h);
+                }
+            }
+        }
+        return out;
+    }
+
+    /** Safety brake: keeps the maxSolutions histories with the largest index sets, and says so. */
+    private List<History> capHistories(List<History> histories, String stage) {
+        int max = getSettings().getMaxSolutions();
+        if (histories.size() < max) {
+            return histories;
+        }
+        getLOGGER().warning("Stage " + stage + ": " + histories.size() + " histories exceed maxSolutions ("
+                + max + "); keeping the " + max + " with the largest index sets.");
+        histories.sort((o1, o2) -> Integer.compare(o2.indexSet.size(), o1.indexSet.size()));
+        return new ArrayList<>(histories.subList(0, max));
+    }
+
+    private boolean reverseApplied(Set<List<Integer>> applications, History functor, History argument) {
+        return nonScopingModifiers.contains(functor.mainIndex)
+                && applications.contains(List.of(argument.mainIndex, functor.mainIndex));
+    }
+
+    /** Moves the results that are still unsaturated (no argument for them among the results) up to the parent stage. */
+    void elevateHistories(List<History> histories, HashMap<String, List<History>> stagedSccAgenda, String key) {
+        for (History h : histories) {
+            if (h.category.left == null) {
+                continue;
+            }
+            boolean unsaturated = histories.stream().noneMatch(h1 -> h1.category.equals(h.category.left));
+            if (unsaturated) {
+                String parent = reduceStage(key);
+                h.stage = parent;
+                if (stagedSccAgenda.containsKey(parent)) {
+                    stagedSccAgenda.get(parent).add(h);
+                }
+                getLOGGER().fine("Raised history with category: " + h.category);
+            }
+        }
+    }
+
+    /** The parent stage, from the input's stage graph; the root for the root and for stages the graph doesn't know. */
+    String reduceStage(String stage) {
+        Graph<String, DefaultEdge> graph = getLexicalEntries() == null ? null : getLexicalEntries().multiStageGraph;
+        if (graph == null || !graph.containsVertex(stage)) {
+            return ROOT_STAGE;
+        }
+        Set<DefaultEdge> parentEdges = graph.incomingEdgesOf(stage);
+        if (parentEdges.size() == 1) {
+            return graph.getEdgeSource(parentEdges.iterator().next());
+        }
+        return ROOT_STAGE;
+    }
+
+    static String normalizeStage(String stage) {
+        return stage.contains("+") ? stage : stage + "+0";
+    }
+
+    /** Sorts stage labels ("depth+sister") by depth, then sister. */
+    static void stageSort(List<String> stageList) {
+        stageList.sort(Comparator
+                .comparingInt((String s) -> Integer.parseInt(normalizeStage(s).split("\\+")[0]))
+                .thenComparingInt(s -> Integer.parseInt(normalizeStage(s).split("\\+")[1])));
+    }
+
+    /**
+     * Keeps the histories with maximal index sets: a history is dropped if a kept one covers all its
+     * indices, and it replaces every kept history whose indices it covers.
+     */
+    List<History> noScopeCompress(List<History> histories) {
+        List<History> chart = new ArrayList<>();
+        for (History current : histories) {
+            boolean subsumed = false;
+            for (History h : chart) {
+                if (h.indexSet.containsAll(current.indexSet)) {
+                    subsumed = true;
+                    break;
+                }
+            }
+            if (subsumed) {
+                continue;
+            }
+            chart.removeIf(h -> current.indexSet.containsAll(h.indexSet));
+            chart.add(current);
+        }
+        getLOGGER().fine("Discarded " + (histories.size() - chart.size()) + " histories");
+        return chart;
+    }
+
     /**
      * chartDeduce2 uses Hepple's chart algorithm to calculate histories inside an SCC within a category graph.
      * This variant does not distinguish between atomic and non-atomic premises to account for non-atomic arguments
@@ -756,69 +862,6 @@ public class LLProver1 extends LLProver {
     public List<History> chartDeduce2(List<History> histories, boolean noscope) throws VariableBindingException, ProverException {
         getLOGGER().finer("Beginning a partial chart derivation...");
 
-        if (noscope) {
-            HashMap<String,LinkedList<History>> atomicChart = new HashMap<>();
-            List<History> nonatomicChart = new ArrayList();
-
-            //The agenda contains all histories that take part in the calculation of the histories within the SCC
-            List<History> agenda = History.categorySort(histories);
-
-            for (History h : agenda)
-            {
-                if (h.category.left == null)
-                {
-                    if (!atomicChart.containsKey(h.category.toString()))
-                    {
-                        atomicChart.put(h.category.toString(),new LinkedList<>());
-                    }
-                    atomicChart.get(h.category.toString()).add(h);
-
-                } else{
-                    nonatomicChart.add(h);
-                }
-            }
-
-            History.categorySort(nonatomicChart);
-            Collections.reverse(nonatomicChart);
-
-
-            ListIterator<History> nonAtomicIterator = nonatomicChart.listIterator();
-
-            while (nonAtomicIterator.hasNext()) {
-                History currentHistory = nonAtomicIterator.next();
-                nonAtomicIterator.remove();
-                if (atomicChart.containsKey(currentHistory.category.left.toString()))
-                {
-                    ListIterator<History> atomicIterator = atomicChart.get(currentHistory.category.left.toString()).listIterator();
-                    LinkedList<History> newChart = new LinkedList<>();
-
-                    while (atomicIterator.hasNext())
-                    {
-                        //Argument that is combined with currentHistory
-                        History currentArg = atomicIterator.next();
-                        atomicIterator.remove();
-
-                        History combined = combineHistories(currentHistory, currentArg);
-                        if (combined != null) {
-                            newChart.add(combined);
-                            if (combined.category.left != null)
-                            {
-                                nonAtomicIterator.add(combined);
-                            }
-                        }
-
-                    }
-
-                    atomicChart.put(currentHistory.category.left.toString(),newChart);
-
-                }
-            }
-
-            //add all values of atomicChart to one list and return that list
-            return atomicChart.values().stream().flatMap(List::stream).collect(Collectors.toList());
-
-        }
-
         List<History> agenda = History.categorySort(histories);
 
         //In the beginning the chart is empty
@@ -830,7 +873,9 @@ public class LLProver1 extends LLProver {
         List<History> chart = new ArrayList<>();
 */
 
-        HashSet<Integer> scopingModifiers = new HashSet<>();
+        // noscope: once a premise has been applied to a noscope modifier's result, the modifier
+        // is not applied the other way round as well (functor and argument main indices).
+        Set<List<Integer>> applications = new HashSet<>();
 
         while (!agenda.isEmpty()) {
 
@@ -848,11 +893,11 @@ public class LLProver1 extends LLProver {
 
                 for (History h : chart) {
                     if (h.category.left != null) {
-                        if (h.category.left.toString().equals(current.category.toString())) {
-
-
+                        if (h.category.left.toString().equals(current.category.toString())
+                                && !(noscope && reverseApplied(applications, h, current))) {
                             History combined = combineHistories(h, current);
                             if (combined != null) {
+                                applications.add(List.of(h.mainIndex, current.mainIndex));
 
                                 //Discriminant calculation
                                 HashSet<String> outscopes = new HashSet<>();
@@ -875,9 +920,11 @@ public class LLProver1 extends LLProver {
                         }
                     }
                     if (current.category.left != null) {
-                        if (current.category.left.toString().equals(h.category.toString())) {
+                        if (current.category.left.toString().equals(h.category.toString())
+                                && !(noscope && reverseApplied(applications, current, h))) {
                             History combined = combineHistories(current, h);
                             if (combined != null) {
+                                applications.add(List.of(current.mainIndex, h.mainIndex));
 
                                 HashSet<String> outscopes = new HashSet<>();
                                 Integer index = firstScopingModifier(current.indexSet);
@@ -1259,6 +1306,9 @@ public class LLProver1 extends LLProver {
                         result.discharges = h1.category.right.left.discharges;
                         result.requirements = h1.category.right.right.dischargeRequirements();
                     }
+
+                    // A partial result stays in its functor's stage; a saturated one belongs to no stage.
+                    result.stage = result.category.left != null ? h1.stage : null;
 
                     //add discriminants
                     result.scopeDiscriminants.addAll(h1.scopeDiscriminants);
@@ -1916,6 +1966,7 @@ public class LLProver1 extends LLProver {
                 Premise compiledPremise = new Premise(p.getPremiseIDs(), p.getSemTerm(), compiledGlue);
                 compiledPremise.setSourceIndex(p.getSourceIndex());
                 compiledPremise.setInsitu(p.isInsitu());
+                compiledPremise.stage = p.stage;
 
                 assumption.getGlueTerm().assumptions2.add(assumption);
 

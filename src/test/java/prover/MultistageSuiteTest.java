@@ -44,7 +44,7 @@ import static org.junit.jupiter.api.Assumptions.assumeFalse;
  *
  * Two checks per case:
  * - the solutions equal the baseline in multistage/reference-llprover3.txt, recorded from LLProver3
- *   (the multistage prover) on 2026-11-07, before it is merged into LLProver1;
+ *   (the former multistage prover) on 2026-11-07; LLProver1, into which it was merged, reproduces it;
  * - the solution count equals the suite's annotation, except for the listed known deviations.
  * A third check sends all cases as one structured /deduce request (one proof input each), where
  * the controller repacks the parsed sets and must carry each set's stage graph along.
@@ -54,8 +54,8 @@ import static org.junit.jupiter.api.Assumptions.assumeFalse;
  */
 class MultistageSuiteTest {
 
-    /** The prover the suite checks. Switch to the merged prover once multistage lives in LLProver1. */
-    private static final int PROVER_UNDER_TEST = Settings.Multi;
+    /** The prover the suite checks: LLProver1, which holds the multistage derivation since the merge. */
+    private static final int PROVER_UNDER_TEST = Settings.LEV;
 
     private static final String SUITE = "/multistage/multistage.txt";
     private static final String REFERENCE = "/multistage/reference-llprover3.txt";
@@ -65,7 +65,7 @@ class MultistageSuiteTest {
 
     /** Cases whose annotated count the baseline prover does not reach; their reference still pins today's output. */
     private static final Map<String, String> KNOWN_DEVIATIONS = Map.of(
-            "15", "LLProver3 finds 1 of the annotated 2 (baseline 2026-11-07)");
+            "15", "finds 1 of the annotated 2, as LLProver3 did (baseline 2026-11-07)");
 
     record Case(String label, String title, int expected, List<String> lines) {
         @Override
@@ -141,7 +141,7 @@ class MultistageSuiteTest {
         StringBuilder out = new StringBuilder();
         for (Case c : cases) {
             out.append("== ").append(c.label()).append('\n');
-            for (String solution : solutions(c, Settings.Multi)) {
+            for (String solution : solutions(c, PROVER_UNDER_TEST)) {
                 out.append(solution).append('\n');
             }
         }
