@@ -142,10 +142,9 @@ public class WorkbenchMain {
                         settings.setProverType(0);
                     } else if (arg2.equals("1") || arg2.equals("LEV")) {
                         settings.setProverType(1);
-                    } else if (arg2.equals("2")) {
-                        settings.setProverType(2);
-                    } else if (arg2.equals("3")) {
-                        settings.setProverType(3);
+                    } else {
+                        // Staged input needs no prover of its own: LEV proves it.
+                        throw new IllegalArgumentException("-pr " + arg2 + ": unknown prover (0/HEPPLE, 1/LEV)");
                     }
                     break;
 
@@ -463,15 +462,7 @@ public class WorkbenchMain {
 
         LLProver prover;
 
-        if (settings.getProverType() == 0) {
-            prover = new LLProver2(settings,outputFileBuilder);
-        } else if (settings.getProverType() == Settings.LEV || settings.getProverType() == Settings.Multi) {
-            // Multistage proving is part of LLProver1; index 2 stays accepted for saved settings.
-            prover = new LLProver1(settings,outputFileBuilder);
-        } else
-        {
-            prover = new LLProver2(settings,outputFileBuilder);
-        }
+        prover = LLProver.forSettings(settings, outputFileBuilder);
 
         try {
             Sequent testseq = new Sequent(lexicalEntries);

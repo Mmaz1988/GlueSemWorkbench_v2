@@ -1643,16 +1643,7 @@ public class GswbController {
 
     private LLProverAndLog createProver(Settings settings) {
         StringBuilder sb = new StringBuilder();
-        LLProver prover = null;
-
-        if (settings.getProverType() == 0) {
-            prover = new LLProver2(settings, sb);
-        } else if (settings.getProverType() == Settings.LEV || settings.getProverType() == Settings.Multi) {
-            // Multistage proving is part of LLProver1; index 2 stays accepted for saved settings.
-            prover = new LLProver1(settings, sb);
-        }
-
-        return new LLProverAndLog(prover, sb);
+        return new LLProverAndLog(LLProver.forSettings(settings, sb), sb);
     }
 
     private List<String> sortedBatchKeys(Set<String> ids) {

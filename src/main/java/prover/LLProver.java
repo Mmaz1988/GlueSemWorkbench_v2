@@ -34,6 +34,27 @@ public abstract class LLProver {
 
     private final static Logger LOGGER = Logger.getLogger(WorkbenchMain.class.getName());
 
+    /**
+     * The prover the settings name: {@link Settings#HEPPLE} (LLProver2) or {@link Settings#LEV}
+     * (LLProver1, which also proves staged input). Any other index is refused: the CLI used to
+     * run Hepple for it without a word, the web service built no prover at all.
+     */
+    public static LLProver forSettings(Settings settings, StringBuilder log) {
+        int type = settings.getProverType();
+        if (type == Settings.HEPPLE) {
+            return new LLProver2(settings, log);
+        }
+        if (type == Settings.LEV) {
+            return new LLProver1(settings, log);
+        }
+        if (type == Settings.FORMER_MULTISTAGE) {
+            // TODO remove with the client's "Multistage" option (PIPELINE_STATUS 3c).
+            LOGGER.warning("Prover index 2 (the former multistage prover) is deprecated; running LEV (1)");
+            return new LLProver1(settings, log);
+        }
+        throw new IllegalArgumentException("Unknown prover type " + type + " (0: HEPPLE, 1: LEV)");
+    }
+
     public LLProver(){}
 
     public abstract void  deduce(Sequent seq) throws ProverException, VariableBindingException;
