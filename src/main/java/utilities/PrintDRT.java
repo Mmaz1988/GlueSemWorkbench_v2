@@ -1,6 +1,9 @@
 package utilities;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
@@ -21,17 +24,16 @@ public class PrintDRT {
         LOGGER.info("Pretty printing DRT structures ...");
         List<String> drtSolutions = new ArrayList<>();
 
-        File tmpDir = new File("gswb_resources/tmp");
-
-        // Clean up or recreate temporary directory
-        if (tmpDir.exists()) {
-            File[] files = tmpDir.listFiles();
-            if (files != null) {
-                for (File file : files) file.delete();
-            }
-            tmpDir.delete();
+        // A directory of its own per call: one fixed gswb_resources/tmp, deleted and recreated by
+        // every render, let concurrent requests remove each other's files mid-run.
+        File tmpDir;
+        try {
+            Path base = Paths.get("gswb_resources", "tmp");
+            Files.createDirectories(base);
+            tmpDir = Files.createTempDirectory(base, "drt-").toFile();
+        } catch (IOException e) {
+            throw new UncheckedIOException("Could not create a directory for the DRT rendering", e);
         }
-        tmpDir.mkdir();
         LOGGER.fine("Created temporary directory: " + tmpDir.getAbsolutePath());
 
         File gswbFile = new File(tmpDir, "gswbFile.txt");
