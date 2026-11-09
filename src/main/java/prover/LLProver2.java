@@ -90,12 +90,23 @@ public class LLProver2 extends LLProver{
 
 
         getLOGGER().fine("Starting compilation process...");
+        // The fail explanation is a static buffer read only by the CLI: record into it only when an
+        // explanation was asked for, and start it afresh for each deduction (it grew without bound
+        // in the web service, and mixed earlier proofs into later explanations).
+        boolean recordExplanation = getSettings().isExplanationRequested();
+        if (recordExplanation) {
+            main.failExplainer.reset();
+        }
         for (Premise p : currentSequent.getLhs()) {
-            main.failExplainer.addInitialNonCompiledPremise(p);
+            if (recordExplanation) {
+                main.failExplainer.addInitialNonCompiledPremise(p);
+            }
 
             List<Premise> compiled = convert(p);
-            
-            main.failExplainer.addCompiledPremises(compiled);
+
+            if (recordExplanation) {
+                main.failExplainer.addCompiledPremises(compiled);
+            }
 
             agenda.addAll(compiled);
         }

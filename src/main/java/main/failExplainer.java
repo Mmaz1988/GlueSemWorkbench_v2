@@ -7,6 +7,16 @@ import java.util.*;
 public class failExplainer {
 	private static StringBuilder explanationString = new StringBuilder();
 
+	/** Starts the record of a new deduction; the explanation covers only that deduction's premises. */
+	public static void reset() {
+		explanationString.setLength(0);
+	}
+
+	/** What has been recorded so far (for tests). */
+	static String recorded() {
+		return explanationString.toString();
+	}
+
 	private static class structToKeepIntValue {
 		public int index;
 		public int value;

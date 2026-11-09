@@ -158,8 +158,10 @@ public class WorkbenchMain {
                 case ("-proveGoal"): {
                     if (i + 1 >= args.length)
                         searchForGoal = "";
-                    else
+                    else {
                         searchForGoal = args[i + 1];
+                        settings.setGoalSearch(true);
+                    }
                     break;
                 }
 

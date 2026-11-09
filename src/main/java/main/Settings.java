@@ -69,6 +69,8 @@ public class Settings {
 
     private String explanation = "";
     private boolean explainFail = false;
+    // The CLI's -proveGoal: explain a failed proof against that goal.
+    private boolean goalSearch = false;
     public static boolean printIDs = false;
     private boolean assureGlueParsing = false;
 
@@ -229,6 +231,19 @@ public class Settings {
 
     public void setExplainFail(boolean explainFail) {
         this.explainFail = explainFail;
+    }
+
+    public boolean isGoalSearch() {
+        return this.goalSearch;
+    }
+
+    public void setGoalSearch(boolean goalSearch) {
+        this.goalSearch = goalSearch;
+    }
+
+    /** Whether a failed proof will be explained (failExplainer), so the prover records what it needs. */
+    public boolean isExplanationRequested() {
+        return this.explainFail || this.goalSearch;
     }
 
     public boolean isAssureGlueParsing() {
