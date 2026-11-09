@@ -38,9 +38,6 @@ public class Settings {
     //Provers
     public static  final int HEPPLE = 0;
     public static final int LEV = 1;
-    /** The former multistage prover (LLProver3), merged into LEV. Accepted as LEV, with a
-     *  warning, only until the client stops offering it; then removed. */
-    public static final int FORMER_MULTISTAGE = 2;
 
     //resources
     public String resources = "gswb_resources/";

@@ -47,11 +47,6 @@ public abstract class LLProver {
         if (type == Settings.LEV) {
             return new LLProver1(settings, log);
         }
-        if (type == Settings.FORMER_MULTISTAGE) {
-            // TODO remove with the client's "Multistage" option (PIPELINE_STATUS 3c).
-            LOGGER.warning("Prover index 2 (the former multistage prover) is deprecated; running LEV (1)");
-            return new LLProver1(settings, log);
-        }
         throw new IllegalArgumentException("Unknown prover type " + type + " (0: HEPPLE, 1: LEV)");
     }
 

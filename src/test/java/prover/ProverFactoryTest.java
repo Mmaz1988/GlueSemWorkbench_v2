@@ -27,12 +27,9 @@ class ProverFactoryTest {
     }
 
     @Test
-    void theFormerMultistageIndexRunsLevUntilTheClientDropsIt() {
-        assertInstanceOf(LLProver1.class, prover(Settings.FORMER_MULTISTAGE));
-    }
-
-    @Test
     void anyOtherIndexIsRefused() {
+        // 2 was the multistage prover; the client reads a saved 2 as Lev.
+        assertThrows(IllegalArgumentException.class, () -> prover(2));
         assertThrows(IllegalArgumentException.class, () -> prover(3));
         assertThrows(IllegalArgumentException.class, () -> prover(-1));
     }
