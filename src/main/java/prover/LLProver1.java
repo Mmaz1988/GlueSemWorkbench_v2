@@ -827,14 +827,18 @@ public class LLProver1 extends LLProver {
 
     /**
      * Keeps the histories with maximal index sets: a history is dropped if a kept one covers all its
-     * indices, and it replaces every kept history whose indices it covers.
+     * indices, and it replaces every kept history whose indices it covers. Of histories with the same
+     * index set -- the same premises in another scope order, e.g. "not" and "a present" in a relative
+     * clause -- the one closest to the surface order stays (fewest {@link #surfaceOrderViolationCount}),
+     * not the one derived first; on a tie the earlier one.
      */
     List<History> noScopeCompress(List<History> histories) {
         List<History> chart = new ArrayList<>();
         for (History current : histories) {
             boolean subsumed = false;
             for (History h : chart) {
-                if (h.indexSet.containsAll(current.indexSet)) {
+                if (h.indexSet.containsAll(current.indexSet)
+                        && !(current.indexSet.containsAll(h.indexSet) && closerToSurface(current, h))) {
                     subsumed = true;
                     break;
                 }
@@ -847,6 +851,10 @@ public class LLProver1 extends LLProver {
         }
         getLOGGER().fine("Discarded " + (histories.size() - chart.size()) + " histories");
         return chart;
+    }
+
+    private boolean closerToSurface(History candidate, History kept) {
+        return surfaceOrderViolationCount(candidate) < surfaceOrderViolationCount(kept);
     }
 
     /**
