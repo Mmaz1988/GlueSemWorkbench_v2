@@ -18,13 +18,30 @@
 package utilities;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Fresh variable names for alpha-renaming and connector nodes. The used names are a pool per
+ * thread: one deduction (a request on the GSWB server) parses and proves on one thread, from a
+ * pool emptied by {@link #resetVars()} before it starts and after it ends, so deductions that run
+ * at the same time never hand out each other's names. A pool holds at most {@code MAXINDEX - 1}
+ * indexed names per reserved letter; a deduction that needs more fails with
+ * {@link VariablePoolExhaustedException} rather than going on with a null name.
+ */
 public abstract class LexVariableHandler {
-    //TODO reset indices when max is reached
     private static final int MAXINDEX = 1000;
 
+    /** No fresh name of a type is left in this deduction's pool. */
+    public static class VariablePoolExhaustedException extends IllegalStateException {
+        public VariablePoolExhaustedException(variableType type) {
+            super("No fresh " + type + " variable left (" + (MAXINDEX - 1)
+                    + " indices per letter used in this deduction)");
+        }
+    }
+
     private static Integer sentenceID;
-    private static Integer connectorID;
+    // Connector node names only need to be distinct; one counter for all threads.
+    private static final AtomicInteger connectorID = new AtomicInteger(-1);
     private static int senteceIDmax = 1000;
 
     public enum variableType{
@@ -52,11 +69,12 @@ Possibly add more types, e.g. SemVarE, SemVarT etc.
     }
 
 
-    private static HashMap<variableType,List<String>> usedVariables = usedVars();
+    private static final ThreadLocal<HashMap<variableType,List<String>>> usedVariables =
+            ThreadLocal.withInitial(LexVariableHandler::usedVars);
 
 
     //Instantiates memory for used vars
-    private static HashMap usedVars() {
+    private static HashMap<variableType,List<String>> usedVars() {
         HashMap<variableType, List<String>> usedVars = new HashMap<>();
 
         usedVars.put(variableType.LLvar,
@@ -171,15 +189,7 @@ Possibly add more types, e.g. SemVarE, SemVarT etc.
     {
         if (varType.equals(variableType.connectorNode))
         {
-            if (connectorID == null)
-            {
-                connectorID = 0;
-            }
-            else
-            {
-                connectorID++;
-            }
-            return "c" + connectorID;
+            return "c" + connectorID.incrementAndGet();
         }
 
         if (varType.equals(variableType.SentenceID)) {
@@ -201,12 +211,13 @@ Possibly add more types, e.g. SemVarE, SemVarT etc.
         }
 
         List<String> variables = reservedVariables.get(varType);
+        List<String> used = usedVariables.get().get(varType);
 
             for (String var : variables)
             {
-                if (!usedVariables.get(varType).contains(var))
+                if (!used.contains(var))
                 {
-                    usedVariables.get(varType).add(var);
+                    used.add(var);
                     return var;
                 }
             }
@@ -218,32 +229,33 @@ Possibly add more types, e.g. SemVarE, SemVarT etc.
                 for (String var : variables) {
 
                     String varPrime = var + i;
-                    if (!usedVariables.get(varType).
-                            contains(varPrime)) {
-                        usedVariables.get(varType).add(varPrime);
+                    if (!used.contains(varPrime)) {
+                        used.add(varPrime);
                         return varPrime;
                     }
                 }
                 i++;
             }
-        return null;
+        throw new VariablePoolExhaustedException(varType);
     }
 
+    /** Empties this thread's pool: before and after each deduction. */
     public static void resetVars()
     {
-        usedVariables = usedVars();
+        usedVariables.set(usedVars());
     }
 
 
     //setters and Getters
 
 
+    /** This thread's pool. */
     public static HashMap<variableType, List<String>> getUsedVariables() {
-        return usedVariables;
+        return usedVariables.get();
     }
 
     public static void setUsedVariables(HashMap<variableType, List<String>> usedVariables) {
-        LexVariableHandler.usedVariables = usedVariables;
+        LexVariableHandler.usedVariables.set(usedVariables);
     }
 
 

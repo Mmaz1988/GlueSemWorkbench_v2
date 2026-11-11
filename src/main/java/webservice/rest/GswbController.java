@@ -218,8 +218,21 @@ public class GswbController {
         return "\"" + (oneLine.length() > 120 ? oneLine.substring(0, 117) + "..." : oneLine) + "\"";
     }
 
+    /** One deduction, on a variable pool of its own: parsing registers the meaning constructors'
+     *  variables in it and the prover draws fresh names from it, so it is emptied before the
+     *  parse and after the run, also when the run fails. */
     private SingleRunResult deduceOneQuietly(GswbRequest request, RunContext ctx, GlueParser gp,
                                              boolean batchMode, boolean includeDerivation) throws Exception {
+        LexVariableHandler.resetVars();
+        try {
+            return parseAndRun(request, ctx, gp, batchMode, includeDerivation);
+        } finally {
+            LexVariableHandler.resetVars();
+        }
+    }
+
+    private SingleRunResult parseAndRun(GswbRequest request, RunContext ctx, GlueParser gp,
+                                        boolean batchMode, boolean includeDerivation) throws Exception {
         if (request.proofs != null && !request.proofs.isEmpty()) {
             ParsedProofInputs parsed = parseProofInputs(request.proofs, gp);
             LOGGER.fine("Parsed structured proof inputs: records=" + request.proofs.size()
@@ -1197,8 +1210,6 @@ public class GswbController {
         List<GswbDiscriminant> outputDiscriminants =
                 toOutputDiscriminants(formatted.finalScopeDiscriminants, finalMcDiscriminants, origins);
 
-        LexVariableHandler.resetVars();
-
         String log = run.log;
         if (ctx.settings.isDebugging()) {
             log = prover.db.toString() + "\n" + log;
@@ -1340,6 +1351,9 @@ public class GswbController {
                 sb.setLength(0);
                 prover.currentProofOrigin = null;
 
+            } catch (LexVariableHandler.VariablePoolExhaustedException e) {
+                // Not this MC set's problem: every later set would lose readings too.
+                throw e;
             } catch (Exception e) {
                 e.printStackTrace();
             }
